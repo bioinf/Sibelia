@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include <cctype>
-#include <cstdint>
+#include <stdint.h>
 #include <sstream>
 #include <iterator>
 #include <iostream>

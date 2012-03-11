@@ -12,7 +12,7 @@ namespace SyntenyBuilder
 			basePowK *= HASH_BASE;
 		}
 
-		uint64_t nowHash = CalculateKMerHash(sequence_.cbegin());
+		uint64_t nowHash = CalculateKMerHash(sequence_.begin());
 		int nowVertex = InsertVertex(nowHash, 0);
 		for(size_t i = 0; i < sequence_.size() - k_ + 1; i++)
 		{			

@@ -1,8 +1,6 @@
 #include "fastareader.h"
 #include "debruijngraph.h"
 
-#include <conio.h>
-
 int main(int argc, char * argv[])
 {
 	if(argc != 3)
