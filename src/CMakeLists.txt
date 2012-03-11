@@ -1,6 +1,3 @@
 cmake_minimum_required(VERSION 2.8)
 project(SyntenyBuilder CXX)
-if(MSVC)
-	set(CMAKE_EXE_LINKER_FLAGS /MACHINE:X64)
-endif(MSVC)
-add_executable(SyntenyBuilder main.cpp)
+add_executable(SyntenyBuilder main.cpp fastareader.cpp debruijngraph.cpp)
