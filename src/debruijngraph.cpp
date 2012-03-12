@@ -41,7 +41,7 @@ namespace SyntenyBuilder
 		//Check all possible edges
 		for(size_t i = 0; i < alphabet_.size(); i++)
 		{
-			temp.back() = alphabet_[i];
+			*temp.rbegin() = alphabet_[i];
 			ShiftTable::iterator found = kMerTable_.find(temp.begin());
 			if(found != kMerTable_.end())
 			{
