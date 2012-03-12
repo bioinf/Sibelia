@@ -3,10 +3,10 @@
 
 int main(int argc, char * argv[])
 {
-	if(argc != 3)
+	if(argc < 3)
 	{
 		std::cerr << "Program form building synteny blocks from a FASTA file" << std::endl;
-		std::cerr << "Usage: SyntenyBuilder <K-mer size> <input filename>" << std::endl;
+		std::cerr << "Usage: SyntenyBuilder <K-mer size> <input filename> [-debug]" << std::endl;
 	}
 	else
 	{
@@ -32,7 +32,10 @@ int main(int argc, char * argv[])
 
 			sequence.erase(std::remove(sequence.begin(), sequence.end(), 'n'), sequence.end());
 			SyntenyBuilder::DeBruijnGraph graph(sequence, k);
-			//graph.DebugOutput(std::cout);
+			if(argc > 3 && argv[3] == std::string("-debug"))
+			{
+				graph.DebugOutput(std::cout);
+			}
 		}
 		else
 		{

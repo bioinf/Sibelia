@@ -1,7 +1,6 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-#include <list>
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -11,6 +10,7 @@
 #include <iterator>
 #include <iostream>
 #include <algorithm>
+#include <google/sparse_hash_map>
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
 	TypeName(const TypeName&); \

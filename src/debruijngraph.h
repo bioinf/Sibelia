@@ -17,30 +17,36 @@ namespace SyntenyBuilder
 		~DeBruijnGraph();
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DeBruijnGraph);
+		static const std::string alphabet_;
 
-		static const uint64_t HASH_BASE = 57;
-		static const int VERTEX_NOT_FOUND = -1;
-		static const size_t HASH_TABLE_MAX_SIZE;		
+		class KMerEqualTo
+		{
+		public:
+			KMerEqualTo(int k): k_(k) { }
+			bool operator()(std::string::iterator it1, std::string::iterator it2) const
+			{
+				return std::mismatch(it1, it1 + k_, it2).first == it1 + k_;
+			}
+		private:
+			int k_;
+		};
 
-		//Each vertex is represented as a k-mer
+		class KMerHashFunction
+		{
+		public:
+			KMerHashFunction(int k): k_(k){ }
+			size_t operator()(std::string::iterator it) const;
+		private:
+			int k_;
+			static const size_t HASH_BASE = 57;
+		};
+		
+		void ListOutEdges(std::string::iterator shift, std::vector<std::string::iterator> & edge) const;
+
 		const int k_;
-		//Whole sequence
 		std::string sequence_;
-		//List of the vertices. vertex_[i] = shift in original sequence,
-		//that represents contents (k-mer string) of the i-th vertex
-		std::vector<size_t> vertex_;
-		//Hash table for storing vertices
-		std::vector<std::vector<int> > vertexTable_;
-		uint64_t basePowK;
-		//Adjacency list of the graph
-		std::vector<std::vector<std::pair<int, int> > > adjacencyList_;
-
-		//Methods for dealing with vertices/vertex numbers
-		int InsertVertex(uint64_t hashValue, size_t shift);		
-		int FindVertex(uint64_t hashValue, std::string::const_iterator it) const;
-		uint64_t CalculateKMerHash(std::string::const_iterator it) const;
-		uint64_t ShiftKMerHash(uint64_t hashValue, char firstChar, char nextChar) const;
-		//Other methods
+		typedef google::sparse_hash_map<std::string::iterator, int, KMerHashFunction, KMerEqualTo> ShiftTable; 
+		mutable ShiftTable kMerTable_;
 	};
 }
 
