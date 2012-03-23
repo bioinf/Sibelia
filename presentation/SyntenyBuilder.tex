@@ -126,11 +126,12 @@ efficiently solve this problem.
 \begin{frame}
 \frametitle{Challenges}
 \begin{itemize}
-\item Variations in synteny blocks generate cycles, so we need to simplify graph
+\item Variations in synteny blocks generate cycles, so we need to simplify the graph
 \item Double strandness: conserved regions may occur on both strands. Example: \\
 5' \textcolor{Green}{AACC}GGTT 3' \\
 3' TTGG\textcolor{Green}{CCAA} 5'
 \item Such blocks are reversed complementary to each other \( \Rightarrow \) no non-branching paths
+\item Double-strandness can be resolved by gluing complementary vertices
 \item Memory efficiency
 \end{itemize}
 \end{frame}
@@ -145,36 +146,28 @@ efficiently solve this problem.
 \end{frame}
 
 \begin{frame}
-\frametitle{Second Example: SNP}
+\frametitle{Second Example: Bulge}
 \begin{figure}
 \centering
 \includegraphics[scale = 0.60]{Figure4.pdf}
-\small \caption{In this example SNP generates so-called "bulge" cycle}
+\small \caption{In this example difference in single nucleotide generates so-called "bulge" cycle}
 \end{figure}
-\end{frame}
-
-\begin{frame}
-\frametitle{Double Strands: Possible Solutions}
-\begin{itemize}
-\item Colored de Bruijn graph. Build two graphs for the direct and the reverse-complementary sequences. Color edges in each graph and merge graphs
-\item Bidirected graph. Each vertex has two parts -- direct and reverse complementary. Every edge has two directions (one on each end) to indicate which part of the vertex we use
-\item Simplest possible solution -- glue \( k \)-mers that are reverse complementary
-\end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Third Example: Double Strands}
 \begin{figure}
 \centering
-\includegraphics[scale = 0.60]{Figure5.pdf}
-\small \caption{Gluing reverse complementary edges helps to resolve double strandness issue}
+\includegraphics[scale = 0.50]{Figure5.pdf}
+\small \caption{a) Ordinary de Bruijn graph \\ b) Gluing reverse complementary vertices helps to resolve double strandness issue}
 \end{figure}
 \end{frame}
 
 \begin{frame}
 \frametitle{Methods and expected results}
 \begin{itemize}
-\item Glue complementary \(k\)-mers togetther
+\item Build de Bruijn graph
+\item Glue complementary vertices together
 \item Simplify graph by deleting short cycles \\ (with size less than some \( \Delta \))
 \item Note that our graph simplification is different from the graph simplification in genome assemblers
 \item Find non branching paths = synteny blocks
@@ -188,13 +181,13 @@ efficiently solve this problem.
 Now:
 \begin{itemize}
 \item Program that can find absolutely conserved regions on one strand
-\item Handles 25 MB Arabidopsis chromosome \\ with  \( \le \) 500 MB RAM
+\item Handles one 25 MB Arabidopsis chromosome
 \end{itemize}
 Near future:
 \begin{itemize}
 \item Add graph simplification
 \item Resolve double strandness issue
-\item Get rid of hashtables, use suffix arrays \( \Rightarrow \) reduced memory consumption
+\item Get rid of hashtables, use suffix arrays to reduce memory consumption
 \end{itemize}
 \end{frame}
 
