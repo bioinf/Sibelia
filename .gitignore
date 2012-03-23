@@ -1,1 +1,9 @@
 build/
+presentation/*.log
+presentation/*.nav
+presentation/*.out
+presentation/*.aux
+presentation/*.snm
+presentation/*.synctex.gz
+presentation/*.tex
+presentation/*.toc
