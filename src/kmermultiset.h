@@ -50,8 +50,8 @@ namespace SyntenyBuilder
 	private:
 		DISALLOW_COPY_AND_ASSIGN(KMerMultiSet);		
 		
-		static const int DELETED_KEY = -1;
-		static const int AUXILARY_KEY = -2;
+		static const int DELETED_KEY;
+		static const int AUXILARY_KEY;
 
 		int k_;		
 		std::string::const_iterator sequence_;

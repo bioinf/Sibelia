@@ -2,6 +2,9 @@
 
 namespace SyntenyBuilder
 {
+	const int KMerMultiSet::DELETED_KEY = -1;
+	const int KMerMultiSet::AUXILARY_KEY = -2;
+
 	bool KMerMultiSet::KMerEqualTo::Mismatch(std::string::const_iterator it1, std::string::const_iterator it2) const
 	{
 		for(int i = 0; i < k_; i++)
