@@ -3,17 +3,18 @@
 
 int main(int argc, char * argv[])
 {
-	if(argc < 3)
+	if(argc < 4)
 	{
 		std::cerr << "Program form building synteny blocks from a FASTA file" << std::endl;
-		std::cerr << "Usage: SyntenyBuilder <K-mer size> <input filename> [-debug]" << std::endl;
+		std::cerr << "Usage: SyntenyBuilder <k-mer size> <minimum cycle size> <input filename> [-debug]" << std::endl;
 	}
 	else
 	{
 		int k = atoi(argv[1]);
-		std::string fileName(argv[2]);
+		int d = atoi(argv[2]);
+		std::string fileName(argv[3]);
 
-		if(k > 1)
+		if(k > 1 && k > 1)
 		{
 			SyntenyBuilder::FASTAReader reader(fileName.c_str());
 			if(!reader.IsOk())
@@ -32,14 +33,37 @@ int main(int argc, char * argv[])
 
 			sequence.erase(std::remove(sequence.begin(), sequence.end(), 'n'), sequence.end());
 			SyntenyBuilder::DeBruijnGraph graph(sequence, k);
-			if(argc > 3 && argv[3] == std::string("-debug"))
+			bool debug = argc > 4 && argv[4] == std::string("-debug");
+			if(debug)
 			{
-				graph.DebugOutput(std::cout);
+				std::cerr << "Before simplification: " << std::endl;
+				graph.DebugOutput(std::cerr);
+				std::cerr << std::string(80, '-');
 			}
+			
+			//graph.Simplify(d);
+
+			if(debug)
+			{
+				std::cerr << "After simplification: " << std::endl;
+				graph.DebugOutput(std::cerr);
+				std::cerr << std::string(80, '-');
+			}
+
+			graph.ListNonBranchingPaths(std::cout);
 		}
 		else
 		{
-			std::cerr << "K-mer size is incorrect"; 
+			if(k <= 1)
+			{
+				std::cerr << "K-mer size is incorrect" << std::endl;
+			}
+
+			if(d < 0)
+			{
+				std::cerr << "Cycle size is incorrect" << std::endl;
+			}
+
 			return -1;
 		}
 	}
