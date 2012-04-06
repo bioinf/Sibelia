@@ -10,11 +10,13 @@
 #include <set>
 #include <map>
 #include <list>
-#include <deque>
+#include <memory>
 #include <sstream>
 #include <iterator>
 #include <iostream>
+#include <iterator>
 #include <algorithm>
+#include <boost/shared_ptr.hpp>
 #include <google/sparse_hash_map>
 #include <google/sparse_hash_set>
 

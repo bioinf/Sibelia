@@ -1,5 +1,5 @@
 #include "fastareader.h"
-#include "debruijngraph.h"
+#include "graphalgorithm.h"
 
 int main(int argc, char * argv[])
 {
@@ -32,25 +32,21 @@ int main(int argc, char * argv[])
 			}
 
 			sequence.erase(std::remove(sequence.begin(), sequence.end(), 'n'), sequence.end());
-			SyntenyBuilder::DeBruijnGraph graph(sequence, k);
+			SyntenyBuilder::DeBruijnGraph g(sequence, k);
 			bool debug = argc > 4 && argv[4] == std::string("-debug");
 			if(debug)
 			{
 				std::cerr << "Before simplification: " << std::endl;
-				graph.DebugOutput(std::cerr);
+				SyntenyBuilder::GraphAlgorithm::DebugOutput(g, std::cerr);
 				std::cerr << std::string(80, '-');
 			}
 			
-			//graph.Simplify(d);
 
 			if(debug)
 			{
 				std::cerr << "After simplification: " << std::endl;
-				graph.DebugOutput(std::cerr);
 				std::cerr << std::string(80, '-');
 			}
-
-			graph.ListNonBranchingPaths(std::cout);
 		}
 		else
 		{

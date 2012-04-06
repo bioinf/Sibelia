@@ -2,6 +2,7 @@
 #define _SYNTENY_UTILITY_H_
 
 #include "common.h"
+#include "skipiterator.h"
 
 namespace SyntenyBuilder
 {
@@ -9,65 +10,12 @@ namespace SyntenyBuilder
 	extern const std::string alphabet_;				
 	extern const std::string complement_;	
 
-	class IsInvalid
-	{
-	public:
-		IsInvalid(const std::vector<char> & invalid): invalid_(&invalid) {}
-		bool operator () (int position)
-		{
-			return (*invalid_)[position] == 1;
-		}
-	private:
-		const std::vector<char> * invalid_;
-	};
-	
-	class SetInvalid
-	{
-	public:
-		SetInvalid(std::vector<char> & invalid, int shift): shift_(shift), invalid_(&invalid) {}
-		void operator () (int position)
-		{
-			(*invalid_)[position + shift_] = true;
-		}
-	private:
-		int shift_;
-		std::vector<char> * invalid_;
-	};
+	typedef char Bool;
+	typedef SkipIterator<std::string::iterator> StringIterator;
+	typedef SkipConstIterator<std::string::const_iterator> StringConstIterator;
+	typedef SkipIterator<std::string::reverse_iterator> StringReverseIterator;
+	typedef SkipConstIterator<std::string::const_reverse_iterator> StringConstReverseIterator;
 			
-	//Structure that contains multiple copies of equivalent edges.
-	struct EdgeList
-	{		
-	public:
-		std::vector<int> direct;
-		std::vector<int> revComp;
-		EdgeList() { }
-		EdgeList(const std::vector<int> & direct, const std::vector<int> & revComp):
-				direct(direct), revComp(revComp) {}
-		size_t Size() const
-		{
-			return direct.size() + revComp.size();
-		}
-
-		void Clear()
-		{
-			direct.clear();
-			revComp.clear();
-		}
-
-		size_t Filter(const std::vector<char> & invalid)
-		{
-			direct.erase(std::remove_if(direct.begin(), direct.end(), IsInvalid(invalid)), direct.end());
-			revComp.erase(std::remove_if(revComp.begin(), revComp.end(), IsInvalid(invalid)), revComp.end());
-			return Size();
-		}	
-
-		void Invalidate(std::vector<char> & invalid, int shift) const
-		{
-			std::for_each(direct.begin(), direct.end(), SetInvalid(invalid, shift));
-			std::for_each(revComp.begin(), revComp.end(), SetInvalid(invalid, shift));
-		}
-	};
-
 	struct VisitData
 	{			
 		int classId;			
@@ -90,37 +38,46 @@ namespace SyntenyBuilder
 		}
 	};
 
-	template<class OutputIterator>
-		void BuildReverseComplementary(std::string::const_iterator src, size_t size, OutputIterator out)
+	template<class InputIterator, class OutputIterator>
+		void BuildReverseComplementary(InputIterator it, size_t size, OutputIterator out)
 		{
 			size_t count = 0;
 			OutputIterator start = out;
-			for(std::string::const_iterator iter = src; count < size; iter++)
+			for(; count < size; count++)
 			{
-				if(*iter != DELETED_CHARACTER)
-				{
-					count++;
-					*out++ = complement_[*iter];
-				}
+				*out++ = complement_[*it++];
 			}
 			
 			std::reverse(start, out);
 		}
 
-	template<class OutputIterator>
-		void CopySequence(std::string::const_iterator src, size_t size, OutputIterator out)
+	class RevCompIterator: public std::iterator<std::forward_iterator_tag, char, void> 
+	{
+	public:
+		RevCompIterator(const StringConstReverseIterator & it): it_(it)
 		{
-			size_t count = 0;
-			OutputIterator start = out;std::cout << DELETED_CHARACTER;
-			for(std::string::const_iterator iter = src; count < size; iter++)
-			{
-				if(*iter != DELETED_CHARACTER)
-				{
-					count++;
-					*out++ = *iter;
-				}
-			}
+				
 		}
+
+		char operator *() const
+		{
+			return complement_[*it_];
+		}
+
+		RevCompIterator operator ++ ()
+		{			
+			return RevCompIterator(++it_);
+		}
+
+		RevCompIterator operator ++ (int)
+		{
+			StringConstReverseIterator ret(it_++);
+			return ret;
+		}
+
+	private:
+		StringConstReverseIterator it_;
+	};
 }
 
 #endif 

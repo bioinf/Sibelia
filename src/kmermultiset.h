@@ -1,6 +1,7 @@
 #ifndef _K_MER_MULTI_SET_H_
 
 #include "common.h"
+#include "skipiterator.h"
 
 namespace SyntenyBuilder
 {
