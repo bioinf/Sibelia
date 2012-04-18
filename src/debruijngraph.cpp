@@ -82,7 +82,7 @@ namespace SyntenyBuilder
 				edge.push_back(std::vector<Edge>());
 				std::transform(positive.begin(), positive.end(), std::back_inserter(edge.back()),
 					boost::bind(&DeBruijnGraph::MakePositiveEdge, this, _1));
-				std::transform(positive.begin(), positive.end(), std::back_inserter(edge.back()),
+				std::transform(negative.begin(), negative.end(), std::back_inserter(edge.back()),
 					boost::bind(&DeBruijnGraph::MakeNegativeEdge, this, _1));
 			}
 		}
@@ -104,7 +104,7 @@ namespace SyntenyBuilder
 	void DeBruijnGraph::InvalidateBefore(int pos)
 	{
 		StrandIterator it = sequence.NegativeByIndex(pos);
-		for(int i = 0; i < edgeSize_; i++, it--)
+		for(int i = 0; i < edgeSize_ && it.Valid(); i++, it++)
 		{
 			StrandIterator end = sequence.PositiveByIndex(it.GetPosition());
 			if(Advance(end, edgeSize_ - 1).Valid())
@@ -117,7 +117,7 @@ namespace SyntenyBuilder
 	void DeBruijnGraph::InvalidateAfter(int pos)
 	{
 		StrandIterator it = sequence.NegativeByIndex(pos);
-		for(int i = 0; i < edgeSize_; i++, it--)
+		for(int i = 0; i < edgeSize_ && it.Valid(); i++, it++)
 		{
 			StrandIterator end = sequence.PositiveByIndex(it.GetPosition());
 			if(Advance(end, edgeSize_ - 1).Valid())

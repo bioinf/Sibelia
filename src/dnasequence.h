@@ -292,7 +292,7 @@ namespace SyntenyBuilder
 
 		void Optimize()
 		{
-			for(size_t i = 0; i < sequence_.size(); i++)
+			for(size_t i = 0; i < sequence_.size(); i++) 
 			{
 				if(sequence_[i] == DELETED_CHARACTER)
 				{
@@ -307,6 +307,12 @@ namespace SyntenyBuilder
 				refresh_();
 			}
 		}
+
+		template<class Iterator>
+			void SpellRaw(Iterator out)
+			{
+				std::copy(sequence_.begin(), sequence_.end(), out);
+			}
 
 		int Size() const
 		{
