@@ -8,10 +8,12 @@ namespace SyntenyBuilder
 	class GraphAlgorithm
 	{
 	public:
-		static void Simplify(DeBruijnGraph & g, int minCycleSize);
-		static void ListNonBranchingPaths(const DeBruijnGraph & g);
-		static void DebugOutput(const DeBruijnGraph & g, std::ostream & out);
+		typedef DeBruijnGraph Graph;
+		static void Simplify(Graph & g, int minCycleSize);		
+		static void ListNonBranchingPaths(Graph & g, std::ostream & out);
 	};
+
+	std::ostream& operator << (std::ostream & out, DeBruijnGraph & g);	
 }
 
-#endif _GRAPH_ALGORITHM_H
+#endif

@@ -16,6 +16,7 @@ int main(int argc, char * argv[])
 
 		if(k > 1 && k > 1)
 		{
+			std::cout.sync_with_stdio(false);
 			SyntenyBuilder::FASTAReader reader(fileName.c_str());
 			if(!reader.IsOk())
 			{
@@ -30,23 +31,34 @@ int main(int argc, char * argv[])
 			{
 				sequence[i] = tolower(sequence[i]);
 			}
-
+			
 			sequence.erase(std::remove(sequence.begin(), sequence.end(), 'n'), sequence.end());
+			std::cerr << "Building the graph...";
 			SyntenyBuilder::DeBruijnGraph g(sequence, k);
+			std::cerr << "Done." << std::endl;
 			bool debug = argc > 4 && argv[4] == std::string("-debug");
 			if(debug)
 			{
-				std::cerr << "Before simplification: " << std::endl;
-				SyntenyBuilder::GraphAlgorithm::DebugOutput(g, std::cerr);
-				std::cerr << std::string(80, '-');
+				std::ofstream before((fileName + "_before.dot").c_str());
+				before << g;
 			}
-			
+
+			std::cerr << "Simplifying the graph...";
+			SyntenyBuilder::GraphAlgorithm::Simplify(g, d);
+			std::cerr << "Done." << std::endl;
 
 			if(debug)
 			{
-				std::cerr << "After simplification: " << std::endl;
-				std::cerr << std::string(80, '-');
+				std::ofstream after((fileName + "_after.dot").c_str());
+				after << g;
 			}
+
+			std::cerr << "Finding non-branching paths...";
+			SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(g, std::cout);
+			std::cerr << "Done." << std::endl;
+			std::cerr.setf(std::cerr.fixed);
+			std::cerr.precision(2);
+			std::cerr << "Time elapsed: " << double(clock()) / 1000 << std::endl;
 		}
 		else
 		{

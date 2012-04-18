@@ -1,195 +1,272 @@
 #ifndef _DE_BRUIJN_GRAPH_H_
 #define _DE_BRUIJN_GRAPH_H_
 
-#include "kmermultiset.h"
-#include "syntenyutility.h"
-
+#include "dnasequence.h"
+#include "indexmultiset.h"
 
 namespace SyntenyBuilder
 {
-	//This class represents de Bruijn graph. It stores edges (k-mer) in a hash
-	//table. Further, more efficient implementation can be provided. 
+	//This class represents de Bruijn graph. It stores edges (k-mer) in a hash table
 	class DeBruijnGraph
 	{
 	public:				
 		class Edge;
 		class Vertex;
-		class ComplementaryEdge;		
-		typedef boost::shared_ptr<Edge> EdgePtr;
-		typedef boost::shared_ptr<Vertex> VertexPtr;
-		typedef StringConstIterator DirectStrandIterator;
-
-		template<class E>
-			class GraphElementCreator: public std::unary_function<int, E>
-			{
-			public:
-				GraphElementCreator(const DeBruijnGraph * ptr): ptr_(ptr) {}
-				E operator() (int shift_)
-				{
-					return E(shift_, ptr_);
-				}
-			private:
-				const SyntenyBuilder::DeBruijnGraph * ptr_;
-			};
-
-		struct EdgeListPair
-		{			
-			std::vector<Edge> direct;
-			std::vector<ComplementaryEdge> comp;
-			EdgeListPair() { }
-			EdgeListPair(const std::vector<Edge> & direct, const std::vector<ComplementaryEdge> & comp):
-				direct(direct), comp(comp) {}
-
-			size_t Assign(const std::vector<int> & directId, const std::vector<int> & compId, const DeBruijnGraph * graph)
-			{
-				direct.resize(directId.size());
-				comp.resize(compId.size());
-				std::transform(directId.begin(), directId.end(), direct.begin(), GraphElementCreator<Edge>(graph));
-				std::transform(compId.begin(), compId.end(), comp.begin(), GraphElementCreator<ComplementaryEdge>(graph));
-				return Size();
-			}
-
-			void TransformIntoPtr(std::vector<Edge*> & edgePtr)
-			{
-				edgePtr.assign(Size(), 0);
-				std::transform(direct.begin(), direct.end(), edgePtr.end(), std::addressof<DeBruijnGraph::Edge>);
-				std::transform(comp.begin(), comp.end(), edgePtr.end(), std::addressof<DeBruijnGraph::Edge>);
-			}
-
-			template<class F>
-				size_t Filter(F f)
-				{
-					comp.erase(std::remove_if(comp.begin(), comp.end(), f), comp.end());
-					direct.erase(std::remove_if(direct.begin(), direct.end(), f), direct.end());
-					return Size();
-				}			
-
-			void Clear()
-			{
-				comp.clear();
-				direct.clear();				
-			}
-
-			size_t Size() const
-			{
-				return comp.size() + direct.size();
-			}			
-		};								
+		typedef DNASequence::StrandIterator StrandIterator;
+		typedef DNASequence::StrandConstIterator StrandConstIterator;
+		
+		enum DirectionTag
+		{
+			positive,
+			negative
+		};
 
 		class Vertex
 		{
 		public:
-			bool IsNull() const;			
-			bool operator == (const Vertex & vertex) const;
-			bool operator != (const Vertex & vertex) const;			
-			virtual size_t GetHashCode() const;
-			virtual void Spell(std::string::iterator it) const;			
-			//ListOutEdges returns list of the edges (k-mers) that leave vertex located at 
-			//position "shift". Edges are grouped by equivalency -- if two edges are in the
-			//same structure EdgeList, they are equivalent.		
-			size_t ListOutEdges(std::vector<EdgePtr> & edgeList) const;
-			size_t ListOutEdges(std::vector<EdgeListPair> & edgeList) const;
-			Vertex(): shift_(0), graph_(0) {}
-		protected:
-			friend class DeBruijnGraph;			
-			Vertex(int shift, const DeBruijnGraph * graph);
-			Vertex(int shift, int lastChar, const DeBruijnGraph * graph): shift_(shift), lastChar_(lastChar), graph_(graph) {}
-			int shift_;
-			int lastChar_;
+			bool IsNull() const
+			{
+				return graph_ == 0;
+			}
+
+			size_t GetHashCode() const
+			{
+				KMerHashFunction f(graph_->vertexSize_);
+				return f(it_);
+			}
+
+			bool operator == (const Vertex & toCompare) const
+			{
+				if(graph_ != toCompare.graph_)
+				{
+					return false;
+				}
+
+				if(IsNull() || toCompare.IsNull())
+				{
+					return IsNull() && toCompare.IsNull();
+				}
+
+				StrandConstIterator end = Advance(it_, graph_->vertexSize_);
+				return std::mismatch(it_, end, toCompare.it_).first == end;
+			}
+
+			bool operator != (const Vertex & toCompare) const
+			{
+				return !(*this == toCompare);
+			}
+
+			template<class OutputIterator>
+				void Spell(OutputIterator out) const
+				{
+					std::copy_n(it_, graph_->vertexSize_, out);
+				}
+
+			Vertex(): graph_(0) {}
+		private:			
+			Vertex(const DeBruijnGraph * graph, StrandConstIterator it): graph_(graph), it_(it) {}			
 			const DeBruijnGraph * graph_;
+			StrandConstIterator it_;
+			friend class DeBruijnGraph;
 		};
-
-		class ComplementaryVertex: public Vertex
-		{
-		public:
-			size_t GetHashCode() const;
-			ComplementaryVertex() {}
-			void Spell(std::string::iterator it) const;
-		private:
-			friend class DeBruijnGraph;			
-			ComplementaryVertex(int shift, const DeBruijnGraph * graph): Vertex(shift, graph) {}
-			ComplementaryVertex(int shift, int lastChar, const DeBruijnGraph * graph): Vertex(shift, lastChar, graph) {}
-		};
-
+		
 		class Edge
 		{
-		public:			
-			Edge(): graph_(0) {} 
-			bool IsNull() const;
-			size_t GetHashCode() const;
-			virtual VertexPtr EndVertex() const;
-			virtual VertexPtr StartVertex() const;		
-			virtual EdgePtr NextEdge() const;
-			virtual DirectStrandIterator GetPosition() const;
-			virtual char Spell() const;
-		protected:					
-			friend class DeBruijnGraph;
-			Edge(int shift, const DeBruijnGraph * graph);
-			int startPos_;
-			int endPos_;
-			const DeBruijnGraph * graph_;
-		};
-
-		class ComplementaryEdge: public Edge
-		{
 		public:
-			ComplementaryEdge() {}
-			VertexPtr EndVertex() const;
-			VertexPtr StartVertex() const;						
-			EdgePtr NextEdge() const;
-			char Spell() const;
-		protected:			
+			bool IsNull() const
+			{
+				return graph_ == 0;
+			}
+
+			char SpellEnd() const
+			{
+				return *end_;
+			}
+
+			char SpellStart() const
+			{
+				return *start_;
+			}
+
+			DirectionTag Direction() const
+			{
+				return tag_;
+			}
+
+			Vertex StartVertex() const
+			{
+				return graph_->ConstructVertex(start_);
+			}
+
+			Vertex EndVertex() const
+			{
+				return graph_->ConstructVertex(++StrandConstIterator(start_));
+			}
+			
+			Edge NextEdge() const
+			{
+				if(!(++StrandIterator(end_)).Valid())
+				{
+					return Edge();
+				}
+
+				return Edge(graph_, ++StrandIterator(start_), ++StrandIterator(end_), tag_);
+			}
+
+			Edge PreviousEdge() const
+			{
+				StrandIterator prev = --StrandIterator(start_);
+				if(!prev.Valid())
+				{
+					return Edge();
+				}
+
+				return Edge(graph_, prev, --StrandIterator(end_), tag_);
+			}
+
+			size_t Position() const
+			{
+				if(tag_ == positive)
+				{
+					return start_.GetPosition();
+				}
+
+				return end_.GetPosition();
+			}
+			
+			StrandIterator StartIterator() const
+			{
+				return start_;
+			}
+
+			StrandIterator EndIterator() const
+			{
+				return ++StrandIterator(end_);
+			}
+
+			Edge(): graph_(0) {}
+		private:
+			Edge(DeBruijnGraph * graph, StrandIterator start, DirectionTag tag):
+				graph_(graph),
+				start_(start),
+				end_(Advance(start_, graph_->edgeSize_ - 1)),
+				tag_(tag) {}
+			Edge(DeBruijnGraph * graph, StrandIterator start, StrandIterator end, DirectionTag tag):
+				graph_(graph),
+				start_(start),
+				end_(end),
+				tag_(tag) {}
+			DeBruijnGraph * graph_;
+			StrandIterator start_;
+			StrandIterator end_;
+			DirectionTag tag_;
 			friend class DeBruijnGraph;
-			friend class GraphElementCreator<ComplementaryEdge>;
-			void Assign(int shift);
-			ComplementaryEdge(int shift, const DeBruijnGraph * graph);
 		};
+				
+		int VertexSize() const
+		{
+			return vertexSize_;
+		}
 
+		int EdgeSize() const
+		{
+			return edgeSize_;
+		}
+
+		Vertex ConstructVertex(StrandConstIterator it) const
+		{
+			if(Advance(it, vertexSize_ - 1).Valid())
+			{
+				return Vertex(this, it);
+			}
+
+			return Vertex();
+		}
+
+		Edge ConstructPositiveEdge(StrandConstIterator it)
+		{
+			if(Advance(it, edgeSize_ - 1).Valid())
+			{
+				return MakePositiveEdge(it.GetPosition());
+			}
+
+			return Edge();
+		}
+		
+		size_t CountEquivalentEdges(const Edge & edge) const;
+		size_t ListEdges(const Vertex & v, std::vector<Edge> & edge);
+		size_t ListEdgesSeparate(const Vertex & v, std::vector<std::vector<Edge> > & edge);
+		size_t FindEquivalentEdges(const Edge & edge, std::vector<Edge> & ret);
 		DeBruijnGraph(const std::string & sequence, int edgeSize);
-		size_t GetSize() const;
-		size_t GetEdgeSize() const;
-		size_t GetVertexSize() const;
-		//FindEquivalentEdges returns list of the equivalent edges (k-mers). Reverse
-		//complementary variants of the same edge are considered equivalent since we
-		//glue reverse complementary vertices.
-		size_t FindEquivalentEdges(const Edge & edge, EdgeListPair & edgeList) const;
-		//Method for clearing sequence_ from deleted characters.
-		void ClearSequence();
 
-		DirectStrandIterator SequenceBegin() const;
-		DirectStrandIterator SequenceEnd() const;
-		DirectStrandIterator LastVertex() const;
-		DirectStrandIterator LastEdge() const;
-
-		VertexPtr ConstructVertex(DirectStrandIterator it) const;
-		Edge ConstructEdge(DirectStrandIterator it) const;
+		DNASequence sequence;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DeBruijnGraph);				
-		static const int END_OF_SEQUENCE = -1;
-		//Current version of the sequence (after possible simplification)		
-		std::string sequence_;
-		//Original version of the sequence (before doing any modifications)
-		std::string original_;
+		
 		//Length of the k-mer that corresponds to the edge in graph
 		const int edgeSize_;
 		//Length of the (k - 1)-mer that corresponds to the vertex, equals edgeSize_ - 1
 		const int vertexSize_;
-		//Number of the vertices and edges in the graph
-		int edgeCount_;
-		int vertexCount_;		
-		//Map from each position in the current sequence to the original sequence
-		std::vector<int> position_;
+
+		class KMerHashFunction
+		{
+		public:
+			size_t operator ()(StrandConstIterator it) const
+			{
+				size_t base = 1;
+				size_t hash = 0;
+				for(int i = 0; i < k_; i++)
+				{			
+					hash += *it++ * base;
+					base *= HASH_BASE;
+				}		
+
+				return hash;
+			}
+
+			KMerHashFunction(int k): k_(k) {}
+		private:
+			int k_;
+			static const size_t HASH_BASE = 57;
+		};
+		
+		class KMerEqualTo
+		{
+		public:
+			bool operator()(StrandConstIterator it1, StrandConstIterator it2) const
+			{
+				StrandConstIterator end1(Advance(it1, k_));
+				return std::mismatch(it1, end1, it2).first == end1;
+			}
+
+			KMerEqualTo(int k): k_(k) {}
+		private:
+			int k_;
+		};
+
+		class IndexTransformer
+		{
+		public:
+			StrandConstIterator operator()(int index) const
+			{
+				return sequence_->PositiveByIndex(index);
+			}
+
+			IndexTransformer(const DNASequence * sequence): sequence_(sequence){}
+		private:
+			const DNASequence * sequence_;
+		};
+		
+		typedef IndexMultiSet<StrandConstIterator, IndexTransformer, KMerHashFunction, KMerEqualTo> KMerMultiSet;		
 		//Container in which we store all edges
-		KMerMultiSet vertexSet_;
-		KMerMultiSet edgeMultiSet_;		
+		KMerMultiSet edge_;
 
 		void Init();
-		StringIterator SequenceIterator(std::string::iterator it);
-		StringConstIterator SequenceIterator(std::string::const_iterator it) const;
-		StringReverseIterator SequenceReverseIterator(std::string::iterator it);
-		StringConstReverseIterator SequenceReverseIterator(std::string::const_iterator it) const;
-		int GetNextPosForward(int shift, int steps = 1) const;
-		int GetNextPosBackward(int shift, int steps = 1) const;
+		void PrintSet() const;
+		void InvalidateAfter(int pos);
+		void InvalidateBefore(int pos);
+		Edge MakePositiveEdge(int shift);
+		Edge MakeNegativeEdge(int shift);
 	};
 }
 
