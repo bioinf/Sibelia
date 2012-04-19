@@ -30,7 +30,7 @@
 	TypeName(const TypeName&); \
 	void operator=(const TypeName&)
 
-//#define _DEBUG_
+
 
 namespace SyntenyBuilder
 {

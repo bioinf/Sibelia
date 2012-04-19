@@ -192,7 +192,7 @@ namespace SyntenyBuilder
 				std::for_each(now.begin(), now.end(), MoveForward);
 			}
 
-		#ifdef _DEBUG_
+		#ifdef _DEBUG
 			static int bulge = 0;
 			std::cerr << "Bulge #" << bulge++ << std::endl;
 			std::cerr << "Before: " << std::endl;
@@ -238,7 +238,7 @@ namespace SyntenyBuilder
 				}
 			}
 
-		#ifdef _DEBUG_
+		#ifdef _DEBUG
 			std::cerr << "After: " << std::endl;
 			PrintRaw(g.sequence, std::cerr);
 			std::cerr << "---------------" << std::endl;
@@ -319,7 +319,7 @@ namespace SyntenyBuilder
 		return out << "}";
 	}
 	
-	void GraphAlgorithm::ListNonBranchingPaths(DeBruijnGraph & g, std::ostream & out)
+	void GraphAlgorithm::ListNonBranchingPaths(DeBruijnGraph & g, std::ostream & out, std::ostream & indexOut)
 	{
 		int count = 0;
 		std::vector<std::pair<int, DeBruijnGraph::Edge> > multiedge;
@@ -353,8 +353,7 @@ namespace SyntenyBuilder
 					DeBruijnGraph::StrandConstIterator end = Advance(edge[0].EndIterator(), forward);
 					DeBruijnGraph::StrandConstIterator start = AdvanceBackward(edge[0].StartIterator(), backward);
 					std::copy(start, end, std::ostream_iterator<char>(out));
-					out << std::endl;
-
+					out << std::endl;					
 					for(size_t j = 0; j < edge.size(); j++)
 					{
 						buf.clear();
@@ -363,31 +362,33 @@ namespace SyntenyBuilder
 						std::pair<int, int> coord = g.sequence.SpellOriginal(start, end, std::back_inserter(buf));
 						out << (edge[j].Direction() == DeBruijnGraph::positive ? '+' : '-') << "s, ";
 						out << coord.first << ':' << coord.second << " " << buf << std::endl;
+						indexOut << coord.first << ' ' << coord.second;
 					}
+
+					indexOut << std::endl;
 				}
 			}
 		}
 	}	
 
-	void GraphAlgorithm::Simplify(DeBruijnGraph & g, int minCycleSize)
+	int GraphAlgorithm::Simplify(DeBruijnGraph & g, int minCycleSize)
 	{
-	#ifdef _DEBUG_
+	#ifdef _DEBUG
 		std::cerr << std::endl;
 	#endif
 		int bulgeCount = 0;
-		int bifurcationCount = 0;
+		g.sequence.KeepHash(g.VertexSize());
 		std::vector<std::vector<DeBruijnGraph::Edge> > edge;
 		for(DeBruijnGraph::StrandConstIterator it = g.sequence.PositiveBegin(); it.Valid(); it++)
 		{
 			if(it.GetPosition() % 10000 == 0)
 			{
-				std::cerr << it.GetPosition() << " " << bifurcationCount << " " << bulgeCount << std::endl;
+				std::cerr << it.GetPosition() << " " << bulgeCount << std::endl;
 			}
 
 			DeBruijnGraph::Vertex v = g.ConstructVertex(it);
 			if(!v.IsNull() && g.ListEdgesSeparate(v, edge) > 1)
 			{
-				bifurcationCount++;
 				while(ProcessBifurcation(g, v, minCycleSize))
 				{
 					bulgeCount++;
@@ -396,5 +397,6 @@ namespace SyntenyBuilder
 		}
 
 		g.sequence.Optimize();
+		return bulgeCount;
 	}
 }

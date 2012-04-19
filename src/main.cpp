@@ -53,8 +53,11 @@ int main(int argc, char * argv[])
 				after << g;
 			}
 
+			std::ofstream general((fileName + "_blocks").c_str());
+			std::ofstream indexes((fileName + "_indexes").c_str());
+
 			std::cerr << "Finding non-branching paths...";
-			SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(g, std::cout);
+			SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(g, general, indexes);
 			std::cerr << "Done." << std::endl;
 			std::cerr.setf(std::cerr.fixed);
 			std::cerr.precision(2);

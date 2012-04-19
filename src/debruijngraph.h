@@ -47,6 +47,11 @@ namespace SyntenyBuilder
 					return IsNull() && toCompare.IsNull();
 				}
 
+				if(toCompare.GetHashCode() != GetHashCode())
+				{
+					return false;
+				}
+
 				StrandConstIterator end = Advance(it_, graph_->vertexSize_);
 				return std::mismatch(it_, end, toCompare.it_).first == end;
 			}
@@ -175,12 +180,13 @@ namespace SyntenyBuilder
 
 		Vertex ConstructVertex(StrandConstIterator it) const
 		{
-			if(Advance(it, vertexSize_ - 1).Valid())
+			if((it.GetDirection() == DNASequence::positive && it.GetPosition() > positiveVertexBound_) ||
+				(it.GetDirection() == DNASequence::negative && it.GetPosition() < negativeVertexBound_))
 			{
-				return Vertex(this, it);
+				return Vertex();
 			}
 
-			return Vertex();
+			return Vertex(this, it);
 		}
 
 		Edge ConstructPositiveEdge(StrandConstIterator it)
@@ -213,21 +219,12 @@ namespace SyntenyBuilder
 		public:
 			size_t operator ()(StrandConstIterator it) const
 			{
-				size_t base = 1;
-				size_t hash = 0;
-				for(int i = 0; i < k_; i++)
-				{			
-					hash += *it++ * base;
-					base *= HASH_BASE;
-				}		
-
-				return hash;
+				return it.GetHashCode(k_);
 			}
 
 			KMerHashFunction(int k): k_(k) {}
 		private:
 			int k_;
-			static const size_t HASH_BASE = 57;
 		};
 		
 		class KMerEqualTo
@@ -260,11 +257,14 @@ namespace SyntenyBuilder
 		typedef IndexMultiSet<StrandConstIterator, IndexTransformer, KMerHashFunction, KMerEqualTo> KMerMultiSet;		
 		//Container in which we store all edges
 		KMerMultiSet edge_;
+		int positiveVertexBound_;
+		int negativeVertexBound_;
 
 		void Init();
+		void CalcBound();
 		void PrintSet() const;
-		void InvalidateAfter(int pos);
-		void InvalidateBefore(int pos);
+		void InvalidateAfter(int pos, bool erase);
+		void InvalidateBefore(int pos, bool eraase);
 		Edge MakePositiveEdge(int shift);
 		Edge MakeNegativeEdge(int shift);
 	};

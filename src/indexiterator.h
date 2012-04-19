@@ -40,11 +40,11 @@ namespace SyntenyBuilder
 	class IndexIterator: public std::iterator<std::bidirectional_iterator_tag, char, void>
 	{
 	public:
-		IndexIterator(): sequence_(0), pos_(std::string::npos) {}
+		IndexIterator(): sequence_(0), pos_(NPOS) {}
 		IndexIterator(std::string & sequence, int pos, char deleted, Direction dir = forward):
 			sequence_(&sequence), pos_(pos), deleted_(deleted)
 		{
-			if(pos_ != static_cast<int>(sequence.size()) && pos_ != std::string::npos)
+			if(pos_ != static_cast<int>(sequence.size()) && pos_ != NPOS)
 			{
 				if(dir == forward)
 				{
@@ -108,6 +108,7 @@ namespace SyntenyBuilder
 			return sequence_ != 0 && pos_ >= 0 && pos_ < static_cast<int>(sequence_->size());
 		}
 
+		static const int NPOS = -1;
 	private:
 		std::string * sequence_;
 		int pos_;
@@ -118,11 +119,11 @@ namespace SyntenyBuilder
 	class IndexConstIterator: public std::iterator<std::bidirectional_iterator_tag, char, void>
 	{
 	public:
-		IndexConstIterator(): sequence_(0), pos_(std::string::npos) {}
+		IndexConstIterator(): sequence_(0), pos_(NPOS) {}
 		IndexConstIterator(const std::string & sequence, int pos, char deleted, Direction dir = forward):
 			sequence_(&sequence), pos_(pos), deleted_(deleted)
 		{
-			if(pos_ != static_cast<int>(sequence.size()) && pos_ != std::string::npos)
+			if(pos_ != static_cast<int>(sequence.size()) && pos_ != NPOS)
 			{
 				if(dir == forward)
 				{
@@ -191,6 +192,7 @@ namespace SyntenyBuilder
 			return sequence_ != 0 && pos_ >= 0 && pos_ < static_cast<int>(sequence_->size());
 		}
 
+		static const int NPOS = -1;
 	private:
 		const std::string * sequence_;
 		int pos_;
@@ -200,22 +202,22 @@ namespace SyntenyBuilder
 
 	inline IndexIterator MakeRightEnd(std::string & str, char deleted)
 	{
-		return IndexIterator(str, str.size(), deleted);
+		return IndexIterator(str, static_cast<int>(str.size()), deleted);
 	}
 
 	inline IndexIterator MakeLeftEnd(std::string & str, char deleted)
 	{
-		return IndexIterator(str, std::string::npos, deleted);
+		return IndexIterator(str, IndexIterator::NPOS, deleted);
 	}
 
 	inline IndexConstIterator MakeLeftEnd(const std::string & str, char deleted)
 	{
-		return IndexConstIterator(str, std::string::npos, deleted);
+		return IndexConstIterator(str, IndexIterator::NPOS, deleted);
 	}
 
 	inline IndexConstIterator MakeRightEnd(const std::string & str, char deleted)
 	{
-		return IndexConstIterator(str, str.size(), deleted);
+		return IndexConstIterator(str, static_cast<int>(str.size()), deleted);
 	}
 
 	template<class Iterator>

@@ -5,8 +5,8 @@ namespace SyntenyBuilder
 	DeBruijnGraph::DeBruijnGraph(const std::string & sequence, int edgeSize):
 		sequence(sequence,
 			boost::bind(&DeBruijnGraph::Init, this),
-			boost::bind(&DeBruijnGraph::InvalidateBefore, this, _1),
-			boost::bind(&DeBruijnGraph::InvalidateAfter, this, _1)),
+			boost::bind(&DeBruijnGraph::InvalidateBefore, this, _1, _2),
+			boost::bind(&DeBruijnGraph::InvalidateAfter, this, _1, _2)),
 		edgeSize_(edgeSize), vertexSize_(edgeSize_ - 1),
 		edge_(sequence.size(),
 			IndexTransformer(&this->sequence), 
@@ -16,8 +16,15 @@ namespace SyntenyBuilder
 		Init();
 	}
 
+	void DeBruijnGraph::CalcBound()
+	{
+		negativeVertexBound_ = Advance(sequence.PositiveBegin(), vertexSize_ - 1).GetPosition();
+		positiveVertexBound_ = Advance(sequence.NegativeBegin(), vertexSize_ - 1).GetPosition();		
+	}
+
 	void DeBruijnGraph::Init()
 	{
+		CalcBound();
 		edge_.Clear();
 		for(int i = 0; i < static_cast<int>(sequence.Size() - edgeSize_ + 1); i++)
 		{
@@ -101,7 +108,7 @@ namespace SyntenyBuilder
 		return Edge(this, sequence.NegativeByIndex(it.GetPosition()), negative);
 	}
 
-	void DeBruijnGraph::InvalidateBefore(int pos)
+	void DeBruijnGraph::InvalidateBefore(int pos, bool erase)
 	{
 		StrandIterator it = sequence.NegativeByIndex(pos);
 		for(int i = 0; i < edgeSize_ && it.Valid(); i++, it++)
@@ -114,7 +121,7 @@ namespace SyntenyBuilder
 		}
 	}
 
-	void DeBruijnGraph::InvalidateAfter(int pos)
+	void DeBruijnGraph::InvalidateAfter(int pos, bool erase)
 	{
 		StrandIterator it = sequence.NegativeByIndex(pos);
 		for(int i = 0; i < edgeSize_ && it.Valid(); i++, it++)
@@ -124,6 +131,11 @@ namespace SyntenyBuilder
 			{
 				edge_.Insert(it.GetPosition());
 			}
+		}
+
+		if(erase)
+		{
+			CalcBound();
 		}
 	}
 }

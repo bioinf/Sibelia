@@ -18,8 +18,4 @@ namespace SyntenyBuilder
 	
 	const std::string DNASequence::alphabet("agct");	
 	const std::string DNASequence::complementary_(ConstructComplementarityTable());
-	DNASequence::PositiveReadingStrategy<IndexIterator> DNASequence::positiveReading_;		
-	DNASequence::NegativeReadingStrategy<IndexIterator> DNASequence::negativeReading_;		
-	DNASequence::PositiveReadingStrategy<IndexConstIterator> DNASequence::positiveConstReading_;
-	DNASequence::NegativeReadingStrategy<IndexConstIterator> DNASequence::negativeConstReading_;
 }

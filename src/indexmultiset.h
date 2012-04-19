@@ -16,7 +16,7 @@ namespace SyntenyBuilder
 		{
 		public:
 			IndexMultiSet(size_t size, Transformer transformer, StoreHashFunction hashFunction, StoreEqualTo equalTo):
-				size_(size), transformer_(transformer), hashFunction_(hashFunction), equalTo_(equalTo),
+				transformer_(transformer), hashFunction_(hashFunction), equalTo_(equalTo),
 				single_(size, HashFunction(this), EqualTo(this)), multiple_(size, HashFunction(this), EqualTo(this))
 			{
 			#ifdef _DENSE_MAP_
@@ -237,7 +237,6 @@ namespace SyntenyBuilder
 			typedef google::sparse_hash_set<int, HashFunction, EqualTo> Set; 
 			typedef google::sparse_hash_map<int, std::vector<int>, HashFunction, EqualTo> MultiSet; 
 		#endif
-
 			size_t size_;
 			mutable const ActualStore * auxilary_;
 			static const int DELETED_KEY = -1;

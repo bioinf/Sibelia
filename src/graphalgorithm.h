@@ -9,8 +9,8 @@ namespace SyntenyBuilder
 	{
 	public:
 		typedef DeBruijnGraph Graph;
-		static void Simplify(Graph & g, int minCycleSize);		
-		static void ListNonBranchingPaths(Graph & g, std::ostream & out);
+		static int Simplify(Graph & g, int minCycleSize);		
+		static void ListNonBranchingPaths(Graph & g, std::ostream & out, std::ostream & indexOut);
 	};
 
 	std::ostream& operator << (std::ostream & out, DeBruijnGraph & g);	
