@@ -220,6 +220,15 @@ namespace SyntenyBuilder
 		return IndexConstIterator(str, static_cast<int>(str.size()), deleted);
 	}
 
+	template<class Iterator1, class Iterator2>
+		void CopyN(Iterator1 it, size_t count, Iterator2 out)
+		{
+			for(size_t i = 0; i < count; i++)
+			{
+				*out++ = *it++;
+			}
+		}
+
 	template<class Iterator>
 		Iterator Advance(Iterator it2, size_t step)
 		{

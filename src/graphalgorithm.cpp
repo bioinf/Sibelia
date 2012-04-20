@@ -174,7 +174,7 @@ namespace SyntenyBuilder
 		{
 			out << e.StartIterator().GetPosition() << " ";
 			out << (e.Direction() == DeBruijnGraph::positive ? "s+ " : "s- ");
-			std::copy_n(e.StartIterator(), size, std::ostream_iterator<char>(out));
+			CopyN(e.StartIterator(), size, std::ostream_iterator<char>(out));
 			std::cerr << std::endl;
 		}
 

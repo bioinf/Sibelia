@@ -64,7 +64,7 @@ namespace SyntenyBuilder
 			template<class OutputIterator>
 				void Spell(OutputIterator out) const
 				{
-					std::copy_n(it_, graph_->vertexSize_, out);
+					CopyN(it_, graph_->vertexSize_, out);
 				}
 
 			Vertex(): graph_(0) {}
