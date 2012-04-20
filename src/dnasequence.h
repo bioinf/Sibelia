@@ -460,14 +460,14 @@ namespace SyntenyBuilder
 					{
 						if(this->sequence_->positiveHash_[it.GetPosition()] == INVALID_HASH)
 						{
-							sequence_->positiveHash_[it.GetPosition()] = sequence_->CalcHash(it, strSize);
+							this->sequence_->positiveHash_[it.GetPosition()] = this->sequence_->CalcHash(it, strSize);
 						}
 
-						ret = sequence_->positiveHash_[it.GetPosition()];
+						ret = this->sequence_->positiveHash_[it.GetPosition()];
 					}
 					else
 					{
-						ret = sequence_->CalcHash(it, strSize);
+						ret = this->sequence_->CalcHash(it, strSize);
 					}
 
 					return static_cast<size_t>(ret);
@@ -520,24 +520,24 @@ namespace SyntenyBuilder
 
 				const ReadingStrategy<IndexConstIterator>* Convert() const
 				{
-					return &sequence_->negativeConstReading_;
+					return &this->sequence_->negativeConstReading_;
 				}
 
 				size_t GetHash(Iterator it, int strSize) const
 				{
 					hash_t ret;
-					if(sequence_->substrSize_ == strSize)
+					if(this->sequence_->substrSize_ == strSize)
 					{
-						if(sequence_->negativeHash_[it.GetPosition()] == INVALID_HASH)
+						if(this->sequence_->negativeHash_[it.GetPosition()] == INVALID_HASH)
 						{
-							sequence_->negativeHash_[it.GetPosition()] = sequence_->CalcHash(it, strSize);
+							this->sequence_->negativeHash_[it.GetPosition()] = this->sequence_->CalcHash(it, strSize);
 						}
 
-						ret = sequence_->negativeHash_[it.GetPosition()];
+						ret = this->sequence_->negativeHash_[it.GetPosition()];
 					}
 					else
 					{
-						ret = sequence_->CalcHash(it, strSize);
+						ret = this->sequence_->CalcHash(it, strSize);
 					}
 
 					return static_cast<size_t>(ret);
@@ -585,7 +585,6 @@ namespace SyntenyBuilder
 		NegativeReadingStrategy<IndexIterator> negativeReading_;		
 		PositiveReadingStrategy<IndexConstIterator> positiveConstReading_;
 		NegativeReadingStrategy<IndexConstIterator> negativeConstReading_;
-		typedef long long hash_t;
 
 		//Current version of the sequence (after possible simplification)		
 		std::string sequence_;

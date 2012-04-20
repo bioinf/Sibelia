@@ -32,7 +32,7 @@ namespace SyntenyBuilder
 		}
 	}
 
-	size_t DeBruijnGraph::ListEdges(const Vertex & v, std::vector<Edge> & edge)
+	int DeBruijnGraph::ListEdges(const Vertex & v, std::vector<Edge> & edge)
 	{
 		edge.clear();
 		std::vector<std::vector<Edge> > ret;
@@ -42,18 +42,18 @@ namespace SyntenyBuilder
 			std::copy(ret[i].begin(), ret[i].end(), std::back_inserter(edge));
 		}
 
-		return edge.size();
+		return static_cast<int>(edge.size());
 	}
 
-	size_t DeBruijnGraph::CountEquivalentEdges(const Edge & edge) const
+	int DeBruijnGraph::CountEquivalentEdges(const Edge & edge) const
 	{
 		StrandConstIterator negative = edge.Direction() == positive ? 
 			sequence.NegativeByIndex(edge.end_.GetPosition()) :
 			sequence.PositiveByIndex(edge.end_.GetPosition());
-		return edge_.Count(edge.start_) + edge_.Count(negative);
+		return static_cast<int>(edge_.Count(edge.start_) + edge_.Count(negative));
 	}
 
-	size_t DeBruijnGraph::FindEquivalentEdges(const Edge & edge, std::vector<Edge> & ret)
+	int DeBruijnGraph::FindEquivalentEdges(const Edge & edge, std::vector<Edge> & ret)
 	{
 		ret.clear();
 		StrandConstIterator negIt = edge.Direction() == positive ? 
@@ -67,10 +67,10 @@ namespace SyntenyBuilder
 			boost::bind(&DeBruijnGraph::MakePositiveEdge, this, _1));
 		std::transform(negative.begin(), negative.end(), std::back_inserter(ret), 
 			boost::bind(&DeBruijnGraph::MakeNegativeEdge, this, _1));
-		return ret.size();
+		return static_cast<int>(ret.size());
 	}
 	
-	size_t DeBruijnGraph::ListEdgesSeparate(const Vertex & v, std::vector<std::vector<Edge> > & edge)
+	int DeBruijnGraph::ListEdgesSeparate(const Vertex & v, std::vector<std::vector<Edge> > & edge)
 	{
 		edge.clear();
 		std::string buf(edgeSize_, 't');
@@ -95,7 +95,7 @@ namespace SyntenyBuilder
 			}
 		}
 
-		return edge.size();
+		return static_cast<int>(edge.size());
 	}
 
 	DeBruijnGraph::Edge DeBruijnGraph::MakePositiveEdge(int shift)

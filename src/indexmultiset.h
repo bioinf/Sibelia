@@ -35,14 +35,14 @@ namespace SyntenyBuilder
 
 			void Erase(int index)
 			{
-				Set::iterator it = single_.find(index);
+				typename Set::iterator it = single_.find(index);
 				if(it != single_.end())
 				{
 					single_.erase(it);
 				}
 				else
 				{
-					MultiSet::iterator jt = multiple_.find(index);
+					typename MultiSet::iterator jt = multiple_.find(index);
 					if(jt != multiple_.end())
 					{
 						if(index != jt->first)
@@ -64,7 +64,7 @@ namespace SyntenyBuilder
 
 			void Insert(int index)
 			{
-				Set::iterator jt = single_.find(index);
+				typename Set::iterator jt = single_.find(index);
 				if(jt != single_.end())									 //Test if k-mer occured before as single index
 				{
 					if(index != *jt)									 //If it is not the same as stored, store it as a multiple index
@@ -75,7 +75,7 @@ namespace SyntenyBuilder
 				}
 				else				
 				{
-					MultiSet::iterator it = multiple_.find(index);
+					typename MultiSet::iterator it = multiple_.find(index);
 					if(it != multiple_.end())							//Test if k-mer occured before as multiple index
 					{
 						if(index != it->first && std::find(it->second.begin(), it->second.end(), index) == it->second.end())
@@ -92,14 +92,14 @@ namespace SyntenyBuilder
 
 			size_t Count(int index) const
 			{
-				Set::const_iterator it = single_.find(index);
+				typename Set::const_iterator it = single_.find(index);
 				if(it != single_.end())
 				{
 					return 1;
 				}
 				else
 				{
-					MultiSet::const_iterator jt = multiple_.find(index);
+					typename MultiSet::const_iterator jt = multiple_.find(index);
 					if(jt != multiple_.end())
 					{
 						return jt->second.size() + 1;
@@ -112,14 +112,14 @@ namespace SyntenyBuilder
 			size_t Count(const ActualStore & auxilary) const
 			{
 				auxilary_ = &auxilary;
-				Set::const_iterator it = single_.find(AUXILARY_KEY);
+				typename Set::const_iterator it = single_.find(AUXILARY_KEY);
 				if(it != single_.end())
 				{
 					return 1;
 				}
 				else
 				{
-					MultiSet::const_iterator jt = multiple_.find(AUXILARY_KEY);
+					typename MultiSet::const_iterator jt = multiple_.find(AUXILARY_KEY);
 					if(jt != multiple_.end())
 					{
 						return jt->second.size() + 1;
@@ -133,7 +133,7 @@ namespace SyntenyBuilder
 				size_t Find(int index, Iterator ret) const
 				{
 					size_t count = 0;
-					Set::const_iterator it = single_.find(index);
+					typename Set::const_iterator it = single_.find(index);
 					if(it != single_.end())
 					{
 						*ret++ = *it;
@@ -141,7 +141,7 @@ namespace SyntenyBuilder
 					}
 					else
 					{
-						MultiSet::const_iterator jt = multiple_.find(index);
+						typename MultiSet::const_iterator jt = multiple_.find(index);
 						if(jt != multiple_.end())
 						{
 							*ret++ = jt->first;
@@ -158,14 +158,14 @@ namespace SyntenyBuilder
 				{
 					size_t count = 0;
 					auxilary_ = &auxilary;
-					Set::const_iterator it = single_.find(AUXILARY_KEY);
+					typename Set::const_iterator it = single_.find(AUXILARY_KEY);
 					if(it != single_.end())
 					{
 						*ret++ = *it;
 					}
 					else
 					{
-						MultiSet::const_iterator jt = multiple_.find(AUXILARY_KEY);
+						typename MultiSet::const_iterator jt = multiple_.find(AUXILARY_KEY);
 						if(jt != multiple_.end())
 						{
 							*ret++ = jt->first;;
@@ -180,8 +180,10 @@ namespace SyntenyBuilder
 			template<class Iterator>
 				void Dump(Iterator ret) const
 				{
-					for(Set::const_iterator it = single_.begin(); it != single_.end(); *ret++ = transformer_(*it++));
-					for(MultiSet::const_iterator it = multiple_.begin(); it != multiple_.end(); *ret++ = transformer_(it++->first))
+					for(typename Set::const_iterator it = single_.begin(); it != single_.end(); 
+						*ret++ = transformer_(*it++));
+					for(typename MultiSet::const_iterator it = multiple_.begin(); it != multiple_.end();
+						*ret++ = transformer_(it++->first))
 					{
 						std::transform(it->second.begin(), it->second.end(), ret, transformer_);
 					}

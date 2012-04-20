@@ -129,7 +129,7 @@ namespace SyntenyBuilder
 				return Edge(graph_, prev, --StrandIterator(end_), tag_);
 			}
 
-			size_t Position() const
+			int Position() const
 			{
 				if(tag_ == positive)
 				{
@@ -199,10 +199,10 @@ namespace SyntenyBuilder
 			return Edge();
 		}
 		
-		size_t CountEquivalentEdges(const Edge & edge) const;
-		size_t ListEdges(const Vertex & v, std::vector<Edge> & edge);
-		size_t ListEdgesSeparate(const Vertex & v, std::vector<std::vector<Edge> > & edge);
-		size_t FindEquivalentEdges(const Edge & edge, std::vector<Edge> & ret);
+		int CountEquivalentEdges(const Edge & edge) const;
+		int ListEdges(const Vertex & v, std::vector<Edge> & edge);
+		int ListEdgesSeparate(const Vertex & v, std::vector<std::vector<Edge> > & edge);
+		int FindEquivalentEdges(const Edge & edge, std::vector<Edge> & ret);
 		DeBruijnGraph(const std::string & sequence, int edgeSize);
 
 		DNASequence sequence;
