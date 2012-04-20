@@ -362,7 +362,7 @@ namespace SyntenyBuilder
 						std::pair<int, int> coord = g.sequence.SpellOriginal(start, end, std::back_inserter(buf));
 						out << (edge[j].Direction() == DeBruijnGraph::positive ? '+' : '-') << "s, ";
 						out << coord.first << ':' << coord.second << " " << buf << std::endl;
-						indexOut << coord.first << ' ' << coord.second;
+						indexOut << coord.first << ' ' << coord.second << std::endl;
 					}
 
 					indexOut << std::endl;
@@ -377,18 +377,20 @@ namespace SyntenyBuilder
 		std::cerr << std::endl;
 	#endif
 		int bulgeCount = 0;
+		int bifurcationCount = 0;
 		g.sequence.KeepHash(g.VertexSize());
 		std::vector<std::vector<DeBruijnGraph::Edge> > edge;
 		for(DeBruijnGraph::StrandConstIterator it = g.sequence.PositiveBegin(); it.Valid(); it++)
 		{
-			if(it.GetPosition() % 10000 == 0)
+			if(it.GetPosition() % 100000 == 0)
 			{
-				std::cerr << it.GetPosition() << " " << bulgeCount << std::endl;
+				std::cerr << it.GetPosition() << " " << bifurcationCount << " " << bulgeCount << std::endl;
 			}
 
 			DeBruijnGraph::Vertex v = g.ConstructVertex(it);
 			if(!v.IsNull() && g.ListEdgesSeparate(v, edge) > 1)
 			{
+				bifurcationCount++;
 				while(ProcessBifurcation(g, v, minCycleSize))
 				{
 					bulgeCount++;

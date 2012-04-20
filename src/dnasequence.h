@@ -450,15 +450,15 @@ namespace SyntenyBuilder
 
 				const ReadingStrategy<IndexConstIterator>* Convert() const
 				{
-					return &(sequence_->positiveConstReading_);
+					return &this->sequence_->positiveConstReading_;
 				}
 
 				size_t GetHash(Iterator it, int strSize) const
 				{
 					hash_t ret;
-					if(sequence_->substrSize_ == strSize)
+					if(this->sequence_->substrSize_ == strSize)
 					{
-						if(sequence_->positiveHash_[it.GetPosition()] == INVALID_HASH)
+						if(this->sequence_->positiveHash_[it.GetPosition()] == INVALID_HASH)
 						{
 							sequence_->positiveHash_[it.GetPosition()] = sequence_->CalcHash(it, strSize);
 						}

@@ -72,6 +72,7 @@ namespace SyntenyBuilder
 	
 	size_t DeBruijnGraph::ListEdgesSeparate(const Vertex & v, std::vector<std::vector<Edge> > & edge)
 	{
+		edge.clear();
 		std::string buf(edgeSize_, 't');
 		v.Spell(buf.begin());
 		DNASequence temp(buf);
