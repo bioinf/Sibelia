@@ -359,10 +359,10 @@ namespace SyntenyBuilder
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
 		typedef long long hash_t;
 		static const std::string complementary_;
-		static const size_t HASH_BASE = 57;
-		static const char INVALID_HASH = -1;
-		static const char DELETED_CHARACTER = -1;
-		static const size_t MOD = (size_t(1) << (sizeof(size_t) * 8 - 2));
+		static const size_t MOD;
+		static const size_t HASH_BASE;
+		static const char INVALID_HASH;
+		static const char DELETED_CHARACTER;
 
 		template<class Iterator>
 			struct ReadingStrategy

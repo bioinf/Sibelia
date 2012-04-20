@@ -241,9 +241,9 @@ namespace SyntenyBuilder
 		#endif
 			size_t size_;
 			mutable const ActualStore * auxilary_;
-			static const int DELETED_KEY = -1;
-			static const int AUXILARY_KEY = -2;
-			static const int EMPTY_KEY = -3;
+			static const int DELETED_KEY;
+			static const int AUXILARY_KEY;
+			static const int EMPTY_KEY;
 			Transformer transformer_;
 			StoreHashFunction hashFunction_;
 			StoreEqualTo equalTo_;
@@ -251,6 +251,13 @@ namespace SyntenyBuilder
 			Set single_;
 			MultiSet multiple_;
 		};
+
+	template<class T1, class T2, class T3, class T4>
+		const int IndexMultiSet<T1, T2, T3, T4>::DELETED_KEY = -1;	
+	template<class T1, class T2, class T3, class T4>
+		const int IndexMultiSet<T1, T2, T3, T4>::AUXILARY_KEY = -2;	
+	template<class T1, class T2, class T3, class T4>
+		const int IndexMultiSet<T1, T2, T3, T4>::EMPTY_KEY = -3;	
 }
 
 
