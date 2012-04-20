@@ -37,7 +37,7 @@ namespace SyntenyBuilder
 	class IndexIterator;
 	class IndexConstIterator;
 
-	class IndexIterator: public std::iterator<std::bidirectional_iterator_tag, char, void>
+	class IndexIterator: public std::iterator<std::bidirectional_iterator_tag, char, int>
 	{
 	public:
 		IndexIterator(): sequence_(0), pos_(NPOS) {}
@@ -116,7 +116,7 @@ namespace SyntenyBuilder
 		friend class IndexConstIterator;
 	};
 
-	class IndexConstIterator: public std::iterator<std::bidirectional_iterator_tag, char, void>
+	class IndexConstIterator: public std::iterator<std::bidirectional_iterator_tag, char, int>
 	{
 	public:
 		IndexConstIterator(): sequence_(0), pos_(NPOS) {}

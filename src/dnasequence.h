@@ -23,7 +23,7 @@ namespace SyntenyBuilder
 			negative
 		};
 
-		class StrandIterator: public std::iterator<std::bidirectional_iterator_tag, char, void>
+		class StrandIterator: public std::iterator<std::bidirectional_iterator_tag, char, int>
 		{
 		public:
 			typedef WritingStrategy WStrategy;
@@ -112,7 +112,7 @@ namespace SyntenyBuilder
 			friend class StrandConstIterator;
 		};
 
-		class StrandConstIterator: public std::iterator<std::bidirectional_iterator_tag, char, void>
+		class StrandConstIterator: public std::iterator<std::bidirectional_iterator_tag, char, int>
 		{
 		public:
 			typedef ReadingStrategy<IndexConstIterator> RStrategy;
