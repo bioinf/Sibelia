@@ -3,9 +3,14 @@
 \usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \title{Genomes Comparision via de Bruijn graphs}
 \author{Student: Ilya Minkin \\ Advisor: Son Pham}
 \institute{St. Petersburg Academic University}
+\algnotext{EndFor}
+\algnotext{EndIf}
+\algnotext{EndWhile}
 \setbeamertemplate{footline}[frame number]
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{caption}[numbered]
@@ -109,27 +114,91 @@ Such blocks are reverse complementary to each other \( \Rightarrow \) no non-bra
 \end{frame}
 
 \begin{frame}
-\frametitle{Bulge removal}
+\frametitle{Graph simplification}
 \begin{itemize}
 \item Bulges spoil non-brancing path
 \item A pair of walks \(W_{1}, W_{2}\) is a bulge iff: \\
 1) Start vertices of  \(W_{1} \) and  \(W_{2}\) are the same \\
 2) End vertices of  \(W_{1} \) and  \(W_{2}\) are the same \\
-3) \(W_{1} \) and  \(W_{2}\) have no common edges
+3) \(W_{1} \) and  \(W_{2}\) have no common edges \\
+4) \(|W_{1}| +|W_{2}| \leq \delta \)
+\item Bulges indicate indels and mismatches 
 \end{itemize}
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.40]{Figure2.pdf}
+\small \caption{A bulge}
+\end{figure}
+\end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Bulge removal algorithm}
+\begin{algorithm}[H]               
+\small
+\caption*{Remove bulges\((G = (V, E),  minCycleSize \))} 
+\begin{algorithmic}[1]     							
+\ForAll{\(v \in V \)} 								
+	\While{\( RemainBulges(v, \, minCycleSize)\)}
+		\State \( (W_{1}, W_{2}) = FindBulge(v, \,minCycleSize) \)
+		\If {\( |W_{1}| < |W_{2}| \)}
+			\State Collapse\( (W_{1}, W_{2}) \)
+		\Else
+			\State Collapse\( (W_{2}, W_{1}) \)
+		\EndIf
+	\EndWhile
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]     
+\small
+\caption*{Collapse\((smallerWalk, biggerWalk\))} 
+\begin{algorithmic}[1]     							
+\State W = FindParallelWalks(biggerWalk)
+\ForAll{\(w \in W \)} 								
+	\State ReplaceSubstring\( (w, smallerWalk) \)
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{frame}
+
+\begin{frame}
+\frametitle{Bulge removal illustration}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.400]{Figure3.pdf}
+\small \caption{An example of removing bulges from the graph}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Non-branching paths}
+\begin{itemize}
+\item How to turn paths into synteny blocks?
+\item Case with \( multiplicity = 2 \) looks simple, but what about more occurences?
+\item Spurious similiarity spoils "good" paths
+\end{itemize}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.72]{Figure4.pdf}
+\small \caption{\\a) Synteny block with multiplicity of 2 is easy to find \\ b) Spurious similarity destroys long paths}
+\end{figure}
 \end{frame}
 
 \begin{frame}
 \frametitle{Current Progress}
 Now:
 \begin{itemize}
-\item Program that can find absolutely conserved regions on one strand
-
+\item Framework for working with colored de Bruijn graphs
+\item Graph simplification procedure
+\item Very draft version of program for finding synteny blocks \\ (covers \( \leq 10 \% \) Arabidopsis genome)
 \end{itemize}
 Near future:
 \begin{itemize}
-\item Add graph simplification
-
+\item Develop an efficient approach to cope with spurious similarity
+\item Improve performance
 \end{itemize}
 \end{frame}
 
