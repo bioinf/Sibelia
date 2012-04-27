@@ -21,16 +21,14 @@
 #include <boost/ref.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
-#include <google/sparse_hash_map>
-#include <google/sparse_hash_set>
-#include <google/dense_hash_set>
-#include <google/dense_hash_map>
+#include <sparsehash/sparse_hash_map>
+#include <sparsehash/sparse_hash_set>
+#include <sparsehash/dense_hash_set>
+#include <sparsehash/dense_hash_map>
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
 	TypeName(const TypeName&); \
 	void operator=(const TypeName&)
-
-
 
 namespace SyntenyBuilder
 {

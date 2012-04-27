@@ -374,7 +374,7 @@ namespace SyntenyBuilder
 				virtual void AdvanceForward(Iterator & it) const = 0;
 				virtual void AdvanceBackward(Iterator & it) const = 0;
 				virtual size_t GetHash(Iterator it, int strSize) const = 0;				
-				virtual const ReadingStrategy<IndexConstIterator>* Convert() const = 0;
+				virtual const ReadingStrategy<IndexConstIterator>* Convert() const = 0;				
 			protected:
 				DNASequence * sequence_;
 			};			
@@ -526,18 +526,19 @@ namespace SyntenyBuilder
 				size_t GetHash(Iterator it, int strSize) const
 				{
 					hash_t ret;
+					StrandConstIterator src = this->sequence_->NegativeByIndex(it.GetPosition());
 					if(this->sequence_->substrSize_ == strSize)
 					{
 						if(this->sequence_->negativeHash_[it.GetPosition()] == INVALID_HASH)
-						{
-							this->sequence_->negativeHash_[it.GetPosition()] = this->sequence_->CalcHash(it, strSize);
+						{							
+							this->sequence_->negativeHash_[it.GetPosition()] = this->sequence_->CalcHash(src, strSize);
 						}
 
 						ret = this->sequence_->negativeHash_[it.GetPosition()];
 					}
 					else
 					{
-						ret = this->sequence_->CalcHash(it, strSize);
+						ret = this->sequence_->CalcHash(src, strSize);
 					}
 
 					return static_cast<size_t>(ret);

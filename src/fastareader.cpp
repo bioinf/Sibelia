@@ -13,9 +13,9 @@ namespace SyntenyBuilder
 	{
 		buffer.clear();
 		kseq_t * sequence = kseq_init(fileHandler_);
-		if(kseq_read(sequence) >= 0)
+		while(kseq_read(sequence) >= 0)
 		{
-			buffer = sequence->seq.s;
+			buffer += sequence->seq.s;
 		}
 
 		kseq_destroy(sequence);

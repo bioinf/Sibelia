@@ -27,7 +27,7 @@ namespace SyntenyBuilder
 		};
 
 		typedef google::dense_hash_set<DeBruijnGraph::Vertex, HashFunction> VertexVisit;
-		typedef google::dense_hash_map<DeBruijnGraph::Vertex, VisitData, HashFunction> VertexVisitMap;
+		typedef google::dense_hash_map<DeBruijnGraph::Vertex, std::vector<VisitData>, HashFunction> VertexVisitMap;
 
 		std::ostream& operator << (std::ostream & out, const DeBruijnGraph::Vertex & v)
 		{
@@ -41,11 +41,11 @@ namespace SyntenyBuilder
 			out << e.StartVertex() << " -> " << e.EndVertex() << " ";
 			if(e.Direction() == DeBruijnGraph::positive)
 			{
-				sprintf(buf, "[color=\"%s\", label=\"%i\"];", "steelblue", e.Position());
+				sprintf(buf, "[color=\"%s\", label=\"%i\"];", "blue", e.Position());
 			}
 			else
 			{
-				sprintf(buf, "[color=\"%s\", label=\"%i\"];", "limegreen", e.Position());
+				sprintf(buf, "[color=\"%s\", label=\"%i\"];", "red", e.Position());
 			}
 
 			return out << buf;
@@ -243,57 +243,107 @@ namespace SyntenyBuilder
 			PrintRaw(g.sequence, std::cerr);
 			std::cerr << "---------------" << std::endl;
 		#endif
+
+		}
+
+		bool CheckBulge(DeBruijnGraph::Edge edge1, int size1, DeBruijnGraph::Edge edge2, int size2)
+		{
+			std::vector<int> visit;
+			for(int i = 0; i <= size1; i++)
+			{
+				visit.push_back(edge1.Position());
+				MoveForward(edge1);
+			}
+
+			std::sort(visit.begin(), visit.end());
+			for(int i = 0; i <= size2; i++)
+			{
+				if(std::binary_search(visit.begin(), visit.end(), edge2.Position()))
+				{
+					return false;
+				}
+			}
+
+			return true;
 		}
 
 		bool ProcessBifurcation(DeBruijnGraph & g, DeBruijnGraph::Vertex & v, int minCycleSize)
-		{			
+		{					
 			VertexVisitMap visit;
-			visit.set_empty_key(DeBruijnGraph::Vertex());
-			std::set<int> edgeVisit;
+			visit.set_empty_key(DeBruijnGraph::Vertex());			
 			std::vector<std::vector<DeBruijnGraph::Edge> > init;
 			g.ListEdgesSeparate(v, init);
-			std::vector<std::vector<DeBruijnGraph::Edge> > now(init);
-			for(int step = 1; step <= minCycleSize; step++)
+			std::vector<std::vector<DeBruijnGraph::Edge> > now = init;
+			bool keepOn = true;
+			for(int step = 1; step <= minCycleSize && keepOn; step++)
 			{
+
+			#ifdef _DEBUG
+				std::cerr << "step = " << step << std::endl;
+			#endif
+
+				keepOn = false;
 				for(int classId = 0; classId < static_cast<int>(now.size()); classId++)
 				{
 					for(int instance = 0; instance < static_cast<int>(now[classId].size()); instance++)
 					{
-						if(now[classId][instance].IsNull() || edgeVisit.count(now[classId][instance].Position()) > 0)
+						if(now[classId][instance].IsNull())
 						{
 							continue;
 						}
 
-						edgeVisit.insert(now[classId][instance].Position());
+						keepOn = true;
 						DeBruijnGraph::Vertex u = now[classId][instance].EndVertex();
+
+					#ifdef _DEBUG
+						u.Spell(std::ostream_iterator<char>(std::cerr));
+						std::cerr << std::endl;
+					#endif
+
 						VertexVisitMap::iterator it = visit.find(u);
 						if(it == visit.end())
 						{
-							visit.insert(std::make_pair(u, VisitData(classId, instance, step)));
+							visit.insert(std::make_pair(u, std::vector<VisitData>(1, VisitData(classId, instance, step))));
 						}
-						else if(it->second.classId != classId)
+						else 
 						{
-							int size = step + it->second.distance;
-							if(size > 2 && size <= minCycleSize)
-							{							
-								if(step < it->second.distance)
+							DeBruijnGraph::Edge & nowEdge = init[classId][instance];
+							for(size_t i = 0; i < it->second.size(); i++)
+							{
+								if(it->second[i].classId != classId)
 								{
-									CollapseBulge(g, v, u, init[classId][instance], step - 1,
-										init[it->second.classId][it->second.instance], it->second.distance - 1);
-								}
-								else
-								{
-									CollapseBulge(g, v, u, init[it->second.classId][it->second.instance],
-										it->second.distance - 1, init[classId][instance], step - 1);
-								}
+									int prevStep = it->second[i].distance;
+									int size = step + prevStep;
+									DeBruijnGraph::Edge & prevEdge = init[it->second[i].classId][it->second[i].instance];
+									if(size > 2 && size <= minCycleSize && CheckBulge(nowEdge, step - 1, prevEdge, prevStep - 1))
+									{							
+										if(step < it->second[i].distance)
+										{
+											CollapseBulge(g, v, u, nowEdge, step - 1, prevEdge, prevStep - 1);
+										}
+										else
+										{
+											CollapseBulge(g, v, u, prevEdge, prevStep - 1, nowEdge, step - 1);
+										}
 
-								return true;
+										return true;
+									}
+									else
+									{
+										it->second.push_back(VisitData(classId, instance, step));
+									}
+								}
 							}
 						}
 
 						MoveForward(now[classId][instance]);
 					}
 				}
+
+			#ifdef _DEBUG
+				std::cerr << "---------------" << std::endl;
+			#endif
+
 			}
 
 			return false;
@@ -362,10 +412,10 @@ namespace SyntenyBuilder
 						std::pair<int, int> coord = g.sequence.SpellOriginal(start, end, std::back_inserter(buf));
 						out << (edge[j].Direction() == DeBruijnGraph::positive ? '+' : '-') << "s, ";
 						out << coord.first << ':' << coord.second << " " << buf << std::endl;
-						indexOut << coord.first << ' ' << coord.second << std::endl;
+						indexOut << coord.second - coord.first << ' ' << coord.first << ' ' << coord.second << std::endl;
 					}
 
-					indexOut << std::endl;
+					indexOut << std::string(80, '-') << std::endl;
 				}
 			}
 		}
@@ -378,11 +428,11 @@ namespace SyntenyBuilder
 	#endif
 		int bulgeCount = 0;
 		int bifurcationCount = 0;
-		g.sequence.KeepHash(g.VertexSize());
+ 		g.sequence.KeepHash(g.VertexSize());
 		std::vector<std::vector<DeBruijnGraph::Edge> > edge;
 		for(DeBruijnGraph::StrandConstIterator it = g.sequence.PositiveBegin(); it.Valid(); it++)
 		{
-			if(it.GetPosition() % 100000 == 0)
+			if(it.GetPosition() % 1000000 == 0)
 			{
 				std::cerr << it.GetPosition() << " " << bifurcationCount << " " << bulgeCount << std::endl;
 			}

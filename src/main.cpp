@@ -2,7 +2,7 @@
 #include "graphalgorithm.h"
 
 int main(int argc, char * argv[])
-{
+{	
 	if(argc < 4)
 	{
 		std::cerr << "Program form building synteny blocks from a FASTA file" << std::endl;
@@ -30,8 +30,8 @@ int main(int argc, char * argv[])
 			for(size_t i = 0; i < sequence.size(); i++)
 			{
 				sequence[i] = tolower(sequence[i]);
-			}
-			
+			}	
+
 			sequence.erase(std::remove(sequence.begin(), sequence.end(), 'n'), sequence.end());
 			std::cerr << "Building the graph...";
 			SyntenyBuilder::DeBruijnGraph g(sequence, k);
@@ -54,7 +54,7 @@ int main(int argc, char * argv[])
 			}
 
 			std::ofstream general((fileName + "_blocks").c_str());
-			std::ofstream indexes((fileName + "_indexes").c_str());
+			std::ofstream indexes((fileName + "_indices").c_str());
 
 			std::cerr << "Finding non-branching paths...";
 			SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(g, general, indexes);
