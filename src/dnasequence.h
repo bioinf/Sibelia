@@ -105,6 +105,11 @@ namespace SyntenyBuilder
 				return it_.GetPosition();
 			}
 
+			bool Validate()
+			{
+				it_.Validate();
+			}
+
 		private:
 			IndexIterator it_;
 			const RStrategy * rStrategy_;
@@ -120,6 +125,11 @@ namespace SyntenyBuilder
  			StrandConstIterator() {}
 			StrandConstIterator(IndexConstIterator it, const RStrategy * rStrategy): it_(it), rStrategy_(rStrategy) {}
 			StrandConstIterator(StrandIterator other): it_(other.it_), rStrategy_(other.rStrategy_->Convert()) {}
+
+			void Validate()
+			{
+				it_.Validate();
+			}
 
 			char operator * () const
 			{

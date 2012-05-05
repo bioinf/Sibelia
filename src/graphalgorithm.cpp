@@ -1,5 +1,5 @@
 #include "graphalgorithm.h"
-
+//#define _DEBUG
 namespace SyntenyBuilder
 {
 	namespace
@@ -292,7 +292,6 @@ namespace SyntenyBuilder
 							continue;
 						}
 
-						keepOn = true;
 						DeBruijnGraph::Vertex u = now[classId][instance].EndVertex();
 
 					#ifdef _DEBUG
@@ -316,7 +315,8 @@ namespace SyntenyBuilder
 									int size = step + prevStep;
 									DeBruijnGraph::Edge & prevEdge = init[it->second[i].classId][it->second[i].instance];
 									if(size > 2 && size <= minCycleSize && CheckBulge(nowEdge, step - 1, prevEdge, prevStep - 1))
-									{							
+									{
+										keepOn = true;
 										if(step < it->second[i].distance)
 										{
 											CollapseBulge(g, v, u, nowEdge, step - 1, prevEdge, prevStep - 1);
@@ -437,6 +437,8 @@ namespace SyntenyBuilder
 				std::cerr << it.GetPosition() << " " << bifurcationCount << " " << bulgeCount << std::endl;
 			}
 
+			int pos = it.GetPosition();
+
 			DeBruijnGraph::Vertex v = g.ConstructVertex(it);
 			if(!v.IsNull() && g.ListEdgesSeparate(v, edge) > 1)
 			{
@@ -444,6 +446,8 @@ namespace SyntenyBuilder
 				while(ProcessBifurcation(g, v, minCycleSize))
 				{
 					bulgeCount++;
+					it.Validate();
+					v = g.ConstructVertex(it);
 				}
 			}
 		}

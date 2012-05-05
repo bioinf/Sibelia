@@ -13,33 +13,7 @@ namespace SyntenyBuilder
 			KMerHashFunction(edgeSize),
 			KMerEqualTo(edgeSize))
 	{
-		Init();
-		/*
-		int covered = 0;
-		int total = this->sequence.Size();
-		int last = total - edgeSize_ + 1;		
-
-		for(int i = 0; i < total; i++)
-		{
-			for(int shift = 0; shift < edgeSize_; shift++)
-			{
-				int pos = i - shift;
-				if(pos >= 0 && pos < last)
-				{
-					int cnt = CountEquivalentEdges(this->ConstructPositiveEdge(this->sequence.PositiveByIndex(pos)));
-					if(cnt > 1)
-					{
-						covered++;
-						break;
-					}
-				}
-			}
-		}
-
-		std::cout.setf(std::cout.fixed);
-		std::cout.precision(3);
-		std::cout << std::endl << double(covered) / total;
-		exit(0);*/
+		Init();		
 	}
 
 	void DeBruijnGraph::CalcBound()
@@ -100,6 +74,7 @@ namespace SyntenyBuilder
 	{
 		edge.clear();
 		std::string buf(edgeSize_, 't');
+		v.Spell(buf.begin());
 		v.Spell(buf.begin());
 		DNASequence temp(buf);
 		std::vector<int> positive;
