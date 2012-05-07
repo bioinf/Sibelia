@@ -223,17 +223,19 @@ namespace SyntenyBuilder
 
 			for(int step = 0; step < size; step++)
 			{
+				MoveForward(edge);
 				for(size_t i = 0; i < now.size(); i++)
-				{								
+				{	
+					if(!now[i].IsNull())
+					{
+						MoveForward(now[i]);
+					}
+
 					if(now[i].IsNull() || now[i].EndVertex() != edge.EndVertex())
 					{
 						init[i] = DeBruijnGraph::Edge();
-					}
-
-					MoveForward(now[i]);
-				}				
-
-				MoveForward(edge);
+					}					
+				}								
 			}
 						
 			std::copy(init.begin(), std::remove(init.begin(), init.end(), DeBruijnGraph::Edge()),
@@ -243,7 +245,7 @@ namespace SyntenyBuilder
 		bool CheckBulge(std::vector<DeBruijnGraph::Edge> edge1, int size1, std::vector<DeBruijnGraph::Edge> edge2, int size2)
 		{
 			std::vector<int> visit;
-			for(int i = 0; i <= size1; i++)
+			for(int i = 0; i < size1; i++)
 			{
 				for(size_t j = 0; j < edge1.size(); j++)
 				{					
@@ -253,7 +255,7 @@ namespace SyntenyBuilder
 			}
 
 			std::sort(visit.begin(), visit.end());
-			for(int i = 0; i <= size2; i++)
+			for(int i = 0; i < size2; i++)
 			{
 				for(size_t j = 0; j < edge2.size(); j++)
 				{
@@ -270,6 +272,30 @@ namespace SyntenyBuilder
 			return true;
 		}
 
+		bool CheckBranch(std::vector<DeBruijnGraph::Edge> edge1, int size1)
+		{
+			std::vector<int> visit;
+			for(int i = 0; i < size1; i++)
+			{
+				for(size_t j = 0; j < edge1.size(); j++)
+				{					
+					visit.push_back(edge1[j].Position());
+					MoveForward(edge1[j]);
+				}
+			}
+
+			std::sort(visit.begin(), visit.end());
+			for(size_t i = 0; visit.size() > 0 && i < visit.size() - 1; i++)
+			{
+				if(visit[i] == visit[i + 1])
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
 		bool CollapseBulge(DeBruijnGraph & g,
 			const DeBruijnGraph::Vertex & start,
 			const DeBruijnGraph::Vertex & dest, 
@@ -280,6 +306,24 @@ namespace SyntenyBuilder
 			std::vector<DeBruijnGraph::Edge> smallParallel;
 			FindParallelEdges(g, bigBranch, bigSize, parallel);
 			FindParallelEdges(g, smallBranch, smallSize, smallParallel);
+
+			bool bigCheck = CheckBranch(parallel, bigSize);
+			bool smallCheck = CheckBranch(smallParallel, smallSize);
+			if(!bigCheck && !smallCheck)
+			{
+				return false;
+			}
+
+			if(!bigCheck)
+			{
+				if(smallSize == bigSize)
+				{
+					return CollapseBulge(g, start, dest, bigBranch, bigSize, smallBranch, smallSize);
+				}
+
+				return false;
+			}
+
 			if(!CheckBulge(smallParallel, smallSize, parallel, bigSize))
 			{
 				return false;
@@ -291,14 +335,19 @@ namespace SyntenyBuilder
 			std::cerr << "Before: " << std::endl;
 			PrintRaw(g.sequence, std::cerr);
 			std::cerr << "Small branch: " << std::endl;
-			PrintPath(smallBranch, smallSize + g.EdgeSize(), std::cerr);
+			for(size_t i = 0; i < smallParallel.size(); i++)
+			{
+				PrintPath(smallParallel[i], smallSize + g.EdgeSize(), std::cerr);
+			}
+			
 			std::cerr << "Big branch: " << std::endl;
 			for(size_t i = 0; i < parallel.size(); i++)
 			{
 				PrintPath(parallel[i], bigSize + g.EdgeSize(), std::cerr);
 			}
-		#endif
 
+		#endif
+		
 			std::vector<DeBruijnGraph::StrandIterator> it;
 			for(size_t i = 0; i < parallel.size(); i++)
 			{
@@ -327,6 +376,18 @@ namespace SyntenyBuilder
 		#ifdef _DEBUG
 			std::cerr << "After: " << std::endl;
 			PrintRaw(g.sequence, std::cerr);
+			std::cerr << "Small branch: " << std::endl;
+			for(size_t i = 0; i < smallParallel.size(); i++)
+			{
+				PrintPath(smallParallel[i], smallSize + g.EdgeSize(), std::cerr);
+			}
+			
+			std::cerr << "Big branch: " << std::endl;
+			for(size_t i = 0; i < parallel.size(); i++)
+			{
+				PrintPath(parallel[i], smallSize + g.EdgeSize(), std::cerr);
+			}
+
 			std::cerr << "---------------" << std::endl;
 		#endif
 
