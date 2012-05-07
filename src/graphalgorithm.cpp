@@ -1,5 +1,6 @@
 #include "graphalgorithm.h"
 //#define _DEBUG
+//#undef _DEBUG
 namespace SyntenyBuilder
 {
 	namespace
@@ -160,13 +161,19 @@ namespace SyntenyBuilder
 
 		void PrintRaw(DNASequence & s, std::ostream & out)
 		{
+			std::string rcomp;
 			s.SpellRaw(std::ostream_iterator<char>(out));
 			out << std::endl;
 			for(int i = 0; i < s.Size(); i++)
 			{
 				out << i % 10;
 			}
-
+		
+			out << std::endl;
+			std::copy(s.PositiveBegin(), s.PositiveRightEnd(), std::ostream_iterator<char>(out));
+			out << std::endl;
+			std::copy(s.NegativeBegin(), s.NegativeRightEnd(), std::back_inserter(rcomp));
+			std::copy(rcomp.rbegin(), rcomp.rend(), std::ostream_iterator<char>(out));
 			out << std::endl;
 		}
 
@@ -178,18 +185,104 @@ namespace SyntenyBuilder
 			std::cerr << std::endl;
 		}
 
-		void CollapseBulge(DeBruijnGraph & g,
+		void FindParallelEdges(DeBruijnGraph & g, DeBruijnGraph::Edge edge, int size, 
+			std::vector<DeBruijnGraph::Edge> & ret)
+		{
+			ret.clear();
+			std::vector<DeBruijnGraph::Edge> init;
+			g.FindEquivalentEdges(edge, init);
+			std::vector<DeBruijnGraph::Edge> now(init);
+
+		#ifdef _DEBUG
+			std::cerr << "Path: ";
+			PrintPath(edge, size + g.EdgeSize(), std::cerr);
+			std::cerr << "Finding parallel paths, candidates: " << std::endl;
+			for(size_t i = 0; i < init.size(); i++)
+			{
+				bool suits = true;
+				DeBruijnGraph::Edge test = init[i];
+				for(int j = 0; j < size; j++)
+				{
+					if(test.IsNull())
+					{
+						suits = false;
+						break;
+					}
+
+					MoveForward(test);
+				}
+
+				if(suits && !test.IsNull())
+				{
+					PrintPath(init[i], size + g.EdgeSize(), std::cerr);
+				}
+			}
+
+			std::cerr << "---------------" << std::endl;
+		#endif
+
+			for(int step = 0; step < size; step++)
+			{
+				for(size_t i = 0; i < now.size(); i++)
+				{								
+					if(now[i].IsNull() || now[i].EndVertex() != edge.EndVertex())
+					{
+						init[i] = DeBruijnGraph::Edge();
+					}
+
+					MoveForward(now[i]);
+				}				
+
+				MoveForward(edge);
+			}
+						
+			std::copy(init.begin(), std::remove(init.begin(), init.end(), DeBruijnGraph::Edge()),
+				std::back_inserter(ret));
+		}
+
+		bool CheckBulge(std::vector<DeBruijnGraph::Edge> edge1, int size1, std::vector<DeBruijnGraph::Edge> edge2, int size2)
+		{
+			std::vector<int> visit;
+			for(int i = 0; i <= size1; i++)
+			{
+				for(size_t j = 0; j < edge1.size(); j++)
+				{					
+					visit.push_back(edge1[j].Position());
+					MoveForward(edge1[j]);
+				}
+			}
+
+			std::sort(visit.begin(), visit.end());
+			for(int i = 0; i <= size2; i++)
+			{
+				for(size_t j = 0; j < edge2.size(); j++)
+				{
+					int pos = edge2[j].Position();
+					if(std::binary_search(visit.begin(), visit.end(), edge2[j].Position()))
+					{
+						return false;
+					}
+
+					MoveForward(edge2[j]);
+				}
+			}
+
+			return true;
+		}
+
+		bool CollapseBulge(DeBruijnGraph & g,
 			const DeBruijnGraph::Vertex & start,
 			const DeBruijnGraph::Vertex & dest, 
-			const DeBruijnGraph::Edge & smallBranch, int smallSize,
-			const DeBruijnGraph::Edge & bigBranch, int bigSize)
-		{
-			std::vector<DeBruijnGraph::Edge> init;
-			g.FindEquivalentEdges(bigBranch, init);
-			std::vector<DeBruijnGraph::Edge> now(init);
-			for(int step = 0; step < bigSize; step++)
+			DeBruijnGraph::Edge smallBranch, int smallSize,
+			DeBruijnGraph::Edge bigBranch, int bigSize)
+		{			
+			std::vector<DeBruijnGraph::Edge> parallel;
+			std::vector<DeBruijnGraph::Edge> smallParallel;
+			FindParallelEdges(g, bigBranch, bigSize, parallel);
+			FindParallelEdges(g, smallBranch, smallSize, smallParallel);
+			if(!CheckBulge(smallParallel, smallSize, parallel, bigSize))
 			{
-				std::for_each(now.begin(), now.end(), MoveForward);
+				return false;
 			}
 
 		#ifdef _DEBUG
@@ -200,34 +293,27 @@ namespace SyntenyBuilder
 			std::cerr << "Small branch: " << std::endl;
 			PrintPath(smallBranch, smallSize + g.EdgeSize(), std::cerr);
 			std::cerr << "Big branch: " << std::endl;
-			for(size_t i = 0; i < now.size(); i++)
+			for(size_t i = 0; i < parallel.size(); i++)
 			{
-				if(!now[i].IsNull() && now[i].EndVertex() == dest)
-				{
-					PrintPath(init[i], bigSize + g.EdgeSize(), std::cerr);
-				}
+				PrintPath(parallel[i], bigSize + g.EdgeSize(), std::cerr);
 			}
 		#endif
 
-			DeBruijnGraph::StrandIterator copy = --smallBranch.EndIterator();
 			std::vector<DeBruijnGraph::StrandIterator> it;
-			for(size_t i = 0; i < now.size(); i++)
+			for(size_t i = 0; i < parallel.size(); i++)
 			{
-				if(!now[i].IsNull() && now[i].EndVertex() == dest)
-				{
-					it.push_back(--init[i].EndIterator());
-				}
+				it.push_back(--parallel[i].EndIterator());
 			}
 
 			for(int step = 0; step < smallSize; step++)
 			{
 				for(size_t i = 0; i < it.size(); i++)
 				{
-					it[i].AssignBase(*copy);
+					it[i].AssignBase(smallBranch.SpellEnd());
 					++it[i];
 				}
 
-				++copy;
+				MoveForward(smallBranch);
 			}
 
 			for(int step = 0; step < bigSize - smallSize; step++)
@@ -244,28 +330,8 @@ namespace SyntenyBuilder
 			std::cerr << "---------------" << std::endl;
 		#endif
 
-		}
-
-		bool CheckBulge(DeBruijnGraph::Edge edge1, int size1, DeBruijnGraph::Edge edge2, int size2)
-		{
-			std::vector<int> visit;
-			for(int i = 0; i <= size1; i++)
-			{
-				visit.push_back(edge1.Position());
-				MoveForward(edge1);
-			}
-
-			std::sort(visit.begin(), visit.end());
-			for(int i = 0; i <= size2; i++)
-			{
-				if(std::binary_search(visit.begin(), visit.end(), edge2.Position()))
-				{
-					return false;
-				}
-			}
-
 			return true;
-		}
+		}		
 
 		bool ProcessBifurcation(DeBruijnGraph & g, DeBruijnGraph::Vertex & v, int minCycleSize)
 		{					
@@ -292,6 +358,7 @@ namespace SyntenyBuilder
 							continue;
 						}
 
+						keepOn = true;
 						DeBruijnGraph::Vertex u = now[classId][instance].EndVertex();
 
 					#ifdef _DEBUG
@@ -313,20 +380,23 @@ namespace SyntenyBuilder
 								{
 									int prevStep = it->second[i].distance;
 									int size = step + prevStep;
-									DeBruijnGraph::Edge & prevEdge = init[it->second[i].classId][it->second[i].instance];
-									if(size > 2 && size <= minCycleSize && CheckBulge(nowEdge, step - 1, prevEdge, prevStep - 1))
-									{
-										keepOn = true;
+									DeBruijnGraph::Edge & prevEdge = init[it->second[i].classId][it->second[i].instance];									
+									if(size > 2 && size <= minCycleSize)
+									{			
+										bool success = false;
 										if(step < it->second[i].distance)
 										{
-											CollapseBulge(g, v, u, nowEdge, step - 1, prevEdge, prevStep - 1);
+											success = CollapseBulge(g, v, u, nowEdge, step - 1, prevEdge, prevStep - 1);
 										}
 										else
 										{
-											CollapseBulge(g, v, u, prevEdge, prevStep - 1, nowEdge, step - 1);
+											success = CollapseBulge(g, v, u, prevEdge, prevStep - 1, nowEdge, step - 1);
 										}
 
-										return true;
+										if(success)
+										{
+											return true;
+										}
 									}
 									else
 									{
@@ -446,8 +516,6 @@ namespace SyntenyBuilder
 				while(ProcessBifurcation(g, v, minCycleSize))
 				{
 					bulgeCount++;
-					it.Validate();
-					v = g.ConstructVertex(it);
 				}
 			}
 		}

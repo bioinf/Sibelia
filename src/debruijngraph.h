@@ -149,6 +149,26 @@ namespace SyntenyBuilder
 				return ++StrandIterator(end_);
 			}
 
+			bool operator != (const Edge & edge) const
+			{
+				return !((*this) == edge);
+			}
+
+			bool operator == (const Edge & toCompare) const
+			{
+				if(graph_ != toCompare.graph_)
+				{
+					return false;
+				}
+
+				if(IsNull() || toCompare.IsNull())
+				{
+					return IsNull() && toCompare.IsNull();
+				}
+
+				return Position() == toCompare.Position();
+			}
+
 			Edge(): graph_(0) {}
 		private:
 			Edge(DeBruijnGraph * graph, StrandIterator start, DirectionTag tag):

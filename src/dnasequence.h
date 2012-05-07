@@ -105,11 +105,6 @@ namespace SyntenyBuilder
 				return it_.GetPosition();
 			}
 
-			bool Validate()
-			{
-				it_.Validate();
-			}
-
 		private:
 			IndexIterator it_;
 			const RStrategy * rStrategy_;
@@ -125,11 +120,6 @@ namespace SyntenyBuilder
  			StrandConstIterator() {}
 			StrandConstIterator(IndexConstIterator it, const RStrategy * rStrategy): it_(it), rStrategy_(rStrategy) {}
 			StrandConstIterator(StrandIterator other): it_(other.it_), rStrategy_(other.rStrategy_->Convert()) {}
-
-			void Validate()
-			{
-				it_.Validate();
-			}
 
 			char operator * () const
 			{
@@ -215,6 +205,7 @@ namespace SyntenyBuilder
 			positiveWriting_(this),
 			negativeWriting_(this)
 		{
+			debug = 0;
 			position_.resize(sequence_.size());
 			for(int i = 0; i < static_cast<int>(sequence_.size()); i++)
 			{
@@ -413,18 +404,23 @@ namespace SyntenyBuilder
 
 			virtual void InvalidateHash(int pos) const
 			{
-				if(sequence_->substrSize_ != INVALID_HASH)
+				StrandIterator positive = this->sequence_->PositiveByIndex(pos);
+				StrandIterator negative = this->sequence_->NegativeByIndex(pos);
+				
+				if(this->sequence_->substrSize_ != INVALID_HASH)
 				{
-					for(int i = 0; i < sequence_->substrSize_; i++)
+					for(int i = 0; i < this->sequence_->substrSize_; i++)
 					{
-						if(pos - i >= 0)
-						{
-							sequence_->positiveHash_[pos - i] = INVALID_HASH;
+						if(positive.Valid())
+						{							
+							this->sequence_->positiveHash_[positive.GetPosition()] = INVALID_HASH;
+							--positive;
 						}
 
-						if(pos + i < sequence_->Size())
+						if(negative.Valid())
 						{
-							sequence_->negativeHash_[pos + i] = INVALID_HASH;
+							this->sequence_->negativeHash_[negative.GetPosition()] = INVALID_HASH;
+							--negative;
 						}
 					}
 				}
@@ -474,6 +470,7 @@ namespace SyntenyBuilder
 						}
 
 						ret = this->sequence_->positiveHash_[it.GetPosition()];
+						assert(ret == this->sequence_->CalcHash(it, strSize));
 					}
 					else
 					{
@@ -545,6 +542,7 @@ namespace SyntenyBuilder
 						}
 
 						ret = this->sequence_->negativeHash_[it.GetPosition()];
+						assert(ret == this->sequence_->CalcHash(src, strSize));
 					}
 					else
 					{
@@ -596,6 +594,7 @@ namespace SyntenyBuilder
 		NegativeReadingStrategy<IndexIterator> negativeReading_;		
 		PositiveReadingStrategy<IndexConstIterator> positiveConstReading_;
 		NegativeReadingStrategy<IndexConstIterator> negativeConstReading_;
+		int debug;
 
 		//Current version of the sequence (after possible simplification)		
 		std::string sequence_;
