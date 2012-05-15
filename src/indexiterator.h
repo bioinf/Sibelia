@@ -57,14 +57,6 @@ namespace SyntenyBuilder
 			}
 		}
 
-		void Validate()
-		{
-			if((*sequence_)[pos_] == deleted_)
-			{
-				++*this;
-			}
-		}
-
 		char& operator * () const
 		{
 			return (*sequence_)[pos_];
@@ -147,14 +139,6 @@ namespace SyntenyBuilder
 		IndexConstIterator(IndexIterator other): sequence_(other.sequence_),
 			pos_(other.pos_), deleted_(other.deleted_)
 		{
-		}
-
-		void Validate()
-		{
-			if((*sequence_)[pos_] == deleted_)
-			{
-				++*this;
-			}
 		}
 
 		char operator * () const

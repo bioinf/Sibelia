@@ -5,6 +5,7 @@ namespace SyntenyBuilder
 {
 	namespace
 	{
+		int pos;
 		typedef char Bool;
 
 		class HashFunction
@@ -259,9 +260,9 @@ namespace SyntenyBuilder
 			{
 				for(size_t j = 0; j < edge2.size(); j++)
 				{
-					int pos = edge2[j].Position();
 					if(std::binary_search(visit.begin(), visit.end(), edge2[j].Position()))
 					{
+						std::cerr << "Fail = " << edge2[j].Position() << std::endl;
 						return false;
 					}
 
@@ -289,6 +290,7 @@ namespace SyntenyBuilder
 			{
 				if(visit[i] == visit[i + 1])
 				{
+					std::cerr << "Fail2 = " << visit[i] << ", " << visit[i + 1] << std::endl;
 					return false;
 				}
 			}
@@ -306,9 +308,30 @@ namespace SyntenyBuilder
 			std::vector<DeBruijnGraph::Edge> smallParallel;
 			FindParallelEdges(g, bigBranch, bigSize, parallel);
 			FindParallelEdges(g, smallBranch, smallSize, smallParallel);
+			std::cerr << "Pos = " << pos << ", Instances = " << parallel.size() + smallParallel.size() << std::endl;
 
 			bool bigCheck = CheckBranch(parallel, bigSize);
-			bool smallCheck = CheckBranch(smallParallel, smallSize);
+			bool smallCheck = CheckBranch(smallParallel, smallSize);			
+
+		#ifndef _DEBUG
+			static int bulge = 0;
+			std::cerr << "Bulge #" << bulge++ << std::endl;
+			std::cerr << "Before: " << std::endl;
+		//	PrintRaw(g.sequence, std::cerr);
+			std::cerr << "Small branch: " << std::endl;
+			for(size_t i = 0; i < smallParallel.size(); i++)
+			{
+				PrintPath(smallParallel[i], smallSize + g.EdgeSize(), std::cerr);
+			}
+			
+			std::cerr << "Big branch: " << std::endl;
+			for(size_t i = 0; i < parallel.size(); i++)
+			{
+				PrintPath(parallel[i], bigSize + g.EdgeSize(), std::cerr);
+			}
+
+		#endif
+		
 			if(!bigCheck && !smallCheck)
 			{
 				return false;
@@ -329,25 +352,6 @@ namespace SyntenyBuilder
 				return false;
 			}
 
-		#ifdef _DEBUG
-			static int bulge = 0;
-			std::cerr << "Bulge #" << bulge++ << std::endl;
-			std::cerr << "Before: " << std::endl;
-			PrintRaw(g.sequence, std::cerr);
-			std::cerr << "Small branch: " << std::endl;
-			for(size_t i = 0; i < smallParallel.size(); i++)
-			{
-				PrintPath(smallParallel[i], smallSize + g.EdgeSize(), std::cerr);
-			}
-			
-			std::cerr << "Big branch: " << std::endl;
-			for(size_t i = 0; i < parallel.size(); i++)
-			{
-				PrintPath(parallel[i], bigSize + g.EdgeSize(), std::cerr);
-			}
-
-		#endif
-		
 			std::vector<DeBruijnGraph::StrandIterator> it;
 			for(size_t i = 0; i < parallel.size(); i++)
 			{
@@ -372,49 +376,39 @@ namespace SyntenyBuilder
 					it[i].Invalidate();
 				}
 			}
-
-		#ifdef _DEBUG
-			std::cerr << "After: " << std::endl;
-			PrintRaw(g.sequence, std::cerr);
-			std::cerr << "Small branch: " << std::endl;
-			for(size_t i = 0; i < smallParallel.size(); i++)
-			{
-				PrintPath(smallParallel[i], smallSize + g.EdgeSize(), std::cerr);
-			}
-			
-			std::cerr << "Big branch: " << std::endl;
-			for(size_t i = 0; i < parallel.size(); i++)
-			{
-				PrintPath(parallel[i], smallSize + g.EdgeSize(), std::cerr);
-			}
-
-			std::cerr << "---------------" << std::endl;
-		#endif
-
+		
 			return true;
 		}		
 
-		bool ProcessBifurcation(DeBruijnGraph & g, DeBruijnGraph::Vertex & v, int minCycleSize)
-		{					
+		int ProcessBifurcation(DeBruijnGraph & g, DeBruijnGraph::Vertex & v, int minCycleSize)
+		{			
+			int ret = 0;
 			VertexVisitMap visit;
 			visit.set_empty_key(DeBruijnGraph::Vertex());			
 			std::vector<std::vector<DeBruijnGraph::Edge> > init;
 			g.ListEdgesSeparate(v, init);
+			std::vector<char> alive(init.size(), 1);
 			std::vector<std::vector<DeBruijnGraph::Edge> > now = init;
 			bool keepOn = true;
+
 			for(int step = 1; step <= minCycleSize && keepOn; step++)
 			{
 
 			#ifdef _DEBUG
 				std::cerr << "step = " << step << std::endl;
-			#endif
+			#endif			
 
 				keepOn = false;
 				for(int classId = 0; classId < static_cast<int>(now.size()); classId++)
 				{
+					if(!alive[classId])
+					{
+						continue;
+					}
+
 					for(int instance = 0; instance < static_cast<int>(now[classId].size()); instance++)
 					{
-						if(now[classId][instance].IsNull())
+						if(now[classId][instance].IsNull() || !alive[classId])
 						{
 							continue;
 						}
@@ -438,26 +432,29 @@ namespace SyntenyBuilder
 							for(size_t i = 0; i < it->second.size(); i++)
 							{
 								if(it->second[i].classId != classId)
-								{
+								{									
 									int prevStep = it->second[i].distance;
 									int size = step + prevStep;
 									DeBruijnGraph::Edge & prevEdge = init[it->second[i].classId][it->second[i].instance];									
 									if(size > 2 && size <= minCycleSize)
 									{			
-										bool success = false;
 										if(step < it->second[i].distance)
 										{
-											success = CollapseBulge(g, v, u, nowEdge, step - 1, prevEdge, prevStep - 1);
+											if(CollapseBulge(g, v, u, nowEdge, step - 1, prevEdge, prevStep - 1))
+											{
+												alive[it->second[i].classId] = 0;
+												ret++;
+											}
 										}
 										else
 										{
-											success = CollapseBulge(g, v, u, prevEdge, prevStep - 1, nowEdge, step - 1);
-										}
-
-										if(success)
-										{
-											return true;
-										}
+											if(CollapseBulge(g, v, u, prevEdge, prevStep - 1, nowEdge, step - 1))
+											{
+												alive[classId] = 0;
+												ret++;
+												break;
+											}
+										}										
 									}
 									else
 									{
@@ -477,7 +474,7 @@ namespace SyntenyBuilder
 
 			}
 
-			return false;
+			return ret;
 		}
 	}
 	
@@ -563,21 +560,17 @@ namespace SyntenyBuilder
 		std::vector<std::vector<DeBruijnGraph::Edge> > edge;
 		for(DeBruijnGraph::StrandConstIterator it = g.sequence.PositiveBegin(); it.Valid(); it++)
 		{
-			if(it.GetPosition() % 1000000 == 0)
+			if(it.GetPosition() % 1 == 0)
 			{
 				std::cerr << it.GetPosition() << " " << bifurcationCount << " " << bulgeCount << std::endl;
 			}
 
-			int pos = it.GetPosition();
-
+			pos = it.GetPosition();
 			DeBruijnGraph::Vertex v = g.ConstructVertex(it);
 			if(!v.IsNull() && g.ListEdgesSeparate(v, edge) > 1)
 			{
 				bifurcationCount++;
-				while(ProcessBifurcation(g, v, minCycleSize))
-				{
-					bulgeCount++;
-				}
+				bulgeCount += ProcessBifurcation(g, v, minCycleSize);
 			}
 		}
 

@@ -409,6 +409,8 @@ namespace SyntenyBuilder
 				
 				if(this->sequence_->substrSize_ != INVALID_HASH)
 				{
+					this->sequence_->positiveHash_[pos] = INVALID_HASH;
+					this->sequence_->negativeHash_[pos] = INVALID_HASH;
 					for(int i = 0; i < this->sequence_->substrSize_; i++)
 					{
 						if(positive.Valid())
