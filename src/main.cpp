@@ -1,66 +1,6 @@
 #include "fastareader.h"
 #include "graphalgorithm.h"
-/*
-void Test()
-{
-	int k = 10;
-	srand(time(0));
-	SyntenyBuilder::DNASequence seq(std::string(1000, 'g'));
-	seq.KeepHash(k);
-	for(SyntenyBuilder::DNASequence::StrandConstIterator it = seq.PositiveBegin(); it != seq.PositiveRightEnd(); ++it)
-	{
-		SyntenyBuilder::DNASequence::StrandConstIterator jt = it;
-		std::advance(jt, k);
-		if(jt.Valid())
-		{
-			it.GetHashCode(k);
-		}
-	}
 
-	for(SyntenyBuilder::DNASequence::StrandConstIterator it = seq.NegativeBegin(); it != seq.NegativeRightEnd(); ++it)
-	{
-		SyntenyBuilder::DNASequence::StrandConstIterator jt = it;
-		std::advance(jt, k);
-		if(jt.Valid())
-		{
-			it.GetHashCode(k);
-		}
-	}
-
-	std::string alphabet = "acgt";
-	for(SyntenyBuilder::DNASequence::StrandIterator it = seq.PositiveBegin(); it != seq.PositiveRightEnd(); ++it)
-	{
-		if(rand() % 6 == 0)
-		{
-			it.AssignBase(alphabet[rand() % 4]);
-		}
-		else if(rand() % 7 == 0)
-		{
-			it.Invalidate();
-		}
-	}
-
-	for(SyntenyBuilder::DNASequence::StrandConstIterator it = seq.PositiveBegin(); it != seq.PositiveRightEnd(); ++it)
-	{
-		SyntenyBuilder::DNASequence::StrandConstIterator jt = it;
-		std::advance(jt, k);
-		if(jt.Valid())
-		{
-			it.GetHashCode(k);
-		}
-	}
-
-	for(SyntenyBuilder::DNASequence::StrandConstIterator it = seq.NegativeBegin(); it != seq.NegativeRightEnd(); ++it)
-	{
-		SyntenyBuilder::DNASequence::StrandConstIterator jt = it;
-		std::advance(jt, k);
-		if(jt.Valid())
-		{
-			it.GetHashCode(k);
-		}
-	}
-}
-*/
 int main(int argc, char * argv[])
 {	
 	if(argc < 4)

@@ -35,7 +35,7 @@ namespace SyntenyBuilder
 				return f(it_);
 			}
 
-			bool operator == (const Vertex & toCompare) const
+			bool Equal (const Vertex & toCompare) const
 			{
 				if(graph_ != toCompare.graph_)
 				{
@@ -56,9 +56,9 @@ namespace SyntenyBuilder
 				return std::mismatch(it_, end, toCompare.it_).first == end;
 			}
 
-			bool operator != (const Vertex & toCompare) const
+			bool Coincide (const Vertex & toCompare) const
 			{
-				return !(*this == toCompare);
+				return toCompare.it_ == it_;
 			}
 
 			template<class OutputIterator>
@@ -69,6 +69,8 @@ namespace SyntenyBuilder
 
 			Vertex(): graph_(0) {}
 		private:			
+			bool operator == (const Vertex &) const;
+			bool operator != (const Vertex &) const;
 			Vertex(const DeBruijnGraph * graph, StrandConstIterator it): graph_(graph), it_(it) {}			
 			const DeBruijnGraph * graph_;
 			StrandConstIterator it_;

@@ -21,6 +21,8 @@
 #include <boost/ref.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
+#include <boost/unordered_set.hpp>
+#include <boost/unordered_map.hpp>
 #include <sparsehash/sparse_hash_map>
 #include <sparsehash/sparse_hash_set>
 #include <sparsehash/dense_hash_set>
