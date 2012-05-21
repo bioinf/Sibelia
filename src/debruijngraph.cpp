@@ -2,18 +2,14 @@
 
 namespace SyntenyBuilder
 {
-	DeBruijnGraph::DeBruijnGraph(const std::string & sequence, int edgeSize):
+	DeBruijnGraph::DeBruijnGraph(const std::string & sequence):
 		sequence(sequence,
 			boost::bind(&DeBruijnGraph::Init, this),
 			boost::bind(&DeBruijnGraph::InvalidateBefore, this, _1, _2),
 			boost::bind(&DeBruijnGraph::InvalidateAfter, this, _1, _2)),
-		edgeSize_(edgeSize), vertexSize_(edgeSize_ - 1),
-		edge_(sequence.size(),
-			IndexTransformer(&this->sequence), 
-			KMerHashFunction(edgeSize),
-			KMerEqualTo(edgeSize))
+		edge_(0)
 	{
-		Init();		
+
 	}
 
 	void DeBruijnGraph::CalcBound()
@@ -22,13 +18,25 @@ namespace SyntenyBuilder
 		positiveVertexBound_ = Advance(sequence.NegativeBegin(), vertexSize_ - 1).GetPosition();		
 	}
 
+	void DeBruijnGraph::BuildGraph(int edgeSize)
+	{
+		delete edge_;
+		edge_ = new KMerMultiSet(sequence.Size(),
+			IndexTransformer(&sequence), 
+			KMerHashFunction(edgeSize),
+			KMerEqualTo(edgeSize));
+		edgeSize_ = edgeSize;
+		vertexSize_ = edgeSize - 1;
+		Init();
+	}
+
 	void DeBruijnGraph::Init()
 	{
-		CalcBound();
-		edge_.Clear();
+		CalcBound();		
+		edge_->Clear();
 		for(int i = 0; i < static_cast<int>(sequence.Size() - edgeSize_ + 1); i++)
 		{
-			edge_.Insert(i);
+			edge_->Insert(i);
 		}
 	}
 
@@ -50,7 +58,7 @@ namespace SyntenyBuilder
 		StrandConstIterator negative = edge.Direction() == positive ? 
 			sequence.NegativeByIndex(edge.end_.GetPosition()) :
 			sequence.PositiveByIndex(edge.end_.GetPosition());
-		return static_cast<int>(edge_.Count(edge.start_) + edge_.Count(negative));
+		return static_cast<int>(edge_->Count(edge.start_) + edge_->Count(negative));
 	}
 
 	int DeBruijnGraph::FindEquivalentEdges(const Edge & edge, std::vector<Edge> & ret)
@@ -61,8 +69,8 @@ namespace SyntenyBuilder
 			sequence.PositiveByIndex(edge.end_.GetPosition());
 		std::vector<int> positive;
 		std::vector<int> negative;
-		edge_.Find(edge.start_, std::back_inserter(positive));
-		edge_.Find(negIt, std::back_inserter(negative));
+		edge_->Find(edge.start_, std::back_inserter(positive));
+		edge_->Find(negIt, std::back_inserter(negative));
 		std::transform(positive.begin(), positive.end(), std::back_inserter(ret), 
 			boost::bind(&DeBruijnGraph::MakePositiveEdge, this, _1));
 		std::transform(negative.begin(), negative.end(), std::back_inserter(ret), 
@@ -84,8 +92,8 @@ namespace SyntenyBuilder
 			positive.clear();
 			negative.clear();
 			temp.NegativeBegin().AssignBase(DNASequence::alphabet[i]);
-			edge_.Find(temp.PositiveBegin(), std::back_inserter(positive));
-			edge_.Find(temp.NegativeBegin(), std::back_inserter(negative));
+			edge_->Find(temp.PositiveBegin(), std::back_inserter(positive));
+			edge_->Find(temp.NegativeBegin(), std::back_inserter(negative));
 			if(positive.size() + negative.size() > 0)
 			{
 				edge.push_back(std::vector<Edge>());
@@ -118,7 +126,7 @@ namespace SyntenyBuilder
 			StrandIterator end = sequence.PositiveByIndex(it.GetPosition());
 			if(Advance(end, edgeSize_ - 1).Valid())
 			{
-				edge_.Erase(it.GetPosition());
+				edge_->Erase(it.GetPosition());
 			}
 		}
 	}
@@ -131,7 +139,7 @@ namespace SyntenyBuilder
 			StrandIterator end = sequence.PositiveByIndex(it.GetPosition());
 			if(Advance(end, edgeSize_ - 1).Valid())
 			{
-				edge_.Insert(it.GetPosition());
+				edge_->Insert(it.GetPosition());
 			}
 		}
 

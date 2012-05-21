@@ -1,3 +1,4 @@
 cmake_minimum_required(VERSION 2.8)
 project(SyntenyBuilder CXX)
-add_executable(SyntenyBuilder main.cpp fastareader.cpp debruijngraph.cpp dnasequence.cpp graphalgorithm.cpp)
+add_executable(SyntenyBuilder main.cpp fasta.cpp debruijngraph.cpp dnasequence.cpp graphalgorithm.cpp)
+set(CMAKE_BUILD_TYPE Release)

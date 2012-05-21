@@ -333,6 +333,13 @@ namespace SyntenyBuilder
 			negativeHash_.resize(Size(), INVALID_HASH);
 		}
 
+		void DropHash()
+		{
+			substrSize_ = INVALID_HASH;
+			positiveHash_.clear();
+			negativeHash_.clear();
+		}
+
 		void Optimize()
 		{
 			substrSize_ = INVALID_HASH;

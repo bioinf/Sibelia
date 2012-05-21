@@ -220,21 +220,27 @@ namespace SyntenyBuilder
 
 			return Edge();
 		}
-		
+
+		~DeBruijnGraph()
+		{
+			delete edge_;
+		}
+
 		int CountEquivalentEdges(const Edge & edge) const;
 		int ListEdges(const Vertex & v, std::vector<Edge> & edge);
 		int ListEdgesSeparate(const Vertex & v, std::vector<std::vector<Edge> > & edge);
 		int FindEquivalentEdges(const Edge & edge, std::vector<Edge> & ret);
-		DeBruijnGraph(const std::string & sequence, int edgeSize);
+		DeBruijnGraph(const std::string & sequence);
+		void BuildGraph(int edgeSize);
 
 		DNASequence sequence;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DeBruijnGraph);				
 		
 		//Length of the k-mer that corresponds to the edge in graph
-		const int edgeSize_;
+		int edgeSize_;
 		//Length of the (k - 1)-mer that corresponds to the vertex, equals edgeSize_ - 1
-		const int vertexSize_;
+		int vertexSize_;
 
 		class KMerHashFunction
 		{
@@ -278,7 +284,7 @@ namespace SyntenyBuilder
 		
 		typedef IndexMultiSet<StrandConstIterator, IndexTransformer, KMerHashFunction, KMerEqualTo> KMerMultiSet;		
 		//Container in which we store all edges
-		KMerMultiSet edge_;
+		KMerMultiSet * edge_;
 		int positiveVertexBound_;
 		int negativeVertexBound_;
 

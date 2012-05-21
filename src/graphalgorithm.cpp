@@ -495,51 +495,40 @@ namespace SyntenyBuilder
 		int bifurcationCount = 0;
 		deletedWhirl = deletedBulge = 0;
 		g.sequence.KeepHash(g.VertexSize());
-		VertexVisit globalVisit;
+		google::sparse_hash_set<std::string> globalVisit;
 		std::vector<std::vector<DeBruijnGraph::Edge> > edge;
-		const int MOD = 10000;
-		/*
+		const int MOD = 100;
+
+		std::cerr << std::string(50, '-') << std::endl;
+
+		int counter = 0;
+		std::string buf(g.VertexSize(), ' ');
 		for(DeBruijnGraph::StrandConstIterator it = g.sequence.PositiveBegin(); it.Valid(); it++)
 		{
-			if(it.GetPosition() % MOD == 0)
+			if(++counter % MOD == 0)
 			{
-				std::cerr << it.GetPosition() << " " << bifurcationCount << " " << whirlCount;
-				std::cerr << ' ' << bulgeCount << ' ' <<  deletedBulge << std::endl;
+				std::cerr << it.GetPosition() << ' ' << bifurcationCount << ' ';
+				std::cerr << bulgeCount << ' ' <<  deletedBulge << ' ' << std::endl;
 			}
-
-			pos = it.GetPosition();
- 			DeBruijnGraph::Vertex v = g.ConstructVertex(it);
-			if(!v.IsNull() && globalVisit.count(v) == 0 && g.ListEdgesSeparate(v, edge) > 1)
-			{
-				bifurcationCount++;
-				whirlCount += RemoveWhirls(g, v, minCycleSize);
-				globalVisit.insert(v);
-			}
-		}*/
-
-		globalVisit.clear();
-		for(DeBruijnGraph::StrandConstIterator it = g.sequence.PositiveBegin(); it.Valid(); it++)
-		{
-			if(it.GetPosition() % MOD == 0)
-			{
-				std::cerr << it.GetPosition() << " " << bifurcationCount << ' ';
-				std::cerr << bulgeCount << ' ' <<  deletedBulge << std::endl;
-			}
-
-			pos = it.GetPosition();
+			
  			DeBruijnGraph::Vertex v = g.ConstructVertex(it);
 			if(!v.IsNull() && g.ListEdgesSeparate(v, edge) > 1)
 			{
-				bifurcationCount++;
-				bulgeCount += RemoveBulges(g, v, minCycleSize);
+				v.Spell(buf.begin());
+				if(globalVisit.count(buf) == 0)
+				{
+					bifurcationCount++;
+					globalVisit.insert(buf);
+					bulgeCount += RemoveBulges(g, v, minCycleSize);
+				}
 			}
 		}
-
 
 		std::cerr << "Total bifurcations: " << bifurcationCount << std::endl;
 		std::cerr << "Deleted bpairs by bulge removal: " << deletedBulge << std::endl;
 		std::cerr << "Total bulges: " << bulgeCount << std::endl;		
 		g.sequence.Optimize();
+		g.sequence.DropHash();
 		return bulgeCount;
 	}
 }

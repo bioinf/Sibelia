@@ -38,6 +38,22 @@ namespace SyntenyBuilder
 		DISALLOW_COPY_AND_ASSIGN(FASTAReader);
 		FILE * fileHandler_;
 	};
+
+	class FASTAWriter
+	{
+	public:
+		static void WriteSequence(const std::string & fileName, const std::string & header, const std::string & sequence)
+		{
+			std::ofstream out(fileName.c_str());
+			out << "> " << header << std::endl;
+			for(size_t i = 0; i < sequence.size(); i += 80)
+			{
+				size_t j = std::min(i + 80, sequence.size());
+				std::copy(sequence.begin() + i, sequence.begin() + j, std::ostream_iterator<char>(out));
+				out << std::endl;
+			}
+		}
+	};
 }
 
 #endif 

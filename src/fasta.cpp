@@ -1,4 +1,4 @@
-#include "fastareader.h"
+#include "fasta.h"
 
 namespace SyntenyBuilder
 {	
