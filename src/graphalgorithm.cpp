@@ -497,7 +497,7 @@ namespace SyntenyBuilder
 		g.sequence.KeepHash(g.VertexSize());
 		google::sparse_hash_set<std::string> globalVisit;
 		std::vector<std::vector<DeBruijnGraph::Edge> > edge;
-		const int MOD = 100;
+		const int MOD = 100000;
 
 		std::cerr << std::string(50, '-') << std::endl;
 
