@@ -174,16 +174,73 @@ Such blocks are reverse complementary to each other \( \Rightarrow \) no non-bra
 \end{frame}
 
 \begin{frame}
-\frametitle{Current Progress}
-Now:
+\frametitle{Experiment}
 \begin{itemize}
-\item Program for finding synteny blocks using above approach
-\item Covers \( 20-25 \% \) of Arabidopsis genome
+\item We have attempted to identify duplications in \emph{Arabidopsis thaliana}
+\item Arabidopsis is known to be highly duplicated genome \braces{Arabidopsis Genome Initiative}
+\item Size of the genome is \( \sim 120 \, Mbp \)
+\item We used 4 stages and following parameters:
 \end{itemize}
-Future work:
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline
+Stage number & \(K\) & \(\delta\) \\
+\hline
+1 & 15 & 150 \\
+\hline
+2 & 50 & 500\\
+\hline
+3 & 100 & 1000\\
+\hline
+4 & 500 & 5000\\
+\hline
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Computation results}
 \begin{itemize}
-\item Improve coverage somehow?
-\item Propose new alignment tool?
+\item We have found \(4722\) synteny blocks in Arabidopsis
+\item These blocks cover \(28 \, \%\) of the genome
+\item Minimum length of the block is \(1000 \, bp\)
+\item Largest block found has length \(\sim 95 \, 000 \, bp\)
+\item We tried to verify blocks by aligning instances of the same block
+\item At least \(74 \, \%\) of blocks have \(70 \, \%\) of exact matches
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Computation results}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.480]{blocks_alignments.png}
+\small \caption{Matches percent vs. number of blocks plot}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Computation results}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.480]{blocks_len_distrib.png}
+\small \caption{Synteny blocks length distribution}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Future plans and summary}
+Summary
+\begin{itemize}
+\item We have covered 28 \% of Arabidopsis genome with synteny blocks
+\item But we have missed some duplicated regions, described in \braces{Arabidopsis Genome Initiative}
+\item Most of the blocks are short (\(< 5000 \,  bp\))
+\end{itemize}
+Future plans
+\begin{itemize}
+\item Improve coverage
+\item Examine other genomes
+\item Optimize algorithms to handle larger genomes
 \end{itemize}
 \end{frame}
 
@@ -193,6 +250,7 @@ Future work:
 \item 1. Pevzner P and Tesler G, (2003) Human and mouse genomic sequences reveal extensive breakpoint reuse in mammalian evolution. 
 \item 2. Pham S and Pevzner P, (2010) DRIMM-Synteny: Decomposing Genomes into Evolutionary Conserved Segments
 \item 3. Iqbal Z, Caccamo M, Turner I, Flicek P, McVean G, (2012) De novo assembly and genotyping of variants using colored de Bruijn graphs
+\item 4. Arabidopsis Genome Initiative, (2000) Analysis of the genome sequence of the flowering plant Arabidopsis thaliana
 \end{itemize}
 \end{frame}
 
