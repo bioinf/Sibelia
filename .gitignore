@@ -7,3 +7,4 @@ presentation/*.snm
 presentation/*.synctex.gz
 presentation/*.toc
 .gitignore
+presentation/April28/SyntenyBuilder.aux
