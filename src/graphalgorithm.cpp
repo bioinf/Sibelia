@@ -5,12 +5,14 @@ namespace SyntenyBuilder
 {
 	namespace
 	{
+		typedef char Bool;		
 		typedef DNASequence::StrandIterator StrandIterator;
+
 	/*	int pos;
 		int deletedWhirl;
 		int deletedBulge;
 		const int ANY_CLASS = -1;					
-		typedef char Bool;		
+		
 
 		struct VertexHashFunction
 		{
@@ -70,7 +72,7 @@ namespace SyntenyBuilder
 			out << " -> ";
 			CopyN(++StrandIterator(it), index.GetK(), std::ostream_iterator<char>(out));
 
-			std::vector<char> buf(index.GetK() + (1 << 6), '\0');
+			char buf[1 << 8];
 			if(it.GetDirection() == DNASequence::positive)
 			{
 				sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "blue", static_cast<long long unsigned>(it.GetPosition()));
@@ -80,7 +82,7 @@ namespace SyntenyBuilder
 				sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "red", static_cast<long long unsigned>(it.GetPosition()));
 			}
 
-			out << std::string(buf.begin(), buf.end());
+			out << " " << buf;
 		}
 		
 		void ProcessIterator(KMerVisit & visit, const KMerIndex & index, DNASequence::StrandIterator it, std::ostream & out)
@@ -101,92 +103,50 @@ namespace SyntenyBuilder
 			}
 		}
 
-		/*
-		bool Less(const std::pair<int, DeBruijnGraph::Edge> & p1, const std::pair<int, DeBruijnGraph::Edge> & p2)
+		bool Less(const std::pair<size_t, StrandIterator> & p1, const std::pair<size_t, StrandIterator> & p2)
 		{
 			return p1.first < p2.first;
 		}
 
-		bool Invalid(const std::vector<Bool> & visit, const DeBruijnGraph::Edge & g)
+		bool Invalid(const std::vector<Bool> & visit, const StrandIterator & g)
 		{
-			return visit[g.Position()] == 1;
+			return visit[g.GetPosition()] == 1;
 		}
 
-		void Invalidate(std::vector<Bool> & visit, const DeBruijnGraph::Edge & g)
+		void Invalidate(std::vector<Bool> & visit, const StrandIterator & g)
 		{
-			visit[g.Position()] = true;
+			visit[g.GetPosition()] = true;
 		}
-
-		void MoveForward(DeBruijnGraph::Edge & edge)
+			
+		size_t Extend(std::vector<Bool> & visit,
+			std::vector<StrandIterator> kmer,
+			boost::function<void (StrandIterator&)> extender,
+			boost::function<void (const StrandIterator&)> invalidator)
 		{
-			if(!edge.IsNull())
-			{
-				edge = edge.NextEdge();
-			}
-		}
-
-		void MoveBackward(DeBruijnGraph::Edge & edge)
-		{
-			if(!edge.IsNull())
-			{
-				edge = edge.PreviousEdge();
-			}
-		}
-
-		int ExtendForward(std::vector<Bool> & visit, std::vector<DeBruijnGraph::Edge> edge,
-			boost::function<void (const DeBruijnGraph::Edge&)> invalidator)
-		{
-			int ret = 0;
-			std::for_each(edge.begin(), edge.end(), MoveForward);			
+			size_t ret = 0;			
+			std::for_each(kmer.begin(), kmer.end(), extender);			
 			for(bool fail = false; !fail; ret++)
 			{
-				fail = edge[0].IsNull();
+				fail = !kmer[0].Valid() || visit[kmer[0].GetPosition()];
 				if(!fail)
 				{
-					char consensus = edge[0].SpellEnd();
-					for(size_t i = 1; i < edge.size() && !fail; i++)
+					char consensus = *kmer[0];
+					for(size_t i = 1; i < kmer.size() && !fail; i++)
 					{
-						fail = edge[i].IsNull() || visit[edge[i].Position()] || edge[i].SpellEnd() != consensus;
+						fail = !kmer[i].Valid() || visit[kmer[i].GetPosition()] || *kmer[i] != consensus;
 					}
 				}
 
 				if(!fail)
 				{
-					std::for_each(edge.begin(), edge.end(), invalidator);
-					std::for_each(edge.begin(), edge.end(), MoveForward);
+					std::for_each(kmer.begin(), kmer.end(), invalidator);
+					std::for_each(kmer.begin(), kmer.end(), extender);
 				}
 			}
 
-			return ret - 1;
+ 			return ret - 1;
 		}
-
-		int ExtendBackward(std::vector<Bool> & visit, std::vector<DeBruijnGraph::Edge> edge,
-			boost::function<void (const DeBruijnGraph::Edge&)> invalidator)
-		{
-			int ret = 0;
-			std::for_each(edge.begin(), edge.end(), MoveBackward);
-			for(bool fail = false; !fail; ret++)
-			{
-				fail = edge[0].IsNull();
-				if(!fail)
-				{
-					char consensus = edge[0].SpellStart();
-					for(size_t i = 1; i < edge.size() && !fail; i++)
-					{
-						fail = edge[i].IsNull() || visit[edge[i].Position()] || edge[i].SpellStart() != consensus;
-					}
-				}
-
-				if(!fail)
-				{
-					std::for_each(edge.begin(), edge.end(), invalidator);
-					std::for_each(edge.begin(), edge.end(), MoveBackward);
-				}
-			}
-
-			return ret - 1;
-		}				
-
+		/*
 		std::string ToString(const DeBruijnGraph::Vertex & v)
 		{
 			std::string buf;
@@ -441,49 +401,59 @@ namespace SyntenyBuilder
 		out << "}";
 	}
 
-/*
-	void GraphAlgorithm::ListNonBranchingPaths(DeBruijnGraph & g, std::ostream & out, std::ostream & indexOut)
+	void GraphAlgorithm::ListNonBranchingPaths(const KMerIndex & index, const DNASequence & sequence, std::ostream & out, std::ostream & indexOut)
 	{
-		int count = 0;
-		std::vector<std::pair<int, DeBruijnGraph::Edge> > multiedge;
-		for(DeBruijnGraph::StrandIterator it = g.sequence.PositiveBegin(); it.Valid(); it++)
-		{
-			DeBruijnGraph::Edge edge = g.ConstructPositiveEdge(it);
-			if(!edge.IsNull() && (count = g.CountEquivalentEdges(edge)) > 1)
+		size_t count = 0;
+		size_t k = index.GetK();
+		std::vector<std::pair<size_t, StrandIterator> > multiKmer;
+		for(StrandIterator it = sequence.PositiveBegin(); it.Valid(); it++)
+		{			
+			if(it.ProperKMer(k) && (count = index.CountEquivalentKMers(it)) > 1)
 			{
-				multiedge.push_back(std::make_pair(count, edge));
+				multiKmer.push_back(std::make_pair(count, it));
 			}
 		}
 		
 		std::string buf;
-		std::vector<DeBruijnGraph::Edge> edge;
-		std::vector<Bool> visit(g.sequence.Size(), false);
-		std::sort(multiedge.begin(), multiedge.end(), Less);	
-		boost::function<bool (const DeBruijnGraph::Edge&)> isInvalid = boost::bind(Invalid, boost::ref(visit), _1);
-		boost::function<void (const DeBruijnGraph::Edge&)> invalidator = boost::bind(Invalidate, boost::ref(visit), _1);
-		for(size_t i = 0; i < multiedge.size(); i++)
+		std::vector<StrandIterator> kmer;
+		std::vector<char> visit(sequence.Size(), false);
+		std::sort(multiKmer.begin(), multiKmer.end(), Less);	
+
+		boost::function<StrandIterator& (StrandIterator&)> moveForward = boost::bind(&StrandIterator::operator++, _1);
+		boost::function<StrandIterator& (StrandIterator&)> moveBackward = boost::bind(&StrandIterator::operator--, _1);		
+		boost::function<bool (const StrandIterator&)> invalid = boost::bind(Invalid, boost::ref(visit), _1);
+		boost::function<void (const StrandIterator&)> invalidator = boost::bind(Invalidate, boost::ref(visit), _1);
+
+		for(size_t i = 0; i < multiKmer.size(); i++)
 		{
-			if(!visit[multiedge[i].second.Position()])
+			if(!visit[multiKmer[i].second.GetPosition()])
 			{
-				g.FindEquivalentEdges(multiedge[i].second, edge);
-				edge.erase(std::remove_if(edge.begin(), edge.end(), isInvalid), edge.end());
-				if(edge.size() > 1)
+				index.ListEquivalentKmers(multiKmer[i].second, kmer);
+				kmer.erase(std::remove_if(kmer.begin(), kmer.end(), invalid), kmer.end());
+				if(kmer.size() > 1)
 				{
-					int forward = ExtendForward(visit, edge, invalidator);
-					int backward = ExtendBackward(visit, edge, invalidator);
-					std::for_each(edge.begin(), edge.end(), invalidator);
+					size_t forward = Extend(visit, kmer, moveForward, invalidator) + 1;
+					size_t backward = Extend(visit, kmer, moveBackward, invalidator);
+					if(forward + backward < index.GetK())
+					{
+						continue;
+					}
+
+					std::for_each(kmer.begin(), kmer.end(), invalidator);
+
 					out << "Consensus: " << std::endl;
-					DeBruijnGraph::StrandConstIterator end = Advance(edge[0].EndIterator(), forward);
-					DeBruijnGraph::StrandConstIterator start = AdvanceBackward(edge[0].StartIterator(), backward);
+					StrandIterator end = AdvanceForward(kmer[0], forward);
+					StrandIterator start = AdvanceBackward(kmer[0], backward);
 					std::copy(start, end, std::ostream_iterator<char>(out));
-					out << std::endl;					
-					for(size_t j = 0; j < edge.size(); j++)
+					out << std::endl;	
+
+					for(size_t j = 0; j < kmer.size(); j++)
 					{
 						buf.clear();
-						end = Advance(edge[j].EndIterator(), forward);
-						start = AdvanceBackward(edge[j].StartIterator(), backward);
-						std::pair<int, int> coord = g.sequence.SpellOriginal(start, end, std::back_inserter(buf));
-						out << (edge[j].Direction() == DeBruijnGraph::positive ? '+' : '-') << "s, ";
+						end = AdvanceForward(kmer[j], forward);
+						start = AdvanceBackward(kmer[j], backward);
+						std::pair<size_t, size_t> coord = sequence.SpellOriginal(start, end, std::back_inserter(buf));
+						out << (kmer[j].GetDirection() == DNASequence::positive ? '+' : '-') << "s, ";
 						out << coord.first << ':' << coord.second << " " << buf << std::endl;
 						indexOut << coord.second - coord.first << ' ' << coord.first << ' ' << coord.second << std::endl;
 					}
@@ -494,6 +464,7 @@ namespace SyntenyBuilder
 		}
 	}	
 
+	/*
 	int GraphAlgorithm::Simplify(DeBruijnGraph & g, int minCycleSize)
 	{
 	#ifdef _DEBUG

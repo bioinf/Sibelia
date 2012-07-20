@@ -42,7 +42,7 @@ namespace SyntenyBuilder
 			bool ProperKMer(size_t k) const
 			{
 				StrandIterator temp(*this);
-				temp.Jump(k);
+				temp.Jump(k - 1);
 				return temp.Valid();
 			}
 
@@ -107,6 +107,11 @@ namespace SyntenyBuilder
 				return it_.GetPosition();
 			}
 
+			const ReadingStrategy* GetStrategy() const
+			{
+				return rStrategy_;
+			}
+
 		private:
 			IndexConstIterator it_;
 			const RStrategy * rStrategy_;
@@ -169,9 +174,14 @@ namespace SyntenyBuilder
 		}
 
 		template<class Iterator>
-			std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2, Iterator out)
+			std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2, Iterator out) const
 			{
-				
+				StrandIterator out1(IndexConstIterator(original_, position_[it1.GetPosition()], DELETED_CHARACTER), it1.GetStrategy());
+				StrandIterator out2(IndexConstIterator(original_, position_[(--it2).GetPosition()], DELETED_CHARACTER), it2.GetStrategy());
+				std::copy(out1, ++out2, out);
+				size_t pos1 = out1.GetPosition();
+				size_t pos2 = (--out2).GetPosition();
+				return std::make_pair(std::min(pos1, pos2), std::max(pos1, pos2) + 1);
 			}
 
 		template<class Iterator>

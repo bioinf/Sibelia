@@ -100,17 +100,18 @@ int main(int argc, char * argv[])
 				
 		std::cerr << std::string(50, '-') << std::endl;
 		std::string header = fileName;				
-		/*
+		
 		std::string buf;
 		std::ofstream general((header + "_blocks").c_str());
 		std::ofstream indices((header + "_indices").c_str());
-		std::string consensus((header + "_consensus.fasta").c_str());
+/*		std::string consensus((header + "_consensus.fasta").c_str());
 		std::copy(g.sequence.PositiveBegin(), g.sequence.PositiveRightEnd(), 
 			std::back_inserter(buf));
 		SyntenyBuilder::FASTAWriter::WriteSequence(consensus, fileName + " simplified", buf);
+		*/
 
 		std::cerr << "Finding non-branching paths" << std::endl;
-		SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(g, general, indices);*/
+		SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(index, dnaseq, general, indices);
 		std::cerr.setf(std::cerr.fixed);
 		std::cerr.precision(2);
 		std::cerr << "Time elapsed: " << double(clock()) / 1000 << std::endl;

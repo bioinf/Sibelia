@@ -6,7 +6,7 @@ namespace SyntenyBuilder
 	{
 		if(pos_ < static_cast<size_t>(sequence_->size()))
 		{
-			for(pos_ += value; pos_ < static_cast<size_t>(sequence_->size()) && (*sequence_)[pos_] == deleted_; pos_++);
+			for(pos_ += value; pos_ < sequence_->size() && (*sequence_)[pos_] == deleted_; pos_++);
 		}
 
 		return pos_;
@@ -18,7 +18,7 @@ namespace SyntenyBuilder
 		{
 			for(pos_ -= value; pos_ >= 0 && (*sequence_)[pos_] == deleted_; pos_--);
 		}
-		else
+		else if(value != 0)
 		{
 			pos_ = IndexIterator::NPOS;
 		}

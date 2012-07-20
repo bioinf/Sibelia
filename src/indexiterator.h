@@ -26,7 +26,7 @@ namespace SyntenyBuilder
 		IndexIterator(std::string & sequence, size_t pos, char deleted, Direction dir = forward):
 			sequence_(&sequence), pos_(pos), deleted_(deleted)
 		{
-			if(pos_ != static_cast<size_t>(sequence.size()) && pos_ != NPOS)
+			if(pos_ != sequence.size() && pos_ != NPOS)
 			{
 				if(dir == forward)
 				{

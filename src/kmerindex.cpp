@@ -28,16 +28,12 @@ namespace SyntenyBuilder
 		return k_;
 	}
 
-	/*
-
-	int DeBruijnGraph::CountEquivalentEdges(const Edge & edge) const
+	size_t KMerIndex::CountEquivalentKMers(StrandIterator it) const
 	{
-		StrandConstIterator negative = edge.Direction() == positive ? 
-			sequence.NegativeByIndex(edge.end_.GetPosition()) :
-			sequence.PositiveByIndex(edge.end_.GetPosition());
-		return static_cast<int>(edge_->Count(edge.start_) + edge_->Count(negative));
+		size_t ret = kmer_->Count(it);
+		it.Jump(k_ - 1);
+		return ret + kmer_->Count(it.Invert());
 	}
-	*/
 
 	size_t KMerIndex::ListEquivalentKmers(StrandIterator it, std::vector<StrandIterator> & ret) const
 	{
@@ -45,12 +41,16 @@ namespace SyntenyBuilder
 		std::vector<size_t> positive;
 		std::vector<size_t> negative;
 		kmer_->Find(it, std::back_inserter(positive));
-		it.Jump(k_);
+		it.Jump(k_ - 1);
 		kmer_->Find(it.Invert(), std::back_inserter(negative));
 		
 		std::transform(positive.begin(), positive.end(), std::back_inserter(ret),
-			boost::bind(
-
+			boost::bind(&DNASequence::PositiveByIndex, sequence_, _1));
+		std::transform(negative.begin(), negative.end(), negative.begin(),
+			boost::bind(&std::plus<size_t>::operator(), &std::plus<size_t>(), k_ - 1, _1));
+		std::transform(negative.begin(), negative.end(), std::back_inserter(ret),
+			boost::bind(&DNASequence::NegativeByIndex, sequence_, _1));
+		
 		return static_cast<int>(ret.size());
 	}
 	
@@ -83,46 +83,5 @@ namespace SyntenyBuilder
 
 		return static_cast<int>(edge.size());
 	}
-
-	DeBruijnGraph::Edge DeBruijnGraph::MakePositiveEdge(int shift)
-	{
-		return Edge(this, sequence.PositiveByIndex(shift), positive);
-	}
-
-	DeBruijnGraph::Edge DeBruijnGraph::MakeNegativeEdge(int shift)
-	{
-		StrandConstIterator it = AdvanceForward(sequence.PositiveByIndex(shift), edgeSize_ - 1);
-		return Edge(this, sequence.NegativeByIndex(it.GetPosition()), negative);
-	}
-
-	void DeBruijnGraph::InvalidateBefore(int pos, bool erase)
-	{
-		StrandIterator it = sequence.NegativeByIndex(pos);
-		for(int i = 0; i < edgeSize_ && it.Valid(); i++, it++)
-		{
-			StrandIterator end = sequence.PositiveByIndex(it.GetPosition());
-			if(AdvanceForward(end, edgeSize_ - 1).Valid())
-			{
-				edge_->Erase(it.GetPosition());
-			}
-		}
-	}
-
-	void DeBruijnGraph::InvalidateAfter(int pos, bool erase)
-	{
-		StrandIterator it = sequence.NegativeByIndex(pos);
-		for(int i = 0; i < edgeSize_ && it.Valid(); i++, it++)
-		{
-			StrandIterator end = sequence.PositiveByIndex(it.GetPosition());
-			if(AdvanceForward(end, edgeSize_ - 1).Valid())
-			{
-				edge_->Insert(it.GetPosition());
-			}
-		}
-
-		if(erase)
-		{
-			CalcBound();
-		}
-	}*/
+	*/
 }
