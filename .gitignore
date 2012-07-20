@@ -8,3 +8,11 @@ presentation/*.synctex.gz
 presentation/*.toc
 .gitignore
 presentation/April28/SyntenyBuilder.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+presentation/April28/SyntenyBuilder.synctex.gz
+*.aux
+*.gz
