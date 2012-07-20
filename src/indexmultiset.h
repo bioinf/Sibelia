@@ -33,7 +33,7 @@ namespace SyntenyBuilder
 				multiple_.clear();
 			}
 
-			void Erase(int index)
+			void Erase(size_t index)
 			{
 				typename Set::iterator it = single_.find(index);
 				if(it != single_.end())
@@ -51,25 +51,25 @@ namespace SyntenyBuilder
 						}
 						else
 						{
-							std::vector<int> temp(jt->second.begin(), jt->second.end());
+							std::vector<size_t> temp(jt->second.begin(), jt->second.end());
 							multiple_.erase(jt);
 							if(temp.size() > 0)
 							{
-								multiple_.insert(make_pair(temp[0], std::vector<int>(temp.begin() + 1, temp.end())));
+								multiple_.insert(make_pair(temp[0], std::vector<size_t>(temp.begin() + 1, temp.end())));
 							}
 						}
 					}
 				}
 			}
 
-			void Insert(int index)
+			void Insert(size_t index)
 			{
 				typename Set::iterator jt = single_.find(index);
 				if(jt != single_.end())									 //Test if k-mer occured before as single index
 				{
 					if(index != *jt)									 //If it is not the same as stored, store it as a multiple index
 					{
-						multiple_.insert(make_pair(*jt, std::vector<int>(1, index)));
+						multiple_.insert(make_pair(*jt, std::vector<size_t>(1, index)));
 						single_.erase(index);				
 					}
 				}
@@ -90,7 +90,7 @@ namespace SyntenyBuilder
 				}
 			}
 
-			size_t Count(int index) const
+			size_t Count(size_t index) const
 			{
 				typename Set::const_iterator it = single_.find(index);
 				if(it != single_.end())
@@ -130,7 +130,7 @@ namespace SyntenyBuilder
 			}
 
 			template<class Iterator>
-				size_t Find(int index, Iterator ret) const
+				size_t Find(size_t index, Iterator ret) const
 				{
 					size_t count = 0;
 					typename Set::const_iterator it = single_.find(index);
@@ -195,7 +195,7 @@ namespace SyntenyBuilder
 			{
 			public:
 				HashFunction(const IndexMultiSet * set): set_(set) {}
-				size_t operator ()(int index) const
+				size_t operator ()(size_t index) const
 				{
 					if(index == EMPTY_KEY)
 					{
@@ -217,7 +217,7 @@ namespace SyntenyBuilder
 			{
 			public:
 				EqualTo(const IndexMultiSet * set): set_(set) {}
-				bool operator () (int index1, int index2) const
+				bool operator () (size_t index1, size_t index2) const
 				{
 					if(index1 == DELETED_KEY || index2 == DELETED_KEY || index1 == EMPTY_KEY || index2 == EMPTY_KEY)
 					{
@@ -233,17 +233,17 @@ namespace SyntenyBuilder
 			};
 
 		#ifdef _DENSE_MAP_
-			typedef google::dense_hash_set<int, HashFunction, EqualTo> Set; 
-			typedef google::dense_hash_map<int, std::vector<int>, HashFunction, EqualTo> MultiSet; 
+			typedef google::dense_hash_set<size_t, HashFunction, EqualTo> Set; 
+			typedef google::dense_hash_map<size_t, std::vector<size_t>, HashFunction, EqualTo> MultiSet; 
 		#else
-			typedef google::sparse_hash_set<int, HashFunction, EqualTo> Set; 
-			typedef google::sparse_hash_map<int, std::vector<int>, HashFunction, EqualTo> MultiSet; 
+			typedef google::sparse_hash_set<size_t, HashFunction, EqualTo> Set; 
+			typedef google::sparse_hash_map<size_t, std::vector<size_t>, HashFunction, EqualTo> MultiSet; 
 		#endif
 			size_t size_;
 			mutable const ActualStore * auxilary_;
-			static const int DELETED_KEY;
-			static const int AUXILARY_KEY;
-			static const int EMPTY_KEY;
+			static const size_t DELETED_KEY;
+			static const size_t AUXILARY_KEY;
+			static const size_t EMPTY_KEY;
 			Transformer transformer_;
 			StoreHashFunction hashFunction_;
 			StoreEqualTo equalTo_;
@@ -253,11 +253,11 @@ namespace SyntenyBuilder
 		};
 
 	template<class T1, class T2, class T3, class T4>
-		const int IndexMultiSet<T1, T2, T3, T4>::DELETED_KEY = -1;	
+		const size_t IndexMultiSet<T1, T2, T3, T4>::DELETED_KEY = -1;	
 	template<class T1, class T2, class T3, class T4>
-		const int IndexMultiSet<T1, T2, T3, T4>::AUXILARY_KEY = -2;	
+		const size_t IndexMultiSet<T1, T2, T3, T4>::AUXILARY_KEY = -2;	
 	template<class T1, class T2, class T3, class T4>
-		const int IndexMultiSet<T1, T2, T3, T4>::EMPTY_KEY = -3;	
+		const size_t IndexMultiSet<T1, T2, T3, T4>::EMPTY_KEY = -3;	
 }
 
 

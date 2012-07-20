@@ -1,57 +1,34 @@
+#include "kmerindex.h"
 #include "debruijngraph.h"
 
 namespace SyntenyBuilder
-{/*
-	DeBruijnGraph::DeBruijnGraph(const std::string & sequence):
-		sequence(sequence,
-			boost::bind(&DeBruijnGraph::Init, this),
-			boost::bind(&DeBruijnGraph::InvalidateBefore, this, _1, _2),
-			boost::bind(&DeBruijnGraph::InvalidateAfter, this, _1, _2)),
-		edge_(0)
+{
+	void KMerIndex::SetupIndex(size_t k)
 	{
+		k_ = k;
+		delete kmer_;
+		kmer_ = new KMerMultiSet(sequence_->Size(),
+			IndexTransformer(sequence_), 
+			KMerHashFunction(k),
+			KMerEqualTo(k));
 
+		IndexKMers(sequence_->PositiveBegin(), sequence_->PositiveRightEnd());
 	}
 
-	void DeBruijnGraph::CalcBound()
+	void KMerIndex::IndexKMers(StrandIterator start, StrandIterator end)
 	{
-		negativeVertexBound_ = AdvanceForward(sequence.PositiveBegin(), vertexSize_ - 1).GetPosition();
-		positiveVertexBound_ = AdvanceForward(sequence.NegativeBegin(), vertexSize_ - 1).GetPosition();		
-	}
-
-	void DeBruijnGraph::BuildGraph(int edgeSize)
-	{
-		delete edge_;
-		edge_ = new KMerMultiSet(sequence.Size(),
-			IndexTransformer(&sequence), 
-			KMerHashFunction(edgeSize),
-			KMerEqualTo(edgeSize));
-		edgeSize_ = edgeSize;
-		vertexSize_ = edgeSize - 1;
-		Init();
-	}
-
-	void DeBruijnGraph::Init()
-	{
-		CalcBound();		
-		edge_->Clear();
-		for(int i = 0; i < static_cast<int>(sequence.Size() - edgeSize_ + 1); i++)
+		for(; start != end; ++start)
 		{
-			edge_->Insert(i);
+			kmer_->Insert(start.GetPosition());
 		}
 	}
 
-	int DeBruijnGraph::ListEdges(const Vertex & v, std::vector<Edge> & edge)
+	size_t KMerIndex::GetK() const
 	{
-		edge.clear();
-		std::vector<std::vector<Edge> > ret;
-		ListEdgesSeparate(v, ret);
-		for(size_t i = 0; i < ret.size(); i++)
-		{
-			std::copy(ret[i].begin(), ret[i].end(), std::back_inserter(edge));
-		}
-
-		return static_cast<int>(edge.size());
+		return k_;
 	}
+
+	/*
 
 	int DeBruijnGraph::CountEquivalentEdges(const Edge & edge) const
 	{
@@ -60,24 +37,24 @@ namespace SyntenyBuilder
 			sequence.PositiveByIndex(edge.end_.GetPosition());
 		return static_cast<int>(edge_->Count(edge.start_) + edge_->Count(negative));
 	}
+	*/
 
-	int DeBruijnGraph::FindEquivalentEdges(const Edge & edge, std::vector<Edge> & ret)
+	size_t KMerIndex::ListEquivalentKmers(StrandIterator it, std::vector<StrandIterator> & ret) const
 	{
 		ret.clear();
-		StrandConstIterator negIt = edge.Direction() == positive ? 
-			sequence.NegativeByIndex(edge.end_.GetPosition()) :
-			sequence.PositiveByIndex(edge.end_.GetPosition());
-		std::vector<int> positive;
-		std::vector<int> negative;
-		edge_->Find(edge.start_, std::back_inserter(positive));
-		edge_->Find(negIt, std::back_inserter(negative));
-		std::transform(positive.begin(), positive.end(), std::back_inserter(ret), 
-			boost::bind(&DeBruijnGraph::MakePositiveEdge, this, _1));
-		std::transform(negative.begin(), negative.end(), std::back_inserter(ret), 
-			boost::bind(&DeBruijnGraph::MakeNegativeEdge, this, _1));
+		std::vector<size_t> positive;
+		std::vector<size_t> negative;
+		kmer_->Find(it, std::back_inserter(positive));
+		it.Jump(k_);
+		kmer_->Find(it.Invert(), std::back_inserter(negative));
+		
+		std::transform(positive.begin(), positive.end(), std::back_inserter(ret),
+			boost::bind(
+
 		return static_cast<int>(ret.size());
 	}
 	
+	/*
 	int DeBruijnGraph::ListEdgesSeparate(const Vertex & v, std::vector<std::vector<Edge> > & edge)
 	{
 		edge.clear();

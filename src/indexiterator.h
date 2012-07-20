@@ -5,6 +5,8 @@
 
 namespace SyntenyBuilder
 {
+	class IndexIterator;
+
 	enum Direction
 	{
 		forward,
@@ -13,38 +15,18 @@ namespace SyntenyBuilder
 
 	struct IteratorUtility
 	{
-		static int AdvanceForward(const std::string * sequence_, int & pos_, char deleted_, int value = 1)
-		{
-			if(pos_ < static_cast<int>(sequence_->size()))
-			{
-				for(pos_ += value; pos_ < static_cast<int>(sequence_->size()) && (*sequence_)[pos_] == deleted_; pos_++);
-			}
-
-			return pos_;
-		}
-
-		static int AdvanceBackward(const std::string * sequence_, int & pos_, char deleted_, int value = 1)
-		{
-			if(pos_ >= 0)
-			{
-				for(pos_ -= value; pos_ >= 0 && (*sequence_)[pos_] == deleted_; pos_--);
-			}
-
-			return pos_;
-		}
+		static size_t AdvanceForward(const std::string * sequence_, size_t & pos_, char deleted_, size_t value = 1);
+		static size_t AdvanceBackward(const std::string * sequence_, size_t & pos_, char deleted_, size_t value = 1);
 	};
 
-	class IndexIterator;
-	class IndexConstIterator;
-
-	class IndexIterator: public std::iterator<std::bidirectional_iterator_tag, char, int>
+	class IndexIterator: public std::iterator<std::bidirectional_iterator_tag, char, size_t>
 	{
 	public:
 		IndexIterator(): sequence_(0), pos_(NPOS) {}
-		IndexIterator(std::string & sequence, int pos, char deleted, Direction dir = forward):
+		IndexIterator(std::string & sequence, size_t pos, char deleted, Direction dir = forward):
 			sequence_(&sequence), pos_(pos), deleted_(deleted)
 		{
-			if(pos_ != static_cast<int>(sequence.size()) && pos_ != NPOS)
+			if(pos_ != static_cast<size_t>(sequence.size()) && pos_ != NPOS)
 			{
 				if(dir == forward)
 				{
@@ -88,7 +70,7 @@ namespace SyntenyBuilder
 			return ret;
 		}
 
-		int GetPosition() const
+		size_t GetPosition() const
 		{
 			return pos_;
 		}
@@ -105,25 +87,25 @@ namespace SyntenyBuilder
 
 		bool Valid() const
 		{
-			return sequence_ != 0 && pos_ >= 0 && pos_ < static_cast<int>(sequence_->size());
+			return sequence_ != 0 && pos_ != NPOS && pos_ < static_cast<size_t>(sequence_->size());
 		}
 
-		static const int NPOS = -1;
+		static const size_t NPOS = -1;
 	private:
 		std::string * sequence_;
-		int pos_;
+		size_t pos_;
 		char deleted_;
 		friend class IndexConstIterator;
 	};
 
-	class IndexConstIterator: public std::iterator<std::bidirectional_iterator_tag, char, int>
+	class IndexConstIterator: public std::iterator<std::bidirectional_iterator_tag, char, size_t>
 	{
 	public:
 		IndexConstIterator(): sequence_(0), pos_(NPOS) {}
-		IndexConstIterator(const std::string & sequence, int pos, char deleted, Direction dir = forward):
+		IndexConstIterator(const std::string & sequence, size_t pos, char deleted, Direction dir = forward):
 			sequence_(&sequence), pos_(pos), deleted_(deleted)
 		{
-			if(pos_ != static_cast<int>(sequence.size()) && pos_ != NPOS)
+			if(pos_ != static_cast<size_t>(sequence.size()) && pos_ != NPOS)
 			{
 				if(dir == forward)
 				{
@@ -172,7 +154,7 @@ namespace SyntenyBuilder
 			return ret;
 		}
 
-		int GetPosition() const
+		size_t GetPosition() const
 		{
 			return pos_;
 		}
@@ -189,20 +171,19 @@ namespace SyntenyBuilder
 
 		bool Valid() const
 		{
-			return sequence_ != 0 && pos_ >= 0 && pos_ < static_cast<int>(sequence_->size());
+			return (sequence_ != 0) && (pos_ != NPOS) && (pos_ < sequence_->size());
 		}
 
-		static const int NPOS = -1;
+		static const size_t NPOS = -1;
 	private:
 		const std::string * sequence_;
-		int pos_;
+		size_t pos_;
 		char deleted_;
 	};
-	
 
 	inline IndexIterator MakeRightEnd(std::string & str, char deleted)
 	{
-		return IndexIterator(str, static_cast<int>(str.size()), deleted);
+		return IndexIterator(str, static_cast<size_t>(str.size()), deleted);
 	}
 
 	inline IndexIterator MakeLeftEnd(std::string & str, char deleted)
@@ -217,7 +198,7 @@ namespace SyntenyBuilder
 
 	inline IndexConstIterator MakeRightEnd(const std::string & str, char deleted)
 	{
-		return IndexConstIterator(str, static_cast<int>(str.size()), deleted);
+		return IndexConstIterator(str, static_cast<size_t>(str.size()), deleted);
 	}
 
 	template<class Iterator1, class Iterator2>
@@ -230,7 +211,7 @@ namespace SyntenyBuilder
 		}
 
 	template<class Iterator>
-		Iterator Advance(Iterator it2, size_t step)
+		Iterator AdvanceForward(Iterator it2, size_t step)
 		{
 			std::advance(it2, step);
 			return it2;

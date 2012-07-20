@@ -5,7 +5,7 @@
 #include "indexmultiset.h"
 
 namespace SyntenyBuilder
-{
+{/*
 	//This class represents de Bruijn graph. It stores edges (k-mer) in a hash table
 	class DeBruijnGraph
 	{
@@ -35,7 +35,7 @@ namespace SyntenyBuilder
 				return f(it_);
 			}
 
-			bool Equal (const Vertex & toCompare) const
+			bool Equal(const Vertex & toCompare) const
 			{
 				if(graph_ != toCompare.graph_)
 				{
@@ -52,11 +52,11 @@ namespace SyntenyBuilder
 					return false;
 				}
 
-				StrandConstIterator end = Advance(it_, graph_->vertexSize_);
+				StrandConstIterator end = AdvanceForward(it_, graph_->vertexSize_);
 				return std::mismatch(it_, end, toCompare.it_).first == end;
 			}
 
-			bool Coincide (const Vertex & toCompare) const
+			bool Coincide(const Vertex & toCompare) const
 			{
 				return toCompare.it_ == it_;
 			}
@@ -176,7 +176,7 @@ namespace SyntenyBuilder
 			Edge(DeBruijnGraph * graph, StrandIterator start, DirectionTag tag):
 				graph_(graph),
 				start_(start),
-				end_(Advance(start_, graph_->edgeSize_ - 1)),
+				end_(AdvanceForward(start_, graph_->edgeSize_ - 1)),
 				tag_(tag) {}
 			Edge(DeBruijnGraph * graph, StrandIterator start, StrandIterator end, DirectionTag tag):
 				graph_(graph),
@@ -213,7 +213,7 @@ namespace SyntenyBuilder
 
 		Edge ConstructPositiveEdge(StrandConstIterator it)
 		{
-			if(Advance(it, edgeSize_ - 1).Valid())
+			if(AdvanceForward(it, edgeSize_ - 1).Valid())
 			{
 				return MakePositiveEdge(it.GetPosition());
 			}
@@ -259,8 +259,13 @@ namespace SyntenyBuilder
 		{
 		public:
 			bool operator()(StrandConstIterator it1, StrandConstIterator it2) const
-			{
-				StrandConstIterator end1(Advance(it1, k_));
+			{	
+				if(it1.GetHashCode(k_) != it2.GetHashCode(k_))
+				{
+					return false;
+				}
+
+				StrandConstIterator end1(AdvanceForward(it1, k_));
 				return std::mismatch(it1, end1, it2).first == end1;
 			}
 
@@ -295,7 +300,7 @@ namespace SyntenyBuilder
 		void InvalidateBefore(int pos, bool eraase);
 		Edge MakePositiveEdge(int shift);
 		Edge MakeNegativeEdge(int shift);
-	};
+	};*/
 }
 
 #endif

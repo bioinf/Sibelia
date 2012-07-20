@@ -16,6 +16,7 @@ namespace SyntenyBuilder
 		return ret;
 	}
 	
+	const size_t DNASequence::NOT_KEEP = -1;
 	const char DNASequence::INVALID_HASH = -1;
 	const char DNASequence::DELETED_CHARACTER = -1;
 	const size_t DNASequence::HASH_BASE = 57;

@@ -11,11 +11,9 @@ namespace SyntenyBuilder
 	class DNASequence
 	{
 	private:
-		struct WritingStrategy;
-		template<class T> struct ReadingStrategy;
+		struct ReadingStrategy;
 	public:			
 		class StrandIterator;
-		class StrandConstIterator;
 
 		enum Direction
 		{
@@ -23,25 +21,45 @@ namespace SyntenyBuilder
 			negative
 		};
 
-		class StrandIterator: public std::iterator<std::bidirectional_iterator_tag, char, int>
+		class StrandIterator: public std::iterator<std::bidirectional_iterator_tag, char, size_t>
 		{
 		public:
-			typedef WritingStrategy WStrategy;
-			typedef ReadingStrategy<IndexIterator> RStrategy;
+			typedef ReadingStrategy RStrategy;
 
-			StrandIterator() {}
-			StrandIterator(IndexIterator it, const RStrategy * rStrategy, const WStrategy * wStrategy):
-				it_(it), rStrategy_(rStrategy), wStrategy_(wStrategy) {}
+ 			StrandIterator() {}
+			StrandIterator(IndexConstIterator it, const RStrategy * rStrategy): it_(it), rStrategy_(rStrategy) {}
+
+			char operator * () const
+			{
+				return rStrategy_->GetBase(it_);
+			}			
+
+			void Jump(size_t count)
+			{
+				rStrategy_->Jump(it_, count);
+			}
+
+			bool ProperKMer(size_t k) const
+			{
+				StrandIterator temp(*this);
+				temp.Jump(k);
+				return temp.Valid();
+			}
+
+			StrandIterator Invert() const
+			{
+				return StrandIterator(it_, rStrategy_->Invert());
+			}
 
 			Direction GetDirection()
 			{
 				return rStrategy_->GetDirection();
 			}
 
-			char operator * () const
+			size_t GetHashCode(size_t strSize)
 			{
-				return rStrategy_->GetBase(it_);
-			}			
+				return rStrategy_->GetHash(it_, strSize);
+			}
 
 			StrandIterator& operator ++ ()
 			{
@@ -51,20 +69,9 @@ namespace SyntenyBuilder
 
 			StrandIterator operator ++ (int)
 			{
-				StrandIterator ret(it_, rStrategy_, wStrategy_);
+				StrandIterator ret(it_, rStrategy_);
 				rStrategy_->AdvanceForward(it_);
 				return ret;
-			}
-
-			void Invalidate()
-			{
-				wStrategy_->Invalidate(it_);
-				++(*this);
-			}
-
-			void AssignBase(char newBase)
-			{
-				wStrategy_->AssignBase(it_, newBase);
 			}
 
 			StrandIterator& operator -- ()
@@ -75,7 +82,7 @@ namespace SyntenyBuilder
 
 			StrandIterator operator -- (int)
 			{
-				StrandIterator ret(it_, rStrategy_, wStrategy_);
+				StrandIterator ret(it_, rStrategy_);
 				rStrategy_->AdvanceBackward(it_);
 				return ret;
 			}
@@ -95,89 +102,7 @@ namespace SyntenyBuilder
 				return it_.Valid();
 			}
 
-			size_t GetHashCode(int strSize)
-			{
-				return rStrategy_->GetHash(it_, strSize);
-			}
-
-			int GetPosition() const
-			{
-				return it_.GetPosition();
-			}
-
-		private:
-			IndexIterator it_;
-			const RStrategy * rStrategy_;
-			const WStrategy * wStrategy_;
-			friend class StrandConstIterator;
-		};
-
-		class StrandConstIterator: public std::iterator<std::bidirectional_iterator_tag, char, int>
-		{
-		public:
-			typedef ReadingStrategy<IndexConstIterator> RStrategy;
-
- 			StrandConstIterator() {}
-			StrandConstIterator(IndexConstIterator it, const RStrategy * rStrategy): it_(it), rStrategy_(rStrategy) {}
-			StrandConstIterator(StrandIterator other): it_(other.it_), rStrategy_(other.rStrategy_->Convert()) {}
-
-			char operator * () const
-			{
-				return rStrategy_->GetBase(it_);
-			}			
-
-			Direction GetDirection()
-			{
-				return rStrategy_->GetDirection();
-			}
-
-			size_t GetHashCode(int strSize)
-			{
-				return rStrategy_->GetHash(it_, strSize);
-			}
-
-			StrandConstIterator& operator ++ ()
-			{
-				rStrategy_->AdvanceForward(it_);
-				return *this;
-			}
-
-			StrandConstIterator operator ++ (int)
-			{
-				StrandConstIterator ret(it_, rStrategy_);
-				rStrategy_->AdvanceForward(it_);
-				return ret;
-			}
-
-			StrandConstIterator& operator -- ()
-			{
-				rStrategy_->AdvanceBackward(it_);
-				return *this;
-			}
-
-			StrandConstIterator operator -- (int)
-			{
-				StrandConstIterator ret(it_, rStrategy_);
-				rStrategy_->AdvanceBackward(it_);
-				return ret;
-			}
-
-			bool operator == (StrandConstIterator comp) const
-			{
-				return it_ == comp.it_; 
-			}
-
-			bool operator != (StrandConstIterator comp) const
-			{
-				return !(*this == comp);
-			}
-			
-			bool Valid() const
-			{
-				return it_.Valid();
-			}
-
-			int GetPosition() const
+			size_t GetPosition() const
 			{
 				return it_.GetPosition();
 			}
@@ -187,146 +112,80 @@ namespace SyntenyBuilder
 			const RStrategy * rStrategy_;
 		};
 
-		typedef boost::function<void (void) > RefreshHook;
-		typedef boost::function<void (int pos, bool)> ModifyHook;
-		
-		DNASequence(const std::string sequence, RefreshHook refresh = RefreshHook(), 
-			ModifyHook before = ModifyHook(), ModifyHook after = ModifyHook()): 
-			substrSize_(INVALID_HASH),
+		DNASequence(const std::string sequence):
+			substrSize_(NOT_KEEP),
 			sequence_(sequence),
 			original_(sequence),
-			refresh_(refresh),
-			before_(before),
-			after_(after),
 			positiveReading_(this),
 			negativeReading_(this),
-			positiveConstReading_(this),
-			negativeConstReading_(this),
-			positiveWriting_(this),
-			negativeWriting_(this)
+			deletions_(0)
 		{
-			debug = 0;
 			position_.resize(sequence_.size());
-			for(int i = 0; i < static_cast<int>(sequence_.size()); i++)
+			for(size_t i = 0; i < sequence_.size(); i++)
 			{
 				position_[i] = i;
 			}
 		}
 
-		StrandIterator PositiveByIndex(int pos)
+		StrandIterator PositiveByIndex(size_t pos) const
 		{
-			return StrandIterator(IndexIterator(sequence_, pos, DELETED_CHARACTER), &positiveReading_, &positiveWriting_);
-		}
-
-		StrandConstIterator PositiveByIndex(int pos) const
-		{
-			return StrandConstIterator(IndexConstIterator(sequence_, pos, DELETED_CHARACTER), &positiveConstReading_);
+			return StrandIterator(IndexConstIterator(sequence_, pos, DELETED_CHARACTER), &positiveReading_);
 		}				
 
-		StrandIterator NegativeByIndex(int pos)
+		StrandIterator NegativeByIndex(size_t pos) const
 		{
-			return StrandIterator(IndexIterator(sequence_, pos, DELETED_CHARACTER, reverse), &negativeReading_, &negativeWriting_);
+			return StrandIterator(IndexConstIterator(sequence_, pos, DELETED_CHARACTER, reverse), &negativeReading_);
 		}
 
-		StrandConstIterator NegativeByIndex(int pos) const
+		StrandIterator PositiveBegin() const
 		{
-			return StrandConstIterator(IndexConstIterator(sequence_, pos, DELETED_CHARACTER, reverse), &negativeConstReading_);
+			return StrandIterator(IndexConstIterator(sequence_, 0, DELETED_CHARACTER), &positiveReading_);
 		}
 
-		StrandIterator PositiveBegin()
+		StrandIterator PositiveRightEnd() const
 		{
-			return StrandIterator(IndexIterator(sequence_, 0, DELETED_CHARACTER), &positiveReading_, &positiveWriting_);
+			return StrandIterator(MakeRightEnd(sequence_, DELETED_CHARACTER), &positiveReading_);
 		}
 
-		StrandConstIterator PositiveBegin() const
+		StrandIterator PositiveLeftEnd() const
 		{
-			return StrandConstIterator(IndexConstIterator(sequence_, 0, DELETED_CHARACTER), &positiveConstReading_);
+			return StrandIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &positiveReading_);
 		}
 
-		StrandIterator PositiveRightEnd() 
+		StrandIterator NegativeBegin() const
 		{
-			return StrandIterator(MakeRightEnd(sequence_, DELETED_CHARACTER), &positiveReading_, &positiveWriting_);
+			return StrandIterator(IndexConstIterator(sequence_, sequence_.size() - 1, DELETED_CHARACTER, reverse),
+				&negativeReading_);
 		}
 
-		StrandConstIterator PositiveRightEnd() const
+		StrandIterator NegativeRightEnd() const
 		{
-			return StrandConstIterator(MakeRightEnd(sequence_, DELETED_CHARACTER), &positiveConstReading_);
+			return StrandIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &negativeReading_);
 		}
 
-		StrandIterator PositiveLeftEnd() 
+		StrandIterator NegativeLeftEnd() const
 		{
-			return StrandIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &positiveReading_, &positiveWriting_);
+			return StrandIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &negativeReading_);
 		}
 
-		StrandConstIterator PositiveLeftEnd() const
-		{
-			return StrandConstIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &positiveConstReading_);
-		}
-
-		StrandIterator NegativeBegin()
-		{
-			return StrandIterator(IndexIterator(sequence_, static_cast<int>(sequence_.size() - 1), DELETED_CHARACTER, reverse), 
-				&negativeReading_, &negativeWriting_);
-		}
-
-		StrandConstIterator NegativeBegin() const
-		{
-			return StrandConstIterator(IndexConstIterator(sequence_, static_cast<int>(sequence_.size() - 1), DELETED_CHARACTER, reverse),
-				&negativeConstReading_);
-		}
-
-		StrandIterator NegativeRightEnd()
-		{
-			return StrandIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &negativeReading_, &negativeWriting_);
-		}
-
-		StrandConstIterator NegativeRightEnd() const
-		{
-			return StrandConstIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &negativeConstReading_);
-		}
-
-		StrandIterator NegativeLeftEnd()
-		{
-			return StrandIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &negativeReading_, &negativeWriting_);
-		}
-
-		StrandConstIterator NegativeLeftEnd() const
-		{
-			return StrandConstIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &negativeConstReading_);
-		}
-
-		//This is a bad method (workaround-like). It must be replaced with a smarter representation later
 		template<class Iterator>
-			std::pair<int, int> SpellOriginal(StrandConstIterator it1, StrandConstIterator it2, Iterator out)
+			std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2, Iterator out)
 			{
-				std::pair<int, int> ret(0, 0);
-				int pos1 = it1.GetPosition();
-				int pos2 = it2.GetPosition();
-				if(pos1 > pos2)
-				{
-					pos1 = position_[pos1];
-					pos2 = position_[pos2 + 1];
-					ret = std::make_pair(pos2, pos1 + 1);
-					for(; pos1 >= pos2; pos1--)
-					{
-						*out++ = complementary_[original_[pos1]];
-					}
-				}
-				else
-				{
-					pos1 = position_[pos1];
-					pos2 = position_[pos2 - 1];
-					ret = std::make_pair(pos1, pos2 + 1);
-					for(; pos1 <= pos2; pos1++)
-					{
-						*out++ = original_[pos1];
-					}
-				}
-
-				return ret;
+				
 			}
 
-		void KeepHash(int substrSize)
+		template<class Iterator>
+			void Copy(StrandIterator out, Iterator start, Iterator end)
+			{
+
+			}
+
+		void Erase(StrandIterator start, StrandIterator end)
+		{
+
+		}
+
+		void KeepHash(size_t substrSize)
 		{
 			substrSize_ = substrSize;
 			positiveHash_.resize(Size(), INVALID_HASH);
@@ -335,20 +194,16 @@ namespace SyntenyBuilder
 
 		void DropHash()
 		{
-			substrSize_ = INVALID_HASH;
+			substrSize_ = NOT_KEEP;
 			positiveHash_.clear();
 			negativeHash_.clear();
 		}
 
 		void Optimize()
 		{
-			substrSize_ = INVALID_HASH;
+			DropHash();
 			position_.erase(std::remove(position_.begin(), position_.end(), DELETED_CHARACTER), position_.end());
 			sequence_.erase(std::remove(sequence_.begin(), sequence_.end(), DELETED_CHARACTER), sequence_.end());
-			if(!refresh_.empty())
-			{
-				refresh_();
-			}
 		}
 
 		template<class Iterator>
@@ -357,9 +212,9 @@ namespace SyntenyBuilder
 				std::copy(sequence_.begin(), sequence_.end(), out);
 			}
 
-		int Size() const
+		size_t Size() const
 		{
-			return static_cast<int>(sequence_.size());
+			return sequence_.size();
 		}
 
 		static const std::string alphabet;
@@ -368,226 +223,164 @@ namespace SyntenyBuilder
 		typedef long long hash_t;
 		static const std::string complementary_;
 		static const size_t MOD;
+		static const size_t NOT_KEEP;
 		static const size_t HASH_BASE;
 		static const char INVALID_HASH;
 		static const char DELETED_CHARACTER;
 
-		template<class Iterator>
-			struct ReadingStrategy
-			{
-			public:
-				ReadingStrategy(DNASequence * sequence): sequence_(sequence) {}
-				virtual char GetBase(Iterator it) const = 0;
-				virtual Direction GetDirection() const = 0;
-				virtual void AdvanceForward(Iterator & it) const = 0;
-				virtual void AdvanceBackward(Iterator & it) const = 0;
-				virtual size_t GetHash(Iterator it, int strSize) const = 0;				
-				virtual const ReadingStrategy<IndexConstIterator>* Convert() const = 0;				
-			protected:
-				DNASequence * sequence_;
-			};			
-
-		struct WritingStrategy
+		struct ReadingStrategy
 		{
 		public:
-			WritingStrategy(DNASequence * sequence): sequence_(sequence) {}
-			virtual void AssignBase(IndexIterator it, char newBase) const = 0;
-			virtual void Invalidate(IndexIterator it) const
+			ReadingStrategy(DNASequence * sequence): sequence_(sequence) {}
+			char GetBase(IndexConstIterator it) const
 			{
-				if(!sequence_->before_.empty())
-				{
-					sequence_->before_(it.GetPosition(), true);
-				}
-
-				*it = DELETED_CHARACTER;
-				sequence_->position_[it.GetPosition()] = DELETED_CHARACTER;
-				InvalidateHash(it.GetPosition());
-
-				if(!sequence_->after_.empty())
-				{
-					sequence_->after_(it.GetPosition(), true);
-				}
+				return Translate(*it);
 			}
-
-			virtual void InvalidateHash(int pos) const
-			{
-				StrandIterator positive = this->sequence_->PositiveByIndex(pos);
-				StrandIterator negative = this->sequence_->NegativeByIndex(pos);
-				
-				if(this->sequence_->substrSize_ != INVALID_HASH)
-				{
-					this->sequence_->positiveHash_[pos] = INVALID_HASH;
-					this->sequence_->negativeHash_[pos] = INVALID_HASH;
-					for(int i = 0; i < this->sequence_->substrSize_; i++)
-					{
-						if(positive.Valid())
-						{							
-							this->sequence_->positiveHash_[positive.GetPosition()] = INVALID_HASH;
-							--positive;
-						}
-
-						if(negative.Valid())
-						{
-							this->sequence_->negativeHash_[negative.GetPosition()] = INVALID_HASH;
-							--negative;
-						}
-					}
-				}
-			}
-
+							
+			virtual char Translate(char ch) const = 0;
+			virtual Direction GetDirection() const = 0;
+			virtual const ReadingStrategy* Invert() const = 0;
+			virtual void AdvanceForward(IndexConstIterator & it) const = 0;
+			virtual void AdvanceBackward(IndexConstIterator & it) const = 0;
+			virtual void Jump(IndexConstIterator & it, size_t count) const = 0;
+			virtual size_t GetHash(IndexConstIterator it, size_t strSize) const = 0;				
 		protected:
 			DNASequence * sequence_;
-		};		
+		};			
 
-		template<class Iterator>
-			struct PositiveReadingStrategy: public ReadingStrategy<Iterator>
+		struct PositiveReadingStrategy: public ReadingStrategy
+		{
+			PositiveReadingStrategy(DNASequence * sequence): ReadingStrategy(sequence) {}
+			Direction GetDirection() const
 			{
-				PositiveReadingStrategy(DNASequence * sequence): ReadingStrategy<Iterator>(sequence) {}
-				Direction GetDirection() const
-				{
-					return positive;
-				}
+				return positive;
+			}
 
-				char GetBase(Iterator it) const
-				{
-					return *it;
-				}
-
-				void AdvanceForward(Iterator & it) const
-				{
-					++it;
-				}
-
-				void AdvanceBackward(Iterator & it) const
-				{
-					--it;
-				}
-
-				const ReadingStrategy<IndexConstIterator>* Convert() const
-				{
-					return &this->sequence_->positiveConstReading_;
-				}
-
-				size_t GetHash(Iterator it, int strSize) const
-				{
-					hash_t ret;
-					if(this->sequence_->substrSize_ == strSize)
-					{
-						if(this->sequence_->positiveHash_[it.GetPosition()] == INVALID_HASH)
-						{
-							this->sequence_->positiveHash_[it.GetPosition()] = this->sequence_->CalcHash(it, strSize);
-						}
-
-						ret = this->sequence_->positiveHash_[it.GetPosition()];
-						assert(ret == this->sequence_->CalcHash(it, strSize));
-					}
-					else
-					{
-						ret = this->sequence_->CalcHash(it, strSize);
-					}
-
-					return static_cast<size_t>(ret);
-				}
-			};
-
-		struct PositiveWritingStrategy: public WritingStrategy
-		{			
-			PositiveWritingStrategy(DNASequence * sequence): WritingStrategy(sequence) {}
-			void AssignBase(IndexIterator it, char newBase) const
+			char Translate(char ch) const
 			{
-				if(!sequence_->before_.empty())
+				return ch;
+			}
+
+			void AdvanceForward(IndexConstIterator & it) const
+			{
+				++it;
+			}
+
+			void AdvanceBackward(IndexConstIterator & it) const
+			{
+				--it;
+			}
+
+			const ReadingStrategy* Invert() const
+			{
+				return &sequence_->negativeReading_;
+			}
+
+			void Jump(IndexConstIterator & it, size_t count) const
+			{
+				if(sequence_->deletions_ == 0)
 				{
-					sequence_->before_(it.GetPosition(), false);
+					it = IndexConstIterator(sequence_->sequence_, 
+						std::min(it.GetPosition() + count, sequence_->sequence_.size()),
+						sequence_->DELETED_CHARACTER);
+				}
+				else
+				{
+					for(size_t i = 0; i < count; i++)
+					{
+						AdvanceForward(it);
+					}
+				}
+			}
+
+			size_t GetHash(IndexConstIterator it, size_t strSize) const
+			{
+				hash_t ret;
+				if(this->sequence_->substrSize_ == strSize)
+				{
+					ret = this->sequence_->positiveHash_[it.GetPosition()];
+					assert(ret == this->sequence_->CalcHash(it, strSize));
+				}
+				else
+				{
+					ret = this->sequence_->CalcHash(it, strSize);
 				}
 
-				*it = newBase;
-				InvalidateHash(it.GetPosition());
-
-				if(!sequence_->after_.empty())
-				{
-					sequence_->after_(it.GetPosition(), false);
-				}
+				return static_cast<size_t>(ret);
 			}
 		};
 
-		template<class Iterator>
-			struct NegativeReadingStrategy: public ReadingStrategy<Iterator>
-			{
-				NegativeReadingStrategy(DNASequence * sequence): ReadingStrategy<Iterator>(sequence) {}
-				Direction GetDirection() const
-				{
-					return negative;
-				}
-
-				char GetBase(Iterator it) const
-				{
-					return complementary_[*it];
-				}
-
-				void AdvanceForward(Iterator & it) const
-				{
-					--it;
-				}
-
-				void AdvanceBackward(Iterator & it) const
-				{
-					++it;
-				}
-
-				const ReadingStrategy<IndexConstIterator>* Convert() const
-				{
-					return &this->sequence_->negativeConstReading_;
-				}
-
-				size_t GetHash(Iterator it, int strSize) const
-				{
-					hash_t ret;
-					StrandConstIterator src = this->sequence_->NegativeByIndex(it.GetPosition());
-					if(this->sequence_->substrSize_ == strSize)
-					{
-						if(this->sequence_->negativeHash_[it.GetPosition()] == INVALID_HASH)
-						{							
-							this->sequence_->negativeHash_[it.GetPosition()] = this->sequence_->CalcHash(src, strSize);
-						}
-
-						ret = this->sequence_->negativeHash_[it.GetPosition()];
-						assert(ret == this->sequence_->CalcHash(src, strSize));
-					}
-					else
-					{
-						ret = this->sequence_->CalcHash(src, strSize);
-					}
-
-					return static_cast<size_t>(ret);
-				}
-			};
-		
-		struct NegativeWritingStrategy: public WritingStrategy
+		struct NegativeReadingStrategy: public ReadingStrategy
 		{
-			NegativeWritingStrategy(DNASequence * sequence): WritingStrategy(sequence) {}
-			void AssignBase(IndexIterator it, char newBase) const
+			NegativeReadingStrategy(DNASequence * sequence): ReadingStrategy(sequence) {}
+			Direction GetDirection() const
 			{
-				if(!sequence_->before_.empty())
+				return negative;
+			}
+
+			char Translate(char ch) const
+			{
+				return complementary_[ch];
+			}
+
+			void AdvanceForward(IndexConstIterator & it) const
+			{
+				--it;
+			}
+
+			void AdvanceBackward(IndexConstIterator & it) const
+			{
+				++it;
+			}
+
+			void Jump(IndexConstIterator & it, size_t count) const
+			{
+				if(sequence_->deletions_ == 0)
 				{
-					sequence_->before_(it.GetPosition(), false);
+					it = IndexConstIterator(sequence_->sequence_, 
+						it.GetPosition() < count ? IndexConstIterator::NPOS : it.GetPosition() - count,
+						sequence_->DELETED_CHARACTER,
+						reverse);
+
 				}
-
-				*it = complementary_[newBase];
-				InvalidateHash(it.GetPosition());
-
-				if(!sequence_->after_.empty())
+				else
 				{
-					sequence_->after_(it.GetPosition(), false);
+					for(size_t i = 0; i < count; i++)
+					{
+						AdvanceForward(it);
+					}
 				}
 			}
-		};						
 
+			const ReadingStrategy* Invert() const
+			{
+				return &sequence_->positiveReading_;
+			}
+
+			size_t GetHash(IndexConstIterator it, size_t strSize) const
+			{
+				hash_t ret;
+				StrandIterator src = this->sequence_->NegativeByIndex(it.GetPosition());
+				if(this->sequence_->substrSize_ == strSize)
+				{
+					ret = this->sequence_->negativeHash_[it.GetPosition()];
+					assert(ret == this->sequence_->CalcHash(src, strSize));
+				}
+				else
+				{
+					ret = this->sequence_->CalcHash(src, strSize);
+				}
+
+				return static_cast<size_t>(ret);
+			}
+		};
+		
 		template<class Iterator>
-			static hash_t CalcHash(Iterator it, int k)
+			static hash_t CalcHash(Iterator it, size_t k)
 			{
 				size_t base = 1;
 				size_t hash = 0;
-				for(int i = 0; i < k; i++)
+				for(size_t i = 0; i < k; i++)
 				{			
 					hash += *it++ * base;
 					base *= HASH_BASE;
@@ -596,26 +389,19 @@ namespace SyntenyBuilder
 				return static_cast<hash_t>(hash % MOD);
 			}
 
-		RefreshHook refresh_;
-		PositiveWritingStrategy positiveWriting_;
-		NegativeWritingStrategy negativeWriting_;
-		PositiveReadingStrategy<IndexIterator> positiveReading_;		
-		NegativeReadingStrategy<IndexIterator> negativeReading_;		
-		PositiveReadingStrategy<IndexConstIterator> positiveConstReading_;
-		NegativeReadingStrategy<IndexConstIterator> negativeConstReading_;
-		int debug;
+		PositiveReadingStrategy positiveReading_;
+		NegativeReadingStrategy negativeReading_;
 
 		//Current version of the sequence (after possible simplification)		
 		std::string sequence_;
 		//Original version of the sequence (before doing any modifications)
 		std::string original_;
 		//Map from each position in the current sequence to the original sequence
-		int substrSize_;
-		ModifyHook before_;
-		ModifyHook after_;
+		size_t substrSize_;
 		std::vector<hash_t> positiveHash_;
 		std::vector<hash_t> negativeHash_;
-		std::vector<int> position_;
+		std::vector<size_t> position_;
+		size_t deletions_;
 	};	
 }
 

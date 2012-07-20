@@ -5,7 +5,8 @@ namespace SyntenyBuilder
 {
 	namespace
 	{
-		int pos;
+		typedef DNASequence::StrandIterator StrandIterator;
+	/*	int pos;
 		int deletedWhirl;
 		int deletedBulge;
 		const int ANY_CLASS = -1;					
@@ -52,50 +53,55 @@ namespace SyntenyBuilder
 			{
 				return a.Equal(b);
 			}
-		};	
+		};*/	
 
-		typedef boost::unordered_set<DeBruijnGraph::Vertex, VertexHashFunction, 
-			VertexEqual> VertexVisit;
+		typedef boost::unordered_set<KMerIndex::StrandIterator, KMerIndex::KMerHashFunction,
+			KMerIndex::KMerEqualTo> KMerVisit;
+
+		/*
+
 		typedef boost::unordered_multimap<DeBruijnGraph::Vertex, VisitData,
 			VertexHashFunction, VertexEqual> VertexVisitMap; 
+		*/
 
-		std::ostream& operator << (std::ostream & out, const DeBruijnGraph::Vertex & v)
+		void OutputEdge(const KMerIndex & index, StrandIterator it, std::ostream & out)
 		{
-			v.Spell(std::ostream_iterator<char>(out));
-			return out;
-		}
+			CopyN(it, index.GetK(), std::ostream_iterator<char>(out));
+			out << " -> ";
+			CopyN(++StrandIterator(it), index.GetK(), std::ostream_iterator<char>(out));
 
-		std::ostream& operator << (std::ostream & out, DeBruijnGraph::Edge & e)
-		{
-			char buf[1 << 8];
-			out << e.StartVertex() << " -> " << e.EndVertex() << " ";
-			if(e.Direction() == DeBruijnGraph::positive)
+			std::vector<char> buf(index.GetK() + (1 << 6), '\0');
+			if(it.GetDirection() == DNASequence::positive)
 			{
-				sprintf(buf, "[color=\"%s\", label=\"%i\"];", "blue", e.Position());
+				sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "blue", static_cast<long long unsigned>(it.GetPosition()));
 			}
 			else
 			{
-				sprintf(buf, "[color=\"%s\", label=\"%i\"];", "red", e.Position());
+				sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "red", static_cast<long long unsigned>(it.GetPosition()));
 			}
 
-			return out << buf;
+			out << std::string(buf.begin(), buf.end());
 		}
-
-		void OutputProcessIterator(std::ostream & out, VertexVisit & visit, DeBruijnGraph & g, DeBruijnGraph::StrandConstIterator it)
+		
+		void ProcessIterator(KMerVisit & visit, const KMerIndex & index, DNASequence::StrandIterator it, std::ostream & out)
 		{
-			std::vector<DeBruijnGraph::Edge> edge;
-			DeBruijnGraph::Vertex v = g.ConstructVertex(it);
-			if(!v.IsNull() && visit.find(v) == visit.end())
+			std::vector<StrandIterator> kmer;		
+			if(it.ProperKMer(index.GetK()) && visit.find(it) == visit.end())
 			{
-				visit.insert(v);				
-				g.ListEdges(v, edge);
-				for(size_t i = 0; i < edge.size(); i++)
+				visit.insert(it);				
+				index.ListEquivalentKmers(it, kmer);
+				for(size_t i = 0; i < kmer.size(); i++)
 				{
-					out << edge[i] << std::endl;
+					if(kmer[i].ProperKMer(index.GetK() + 1))
+					{
+						OutputEdge(index, kmer[i], out);
+						out << std::endl;
+					}
 				}
 			}
 		}
 
+		/*
 		bool Less(const std::pair<int, DeBruijnGraph::Edge> & p1, const std::pair<int, DeBruijnGraph::Edge> & p2)
 		{
 			return p1.first < p2.first;
@@ -412,27 +418,30 @@ namespace SyntenyBuilder
 			}
 	
 			return ret;
-		}
+		}*/
 	}
 	
-	std::ostream& operator << (std::ostream & out, DeBruijnGraph & g)
+
+	void GraphAlgorithm::SerializeGraph(KMerIndex & index, const DNASequence & sequence, std::ostream & out)
 	{
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
-		VertexVisit visit(g.sequence.Size());
-		for(DeBruijnGraph::StrandConstIterator it = g.sequence.PositiveBegin(); it.Valid(); it++)
+		KMerVisit visit(sequence.Size(), KMerIndex::KMerHashFunction(index.GetK()),
+			KMerIndex::KMerEqualTo(index.GetK()));
+		for(StrandIterator it = sequence.PositiveBegin(); it.Valid(); ++it)
 		{
-			OutputProcessIterator(out, visit, g, it);
+			ProcessIterator(visit, index, it, out);
 		}
 		
-		for(DeBruijnGraph::StrandConstIterator it = g.sequence.NegativeBegin(); it.Valid(); it++)
+		for(StrandIterator it = sequence.NegativeBegin(); it.Valid(); ++it)
 		{
-			OutputProcessIterator(out, visit, g, it);
+			ProcessIterator(visit, index, it, out);
 		}
 
-		return out << "}";
+		out << "}";
 	}
-	
+
+/*
 	void GraphAlgorithm::ListNonBranchingPaths(DeBruijnGraph & g, std::ostream & out, std::ostream & indexOut)
 	{
 		int count = 0;
@@ -531,4 +540,5 @@ namespace SyntenyBuilder
 		g.sequence.DropHash();
 		return bulgeCount;
 	}
+	*/
 }

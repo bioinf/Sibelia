@@ -1,7 +1,7 @@
 #include "fasta.h"
 #include "graphalgorithm.h"
 
-std::string IntToStr(int value)
+std::string IntToStr(size_t value)
 {
 	std::stringstream ss;
 	ss << value;
@@ -73,32 +73,34 @@ int main(int argc, char * argv[])
 		}	
 
 		sequence.erase(std::remove(sequence.begin(), sequence.end(), 'n'), sequence.end());
-		SyntenyBuilder::DeBruijnGraph g(sequence);
+		std::cout << "Total size = " << sequence.size() << std::endl;
+		SyntenyBuilder::DNASequence dnaseq(sequence);
+		SyntenyBuilder::KMerIndex index(&dnaseq);
 
-		for(int i = 0; i < static_cast<int>(stage.size()); i++)
+		for(size_t i = 0; i < stage.size(); i++)
 		{
 			std::cerr << "Building the graph, stage = " << i + 1 << std::endl;
-			g.BuildGraph(stage[i].first);
+			index.SetupIndex(stage[i].first);
 
 			if(dot)
 			{				
 				std::ofstream before((fileName + "_stage_" + IntToStr(i + 1) + "_before.dot").c_str());
-				before << g;
+				SyntenyBuilder::GraphAlgorithm::SerializeGraph(index, dnaseq, before);
 			}
 
 			std::cerr << "Simplifying the graph, stage = " << i + 1 << std::endl;
-			SyntenyBuilder::GraphAlgorithm::Simplify(g, stage[i].second);
+			//SyntenyBuilder::GraphAlgorithm::Simplify(g, stage[i].second);
 
 			if(dot)
 			{
 				std::ofstream after((fileName + "_stage_" + IntToStr(i + 1) + "_after.dot").c_str());
-				after << g;
+				SyntenyBuilder::GraphAlgorithm::SerializeGraph(index, dnaseq, after);
 			}
 		}
 				
 		std::cerr << std::string(50, '-') << std::endl;
 		std::string header = fileName;				
-
+		/*
 		std::string buf;
 		std::ofstream general((header + "_blocks").c_str());
 		std::ofstream indices((header + "_indices").c_str());
@@ -108,7 +110,7 @@ int main(int argc, char * argv[])
 		SyntenyBuilder::FASTAWriter::WriteSequence(consensus, fileName + " simplified", buf);
 
 		std::cerr << "Finding non-branching paths" << std::endl;
-		SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(g, general, indices);
+		SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(g, general, indices);*/
 		std::cerr.setf(std::cerr.fixed);
 		std::cerr.precision(2);
 		std::cerr << "Time elapsed: " << double(clock()) / 1000 << std::endl;
