@@ -80,7 +80,8 @@ int main(int argc, char * argv[])
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			std::cerr << "Building the graph, stage = " << i + 1 << std::endl;
-			index.SetupIndex(stage[i].first);
+			dnaseq.KeepHash(stage[i].first);
+			index.SetupIndex(stage[i].first);			
 
 			if(dot)
 			{				
@@ -89,7 +90,7 @@ int main(int argc, char * argv[])
 			}
 
 			std::cerr << "Simplifying the graph, stage = " << i + 1 << std::endl;
-			//SyntenyBuilder::GraphAlgorithm::Simplify(g, stage[i].second);
+			SyntenyBuilder::GraphAlgorithm::SimplifyGraph(index, dnaseq, stage[i].second);
 
 			if(dot)
 			{

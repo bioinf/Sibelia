@@ -87,7 +87,7 @@ namespace SyntenyBuilder
 
 		bool Valid() const
 		{
-			return sequence_ != 0 && pos_ != NPOS && pos_ < static_cast<size_t>(sequence_->size());
+			return sequence_ != 0 && pos_ != NPOS && pos_ < sequence_->size() && (*sequence_)[pos_] != deleted_;
 		}
 
 		static const size_t NPOS = -1;
@@ -171,7 +171,7 @@ namespace SyntenyBuilder
 
 		bool Valid() const
 		{
-			return (sequence_ != 0) && (pos_ != NPOS) && (pos_ < sequence_->size());
+			return sequence_ != 0 && pos_ != NPOS && pos_ < sequence_->size() && (*sequence_)[pos_] != deleted_;
 		}
 
 		static const size_t NPOS = -1;

@@ -7,39 +7,33 @@ namespace SyntenyBuilder
 	{
 		typedef char Bool;		
 		typedef DNASequence::StrandIterator StrandIterator;
+		typedef google::sparse_hash_set<StrandIterator, KMerIndex::KMerHashFunction,
+			KMerIndex::KMerEqualTo> KMerSet;	
+		typedef std::pair<StrandIterator, StrandIterator> Vertex;
+		typedef std::vector<Vertex> VertexVector;
 
-	/*	int pos;
-		int deletedWhirl;
-		int deletedBulge;
-		const int ANY_CLASS = -1;					
-		
 
-		struct VertexHashFunction
-		{
-			VertexHashFunction() {}
-			size_t operator () (const DeBruijnGraph::Vertex & v) const
-			{
-				return v.GetHashCode();
-			}
-		};		
+		size_t deletedBulge;
 
 		struct VisitData
 		{
-			char classId;
-			DeBruijnGraph::Edge * edge;
-			int distance;
+			size_t kmerId;
+			size_t distance;
 			VisitData() {}
-			VisitData(char classId, DeBruijnGraph::Edge * edge, int distance):
-				classId(classId), edge(edge), distance(distance) {}
+			VisitData(size_t kmerId, size_t distance): kmerId(kmerId), distance(distance) {}
 
 		};
 
+		typedef boost::unordered_multimap<StrandIterator, VisitData,
+			KMerIndex::KMerHashFunction, KMerIndex::KMerEqualTo> VertexVisitMap;
+
+		/*
 		struct VisitDataComparer
 		{
 		public:
 			bool operator () (const VisitData & data)
 			{
-				return data.edge == e;
+				return data.edge == ;
 			}
 
 			VisitDataComparer(DeBruijnGraph::Edge * e): e(e) {}
@@ -48,23 +42,9 @@ namespace SyntenyBuilder
 			DeBruijnGraph::Edge * e;
 		};
 		
-		struct VertexEqual
-		{
-			VertexEqual() {}
-			bool operator () (const DeBruijnGraph::Vertex & a, const DeBruijnGraph::Vertex & b) const
-			{
-				return a.Equal(b);
-			}
-		};*/	
-
-		typedef boost::unordered_set<KMerIndex::StrandIterator, KMerIndex::KMerHashFunction,
-			KMerIndex::KMerEqualTo> KMerVisit;
-
-		/*
-
-		typedef boost::unordered_multimap<DeBruijnGraph::Vertex, VisitData,
-			VertexHashFunction, VertexEqual> VertexVisitMap; 
-		*/
+		*/	
+/*
+		 */
 
 		void OutputEdge(const KMerIndex & index, StrandIterator it, std::ostream & out)
 		{
@@ -85,7 +65,7 @@ namespace SyntenyBuilder
 			out << " " << buf;
 		}
 		
-		void ProcessIterator(KMerVisit & visit, const KMerIndex & index, DNASequence::StrandIterator it, std::ostream & out)
+		void ProcessIterator(KMerSet & visit, const KMerIndex & index, DNASequence::StrandIterator it, std::ostream & out)
 		{
 			std::vector<StrandIterator> kmer;		
 			if(it.ProperKMer(index.GetK()) && visit.find(it) == visit.end())
@@ -180,66 +160,7 @@ namespace SyntenyBuilder
 			std::cerr << std::endl;
 		}			
 
-		void CollapseWhirl(DeBruijnGraph & g, DeBruijnGraph::Edge & e, int distance)
-		{
-		#ifdef _DEBUG
-			static int whirl = 0;
-			std::cerr << "Whirl #" << whirl++ << std::endl;
-			std::cerr << "Before: " << std::endl;
-			PrintRaw(g.sequence, std::cerr);
-			std::cerr << "Whirl branch: " << std::endl;			
-			PrintPath(e, distance + g.EdgeSize(), std::cerr);	
-		#endif
-
-			DNASequence::StrandIterator it = --e.EndIterator();
-			for(int i = 0; i <= distance; i++)
-			{
-				deletedWhirl++;
-				it.Invalidate();
-			}
-
-		#ifdef _DEBUG
-			std::cerr << std::endl << "After: " << std::endl;
-			PrintRaw(g.sequence, std::cerr);
-			std::cerr << std::endl << std::string(80, '-') << std::endl;
-		#endif
-		}
-
-		int RemoveWhirls(DeBruijnGraph & g, DeBruijnGraph::Vertex & v, int minCycleSize)
-		{
-			int ret = 0;
-			bool keepOn = true;
-			std::vector<DeBruijnGraph::Edge> now;
-			std::vector<DeBruijnGraph::Edge> start;			
-			while(keepOn)
-			{
-				keepOn = false;
-				g.ListEdges(v, start);
-				now = start;
-				for(int step = 0; step < minCycleSize && !keepOn; step++)
-				{
-					for(size_t i = 0; i < static_cast<int>(now.size()) && !keepOn; i++)
-					{
-						if(!now[i].IsNull())
-						{
-							DeBruijnGraph::Vertex u = now[i].EndVertex();
-							if(u.Equal(v))
-							{
-								ret++;
-								keepOn = true;
-								CollapseWhirl(g, start[i], step);
-							}						
-							else
-							{
-								now[i] = now[i].NextEdge();
-							}
-						}
-					}
-				}
-			}
-
-			return ret;
-		}		
+		
 
 		void ClearVisit(VertexVisitMap & visit, VisitData target)
 		{
@@ -259,12 +180,17 @@ namespace SyntenyBuilder
 
 				e = e.NextEdge();
 			}
-		}
+		}*/
 
-		DeBruijnGraph::Edge CollapseBulge(DeBruijnGraph & g, VertexVisitMap & visit,
-			VisitData source, VisitData target)
+		Vertex CollapseBulge(KMerIndex & index,
+			DNASequence & sequence,
+			VertexVisitMap & visit,
+			StrandIterator source,
+			size_t sourceDistance,		
+			StrandIterator target,
+			size_t targetDistance)
 		{
-			
+		/*	
 		#ifdef _DEBUG
 			static int bulge = 0;
 			std::cerr << "Bulge #" << bulge++ << std::endl;
@@ -274,11 +200,11 @@ namespace SyntenyBuilder
 			PrintPath(*source.edge, source.distance + g.EdgeSize(), std::cerr);
 			std::cerr << "Target branch: " << std::endl;			
 			PrintPath(*target.edge, target.distance + g.EdgeSize(), std::cerr);
-		#endif
-			
-			ClearVisit(visit, target);
-			DNASequence::StrandIterator it = --source.edge->EndIterator();
-			DNASequence::StrandIterator jt = --target.edge->EndIterator();
+		#endif*/
+			/*
+		//	ClearVisit(visit, target);
+			StrandIterator it = --source.edge->EndIterator();
+			StrandIterator jt = --target.edge->EndIterator();
 			DeBruijnGraph::Edge ret = *source.edge;
 			for(int i = 0; i <= source.distance; i++, ++it, ++jt)
 			{
@@ -291,8 +217,9 @@ namespace SyntenyBuilder
 			{
 				deletedBulge++;
 				jt.Invalidate();				
-			}
+			}*/
 
+			/*
 		#ifdef _DEBUG
 			std::cerr << "After: " << std::endl;
 			PrintRaw(g.sequence, std::cerr);
@@ -301,92 +228,97 @@ namespace SyntenyBuilder
 			std::cerr << "Target branch: " << std::endl;			
 			PrintPath(*target.edge, source.distance + g.EdgeSize(), std::cerr);
 			std::cerr << std::string(80, '-') << std::endl;
-		#endif
+		#endif*/
 
 			return ret;
 		}	
 
-		int RemoveBulges(DeBruijnGraph & g, DeBruijnGraph::Vertex & v, int minCycleSize)
+		size_t RemoveBulges(KMerIndex & index, DNASequence & sequence, StrandIterator vertex, size_t minBranchSize)
 		{			
-			int ret = 0;
-			VertexVisitMap visit;
-			std::set<int> passed;
-			std::vector<std::vector<DeBruijnGraph::Edge> > now;
-			std::vector<std::vector<DeBruijnGraph::Edge> > start;
-			g.ListEdgesSeparate(v, start);
-			std::vector<std::vector<int> > travelRange(start.size());
+			size_t ret = 0;
+			size_t k = index.GetK();
+			std::set<size_t> passed;
+			VertexVisitMap visit(0, KMerIndex::KMerHashFunction(k), KMerIndex::KMerEqualTo(k));			
+			std::vector<StrandIterator> startVertex;
+			VertexVector nowVertex;
 
-			//This is a workaround for some conceptual flaw
-			for(size_t i = 0; i < start.size(); i++)
+			index.ListEquivalentKmers(vertex, startVertex);
+			nowVertex.resize(startVertex.size());
+			std::vector<char> endChar(startVertex.size(), ' ');
+			for(size_t i = 0; i < startVertex.size(); i++)
 			{
-				travelRange[i].assign(start[i].size(), 0);
-				for(size_t j = 0; j < start[i].size(); j++)
-				{
-					if(start[i][j].Direction() == DeBruijnGraph::negative)
-					{
-						DeBruijnGraph::StrandConstIterator it = start[i][j].StartIterator();
-						for(int pos = 0; pos < g.EdgeSize() - 1; pos++, ++it)
-						{
-							passed.insert(it.GetPosition());
-						}
-					}
+				if(startVertex[i].ProperKMer(k + 1))
+				{                    
+					nowVertex[i].first = nowVertex[i].second = startVertex[i];
+					nowVertex[i].first.Jump(1);
+					nowVertex[i].second.Jump(k);
+					endChar[i] = *nowVertex[i].second;
 				}
 			}
-			//Workaround ends
 
-			now = start;
-			int nowPos = pos;
-			for(int step = 0; step < minCycleSize; step++)
+			std::vector<size_t> travelRange(startVertex.size(), 1);
+			for(std::vector<StrandIterator>::iterator it = startVertex.begin(); it != startVertex.end(); it++)
 			{
-				for(int classId = 0; classId < static_cast<int>(now.size()); classId++)
+				for(size_t j = 0; j < k; j++)
 				{
-					for(int instance = 0; instance < static_cast<int>(now[classId].size()); instance++)
-					{
-						if(!now[classId][instance].IsNull() && passed.count(now[classId][instance].Position()) == 0)
-						{
-							passed.insert(now[classId][instance].Position());
-							DeBruijnGraph::Vertex u = now[classId][instance].EndVertex();					
-							if(u.Equal(v) || u.IsNull())
-							{
-								continue;
-							}
+					++(*it);
+					passed.insert(it->GetPosition());
+				}
+			}
 
-							bool collapsed = false;
-							std::pair<VertexVisitMap::iterator, VertexVisitMap::iterator> range = visit.equal_range(u);						
-							VisitData nowData = VisitData(classId, &start[classId][instance], travelRange[classId][instance]);
-							for(VertexVisitMap::iterator it = range.first; it != range.second; ++it)
-							{								
-								if(classId != it->second.classId)								
-								{
-									ret++;			
-									collapsed = true;
-									now[classId][instance] = CollapseBulge(g, visit, it->second, nowData);
-									travelRange[classId][instance] = it->second.distance;
-									break;
-								}
+			KMerIndex::KMerEqualTo equal(k);
+			for(size_t step = 0; step < minBranchSize; step++)
+			{
+				for(size_t kmerId = 0; kmerId < nowVertex.size(); kmerId++)
+				{
+					StrandIterator & kmerStart = nowVertex[kmerId].first;
+					StrandIterator & kmerEnd = nowVertex[kmerId].second;
+					if(kmerEnd.Valid() && passed.count(kmerEnd.GetPosition()) == 0)
+					{
+						if(equal(kmerStart, vertex))
+						{
+							continue;
+						}
+
+						bool collapsed = false;
+						passed.insert(kmerEnd.GetPosition());
+						VisitData nowData = VisitData(kmerId, travelRange[kmerId]);
+
+						std::pair<VertexVisitMap::iterator, VertexVisitMap::iterator> range = visit.equal_range(kmerStart);						
+						for(VertexVisitMap::iterator it = range.first; it != range.second; ++it)
+						{								
+							if(endChar[kmerId] != endChar[it->second.kmerId])
+							{
+								ret++;			
+								collapsed = true;
+								nowVertex[kmerId] = CollapseBulge(index, sequence, visit, startVertex[it->second.kmerId],
+									it->second.distance, startVertex[kmerId], travelRange[kmerId]);
+								travelRange[kmerId] = it->second.distance;
+								break;
 							}
+						}
 							
-							if(!collapsed)
-							{
-								travelRange[classId][instance]++;
-								visit.insert(std::make_pair(u, nowData));
-								now[classId][instance] = now[classId][instance].NextEdge();
-							}
+						if(!collapsed)
+						{
+							travelRange[kmerId]++;
+							visit.insert(std::make_pair(kmerStart, nowData));
+							++kmerStart;
+							++kmerEnd;
 						}
 					}
 				}
 			}
-	
+
 			return ret;
-		}*/
+		}
 	}
 	
-
-	void GraphAlgorithm::SerializeGraph(KMerIndex & index, const DNASequence & sequence, std::ostream & out)
+	
+	void GraphAlgorithm::SerializeGraph(const KMerIndex & index, const DNASequence & sequence, std::ostream & out)
 	{
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
-		KMerVisit visit(sequence.Size(), KMerIndex::KMerHashFunction(index.GetK()),
+		KMerSet visit(sequence.Size(), KMerIndex::KMerHashFunction(index.GetK()),
 			KMerIndex::KMerEqualTo(index.GetK()));
 		for(StrandIterator it = sequence.PositiveBegin(); it.Valid(); ++it)
 		{
@@ -416,7 +348,7 @@ namespace SyntenyBuilder
 		
 		std::string buf;
 		std::vector<StrandIterator> kmer;
-		std::vector<char> visit(sequence.Size(), false);
+		std::vector<Bool> visit(sequence.Size(), false);
 		std::sort(multiKmer.begin(), multiKmer.end(), Less);	
 
 		boost::function<StrandIterator& (StrandIterator&)> moveForward = boost::bind(&StrandIterator::operator++, _1);
@@ -463,53 +395,40 @@ namespace SyntenyBuilder
 			}
 		}
 	}	
-
-	/*
-	int GraphAlgorithm::Simplify(DeBruijnGraph & g, int minCycleSize)
+	
+	void GraphAlgorithm::SimplifyGraph(KMerIndex & index, DNASequence & sequence, size_t minBranchSize)
 	{
-	#ifdef _DEBUG
-		std::cerr << std::endl;
-	#endif
-		int bulgeCount = 0;
-		int whirlCount = 0;
-		int bifurcationCount = 0;
-		deletedWhirl = deletedBulge = 0;
-		g.sequence.KeepHash(g.VertexSize());
-		google::sparse_hash_set<std::string> globalVisit;
-		std::vector<std::vector<DeBruijnGraph::Edge> > edge;
-		const int MOD = 100000;
+		deletedBulge = 0;
+		size_t counter = 0;
+		size_t bulgeCount = 0;
+		const size_t MOD = 100000;
 
-		std::cerr << std::string(50, '-') << std::endl;
+		std::cerr << DELIMITER << std::endl;
+		std::cerr << "Finding all bifurcations in the graph..." << std::endl;		
 
-		int counter = 0;
-		std::string buf(g.VertexSize(), ' ');
-		for(DeBruijnGraph::StrandConstIterator it = g.sequence.PositiveBegin(); it.Valid(); it++)
+		size_t k = index.GetK();
+		KMerSet bifurcation(0, KMerIndex::KMerHashFunction(k), KMerIndex::KMerEqualTo(k));
+		for(StrandIterator it = sequence.PositiveBegin(); it != sequence.PositiveRightEnd(); ++it)
 		{
-			if(++counter % MOD == 0)
+			if(it.ProperKMer(k + 1) && index.CountEquivalentKMers(it) > 1)
 			{
-				std::cerr << it.GetPosition() << ' ' << bifurcationCount << ' ';
-				std::cerr << bulgeCount << ' ' <<  deletedBulge << ' ' << std::endl;
-			}
-			
- 			DeBruijnGraph::Vertex v = g.ConstructVertex(it);
-			if(!v.IsNull() && g.ListEdgesSeparate(v, edge) > 1)
-			{
-				v.Spell(buf.begin());
-				if(globalVisit.count(buf) == 0)
-				{
-					bifurcationCount++;
-					globalVisit.insert(buf);
-					bulgeCount += RemoveBulges(g, v, minCycleSize);
-				}
+				bifurcation.insert(it);
 			}
 		}
 
-		std::cerr << "Total bifurcations: " << bifurcationCount << std::endl;
+		for(KMerSet::iterator it = bifurcation.begin(); it != bifurcation.end(); ++it)
+		{
+			if(it->Valid() && it->ProperKMer(k + 1))
+			{
+				RemoveBulges(index, sequence, *it, minBranchSize);
+			}
+		}
+
+		std::cerr << "Total bifurcations: " << bifurcation.size() << std::endl;
 		std::cerr << "Deleted bpairs by bulge removal: " << deletedBulge << std::endl;
 		std::cerr << "Total bulges: " << bulgeCount << std::endl;		
-		g.sequence.Optimize();
-		g.sequence.DropHash();
-		return bulgeCount;
+		sequence.Optimize();
+		sequence.DropHash();
 	}
-	*/
+	
 }

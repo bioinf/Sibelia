@@ -34,6 +34,7 @@
 
 namespace SyntenyBuilder
 {
+	const std::string DELIMITER(80, '-');
 }
 
 #endif
