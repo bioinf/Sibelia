@@ -80,7 +80,7 @@ int main(int argc, char * argv[])
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			std::cerr << "Building the graph, stage = " << i + 1 << std::endl;
-			dnaseq.KeepHash(stage[i].first);
+		//	dnaseq.KeepHash(stage[i].first);
 			index.SetupIndex(stage[i].first);			
 
 			if(dot)
@@ -91,9 +91,11 @@ int main(int argc, char * argv[])
 
 			std::cerr << "Simplifying the graph, stage = " << i + 1 << std::endl;
 			SyntenyBuilder::GraphAlgorithm::SimplifyGraph(index, dnaseq, stage[i].second);
+			dnaseq.Optimize();
 
 			if(dot)
 			{
+				index.SetupIndex(stage[i].first);
 				std::ofstream after((fileName + "_stage_" + IntToStr(i + 1) + "_after.dot").c_str());
 				SyntenyBuilder::GraphAlgorithm::SerializeGraph(index, dnaseq, after);
 			}
@@ -105,13 +107,12 @@ int main(int argc, char * argv[])
 		std::string buf;
 		std::ofstream general((header + "_blocks").c_str());
 		std::ofstream indices((header + "_indices").c_str());
-/*		std::string consensus((header + "_consensus.fasta").c_str());
-		std::copy(g.sequence.PositiveBegin(), g.sequence.PositiveRightEnd(), 
-			std::back_inserter(buf));
+		std::string consensus((header + "_consensus.fasta").c_str());
+		std::copy(dnaseq.PositiveBegin(), dnaseq.PositiveRightEnd(), std::back_inserter(buf));
 		SyntenyBuilder::FASTAWriter::WriteSequence(consensus, fileName + " simplified", buf);
-		*/
 
 		std::cerr << "Finding non-branching paths" << std::endl;
+		index.SetupIndex(stage.back().first);
 		SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(index, dnaseq, general, indices);
 		std::cerr.setf(std::cerr.fixed);
 		std::cerr.precision(2);

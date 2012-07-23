@@ -211,21 +211,32 @@ namespace SyntenyBuilder
 		}
 
 	template<class Iterator>
-		Iterator AdvanceForward(Iterator it2, size_t step)
+		Iterator AdvanceForward(Iterator it, size_t step)
 		{
-			std::advance(it2, step);
-			return it2;
+			std::advance(it, step);
+			return it;
 		}
 
 	template<class Iterator>
-		Iterator AdvanceBackward(Iterator it2, size_t step)
+		Iterator AdvanceBackward(Iterator it, size_t step)
 		{
 			for(size_t i = 0; i < step; i++)
 			{
-				--it2;
+				--it;
 			}
 
-			return it2;
+			return it;
+		}	
+
+	template<class Iterator>
+		Iterator AdvanceBackward(Iterator it, Iterator lowerBound, size_t step)
+		{
+			for(size_t i = 0; i < step && it != lowerBound; i++)
+			{
+				--it;
+			}
+
+			return it;
 		}	
 }
 

@@ -189,6 +189,18 @@ namespace SyntenyBuilder
 					}
 				}
 
+			template<class Iterator>
+				void DumpIndex(Iterator ret) const
+				{
+					for(typename Set::const_iterator it = single_.begin(); it != single_.end(); 
+						*ret++ = *it++);
+					for(typename MultiSet::const_iterator it = multiple_.begin(); it != multiple_.end();
+						*ret++ = it++->first)
+					{
+						std::copy(it->second.begin(), it->second.end(), ret);
+					}
+				}
+
 		private:
 			DISALLOW_COPY_AND_ASSIGN(IndexMultiSet);
 			class HashFunction

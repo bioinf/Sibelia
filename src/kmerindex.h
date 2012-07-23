@@ -10,13 +10,11 @@ namespace SyntenyBuilder
 	{
 	public:				
 		typedef DNASequence::StrandIterator StrandIterator;
+		void SetupIndex(size_t k);		
 		size_t GetK() const;
 		size_t CountEquivalentKMers(StrandIterator it) const;
 		size_t ListEquivalentKmers(StrandIterator it, std::vector<StrandIterator> & ret) const;
-		void SetupIndex(size_t k);		
-		void IndexKMers(StrandIterator start, StrandIterator end);
-		void UnIndexKmers(StrandIterator start, StrandIterator end);
-		KMerIndex(const DNASequence * sequence): kmer_(0), sequence_(sequence) {}		
+		KMerIndex(DNASequence * sequence);				
 
 		class KMerHashFunction
 		{
@@ -71,6 +69,11 @@ namespace SyntenyBuilder
 		size_t k_;
 		KMerMultiSet * kmer_;
 		const DNASequence * sequence_;
+
+		void IndexKMers(StrandIterator start, StrandIterator end);
+		void Invalidate(StrandIterator start, StrandIterator end);
+		void UpdateAfterCopy(StrandIterator start, StrandIterator end);
+		void UpdateAfterDelete(StrandIterator start, StrandIterator end);
 	};
 
 }

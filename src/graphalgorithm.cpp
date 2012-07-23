@@ -12,9 +12,6 @@ namespace SyntenyBuilder
 		typedef std::pair<StrandIterator, StrandIterator> Vertex;
 		typedef std::vector<Vertex> VertexVector;
 
-
-		size_t deletedBulge;
-
 		struct VisitData
 		{
 			size_t kmerId;
@@ -27,24 +24,9 @@ namespace SyntenyBuilder
 		typedef boost::unordered_multimap<StrandIterator, VisitData,
 			KMerIndex::KMerHashFunction, KMerIndex::KMerEqualTo> VertexVisitMap;
 
-		/*
-		struct VisitDataComparer
-		{
-		public:
-			bool operator () (const VisitData & data)
-			{
-				return data.edge == ;
-			}
-
-			VisitDataComparer(DeBruijnGraph::Edge * e): e(e) {}
-
-		private:
-			DeBruijnGraph::Edge * e;
-		};
-		
-		*/	
-/*
-		 */
+		size_t totalBulges;
+		size_t deletedBulge;
+		size_t totalBifurcation;
 
 		void OutputEdge(const KMerIndex & index, StrandIterator it, std::ostream & out)
 		{
@@ -126,20 +108,13 @@ namespace SyntenyBuilder
 
  			return ret - 1;
 		}
-		/*
-		std::string ToString(const DeBruijnGraph::Vertex & v)
-		{
-			std::string buf;
-			v.Spell(std::back_inserter(buf));
-			return buf;
-		}
 
 		void PrintRaw(DNASequence & s, std::ostream & out)
 		{
 			std::string rcomp;
 			s.SpellRaw(std::ostream_iterator<char>(out));
 			out << std::endl;
-			for(int i = 0; i < s.Size(); i++)
+			for(size_t i = 0; i < s.Size(); i++)
 			{
 				out << i % 10;
 			}
@@ -152,97 +127,92 @@ namespace SyntenyBuilder
 			out << std::endl;
 		}
 
-		void PrintPath(const DeBruijnGraph::Edge & e, int size, std::ostream & out)
+		void PrintPath(StrandIterator e, size_t k, size_t distance, std::ostream & out)
 		{
-			out << e.StartIterator().GetPosition() << " ";
-			out << (e.Direction() == DeBruijnGraph::positive ? "s+ " : "s- ");
-			CopyN(e.StartIterator(), size, std::ostream_iterator<char>(out));
+			out << e.GetPosition() << " ";
+			out << (e.GetDirection() == DNASequence::positive ? "s+ " : "s- ");
+			CopyN(e, distance + k, std::ostream_iterator<char>(out));
 			std::cerr << std::endl;
 		}			
 
-		
-
-		void ClearVisit(VertexVisitMap & visit, VisitData target)
-		{
-			DeBruijnGraph::Edge e(*target.edge);
-			for(int i = 0; i <= target.distance; i++)
+		void ClearVisit(VertexVisitMap & visit, const std::vector<StrandIterator> & startVertex,
+			VisitData targetData)
+		{			
+			StrandIterator target = startVertex[targetData.kmerId];
+			for(size_t i = 0; i < targetData.distance; i++)
 			{
 				std::pair<VertexVisitMap::iterator, VertexVisitMap::iterator>
-					range = visit.equal_range(e.EndVertex());
-				for(VertexVisitMap::iterator it = range.first; it != range.second; ++it)
+					range = visit.equal_range(++target);
+				for(VertexVisitMap::iterator it = range.first; it != range.second; )
 				{
-					if(it->second.edge == target.edge)
+					if(targetData.kmerId == it->second.kmerId)
 					{
-						visit.erase(it);
-						break;
+						it = visit.erase(it);						
+					}
+					else
+					{
+						++it;
 					}
 				}
-
-				e = e.NextEdge();
 			}
-		}*/
+		}
 
-		Vertex CollapseBulge(KMerIndex & index,
+		void CollapseBulge(KMerIndex & index,
 			DNASequence & sequence,
 			VertexVisitMap & visit,
-			StrandIterator source,
-			size_t sourceDistance,		
-			StrandIterator target,
-			size_t targetDistance)
+			const std::vector<StrandIterator> & startVertex,
+			VisitData sourceData,
+			VisitData targetData)
 		{
-		/*	
+			size_t k = index.GetK();
+
 		#ifdef _DEBUG
-			static int bulge = 0;
+			static size_t bulge = 0;
 			std::cerr << "Bulge #" << bulge++ << std::endl;
 			std::cerr << "Before: " << std::endl;
-			PrintRaw(g.sequence, std::cerr);
+			PrintRaw(sequence, std::cerr);
 			std::cerr << "Source branch: " << std::endl;			
-			PrintPath(*source.edge, source.distance + g.EdgeSize(), std::cerr);
+			PrintPath(startVertex[sourceData.kmerId], k, sourceData.distance, std::cerr);
 			std::cerr << "Target branch: " << std::endl;			
-			PrintPath(*target.edge, target.distance + g.EdgeSize(), std::cerr);
-		#endif*/
-			/*
-		//	ClearVisit(visit, target);
-			StrandIterator it = --source.edge->EndIterator();
-			StrandIterator jt = --target.edge->EndIterator();
-			DeBruijnGraph::Edge ret = *source.edge;
-			for(int i = 0; i <= source.distance; i++, ++it, ++jt)
-			{
-				jt.AssignBase(*it);
-				ret = ret.NextEdge();
-			}
+			PrintPath(startVertex[targetData.kmerId], k, targetData.distance, std::cerr);
+		#endif
 
-			int diff = target.distance - source.distance;
-			for(int i = 0; i < diff; i++)
-			{
-				deletedBulge++;
-				jt.Invalidate();				
-			}*/
-
-			/*
+			ClearVisit(visit, startVertex, targetData);
+			StrandIterator it = startVertex[sourceData.kmerId];
+			StrandIterator jt = startVertex[targetData.kmerId];
+			it.Jump(k);
+			jt.Jump(k);			
+			size_t diff = targetData.distance - sourceData.distance;
+			deletedBulge += diff;
+			sequence.CopyN(jt, sourceData.distance, jt);
+			it.Jump(sourceData.distance);
+			sequence.EraseN(jt, diff);
+			
 		#ifdef _DEBUG
 			std::cerr << "After: " << std::endl;
-			PrintRaw(g.sequence, std::cerr);
+			PrintRaw(sequence, std::cerr);
 			std::cerr << "Source branch: " << std::endl;			
-			PrintPath(*source.edge, source.distance + g.EdgeSize(), std::cerr);
+			PrintPath(startVertex[sourceData.kmerId], k, sourceData.distance, std::cerr);
 			std::cerr << "Target branch: " << std::endl;			
-			PrintPath(*target.edge, source.distance + g.EdgeSize(), std::cerr);
+			PrintPath(startVertex[targetData.kmerId], k, sourceData.distance, std::cerr);
 			std::cerr << std::string(80, '-') << std::endl;
-		#endif*/
-
-			return ret;
+		#endif
 		}	
 
-		size_t RemoveBulges(KMerIndex & index, DNASequence & sequence, StrandIterator vertex, size_t minBranchSize)
+		void RemoveBulges(KMerIndex & index, DNASequence & sequence, StrandIterator vertex, size_t minBranchSize)
 		{			
-			size_t ret = 0;
 			size_t k = index.GetK();
 			std::set<size_t> passed;
 			VertexVisitMap visit(0, KMerIndex::KMerHashFunction(k), KMerIndex::KMerEqualTo(k));			
 			std::vector<StrandIterator> startVertex;
 			VertexVector nowVertex;
+			index.ListEquivalentKmers(vertex, startVertex);			
+			if(startVertex.size() < 2)
+			{
+				return;
+			}
 
-			index.ListEquivalentKmers(vertex, startVertex);
+			totalBifurcation++;
 			nowVertex.resize(startVertex.size());
 			std::vector<char> endChar(startVertex.size(), ' ');
 			for(size_t i = 0; i < startVertex.size(); i++)
@@ -261,9 +231,11 @@ namespace SyntenyBuilder
 			{
 				for(size_t j = 0; j < k; j++)
 				{
-					++(*it);
 					passed.insert(it->GetPosition());
+					++(*it);
 				}
+
+				*it = AdvanceBackward(*it, k);
 			}
 
 			KMerIndex::KMerEqualTo equal(k);
@@ -289,11 +261,11 @@ namespace SyntenyBuilder
 						{								
 							if(endChar[kmerId] != endChar[it->second.kmerId])
 							{
-								ret++;			
+								totalBulges++;
 								collapsed = true;
-								nowVertex[kmerId] = CollapseBulge(index, sequence, visit, startVertex[it->second.kmerId],
-									it->second.distance, startVertex[kmerId], travelRange[kmerId]);
+								CollapseBulge(index, sequence, visit, startVertex, it->second, nowData);
 								travelRange[kmerId] = it->second.distance;
+								endChar[kmerId] = endChar[it->second.kmerId];
 								break;
 							}
 						}
@@ -308,8 +280,6 @@ namespace SyntenyBuilder
 					}
 				}
 			}
-
-			return ret;
 		}
 	}
 	
@@ -372,7 +342,6 @@ namespace SyntenyBuilder
 					}
 
 					std::for_each(kmer.begin(), kmer.end(), invalidator);
-
 					out << "Consensus: " << std::endl;
 					StrandIterator end = AdvanceForward(kmer[0], forward);
 					StrandIterator start = AdvanceBackward(kmer[0], backward);
@@ -390,7 +359,7 @@ namespace SyntenyBuilder
 						indexOut << coord.second - coord.first << ' ' << coord.first << ' ' << coord.second << std::endl;
 					}
 
-					indexOut << std::string(80, '-') << std::endl;
+					indexOut << DELIMITER << std::endl;
 				}
 			}
 		}
@@ -398,9 +367,9 @@ namespace SyntenyBuilder
 	
 	void GraphAlgorithm::SimplifyGraph(KMerIndex & index, DNASequence & sequence, size_t minBranchSize)
 	{
+		totalBulges = 0;
 		deletedBulge = 0;
 		size_t counter = 0;
-		size_t bulgeCount = 0;
 		const size_t MOD = 100000;
 
 		std::cerr << DELIMITER << std::endl;
@@ -424,10 +393,9 @@ namespace SyntenyBuilder
 			}
 		}
 
-		std::cerr << "Total bifurcations: " << bifurcation.size() << std::endl;
+		std::cerr << "Total bifurcations: " << totalBifurcation << std::endl;
 		std::cerr << "Deleted bpairs by bulge removal: " << deletedBulge << std::endl;
-		std::cerr << "Total bulges: " << bulgeCount << std::endl;		
-		sequence.Optimize();
+		std::cerr << "Total bulges: " << totalBulges << std::endl;		
 		sequence.DropHash();
 	}
 	

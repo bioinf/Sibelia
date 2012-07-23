@@ -12,7 +12,6 @@ namespace SyntenyBuilder
 		static void SerializeGraph(const KMerIndex & index, const DNASequence & seq, std::ostream & out);
 		static void ListNonBranchingPaths(const KMerIndex & index, const DNASequence & sequence, std::ostream & out, std::ostream & indexOut);
 	};
-
 }
 
 #endif

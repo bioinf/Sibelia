@@ -14,6 +14,7 @@ namespace SyntenyBuilder
 		struct ReadingStrategy;
 	public:			
 		class StrandIterator;
+		typedef boost::function<void (StrandIterator, StrandIterator)> RangeHandler;
 
 		enum Direction
 		{
@@ -51,6 +52,11 @@ namespace SyntenyBuilder
 				return StrandIterator(it_, rStrategy_->Invert());
 			}
 
+			void MakeInverted()
+			{
+				*this = Invert();
+			}
+
 			Direction GetDirection()
 			{
 				return rStrategy_->GetDirection();
@@ -63,27 +69,27 @@ namespace SyntenyBuilder
 
 			StrandIterator& operator ++ ()
 			{
-				rStrategy_->AdvanceForward(it_);
+				rStrategy_->MoveForward(it_);
 				return *this;
 			}
 
 			StrandIterator operator ++ (int)
 			{
 				StrandIterator ret(it_, rStrategy_);
-				rStrategy_->AdvanceForward(it_);
+				rStrategy_->MoveForward(it_);
 				return ret;
 			}
 
 			StrandIterator& operator -- ()
 			{
-				rStrategy_->AdvanceBackward(it_);
+				rStrategy_->MoveBackward(it_);
 				return *this;
 			}
 
 			StrandIterator operator -- (int)
 			{
 				StrandIterator ret(it_, rStrategy_);
-				rStrategy_->AdvanceBackward(it_);
+				rStrategy_->MoveBackward(it_);
 				return ret;
 			}
 
@@ -118,9 +124,9 @@ namespace SyntenyBuilder
 		};
 
 		DNASequence(const std::string sequence):
-			substrSize_(NOT_KEEP),
 			sequence_(sequence),
 			original_(sequence),
+			substrSize_(NOT_KEEP),
 			positiveReading_(this),
 			negativeReading_(this),
 			deletions_(0)
@@ -152,11 +158,6 @@ namespace SyntenyBuilder
 			return StrandIterator(MakeRightEnd(sequence_, DELETED_CHARACTER), &positiveReading_);
 		}
 
-		StrandIterator PositiveLeftEnd() const
-		{
-			return StrandIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &positiveReading_);
-		}
-
 		StrandIterator NegativeBegin() const
 		{
 			return StrandIterator(IndexConstIterator(sequence_, sequence_.size() - 1, DELETED_CHARACTER, reverse),
@@ -164,11 +165,6 @@ namespace SyntenyBuilder
 		}
 
 		StrandIterator NegativeRightEnd() const
-		{
-			return StrandIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &negativeReading_);
-		}
-
-		StrandIterator NegativeLeftEnd() const
 		{
 			return StrandIterator(MakeLeftEnd(sequence_, DELETED_CHARACTER), &negativeReading_);
 		}
@@ -185,14 +181,31 @@ namespace SyntenyBuilder
 			}
 
 		template<class Iterator>
-			void Copy(StrandIterator out, Iterator start, Iterator end)
+			void CopyN(Iterator start, size_t count, StrandIterator out)
 			{
+				StrandIterator outBegin = out;
+				StrandIterator outEnd = AdvanceForward(outBegin, count);
+				invalidate_(outBegin, outEnd);
+				for(size_t i = 0; i < count; i++, ++out, ++start)
+				{
+					sequence_[out.GetPosition()] = *start;
+				}
 
+				updateAfterCopy_(outBegin, outEnd);
 			}
 
-		void Erase(StrandIterator start, StrandIterator end)
+		void EraseN(StrandIterator out, size_t count)
 		{
+			StrandIterator outBegin = out;
+			StrandIterator outEnd = AdvanceForward(outBegin, count);
+			invalidate_(outBegin, outEnd);
+			for(size_t i = 0; i < count; i++, ++out)
+			{
+				sequence_[out.GetPosition()] = DELETED_CHARACTER;
+				position_[out.GetPosition()] = DELETED_CHARACTER;				
+			}
 
+			updateAfterDelete_(outBegin, outEnd);
 		}
 
 		void KeepHash(size_t substrSize)
@@ -227,6 +240,14 @@ namespace SyntenyBuilder
 			return sequence_.size();
 		}
 
+		void SetHandlers(RangeHandler invalidate, RangeHandler updateAfterCopy, 
+			RangeHandler updateAfterDelete)
+		{
+			invalidate_ = invalidate;
+			updateAfterCopy_ = updateAfterCopy;
+			updateAfterDelete_ = updateAfterDelete;
+		}
+
 		static const std::string alphabet;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
@@ -250,8 +271,8 @@ namespace SyntenyBuilder
 			virtual char Translate(char ch) const = 0;
 			virtual Direction GetDirection() const = 0;
 			virtual const ReadingStrategy* Invert() const = 0;
-			virtual void AdvanceForward(IndexConstIterator & it) const = 0;
-			virtual void AdvanceBackward(IndexConstIterator & it) const = 0;
+			virtual void MoveForward(IndexConstIterator & it) const = 0;
+			virtual void MoveBackward(IndexConstIterator & it) const = 0;
 			virtual void Jump(IndexConstIterator & it, size_t count) const = 0;
 			virtual size_t GetHash(IndexConstIterator it, size_t strSize) const = 0;				
 		protected:
@@ -271,12 +292,12 @@ namespace SyntenyBuilder
 				return ch;
 			}
 
-			void AdvanceForward(IndexConstIterator & it) const
+			void MoveForward(IndexConstIterator & it) const
 			{
 				++it;
 			}
 
-			void AdvanceBackward(IndexConstIterator & it) const
+			void MoveBackward(IndexConstIterator & it) const
 			{
 				--it;
 			}
@@ -298,7 +319,7 @@ namespace SyntenyBuilder
 				{
 					for(size_t i = 0; i < count; i++)
 					{
-						AdvanceForward(it);
+						MoveForward(it);
 					}
 				}
 			}
@@ -333,12 +354,12 @@ namespace SyntenyBuilder
 				return complementary_[ch];
 			}
 
-			void AdvanceForward(IndexConstIterator & it) const
+			void MoveForward(IndexConstIterator & it) const
 			{
 				--it;
 			}
 
-			void AdvanceBackward(IndexConstIterator & it) const
+			void MoveBackward(IndexConstIterator & it) const
 			{
 				++it;
 			}
@@ -357,7 +378,7 @@ namespace SyntenyBuilder
 				{
 					for(size_t i = 0; i < count; i++)
 					{
-						AdvanceForward(it);
+						MoveForward(it);
 					}
 				}
 			}
@@ -406,6 +427,10 @@ namespace SyntenyBuilder
 		std::string sequence_;
 		//Original version of the sequence (before doing any modifications)
 		std::string original_;
+		RangeHandler invalidate_;
+		RangeHandler updateAfterCopy_;
+		RangeHandler updateAfterDelete_;
+
 		//Map from each position in the current sequence to the original sequence
 		size_t substrSize_;
 		std::vector<hash_t> positiveHash_;
