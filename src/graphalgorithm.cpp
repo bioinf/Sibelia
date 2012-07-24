@@ -178,15 +178,13 @@ namespace SyntenyBuilder
 		#endif
 
 			ClearVisit(visit, startVertex, targetData);
-			StrandIterator it = startVertex[sourceData.kmerId];
-			StrandIterator jt = startVertex[targetData.kmerId];
-			it.Jump(k);
-			jt.Jump(k);			
+			StrandIterator sourceIt = startVertex[sourceData.kmerId];
+			StrandIterator targetIt = startVertex[targetData.kmerId];
 			size_t diff = targetData.distance - sourceData.distance;
 			deletedBulge += diff;
-			sequence.CopyN(jt, sourceData.distance, jt);
-			it.Jump(sourceData.distance);
-			sequence.EraseN(jt, diff);
+			sequence.CopyN(sourceIt, sourceData.distance, targetIt);
+			targetIt.Jump(sourceData.distance);
+			sequence.EraseN(targetIt, diff);
 			
 		#ifdef _DEBUG
 			std::cerr << "After: " << std::endl;
