@@ -16,11 +16,8 @@ namespace SyntenyBuilder
 		}
 	}
 
-	KMerIndex::KMerIndex(DNASequence * sequence): kmer_(0), sequence_(sequence)
+	KMerIndex::KMerIndex(const DNASequence * sequence): kmer_(0), sequence_(sequence)
 	{
-		sequence->SetHandlers(boost::bind(&KMerIndex::Invalidate, this, _1, _2),
-			boost::bind(&KMerIndex::UpdateAfterCopy, this, _1, _2),
-			boost::bind(&KMerIndex::UpdateAfterDelete, this, _1, _2));
 	}
 
 	void KMerIndex::SetupIndex(size_t k)
@@ -42,67 +39,10 @@ namespace SyntenyBuilder
 
 	void KMerIndex::IndexKMers(StrandIterator start, StrandIterator end)
 	{
-		for(; start != end; ++start)
+		for(; start != end && start.ProperKMer(k_); ++start)
 		{
 			kmer_->Insert(start.GetPosition());
 		}
-	}
-
-	//This must be refactored later!
-	void KMerIndex::Invalidate(StrandIterator start, StrandIterator end)
-	{		
-		MakeRangePositive(start, end);		
-		for(start = AdvanceBackward(start, sequence_->PositiveBegin(), k_ - 1); start != end; ++start)
-		{
-			kmer_->Erase(start.GetPosition());
-		}
-	}
-
-	void KMerIndex::UpdateAfterCopy(StrandIterator start, StrandIterator end)
-	{
-		MakeRangePositive(start, end);
-		IndexKMers(AdvanceBackward(start, sequence_->PositiveBegin(), k_ - 1), end);
-		/*
-		std::vector<size_t> temp;
-		kmer_->DumpIndex(std::back_inserter(temp));
-		std::sort(temp.begin(), temp.end());		
-		std::copy(temp.begin(), temp.end(), std::ostream_iterator<size_t>(std::cerr, "\n"));
-		std::vector<StrandIterator> temp2;
-		kmer_->Dump(std::back_inserter(temp2));
-		for(size_t i = 0; i < temp2.size(); i++)
-		{
-			CopyN(temp2[i], k_, std::ostream_iterator<char>(std::cerr));
-			std::cerr << std::endl;
-		}*/
-	}
-
-	void KMerIndex::UpdateAfterDelete(StrandIterator start, StrandIterator end)
-	{
-		if(start.GetDirection() == DNASequence::positive)
-		{
-			--start;
-		}
-		else
-		{
-			start = end.Invert();
-		}
-
-		end = start;
-		++end;
-		start = AdvanceBackward(start, k_ - 2);
-		IndexKMers(start, end);
-		/*
-		std::vector<size_t> temp;
-		kmer_->DumpIndex(std::back_inserter(temp));
-		std::sort(temp.begin(), temp.end());		
-		std::copy(temp.begin(), temp.end(), std::ostream_iterator<size_t>(std::cerr, "\n"));
-		std::vector<StrandIterator> temp2;
-		kmer_->Dump(std::back_inserter(temp2));
-		for(size_t i = 0; i < temp2.size(); i++)
-		{
-			CopyN(temp2[i], k_, std::ostream_iterator<char>(std::cerr));
-			std::cerr << std::endl;
-		}*/
 	}
 
 	size_t KMerIndex::GetK() const

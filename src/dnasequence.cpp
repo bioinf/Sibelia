@@ -16,11 +16,8 @@ namespace SyntenyBuilder
 		return ret;
 	}
 	
-	const size_t DNASequence::NOT_KEEP = -1;
-	const char DNASequence::INVALID_HASH = -1;
-	const char DNASequence::DELETED_CHARACTER = -1;
 	const size_t DNASequence::HASH_BASE = 57;
-	const size_t DNASequence::MOD = (size_t(1) << (sizeof(size_t) * 8 - 2));
+	const char DNASequence::DELETED_CHARACTER = -1;
 	const std::string DNASequence::alphabet("agct");	
 	const std::string DNASequence::complementary_(ConstructComplementarityTable());
 }

@@ -48,7 +48,7 @@ int main(int argc, char * argv[])
 
 		for(size_t i = 0; i < stage.size(); i++)
 		{
-			if(stage[i].first < 1 || stage[i].second < 0)
+			if(stage[i].first < 3 || stage[i].second < 0)
 			{
 				std::cerr << "Incorrect stage record " << std::endl;
 				return -1;
@@ -79,25 +79,21 @@ int main(int argc, char * argv[])
 
 		for(size_t i = 0; i < stage.size(); i++)
 		{
-			std::cerr << "Building the graph, stage = " << i + 1 << std::endl;
-		//	dnaseq.KeepHash(stage[i].first);
-			index.SetupIndex(stage[i].first);			
+			std::cerr << "Building the graph, stage = " << i + 1 << std::endl;			
 
 			if(dot)
 			{				
 				std::ofstream before((fileName + "_stage_" + IntToStr(i + 1) + "_before.dot").c_str());
-				SyntenyBuilder::GraphAlgorithm::SerializeGraph(index, dnaseq, before);
+				SyntenyBuilder::GraphAlgorithm::SerializeGraph(dnaseq, stage[i].first, before);
 			}
 
 			std::cerr << "Simplifying the graph, stage = " << i + 1 << std::endl;
-			SyntenyBuilder::GraphAlgorithm::SimplifyGraph(index, dnaseq, stage[i].second);
-			dnaseq.Optimize();
+			SyntenyBuilder::GraphAlgorithm::SimplifyGraph(dnaseq, stage[i].first, stage[i].second);
 
 			if(dot)
 			{
-				index.SetupIndex(stage[i].first);
 				std::ofstream after((fileName + "_stage_" + IntToStr(i + 1) + "_after.dot").c_str());
-				SyntenyBuilder::GraphAlgorithm::SerializeGraph(index, dnaseq, after);
+				SyntenyBuilder::GraphAlgorithm::SerializeGraph(dnaseq, stage[i].first, after);
 			}
 		}
 				
@@ -112,8 +108,7 @@ int main(int argc, char * argv[])
 		SyntenyBuilder::FASTAWriter::WriteSequence(consensus, fileName + " simplified", buf);
 
 		std::cerr << "Finding non-branching paths" << std::endl;
-		index.SetupIndex(stage.back().first);
-		SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(index, dnaseq, general, indices);
+		SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(dnaseq, stage.back().first, general, indices);
 		std::cerr.setf(std::cerr.fixed);
 		std::cerr.precision(2);
 		std::cerr << "Time elapsed: " << double(clock()) / 1000 << std::endl;

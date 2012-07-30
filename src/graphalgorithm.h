@@ -8,9 +8,9 @@ namespace SyntenyBuilder
 	class GraphAlgorithm
 	{
 	public:		
-		static void SimplifyGraph(KMerIndex & index, DNASequence & sequence, size_t minBranchSize);		
-		static void SerializeGraph(const KMerIndex & index, const DNASequence & seq, std::ostream & out);
-		static void ListNonBranchingPaths(const KMerIndex & index, const DNASequence & sequence, std::ostream & out, std::ostream & indexOut);
+		static void SimplifyGraph(DNASequence & sequence, size_t k, size_t minBranchSize);		
+		static void SerializeGraph(const DNASequence & seq, size_t k, std::ostream & out);
+		static void ListNonBranchingPaths(const DNASequence & sequence, size_t k, std::ostream & out, std::ostream & indexOut);
 	};
 }
 

@@ -126,7 +126,6 @@ namespace SyntenyBuilder
 		DNASequence(const std::string sequence):
 			sequence_(sequence),
 			original_(sequence),
-			substrSize_(NOT_KEEP),
 			positiveReading_(this),
 			negativeReading_(this),
 			deletions_(0)
@@ -185,46 +184,25 @@ namespace SyntenyBuilder
 			{
 				StrandIterator outBegin = out;
 				StrandIterator outEnd = AdvanceForward(outBegin, count);
-				invalidate_(outBegin, outEnd);
 				for(size_t i = 0; i < count; i++, ++out, ++start)
 				{
 					sequence_[out.GetPosition()] = *start;
 				}
-
-				updateAfterCopy_(outBegin, outEnd);
 			}
 
 		void EraseN(StrandIterator out, size_t count)
 		{
 			StrandIterator outBegin = out;
 			StrandIterator outEnd = AdvanceForward(outBegin, count);
-			invalidate_(outBegin, outEnd);
 			for(size_t i = 0; i < count; i++, ++out)
 			{
 				sequence_[out.GetPosition()] = DELETED_CHARACTER;
 				position_[out.GetPosition()] = DELETED_CHARACTER;				
 			}
-
-			updateAfterDelete_(outBegin, outEnd);
-		}
-
-		void KeepHash(size_t substrSize)
-		{
-			substrSize_ = substrSize;
-			positiveHash_.resize(Size(), INVALID_HASH);
-			negativeHash_.resize(Size(), INVALID_HASH);
-		}
-
-		void DropHash()
-		{
-			substrSize_ = NOT_KEEP;
-			positiveHash_.clear();
-			negativeHash_.clear();
 		}
 
 		void Optimize()
 		{
-			DropHash();
 			position_.erase(std::remove(position_.begin(), position_.end(), DELETED_CHARACTER), position_.end());
 			sequence_.erase(std::remove(sequence_.begin(), sequence_.end(), DELETED_CHARACTER), sequence_.end());
 		}
@@ -240,23 +218,11 @@ namespace SyntenyBuilder
 			return sequence_.size();
 		}
 
-		void SetHandlers(RangeHandler invalidate, RangeHandler updateAfterCopy, 
-			RangeHandler updateAfterDelete)
-		{
-			invalidate_ = invalidate;
-			updateAfterCopy_ = updateAfterCopy;
-			updateAfterDelete_ = updateAfterDelete;
-		}
-
 		static const std::string alphabet;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
-		typedef long long hash_t;
 		static const std::string complementary_;
-		static const size_t MOD;
-		static const size_t NOT_KEEP;
 		static const size_t HASH_BASE;
-		static const char INVALID_HASH;
 		static const char DELETED_CHARACTER;
 
 		struct ReadingStrategy
@@ -326,18 +292,7 @@ namespace SyntenyBuilder
 
 			size_t GetHash(IndexConstIterator it, size_t strSize) const
 			{
-				hash_t ret;
-				if(this->sequence_->substrSize_ == strSize)
-				{
-					ret = this->sequence_->positiveHash_[it.GetPosition()];
-					assert(ret == this->sequence_->CalcHash(it, strSize));
-				}
-				else
-				{
-					ret = this->sequence_->CalcHash(it, strSize);
-				}
-
-				return static_cast<size_t>(ret);
+				return this->sequence_->CalcHash(it, strSize);
 			}
 		};
 
@@ -390,34 +345,25 @@ namespace SyntenyBuilder
 
 			size_t GetHash(IndexConstIterator it, size_t strSize) const
 			{
-				hash_t ret;
-				StrandIterator src = this->sequence_->NegativeByIndex(it.GetPosition());
-				if(this->sequence_->substrSize_ == strSize)
-				{
-					ret = this->sequence_->negativeHash_[it.GetPosition()];
-					assert(ret == this->sequence_->CalcHash(src, strSize));
-				}
-				else
-				{
-					ret = this->sequence_->CalcHash(src, strSize);
-				}
-
-				return static_cast<size_t>(ret);
+				StrandIterator src = this->sequence_->NegativeByIndex(it.GetPosition());					
+				return this->sequence_->CalcHash(src, strSize);
 			}
 		};
 		
 		template<class Iterator>
-			static hash_t CalcHash(Iterator it, size_t k)
+			static size_t CalcHash(Iterator it, size_t k)
 			{
 				size_t base = 1;
 				size_t hash = 0;
+				std::advance(it, k - 1);
 				for(size_t i = 0; i < k; i++)
 				{			
-					hash += *it++ * base;
+					hash += *it * base;
 					base *= HASH_BASE;
+					--it;
 				}		
 
-				return static_cast<hash_t>(hash % MOD);
+				return hash;
 			}
 
 		PositiveReadingStrategy positiveReading_;
@@ -427,14 +373,10 @@ namespace SyntenyBuilder
 		std::string sequence_;
 		//Original version of the sequence (before doing any modifications)
 		std::string original_;
-		RangeHandler invalidate_;
-		RangeHandler updateAfterCopy_;
-		RangeHandler updateAfterDelete_;
 
 		//Map from each position in the current sequence to the original sequence
+		size_t highPow_;
 		size_t substrSize_;
-		std::vector<hash_t> positiveHash_;
-		std::vector<hash_t> negativeHash_;
 		std::vector<size_t> position_;
 		size_t deletions_;
 	};	
