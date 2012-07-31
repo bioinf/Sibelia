@@ -181,19 +181,15 @@ namespace SyntenyBuilder
 
 		template<class Iterator>
 			void CopyN(Iterator start, size_t count, StrandIterator out)
-			{
-				StrandIterator outBegin = out;
-				StrandIterator outEnd = AdvanceForward(outBegin, count);
+			{				
 				for(size_t i = 0; i < count; i++, ++out, ++start)
 				{
-					sequence_[out.GetPosition()] = *start;
+					sequence_[out.GetPosition()] = out.GetStrategy()->Translate(*start);
 				}
 			}
 
 		void EraseN(StrandIterator out, size_t count)
 		{
-			StrandIterator outBegin = out;
-			StrandIterator outEnd = AdvanceForward(outBegin, count);
 			for(size_t i = 0; i < count; i++, ++out)
 			{
 				sequence_[out.GetPosition()] = DELETED_CHARACTER;

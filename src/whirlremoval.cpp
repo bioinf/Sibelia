@@ -35,9 +35,10 @@ namespace SyntenyBuilder
 			size_t near = 0;
 			for(size_t i = 1; i < k && near < save.size(); i++)
 			{
+				++it;
 				if(i == save[near].first)
 				{
-					bifStorage.AddPoint(++it, save[near].second);
+					bifStorage.AddPoint(it, save[near].second);
 				}
 			}
 		}
@@ -63,25 +64,28 @@ namespace SyntenyBuilder
 						if(bifStorage.GetBifurcation(++jt) == bifId)
 						{
 						#ifdef _DEBUG
-							std::cerr << "Bulge #" << ret++ << std::endl;
+							std::cerr << "Whirl #" << ret++ << std::endl;
 							std::cerr << "Before: " << std::endl;
 							PrintRaw(sequence, std::cerr);
 							std::cerr << "Source branch: " << std::endl;			
 							PrintPath(it, k, step, std::cerr);
+							bifStorage.Dump(std::cerr);
 						#endif
 
 							WhirlRemovalBifurcationUpdate(bifStorage, sequence, k, it, step);
 							sequence.EraseN(AdvanceForward(it, k), step);
 							remove = true;
-							break;
 
 						#ifdef _DEBUG
 							std::cerr << "After: " << std::endl;
 							PrintRaw(sequence, std::cerr);
 							std::cerr << "Source branch: " << std::endl;			
-							PrintPath(it, k, k, std::cerr);
+							PrintPath(it, k, 0, std::cerr);
+							bifStorage.Dump(std::cerr);
+							std::cerr << DELIMITER << std::endl;
 						#endif
 
+							break;
 						}
 					}
 				}

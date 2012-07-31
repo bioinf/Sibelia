@@ -6,8 +6,8 @@
 
 namespace SyntenyBuilder
 {
-	typedef DNASequence::StrandIterator StrandIterator;
 	typedef char Bool;	
+	typedef DNASequence::StrandIterator StrandIterator;
 	typedef std::pair<StrandIterator, StrandIterator> IteratorPair;
 	typedef google::sparse_hash_set<StrandIterator, KMerIndex::KMerHashFunction, KMerIndex::KMerEqualTo> KMerSet;	
 

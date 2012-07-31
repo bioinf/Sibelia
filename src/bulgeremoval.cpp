@@ -118,8 +118,6 @@ namespace SyntenyBuilder
 			EraseBifurcations(sequence, bifStorage, k, startKMer, sourceData);
 			StrandIterator sourceIt = startKMer[sourceData.kmerId];
 			StrandIterator targetIt = startKMer[targetData.kmerId];
-			sourceIt.Jump(k);
-			targetIt.Jump(k);
 			size_t diff = targetData.distance - sourceData.distance;
 			sequence.CopyN(sourceIt, sourceData.distance, targetIt);
 			targetIt.Jump(sourceData.distance);
@@ -133,7 +131,7 @@ namespace SyntenyBuilder
 			GraphAlgorithm::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 			std::cerr << "Target branch: " << std::endl;			
 			GraphAlgorithm::PrintPath(startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
-			std::cerr << std::string(80, '-') << std::endl;
+			std::cerr << DELIMITER << std::endl;
 		#endif
 		}	
 	}

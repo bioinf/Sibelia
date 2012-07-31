@@ -12,6 +12,22 @@ namespace SyntenyBuilder
 		}
 	}
 
+	void BifurcationStorage::Dump(std::ostream & out) const
+	{
+		std::string strandName[] = {"Positive:", "Negative:"};
+		for(size_t strand = 0; strand < 2; strand++)
+		{
+			out << strandName[strand];
+			for(PosBifurcation::const_iterator it = posBifurcation[strand].begin();
+				it != posBifurcation[strand].end(); ++it)
+			{
+				out << " {" << (*it)->second << ", " << (*it)->first << "}";
+			}
+
+			out << std::endl;
+		}
+	}
+
 	void BifurcationStorage::AddPoint(DNASequence::StrandIterator it, size_t bifId)
 	{
 		size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;

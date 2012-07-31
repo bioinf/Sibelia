@@ -13,6 +13,7 @@ namespace SyntenyBuilder
 		static const size_t NO_BIFURCATION;
 
 		void Clear();
+		void Dump(std::ostream & out) const;
 		void ErasePoint(DNASequence::StrandIterator it);
 		void AddPoint(DNASequence::StrandIterator it, size_t bifId);
 		size_t GetBifurcation(DNASequence::StrandIterator it) const;
@@ -48,7 +49,7 @@ namespace SyntenyBuilder
 		struct IteratorLess
 		{
 		public:
-			bool operator () (BifMapIterator it1, BifMapIterator it2)
+			bool operator () (BifMapIterator it1, BifMapIterator it2) const
 			{
 				return it1->second < it2->second;
 			}
