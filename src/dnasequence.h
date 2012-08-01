@@ -190,6 +190,7 @@ namespace SyntenyBuilder
 
 		void EraseN(StrandIterator out, size_t count)
 		{
+			deletions_ += count;
 			for(size_t i = 0; i < count; i++, ++out)
 			{
 				sequence_[out.GetPosition()] = DELETED_CHARACTER;

@@ -38,7 +38,7 @@ namespace SyntenyBuilder
 				++it;
 				if(i == save[near].first)
 				{
-					bifStorage.AddPoint(it, save[near].second);
+					bifStorage.AddPoint(it, save[near++].second);
 				}
 			}
 		}
@@ -83,6 +83,7 @@ namespace SyntenyBuilder
 							PrintPath(it, k, 0, std::cerr);
 							bifStorage.Dump(std::cerr);
 							std::cerr << DELIMITER << std::endl;
+							GraphAlgorithm::Test(sequence, bifStorage, k);
 						#endif
 
 							break;

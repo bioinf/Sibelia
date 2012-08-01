@@ -3,6 +3,36 @@
 //#undef _DEBUG
 namespace SyntenyBuilder
 {
+	void GraphAlgorithm::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
+	{
+		IteratorPair it[] = {std::make_pair(sequence.PositiveBegin(), sequence.PositiveRightEnd()),
+			std::make_pair(sequence.NegativeBegin(), sequence.NegativeRightEnd())};
+		typedef boost::unordered_map<StrandIterator, size_t, KMerIndex::KMerHashFunction,
+			KMerIndex::KMerEqualTo> KMerBifMap;
+		KMerBifMap kmerBif(0, KMerIndex::KMerHashFunction(k), KMerIndex::KMerEqualTo(k));
+		for(size_t strand = 0; strand < 2; strand++)
+		{
+			for(StrandIterator jt = it[strand].first; jt != it[strand].second; ++jt)
+			{
+				if(jt.ProperKMer(k))
+				{
+					size_t bifurcation = bifStorage.GetBifurcation(jt);
+					KMerBifMap::iterator kt = kmerBif.find(jt);
+					if(kt == kmerBif.end())
+					{
+						kmerBif[jt] = bifurcation;
+					}
+					else
+					{
+						size_t actual = kt->second;
+						StrandIterator prev = kt->first;
+						assert(actual == bifurcation);
+					}
+				}				
+			}
+		}
+	}
+
 	size_t GraphAlgorithm::EnumerateBifurcations(DNASequence & sequence, size_t k, BifurcationStorage & bifStorage)
 	{
 		bifStorage.Clear();
@@ -93,10 +123,13 @@ namespace SyntenyBuilder
 	{
 		size_t totalBulges;
 		size_t totalWhirls;
+		size_t iterations = 0;
+		const size_t MOD = 100;
 		bool anyChanges = true;
 		BifurcationStorage bifStorage;
 		do
 		{
+			iterations++;
 			totalBulges = 0;
 			size_t counter = 0;
 			size_t bifurcationCount = GraphAlgorithm::EnumerateBifurcations(sequence, k, bifStorage);
@@ -107,6 +140,11 @@ namespace SyntenyBuilder
 			std::cerr << "Removing bulges..." << std::endl;
 			for(size_t id = 0; id < bifurcationCount; id++)
 			{
+				if(id % MOD == 0)
+				{
+					std::cout << "id = " << id << std::endl;
+				}
+
 				totalBulges += RemoveBulges(bifStorage, sequence, k, minBranchSize, id);
 			}
 
@@ -114,6 +152,6 @@ namespace SyntenyBuilder
 			std::cerr << "Total bulges: " << totalBulges << std::endl;		
 			sequence.Optimize();
 		}
-		while(totalBulges > 0 || totalWhirls > 0);
+		while((totalBulges > 0 || totalWhirls > 0) && iterations < 4);
 	}
 }

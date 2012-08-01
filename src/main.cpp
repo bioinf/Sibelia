@@ -14,7 +14,7 @@ std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName)
 	std::ifstream stageFile(fileName.c_str());
 	if(!stageFile)
 	{
-		std::vector<std::pair<int, int> >();
+		return std::vector<std::pair<int, int> >();
 	}
 
 	stageFile >> count;

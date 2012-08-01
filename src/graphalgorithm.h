@@ -29,6 +29,7 @@ namespace SyntenyBuilder
 		static void ListNonBranchingPaths(const DNASequence & sequence, size_t k, std::ostream & out, std::ostream & indexOut);
 		static void PrintRaw(DNASequence & s, std::ostream & out);
 		static void PrintPath(StrandIterator e, size_t k, size_t distance, std::ostream & out);
+		static void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);
 	private:		
 		static size_t EnumerateBifurcations(DNASequence & sequence, size_t k, BifurcationStorage & bifStorage);
 		static size_t RemoveWhirls(BifurcationStorage & bifStorage, DNASequence & sequence, size_t k, size_t minBranchSize);

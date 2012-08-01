@@ -30,9 +30,12 @@ namespace SyntenyBuilder
 
 	void BifurcationStorage::AddPoint(DNASequence::StrandIterator it, size_t bifId)
 	{
-		size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
-		BifMapIterator place = bifurcationPos[strand].insert(std::make_pair(bifId, it.GetPosition()));
-		posBifurcation[strand].insert(place);
+		if(GetBifurcation(it) == NO_BIFURCATION)
+		{
+			size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
+			BifMapIterator place = bifurcationPos[strand].insert(std::make_pair(bifId, it.GetPosition()));
+			posBifurcation[strand].insert(place);
+		}
 	}
 
 	void BifurcationStorage::ErasePoint(DNASequence::StrandIterator it)
