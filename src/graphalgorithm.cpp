@@ -7,8 +7,9 @@ namespace SyntenyBuilder
 	std::map<std::string, size_t> idMap;
 #endif
 
-	void GraphAlgorithm::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
+	void GraphAlgorithm::Test(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k)
 	{
+		bifStorage.Test();
 		IteratorPair it[] = {std::make_pair(sequence.PositiveBegin(), sequence.PositiveRightEnd()),
 			std::make_pair(sequence.NegativeBegin(), sequence.NegativeRightEnd())};
 		typedef boost::unordered_map<StrandIterator, size_t, KMerIndex::KMerHashFunction,

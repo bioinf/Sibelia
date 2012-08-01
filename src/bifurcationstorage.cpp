@@ -3,6 +3,11 @@ namespace SyntenyBuilder
 {
 	const size_t BifurcationStorage::NO_BIFURCATION = -1;
 
+	void BifurcationStorage::Test() const
+	{
+		
+	}
+
 	void BifurcationStorage::Clear()
 	{
 		for(size_t strand = 0; strand < 2; strand++)
@@ -14,14 +19,23 @@ namespace SyntenyBuilder
 
 	void BifurcationStorage::Dump(std::ostream & out) const
 	{
-		std::string strandName[] = {"Positive:", "Negative:"};
+		std::string strandName[] = {"Positive", "Negative"};
 		for(size_t strand = 0; strand < 2; strand++)
 		{
-			out << strandName[strand];
+			out << strandName[strand] << ", pos:" ;
 			for(PosBifurcation::const_iterator it = posBifurcation[strand].begin();
 				it != posBifurcation[strand].end(); ++it)
 			{
 				out << " {" << (*it)->second << ", " << (*it)->first << "}";
+			}
+
+			out << std::endl;
+
+			out << strandName[strand] << ", bif:" ;
+			for(CBifMapIterator it = bifurcationPos[strand].begin();
+				it != bifurcationPos[strand].end(); ++it)
+			{
+				out << " {" << it->first << ", " << it->second << "}";
 			}
 
 			out << std::endl;

@@ -12,6 +12,7 @@ namespace SyntenyBuilder
 	public:
 		static const size_t NO_BIFURCATION;
 
+		void Test() const;
 		void Clear();
 		void Dump(std::ostream & out) const;
 		void ErasePoint(DNASequence::StrandIterator it);
@@ -35,6 +36,9 @@ namespace SyntenyBuilder
 						bifurcationPos[strand].equal_range(bifId);
 					for(CBifMapIterator it = range.first; it != range.second; ++it, ++ret)
 					{
+						size_t id = it->first;
+						size_t pos = it->second;
+						assert(GetBifurcation(trans[strand](it->second)) == bifId);
 						*out++ = trans[strand](it->second);
 					}
 				}
