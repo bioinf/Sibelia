@@ -124,7 +124,7 @@ namespace SyntenyBuilder
 		size_t totalBulges;
 		size_t totalWhirls;
 		size_t iterations = 0;
-		const size_t MOD = 100;
+		const size_t MOD = 1000;
 		bool anyChanges = true;
 		BifurcationStorage bifStorage;
 		do
@@ -152,6 +152,6 @@ namespace SyntenyBuilder
 			std::cerr << "Total bulges: " << totalBulges << std::endl;		
 			sequence.Optimize();
 		}
-		while((totalBulges > 0 || totalWhirls > 0) && iterations < 4);
+		while((totalBulges > 0 || totalWhirls > 0) && iterations < 1);
 	}
 }

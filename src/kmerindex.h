@@ -27,18 +27,13 @@ namespace SyntenyBuilder
 			KMerHashFunction(size_t k): k_(k) {}
 		private:
 			size_t k_;
-		};
+		};		
 		
 		class KMerEqualTo
 		{
 		public:
 			bool operator()(StrandIterator it1, StrandIterator it2) const
 			{	
-				if(it1.GetHashCode(k_) != it2.GetHashCode(k_))
-				{
-					return false;
-				}
-
 				StrandIterator end1(AdvanceForward(it1, k_));
 				return std::mismatch(it1, end1, it2).first == end1;
 			}
@@ -64,6 +59,10 @@ namespace SyntenyBuilder
 			const DNASequence * sequence_;
 		};
 		
+		class KMerHashFunctionMemo
+		{
+		};
+
 		typedef IndexMultiSet<StrandIterator, IndexTransformer, KMerHashFunction, KMerEqualTo> KMerMultiSet;		
 		//Container in which we store all kmers
 		size_t k_;

@@ -2,19 +2,6 @@
 
 namespace SyntenyBuilder
 {
-	namespace
-	{
-		void MakeRangePositive(KMerIndex::StrandIterator & start, KMerIndex::StrandIterator & end)
-		{
-			if(start.GetDirection() == DNASequence::negative)
-			{
-				KMerIndex::StrandIterator newStart = (--end).Invert();
-				KMerIndex::StrandIterator newEnd = ++(start.Invert());
-				start = newStart;
-				end = newEnd;
-			}
-		}
-	}
 
 	KMerIndex::KMerIndex(const DNASequence * sequence): kmer_(0), sequence_(sequence)
 	{
