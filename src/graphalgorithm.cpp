@@ -3,6 +3,10 @@
 //#undef _DEBUG
 namespace SyntenyBuilder
 {
+#ifdef _DEBUG
+	std::map<std::string, size_t> idMap;
+#endif
+
 	void GraphAlgorithm::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
 	{
 		IteratorPair it[] = {std::make_pair(sequence.PositiveBegin(), sequence.PositiveRightEnd()),
@@ -15,20 +19,14 @@ namespace SyntenyBuilder
 			for(StrandIterator jt = it[strand].first; jt != it[strand].second; ++jt)
 			{
 				if(jt.ProperKMer(k))
-				{
-					size_t bifurcation = bifStorage.GetBifurcation(jt);
-					KMerBifMap::iterator kt = kmerBif.find(jt);
-					if(kt == kmerBif.end())
-					{
-						kmerBif[jt] = bifurcation;
-					}
-					else
-					{
-						size_t actual = kt->second;
-						StrandIterator prev = kt->first;
-						assert(actual == bifurcation);
-					}
-				}				
+				{					
+					size_t actualBifurcation = bifStorage.GetBifurcation(jt);
+					std::map<std::string, size_t>::iterator kt = 
+						idMap.find(std::string(jt, AdvanceForward(jt, k)));
+					size_t mustbeBifurcation = kt == idMap.end() ? BifurcationStorage::NO_BIFURCATION :
+						kt->second;
+					assert(actualBifurcation == mustbeBifurcation);
+				}
 			}
 		}
 	}
@@ -42,7 +40,9 @@ namespace SyntenyBuilder
 		index.SetupIndex(k);
 		size_t bifurcationCount = 0;
 		std::vector<StrandIterator> kmer;
-		KMerSet visit(sequence.Size(), KMerIndex::KMerHashFunction(k), KMerIndex::KMerEqualTo(k));
+		SlidingWindow<StrandIterator> window(sequence.PositiveBegin(), sequence.PositiveRightEnd(), k); 
+		KMerSet visit(sequence.Size(), KMerIndex::WindowHashFunction(window), KMerIndex::KMerEqualTo(k));
+		const size_t MOD = 1000000;
 		StrandIterator posBegin = sequence.PositiveBegin();
 		StrandIterator negBegin = sequence.NegativeBegin();
 		
@@ -50,8 +50,13 @@ namespace SyntenyBuilder
 		std::cerr << "Found bifurcations:" << std::endl;
 	#endif
 
-		for(StrandIterator it = sequence.PositiveBegin(); it.ProperKMer(k); ++it)
+		for(StrandIterator it = sequence.PositiveBegin(); it.ProperKMer(k); ++it, window.Move())
 		{
+			if(it.GetPosition() % MOD == 0)
+			{
+				std::cerr << "Pos = " << it.GetPosition() << std::endl;
+			}
+
 			if(visit.find(it) != visit.end())
 			{
 				continue;
@@ -102,7 +107,8 @@ namespace SyntenyBuilder
 								bifurcationCount++);
 				std::for_each(kmer.begin(), kmer.end(), adder);
 
-		#ifdef _DEBUG
+		#ifdef _DEBUG				
+				idMap[std::string(kmer[0], AdvanceForward(kmer[0], k))] = bifurcationCount - 1;
 				std::cerr << "Bifurcation No. " << bifurcationCount - 1 << std::endl;
 				for(size_t i = 0; i < kmer.size(); i++)
 				{
@@ -127,13 +133,13 @@ namespace SyntenyBuilder
 		const size_t MOD = 1000;
 		bool anyChanges = true;
 		BifurcationStorage bifStorage;
+		size_t bifurcationCount = GraphAlgorithm::EnumerateBifurcations(sequence, k, bifStorage);
+		std::cerr << "Total bifurcations: " << bifurcationCount << std::endl;
 		do
 		{
 			iterations++;
 			totalBulges = 0;
 			size_t counter = 0;
-			size_t bifurcationCount = GraphAlgorithm::EnumerateBifurcations(sequence, k, bifStorage);
-			std::cerr << "Total bifurcations: " << bifurcationCount << std::endl;
 			std::cerr << "Removing whirls..." << std::endl;
 			totalWhirls = RemoveWhirls(bifStorage, sequence, k, minBranchSize);
 

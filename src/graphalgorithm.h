@@ -6,11 +6,6 @@
 
 namespace SyntenyBuilder
 {
-	typedef char Bool;	
-	typedef DNASequence::StrandIterator StrandIterator;
-	typedef std::pair<StrandIterator, StrandIterator> IteratorPair;
-	typedef google::sparse_hash_set<StrandIterator, KMerIndex::KMerHashFunction, KMerIndex::KMerEqualTo> KMerSet;	
-
 	struct VisitData
 	{
 		size_t kmerId;
@@ -18,8 +13,12 @@ namespace SyntenyBuilder
 		VisitData() {}
 		VisitData(size_t kmerId, size_t distance): kmerId(kmerId), distance(distance) {}
 	};
-	
+
+	typedef char Bool;	
+	typedef DNASequence::StrandIterator StrandIterator;
+	typedef std::pair<StrandIterator, StrandIterator> IteratorPair;
 	typedef boost::unordered_multimap<size_t, VisitData> VertexVisitMap;
+	typedef boost::unordered_set<StrandIterator, KMerIndex::WindowHashFunction, KMerIndex::KMerEqualTo> KMerSet;	
 
 	class GraphAlgorithm
 	{

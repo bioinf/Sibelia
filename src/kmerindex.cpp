@@ -2,7 +2,6 @@
 
 namespace SyntenyBuilder
 {
-
 	KMerIndex::KMerIndex(const DNASequence * sequence): kmer_(0), sequence_(sequence)
 	{
 	}
@@ -11,15 +10,26 @@ namespace SyntenyBuilder
 	{
 		k_ = k;
 		delete kmer_;
+		window_ = SlidingWindow<StrandIterator>(sequence_->PositiveBegin(), 
+			sequence_->PositiveRightEnd(), k);
+
 		kmer_ = new KMerMultiSet(sequence_->Size(),
 			IndexTransformer(sequence_), 
-			KMerHashFunction(k),
+			WindowHashFunction(window_),
 			KMerEqualTo(k));
+		
+		const size_t MOD = 1000000;
 		for(StrandIterator it = sequence_->PositiveBegin(); it != sequence_->PositiveRightEnd(); it++)
 		{
+			if(it.GetPosition() % MOD == 0)
+			{
+				std::cerr << "Pos = " << it.GetPosition() << std::endl;
+			}
+
 			if(it.ProperKMer(k_))
 			{
 				kmer_->Insert(it.GetPosition());
+				window_.Move();
 			}
 		}
 	}

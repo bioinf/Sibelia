@@ -1,7 +1,7 @@
 #ifndef _KMER_INDEX_H_
 #define _KMER_INDEX_H_
 
-#include "dnasequence.h"
+#include "hashing.h"
 #include "indexmultiset.h"
 
 namespace SyntenyBuilder
@@ -21,7 +21,7 @@ namespace SyntenyBuilder
 		public:
 			size_t operator ()(StrandIterator it) const
 			{
-				return it.GetHashCode(k_);
+				return SlidingWindow<StrandIterator>::CalcKMerHash(it, k_);
 			}
 
 			KMerHashFunction(size_t k): k_(k) {}
@@ -43,6 +43,25 @@ namespace SyntenyBuilder
 			size_t k_;
 		};
 
+		class WindowHashFunction
+		{
+		public:
+			WindowHashFunction(const SlidingWindow<StrandIterator> & window): window_(window) {}
+
+			size_t operator () (StrandIterator it) const
+			{
+				if(window_.GetBegin() == it)
+				{
+					return window_.GetValue();
+				}
+
+				return SlidingWindow<StrandIterator>::CalcKMerHash(it, window_.GetK());
+			}
+
+		private:
+			const SlidingWindow<StrandIterator> & window_;
+		};
+
 	private:
 		DISALLOW_COPY_AND_ASSIGN(KMerIndex);				
 		
@@ -57,17 +76,14 @@ namespace SyntenyBuilder
 			IndexTransformer(const DNASequence * sequence): sequence_(sequence){}
 		private:
 			const DNASequence * sequence_;
-		};
+		};		
 		
-		class KMerHashFunctionMemo
-		{
-		};
-
-		typedef IndexMultiSet<StrandIterator, IndexTransformer, KMerHashFunction, KMerEqualTo> KMerMultiSet;		
+		typedef IndexMultiSet<StrandIterator, IndexTransformer, WindowHashFunction, KMerEqualTo> KMerMultiSet;		
 		//Container in which we store all kmers
 		size_t k_;
 		KMerMultiSet * kmer_;
 		const DNASequence * sequence_;
+		SlidingWindow<StrandIterator> window_;
 
 		void IndexKMers(StrandIterator start, StrandIterator end);
 	};

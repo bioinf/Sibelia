@@ -14,7 +14,6 @@ namespace SyntenyBuilder
 		struct ReadingStrategy;
 	public:			
 		class StrandIterator;
-		typedef boost::function<void (StrandIterator, StrandIterator)> RangeHandler;
 
 		enum Direction
 		{
@@ -60,11 +59,6 @@ namespace SyntenyBuilder
 			Direction GetDirection()
 			{
 				return rStrategy_->GetDirection();
-			}
-
-			size_t GetHashCode(size_t strSize)
-			{
-				return rStrategy_->GetHash(it_, strSize);
 			}
 
 			StrandIterator& operator ++ ()
@@ -219,7 +213,6 @@ namespace SyntenyBuilder
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
 		static const std::string complementary_;
-		static const size_t HASH_BASE;
 		static const char DELETED_CHARACTER;
 
 		struct ReadingStrategy
@@ -237,7 +230,6 @@ namespace SyntenyBuilder
 			virtual void MoveForward(IndexConstIterator & it) const = 0;
 			virtual void MoveBackward(IndexConstIterator & it) const = 0;
 			virtual void Jump(IndexConstIterator & it, size_t count) const = 0;
-			virtual size_t GetHash(IndexConstIterator it, size_t strSize) const = 0;				
 		protected:
 			DNASequence * sequence_;
 		};			
@@ -285,11 +277,6 @@ namespace SyntenyBuilder
 						MoveForward(it);
 					}
 				}
-			}
-
-			size_t GetHash(IndexConstIterator it, size_t strSize) const
-			{
-				return this->sequence_->CalcHash(it, strSize);
 			}
 		};
 
@@ -339,30 +326,8 @@ namespace SyntenyBuilder
 			{
 				return &sequence_->positiveReading_;
 			}
-
-			size_t GetHash(IndexConstIterator it, size_t strSize) const
-			{
-				StrandIterator src = this->sequence_->NegativeByIndex(it.GetPosition());					
-				return this->sequence_->CalcHash(src, strSize);
-			}
 		};
 		
-		template<class Iterator>
-			static size_t CalcHash(Iterator it, size_t k)
-			{
-				size_t base = 1;
-				size_t hash = 0;
-				std::advance(it, k - 1);
-				for(size_t i = 0; i < k; i++)
-				{			
-					hash += *it * base;
-					base *= HASH_BASE;
-					--it;
-				}		
-
-				return hash;
-			}
-
 		PositiveReadingStrategy positiveReading_;
 		NegativeReadingStrategy negativeReading_;
 
@@ -372,8 +337,6 @@ namespace SyntenyBuilder
 		std::string original_;
 
 		//Map from each position in the current sequence to the original sequence
-		size_t highPow_;
-		size_t substrSize_;
 		std::vector<size_t> position_;
 		size_t deletions_;
 	};	

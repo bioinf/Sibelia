@@ -1,10 +1,10 @@
 #include "graphalgorithm.h"
-//#define _DEBUG
-//#undef _DEBUG
 namespace SyntenyBuilder
 {
 	namespace
-	{
+	{	
+		typedef boost::unordered_set<StrandIterator, KMerIndex::KMerHashFunction, KMerIndex::KMerEqualTo> KMerSimpleSet;
+
 		void OutputEdge(const KMerIndex & index, StrandIterator it, std::ostream & out)
 		{
 			CopyN(it, index.GetK(), std::ostream_iterator<char>(out));
@@ -24,7 +24,7 @@ namespace SyntenyBuilder
 			out << " " << buf;
 		}
 		
-		void ProcessIterator(KMerSet & visit, const KMerIndex & index, DNASequence::StrandIterator it, std::ostream & out)
+		void ProcessIterator(KMerSimpleSet & visit, const KMerIndex & index, DNASequence::StrandIterator it, std::ostream & out)
 		{
 			std::vector<StrandIterator> kmer;		
 			if(it.ProperKMer(index.GetK()) && visit.find(it) == visit.end())
@@ -75,7 +75,7 @@ namespace SyntenyBuilder
 		out << "rankdir=LR" << std::endl;
 		KMerIndex index(&sequence);
 		index.SetupIndex(k);
-		KMerSet visit(sequence.Size(), KMerIndex::KMerHashFunction(index.GetK()),
+		KMerSimpleSet visit(sequence.Size(), KMerIndex::KMerHashFunction(index.GetK()),
 			KMerIndex::KMerEqualTo(index.GetK()));
 		for(StrandIterator it = sequence.PositiveBegin(); it.Valid(); ++it)
 		{
