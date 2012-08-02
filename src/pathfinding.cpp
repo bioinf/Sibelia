@@ -1,13 +1,11 @@
 #include "graphalgorithm.h"
-//#define _DEBUG
-//#undef _DEBUG
 namespace SyntenyBuilder
 {
 	namespace
 	{
 		bool Less(const std::pair<size_t, StrandIterator> & p1, const std::pair<size_t, StrandIterator> & p2)
 		{
-			return p1.first < p2.first;
+			return p1.first > p2.first;
 		}
 
 		bool Invalid(const std::vector<Bool> & visit, const StrandIterator & g)

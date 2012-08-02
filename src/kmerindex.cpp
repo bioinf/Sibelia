@@ -6,6 +6,11 @@ namespace SyntenyBuilder
 	{
 	}
 
+	KMerIndex::~KMerIndex()
+	{
+		delete kmer_;
+	}
+
 	void KMerIndex::SetupIndex(size_t k)
 	{
 		k_ = k;

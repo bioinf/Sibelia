@@ -31,7 +31,6 @@ namespace SyntenyBuilder
 	}
 #endif
 
-
 	size_t GraphAlgorithm::EnumerateBifurcations(DNASequence & sequence, size_t k, BifurcationStorage & bifStorage)
 	{
 		bifStorage.Clear();
@@ -141,8 +140,8 @@ namespace SyntenyBuilder
 			iterations++;
 			totalBulges = 0;
 			size_t counter = 0;
-			std::cerr << "Removing whirls..." << std::endl;
-			totalWhirls = RemoveWhirls(bifStorage, sequence, k, minBranchSize);
+			//std::cerr << "Removing whirls..." << std::endl;
+			//totalWhirls = RemoveWhirls(bifStorage, sequence, k, minBranchSize);
 
 			std::cerr << "Removing bulges..." << std::endl;
 			for(size_t id = 0; id < bifurcationCount; id++)
@@ -155,9 +154,8 @@ namespace SyntenyBuilder
 				totalBulges += RemoveBulges(bifStorage, sequence, k, minBranchSize, id);
 			}
 
-			std::cerr << "Total whirls: " << totalWhirls << std::endl;
+			//std::cerr << "Total whirls: " << totalWhirls << std::endl;
 			std::cerr << "Total bulges: " << totalBulges << std::endl;		
-			sequence.Optimize();
 		}
 		while((totalBulges > 0 || totalWhirls > 0) && iterations < 1);
 	}

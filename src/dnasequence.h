@@ -124,11 +124,7 @@ namespace SyntenyBuilder
 			negativeReading_(this),
 			deletions_(0)
 		{
-			position_.resize(sequence_.size());
-			for(size_t i = 0; i < sequence_.size(); i++)
-			{
-				position_[i] = i;
-			}
+
 		}
 
 		StrandIterator PositiveByIndex(size_t pos) const
@@ -165,8 +161,8 @@ namespace SyntenyBuilder
 		template<class Iterator>
 			std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2, Iterator out) const
 			{
-				StrandIterator out1(IndexConstIterator(original_, position_[it1.GetPosition()], DELETED_CHARACTER), it1.GetStrategy());
-				StrandIterator out2(IndexConstIterator(original_, position_[(--it2).GetPosition()], DELETED_CHARACTER), it2.GetStrategy());
+				StrandIterator out1(IndexConstIterator(original_, it1.GetPosition(), DELETED_CHARACTER), it1.GetStrategy());
+				StrandIterator out2(IndexConstIterator(original_, (--it2).GetPosition(), DELETED_CHARACTER), it2.GetStrategy());
 				std::copy(out1, ++out2, out);
 				size_t pos1 = out1.GetPosition();
 				size_t pos2 = (--out2).GetPosition();
@@ -188,14 +184,7 @@ namespace SyntenyBuilder
 			for(size_t i = 0; i < count; i++, ++out)
 			{
 				sequence_[out.GetPosition()] = DELETED_CHARACTER;
-				position_[out.GetPosition()] = DELETED_CHARACTER;				
 			}
-		}
-
-		void Optimize()
-		{
-			position_.erase(std::remove(position_.begin(), position_.end(), DELETED_CHARACTER), position_.end());
-			sequence_.erase(std::remove(sequence_.begin(), sequence_.end(), DELETED_CHARACTER), sequence_.end());
 		}
 
 		template<class Iterator>
@@ -340,9 +329,6 @@ namespace SyntenyBuilder
 		std::string sequence_;
 		//Original version of the sequence (before doing any modifications)
 		std::string original_;
-
-		//Map from each position in the current sequence to the original sequence
-		std::vector<size_t> position_;
 		size_t deletions_;
 	};	
 }

@@ -1,6 +1,4 @@
 #include "graphalgorithm.h"
-//#define _DEBUG
-//#undef _DEBUG
 namespace SyntenyBuilder
 {
 	namespace
