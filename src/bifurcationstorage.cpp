@@ -3,11 +3,6 @@ namespace SyntenyBuilder
 {
 	const size_t BifurcationStorage::NO_BIFURCATION = -1;
 
-	void BifurcationStorage::Test() const
-	{
-		
-	}
-
 	void BifurcationStorage::Clear()
 	{
 		for(size_t strand = 0; strand < 2; strand++)

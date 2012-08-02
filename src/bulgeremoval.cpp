@@ -45,32 +45,36 @@ namespace SyntenyBuilder
 			size_t k,
 			const std::vector<StrandIterator> & startKMer,
 			VisitData targetData,
+			std::vector<std::pair<size_t, size_t> > & lookForward,
 			std::vector<std::pair<size_t, size_t> > & lookBack)
 		{
 			lookBack.clear();
-			IteratorPair target = std::make_pair(startKMer[targetData.kmerId],
-				AdvanceForward(startKMer[targetData.kmerId], targetData.distance + 1));
-			IteratorPair inverseTarget = InvertRange(target, k);
-			IteratorPair inverseKMer = std::make_pair(AdvanceForward(startKMer[targetData.kmerId], k - 1).Invert(),
-				AdvanceBackward(startKMer[targetData.kmerId], 1).Invert());
-
-			for(size_t step = 0; inverseKMer.first != inverseKMer.second; ++inverseKMer.first, step++)
+			lookForward.clear();
+			StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k - 1).Invert();
+			StrandIterator bmer = AdvanceForward(startKMer[targetData.kmerId], targetData.distance);
+			for(size_t i = 0; i < k; i++, ++amer, ++bmer)
 			{
-				size_t bifurcation = bifStorage.GetBifurcation(inverseKMer.first);
-				if(bifurcation != BifurcationStorage::NO_BIFURCATION)
+				size_t bifId = bifStorage.GetBifurcation(amer);
+				if(bifId != BifurcationStorage::NO_BIFURCATION)
 				{
-					lookBack.push_back(std::make_pair(step, bifurcation));
+					bifStorage.ErasePoint(amer);
+					lookBack.push_back(std::make_pair(i, bifId));
+				}
+
+				bifId = bifStorage.GetBifurcation(bmer);
+				if(bifId != BifurcationStorage::NO_BIFURCATION)
+				{
+					bifStorage.ErasePoint(bmer);
+					lookForward.push_back(std::make_pair(i, bifId));
 				}
 			}
 
-			for(;target.first != target.second; ++target.first)
+			amer = startKMer[targetData.kmerId];
+			bmer = AdvanceForward(amer, k + targetData.distance - 1).Invert();
+			for(size_t i = 0; i < k + targetData.distance; i++, ++amer, ++bmer)
 			{
-				bifStorage.ErasePoint(target.first);
-			}
-
-			for(;inverseTarget.first != inverseTarget.second; ++inverseTarget.first)
-			{
-				bifStorage.ErasePoint(inverseTarget.first);
+				bifStorage.ErasePoint(amer);
+				bifStorage.ErasePoint(bmer);
 			}
 		}
 
@@ -80,43 +84,69 @@ namespace SyntenyBuilder
 			const std::vector<StrandIterator> & startKMer,
 			VisitData sourceData,
 			VisitData targetData,
-			std::vector<std::pair<size_t, size_t> > & lookBack)
+			const std::vector<std::pair<size_t, size_t> > & lookForward,
+			const std::vector<std::pair<size_t, size_t> > & lookBack)
 		{
-			IteratorPair target = std::make_pair(startKMer[targetData.kmerId],
-				AdvanceForward(startKMer[targetData.kmerId], sourceData.distance + 1));
-			IteratorPair inverseTarget = InvertRange(target, k);
-			IteratorPair source = std::make_pair(startKMer[sourceData.kmerId],
-				AdvanceForward(startKMer[sourceData.kmerId], sourceData.distance + 1));
-			IteratorPair inverseSource = InvertRange(source, k);
-			IteratorPair inverseKMer = std::make_pair(AdvanceForward(startKMer[targetData.kmerId], k - 1).Invert(),
-				AdvanceBackward(startKMer[targetData.kmerId], 1).Invert());
-
-			size_t near = 0;
-			for(size_t i = 0; i < k && near < lookBack.size(); i++, ++inverseKMer.first)
+			size_t anear = 0;
+			size_t bnear = 0;
+			StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k - 1).Invert();
+			StrandIterator bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance);
+			for(size_t i = 0; i < k; i++, ++amer, ++bmer)
 			{
-				if(i == lookBack[near].first)
+				if(anear < lookBack.size() && i == lookBack[anear].first)
 				{
-					bifStorage.AddPoint(inverseKMer.first, lookBack[near++].second);
+					bifStorage.AddPoint(amer, lookBack[anear++].second);
+				}
+
+				if(bnear < lookForward.size() && i == lookForward[bnear].first)
+				{
+					bifStorage.AddPoint(bmer, lookForward[bnear++].second);
 				}
 			}
 
-			for(;target.first != target.second; ++target.first, ++source.first)
+			amer = startKMer[targetData.kmerId];
+			bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance + k - 1).Invert();
+			StrandIterator srcAMer = startKMer[sourceData.kmerId];
+			StrandIterator srcBMer = AdvanceForward(startKMer[sourceData.kmerId], sourceData.distance + k - 1).Invert();
+			for(size_t i = 0; i < sourceData.distance + 1; i++, ++amer, ++bmer, ++srcAMer, ++srcBMer)
 			{
-				size_t bifurcation = bifStorage.GetBifurcation(source.first);
-				if(bifurcation != BifurcationStorage::NO_BIFURCATION)
+				size_t bifId = bifStorage.GetBifurcation(srcAMer);
+				if(bifId != BifurcationStorage::NO_BIFURCATION)
 				{
-					bifStorage.AddPoint(target.first, bifurcation);
+					bifStorage.AddPoint(amer, bifId);
+				}
+
+				bifId = bifStorage.GetBifurcation(srcBMer);
+				if(bifId != BifurcationStorage::NO_BIFURCATION)
+				{
+					bifStorage.AddPoint(bmer, bifId);
+				}
+			}
+		}
+
+		bool Overlap(size_t k,
+			const std::vector<StrandIterator> & startKMer,
+			VisitData sourceData,
+			VisitData targetData)
+		{
+			std::vector<size_t> occur;
+			StrandIterator it = startKMer[sourceData.kmerId];
+			for(size_t i = 0; i < sourceData.distance + k; i++, ++it)
+			{
+				occur.push_back(it.GetPosition());
+			}
+
+			it = startKMer[targetData.kmerId];
+			std::sort(occur.begin(), occur.end());
+			for(size_t i = 0; i < targetData.distance + k; i++, ++it)
+			{
+				if(std::binary_search(occur.begin(), occur.end(), it.GetPosition()))
+				{
+					return true;
 				}
 			}
 
-			for(; inverseTarget.first != inverseTarget.second; ++inverseTarget.first, ++inverseSource.first)
-			{
-				size_t bifurcation = bifStorage.GetBifurcation(inverseSource.first);
-				if(bifurcation != BifurcationStorage::NO_BIFURCATION)
-				{
-					bifStorage.AddPoint(inverseTarget.first, bifurcation);
-				}
-			}
+			return false;
 		}
 
 		void CollapseBulge(DNASequence & sequence,
@@ -140,15 +170,16 @@ namespace SyntenyBuilder
 		#endif
 
 			ClearVisit(visit, bifStorage, startKMer, targetData);
+			std::vector<std::pair<size_t, size_t> > lookForward;
 			std::vector<std::pair<size_t, size_t> > lookBack;
-			EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookBack);
+			EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
 			StrandIterator sourceIt = startKMer[sourceData.kmerId];
 			StrandIterator targetIt = startKMer[targetData.kmerId];
 			size_t diff = targetData.distance - sourceData.distance;
 			sequence.CopyN(sourceIt, sourceData.distance, targetIt);
 			targetIt.Jump(sourceData.distance);
 			sequence.EraseN(targetIt, diff);
-			UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookBack);
+			UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
 
 		#ifdef _DEBUG
 			std::cerr << "After: " << std::endl;
@@ -161,7 +192,7 @@ namespace SyntenyBuilder
 			std::cerr << DELIMITER << std::endl;
 			GraphAlgorithm::Test(sequence, bifStorage, k);
 		#endif
-		}	
+		}			
 	}
 
 	size_t GraphAlgorithm::RemoveBulges(BifurcationStorage & bifStorage, 
@@ -186,13 +217,6 @@ namespace SyntenyBuilder
 				nowVertex[i] = AdvanceForward(startKMer[i], 1);
 				endChar[i] = *AdvanceForward(startKMer[i], k);
 			}
-
-			StrandIterator jt(startKMer[i]);
-			for(size_t j = 0; j < k; j++)
-			{
-				restrict[jt.GetPosition()] = i;
-				++jt;
-			}
 		}
 
 		std::vector<size_t> travelRange(startKMer.size(), 1);
@@ -201,8 +225,7 @@ namespace SyntenyBuilder
 			for(size_t kmerId = 0; kmerId < nowVertex.size(); kmerId++)
 			{
 				StrandIterator & kmer = nowVertex[kmerId];
-				std::map<size_t, size_t>::iterator rt = restrict.find(kmer.GetPosition());
-				if(kmer.Valid() && (rt == restrict.end() || rt->second == kmerId))
+				if(kmer.Valid())
 				{
 					bool collapsed = false;
 					size_t bifurcation = bifStorage.GetBifurcation(kmer);
@@ -223,11 +246,19 @@ namespace SyntenyBuilder
 							if(endChar[nowData.kmerId] != endChar[prevData.kmerId] && opposite != startKMer[prevData.kmerId]
 								&& nowData.distance >= prevData.distance)
 							{
-								ret++;
-								collapsed = true;								
-								CollapseBulge(sequence, bifStorage, visit, k, startKMer, prevData, nowData);
-								travelRange[nowData.kmerId] = prevData.distance;
-								endChar[nowData.kmerId] = endChar[prevData.kmerId];
+								if(!Overlap(k, startKMer, prevData, nowData))
+								{
+									ret++;
+									collapsed = true;								
+									CollapseBulge(sequence, bifStorage, visit, k, startKMer, prevData, nowData);
+									travelRange[nowData.kmerId] = prevData.distance;
+									endChar[nowData.kmerId] = endChar[prevData.kmerId];
+								}
+								else
+								{
+									nowVertex[prevData.kmerId] = nowVertex[nowData.kmerId] = sequence.PositiveRightEnd();
+								}
+
 								break;
 							}
 						}
