@@ -209,6 +209,11 @@ namespace SyntenyBuilder
 			return sequence_.size();
 		}
 
+		char GetRawChar(size_t pos) const
+		{
+			return sequence_[pos];
+		}
+
 		static const std::string alphabet;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	

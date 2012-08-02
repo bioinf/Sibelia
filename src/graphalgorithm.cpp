@@ -3,10 +3,9 @@
 //#undef _DEBUG
 namespace SyntenyBuilder
 {
+
 #ifdef _DEBUG
 	std::map<std::string, size_t> idMap;
-#endif
-
 	void GraphAlgorithm::Test(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k)
 	{
 		IteratorPair it[] = {std::make_pair(sequence.PositiveBegin(), sequence.PositiveRightEnd()),
@@ -30,6 +29,8 @@ namespace SyntenyBuilder
 			}
 		}
 	}
+#endif
+
 
 	size_t GraphAlgorithm::EnumerateBifurcations(DNASequence & sequence, size_t k, BifurcationStorage & bifStorage)
 	{
