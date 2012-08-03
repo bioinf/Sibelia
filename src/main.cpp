@@ -71,12 +71,11 @@ int main(int argc, char * argv[])
 		{
 			sequence[i] = tolower(sequence[i]);
 		}	
-
+		
 		sequence.erase(std::remove(sequence.begin(), sequence.end(), 'n'), sequence.end());
 		std::cout << "Total size = " << sequence.size() << std::endl;
 		SyntenyBuilder::DNASequence dnaseq(sequence);
-		SyntenyBuilder::KMerIndex index(&dnaseq);
-
+		
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			std::cerr << "Building the graph, stage = " << i + 1 << std::endl;			
@@ -109,6 +108,10 @@ int main(int argc, char * argv[])
 
 		std::cerr << "Finding non-branching paths" << std::endl;
 		SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(dnaseq, stage.back().first, general, indices);
+
+		std::ofstream condensed((fileName + "_condensed.dot").c_str());
+		SyntenyBuilder::GraphAlgorithm::SerializeCondensedGraph(dnaseq, stage.back().first, condensed);
+	//	SyntenyBuilder::GraphAlgorithm::FindGraphBulges(sequence, stage.back().first);
 		std::cerr.setf(std::cerr.fixed);
 		std::cerr.precision(2);
 		std::cerr << "Time elapsed: " << double(clock()) / 1000 << std::endl;

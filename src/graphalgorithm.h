@@ -22,15 +22,18 @@ namespace SyntenyBuilder
 
 	class GraphAlgorithm
 	{
-	public:		
+	public:
+		static void FindGraphBulges(const DNASequence & sequence, size_t k);
 		static void SimplifyGraph(DNASequence & sequence, size_t k, size_t minBranchSize);		
 		static void SerializeGraph(const DNASequence & seq, size_t k, std::ostream & out);
+		static void SerializeCondensedGraph(const DNASequence & seq, size_t k, std::ostream & out);
 		static void ListNonBranchingPaths(const DNASequence & sequence, size_t k, std::ostream & out, std::ostream & indexOut);
-		static void PrintRaw(DNASequence & s, std::ostream & out);
+		static void PrintRaw(const DNASequence & s, std::ostream & out);
 		static void PrintPath(StrandIterator e, size_t k, size_t distance, std::ostream & out);
 		static void Test(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k);
-	private:		
-		static size_t EnumerateBifurcations(DNASequence & sequence, size_t k, BifurcationStorage & bifStorage);
+	private:				
+		static size_t EnumerateBifurcations(const DNASequence & sequence, size_t k, BifurcationStorage & bifStorage);
+		static size_t FindBulges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t bifId);
 		static size_t RemoveWhirls(BifurcationStorage & bifStorage, DNASequence & sequence, size_t k, size_t minBranchSize);
 		static size_t RemoveBulges(BifurcationStorage & bifStorage, DNASequence & sequence, size_t k, size_t minBranchSize, size_t bifId);		
 	};

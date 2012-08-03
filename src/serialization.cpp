@@ -41,9 +41,42 @@ namespace SyntenyBuilder
 				}
 			}
 		}
+
+		void SerializeCondensed(const BifurcationStorage & bifStorage,
+			StrandIterator start, StrandIterator end, std::ostream & out)
+		{
+			for(; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; ++start);
+			size_t prev = start != end ? bifStorage.GetBifurcation(start) : -1;
+			for(; start != end; )
+			{
+				size_t step = 0;
+				for(++start; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; 
+					++start, ++step);
+				{
+					size_t bifId = bifStorage.GetBifurcation(start);
+					if(bifId != BifurcationStorage::NO_BIFURCATION)
+					{
+						char buf[1 << 8];
+						out << prev << " -> " << bifId;
+						if(start.GetDirection() == DNASequence::positive)
+						{
+							sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "blue", static_cast<long long unsigned>(step + 1));
+						}
+						else
+						{
+							sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "red", static_cast<long long unsigned>(step + 1));
+						}
+
+						out << " " << buf << std::endl;
+					}
+
+					prev = bifId;
+				}
+			}
+		}
 	}
 
-	void GraphAlgorithm::PrintRaw(DNASequence & s, std::ostream & out)
+	void GraphAlgorithm::PrintRaw(const DNASequence & s, std::ostream & out)
 	{
 		std::string rcomp;
 		s.SpellRaw(std::ostream_iterator<char>(out));
@@ -68,6 +101,19 @@ namespace SyntenyBuilder
 		CopyN(e, distance + k, std::ostream_iterator<char>(out));
 		std::cerr << std::endl;
 	}			
+
+	void GraphAlgorithm::SerializeCondensedGraph(const DNASequence & sequence, size_t k, std::ostream & out)
+	{
+		BifurcationStorage bifStorage;
+		size_t bifurcationCount = GraphAlgorithm::EnumerateBifurcations(sequence, k, bifStorage);
+		std::cerr << "Total bifurcations: " << bifurcationCount << std::endl;
+		out << "digraph G" << std::endl << "{" << std::endl;
+		out << "rankdir=LR" << std::endl;
+		SerializeCondensed(bifStorage, sequence.PositiveBegin(), sequence.PositiveRightEnd(), out);
+		SerializeCondensed(bifStorage, sequence.NegativeBegin(), sequence.NegativeRightEnd(), out);
+
+		out << "}" << std::endl;
+	}
 
 	void GraphAlgorithm::SerializeGraph(const DNASequence & sequence, size_t k, std::ostream & out)
 	{

@@ -74,6 +74,6 @@ namespace SyntenyBuilder
 		std::for_each(ret.begin(), ret.end(), boost::bind(std::advance<StrandIterator, size_t>, _1, k_ - 1));
 		std::for_each(ret.begin(), ret.end(), boost::bind(&StrandIterator::MakeInverted, _1));
 		std::transform(positive.begin(), positive.end(), std::back_inserter(ret), createPos);
-		return static_cast<int>(ret.size());
+		return ret.size();
 	}
 }

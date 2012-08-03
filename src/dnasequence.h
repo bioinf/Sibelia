@@ -188,7 +188,7 @@ namespace SyntenyBuilder
 		}
 
 		template<class Iterator>
-			void SpellRaw(Iterator out)
+			void SpellRaw(Iterator out) const
 			{
 				std::copy(sequence_.begin(), sequence_.end(), out);
 			}

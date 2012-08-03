@@ -31,7 +31,7 @@ namespace SyntenyBuilder
 	}
 #endif
 
-	size_t GraphAlgorithm::EnumerateBifurcations(DNASequence & sequence, size_t k, BifurcationStorage & bifStorage)
+	size_t GraphAlgorithm::EnumerateBifurcations(const DNASequence & sequence, size_t k, BifurcationStorage & bifStorage)
 	{
 		bifStorage.Clear();
 		std::cerr << DELIMITER << std::endl;
@@ -125,10 +125,30 @@ namespace SyntenyBuilder
 		return bifurcationCount;
 	}
 
+	void GraphAlgorithm::FindGraphBulges(const DNASequence & sequence, size_t k)
+	{
+		size_t totalBulges = 0;
+		size_t totalWhirls = 0;
+		const size_t MOD = 1000;
+		BifurcationStorage bifStorage;
+		size_t bifurcationCount = GraphAlgorithm::EnumerateBifurcations(sequence, k, bifStorage);
+		std::cerr << "Total bifurcations: " << bifurcationCount << std::endl;
+		std::cerr << "Finding bulges..." << std::endl;
+		for(size_t id = 0; id < bifurcationCount; id++)
+		{
+			if(id % MOD == 0)
+			{
+				std::cout << "id = " << id << std::endl;
+			}
+
+			FindBulges(sequence, bifStorage, k, id);
+		}
+	}
+
 	void GraphAlgorithm::SimplifyGraph(DNASequence & sequence, size_t k, size_t minBranchSize)
 	{
-		size_t totalBulges;
-		size_t totalWhirls;
+		size_t totalBulges = 0;
+		size_t totalWhirls = 0;
 		size_t iterations = 0;
 		const size_t MOD = 1000;
 		bool anyChanges = true;
