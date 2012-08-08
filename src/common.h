@@ -35,6 +35,55 @@
 namespace SyntenyBuilder
 {
 	const std::string DELIMITER(80, '-');
+
+	template<class Iterator1, class Iterator2>
+		void CopyN(Iterator1 it, size_t count, Iterator2 out)
+		{
+			for(size_t i = 0; i < count; i++)
+			{
+				*out++ = *it++;
+			}
+		}
+
+	template<class Iterator>
+		Iterator AdvanceForward(Iterator it, size_t step)
+		{
+			std::advance(it, step);
+			return it;
+		}
+
+	template<class Iterator>
+		Iterator AdvanceBackward(Iterator it, size_t step)
+		{
+			for(size_t i = 0; i < step; i++)
+			{
+				--it;
+			}
+
+			return it;
+		}
+
+	template<class Iterator>
+		Iterator AdvanceBackward(Iterator it, Iterator lowerBound, size_t step)
+		{
+			for(size_t i = 0; i < step && it != lowerBound; i++)
+			{
+				--it;
+			}
+
+			return it;
+		}
+
+	template<class Iterator>
+		Iterator AdvanceForward(Iterator it, Iterator upperBound, size_t step)
+		{
+			for(size_t i = 0; i < step && it != upperBound; i++)
+			{
+				++it;
+			}
+
+			return it;
+		}
 }
 
 #endif

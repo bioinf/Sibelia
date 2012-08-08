@@ -1,6 +1,5 @@
 #include "graphalgorithm.h"
-//#define _DEBUG
-//#undef _DEBUG
+/*
 namespace SyntenyBuilder
 {
 	namespace
@@ -48,7 +47,7 @@ namespace SyntenyBuilder
 		size_t k, size_t minBranchSize)
 	{
 		size_t ret = 0;
-		for(StrandIterator it = sequence.PositiveBegin(); it != sequence.PositiveRightEnd(); ++it)
+		for(StrandIterator it = sequence.PositiveBegin(); it != sequence.PositiveEnd(); ++it)
 		{
 			size_t bifId = bifStorage.GetBifurcation(it);
 			std::vector<StrandIterator> kmer(1, it);
@@ -96,3 +95,4 @@ namespace SyntenyBuilder
 		return ret;
 	}
 }
+*/

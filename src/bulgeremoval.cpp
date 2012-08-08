@@ -1,4 +1,5 @@
 #include "graphalgorithm.h"
+/*
 namespace SyntenyBuilder
 {
 	namespace
@@ -160,7 +161,7 @@ namespace SyntenyBuilder
 				{
 					if(kt.first->second != targetData.kmerId)
 					{
-						startKMer[kt.first->second] = sequence.PositiveRightEnd();
+						startKMer[kt.first->second] = sequence.PositiveEnd();
 					}
 				}
 			}
@@ -266,7 +267,7 @@ namespace SyntenyBuilder
 					{
 						if(bifurcation == bifId)
 						{
-							nowVertex[kmerId] = sequence.PositiveRightEnd();
+							nowVertex[kmerId] = sequence.PositiveEnd();
 							continue;
 						}						
 					}
@@ -367,7 +368,9 @@ namespace SyntenyBuilder
 							}
 
 							++ret;
-							if(jdata.distance >= idata.distance)
+							bool iless = idata.distance < jdata.distance || (idata.distance == jdata.distance &&
+								idata.kmerId < jdata.kmerId);
+							if(iless)
 							{
 								endChar[jdata.kmerId] = endChar[idata.kmerId];
 								CollapseBulge(sequence, bifStorage, k, startKMer, restricted, idata, jdata);
@@ -388,4 +391,4 @@ namespace SyntenyBuilder
 
 		return ret;
 	}
-}
+}*/

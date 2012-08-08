@@ -13,30 +13,25 @@ namespace SyntenyBuilder
 		static const size_t NO_BIFURCATION;
 
 		void Clear();
+		size_t GetMaxId() const;
+		BifurcationStorage(): maxId_(0) {}
 		void Dump(std::ostream & out) const;
 		void ErasePoint(DNASequence::StrandIterator it);
 		void AddPoint(DNASequence::StrandIterator it, size_t bifId);
-		size_t GetBifurcation(DNASequence::StrandIterator it) const;
+		size_t CountBifurcations(size_t bifId) const;
+		size_t GetBifurcation(DNASequence::StrandIterator it) const;		
 
 		template<class Iterator>
 			size_t ListPositions(size_t bifId, Iterator out, const DNASequence & seq) const
 			{
 				size_t ret = 0;
-				typedef boost::function<StrandIterator (size_t)> Transformer;
-				Transformer trans[2] = 
-				{
-					boost::bind(&DNASequence::PositiveByIndex, boost::cref(seq), _1),
-					boost::bind(&DNASequence::NegativeByIndex, boost::cref(seq), _1)
-				};
-
 				for(size_t strand = 0; strand < 2; strand++)
 				{
 					std::pair<CBifMapIterator, CBifMapIterator> range = 
-						bifurcationPos[strand].equal_range(bifId);
-					for(CBifMapIterator it = range.first; it != range.second; ++it, ++ret)
+						bifurcationPos_[strand].equal_range(bifId);
+					for(;range.first != range.second; ++range.first)
 					{
-						assert(GetBifurcation(trans[strand](it->second)) == bifId);
-						*out++ = trans[strand](it->second);
+						*out++ = range.first->second;
 					}
 				}
 
@@ -44,7 +39,7 @@ namespace SyntenyBuilder
 			}
 
 	private:
-		typedef boost::unordered_multimap<size_t, size_t> BifurcationPos;
+		typedef boost::unordered_multimap<size_t, StrandIterator> BifurcationPos;
 		typedef BifurcationPos::iterator BifMapIterator;
 		typedef BifurcationPos::const_iterator CBifMapIterator;
 		struct IteratorLess
@@ -58,11 +53,11 @@ namespace SyntenyBuilder
 
 		typedef std::set<BifurcationPos::iterator, IteratorLess> PosBifurcation;
 
-		mutable BifurcationPos temp;
-		BifurcationPos bifurcationPos[2];
-		PosBifurcation posBifurcation[2];
+		size_t maxId_;
+		mutable BifurcationPos temp_;
+		BifurcationPos bifurcationPos_[2];
+		PosBifurcation posBifurcation_[2];
 	};
-	
 }
 
 #endif
