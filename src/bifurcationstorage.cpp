@@ -53,8 +53,9 @@ namespace SyntenyBuilder
 		{
 			maxId_ = std::max(maxId_, bifId);
 			size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
-			BifMapIterator place = bifurcationPos_[strand].insert(std::make_pair(bifId, it));
+			BifMapIterator place = bifurcationPos_[strand].insert(std::make_pair(bifId, it));			
 			posBifurcation_[strand].insert(place);
+			assert(GetBifurcation(it) == bifId);
 		}
 	}
 

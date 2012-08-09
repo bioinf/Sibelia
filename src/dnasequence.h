@@ -17,18 +17,18 @@ namespace SyntenyBuilder
 		};
 
 	private:
-		static const char EMPTY_CHARACTER;
+		static const size_t NO_POS;
 
 		struct DNACharacter
 		{
 			char actual;
-			char previous;
+			size_t pos;
 			DNACharacter() {}
-			DNACharacter(char actual): actual(actual), previous(EMPTY_CHARACTER) {}
-			DNACharacter(char actual, char previous): actual(actual), previous(previous) {}
+			DNACharacter(char actual): actual(actual), pos(actual) {}
+			DNACharacter(char actual, size_t pos): actual(actual), pos(pos) {}
 		};
 
-		typedef std::vector<DNACharacter> Sequence;
+		typedef std::list<DNACharacter> Sequence;
 		typedef Sequence::const_iterator SequencePosIterator;
 		typedef Sequence::const_reverse_iterator SequenceNegIterator;
 
@@ -41,7 +41,7 @@ namespace SyntenyBuilder
 			virtual void MoveBackward() = 0;
 			virtual GenericIterator* Clone() const = 0;
 			virtual Direction GetDirection() const = 0;
-			virtual const DNACharacter* GetNaked() const = 0;
+			virtual const DNACharacter* GetNaked() const = 0;			
 			virtual bool Equal(const GenericIterator& toCompare) const = 0;
 		};
 
@@ -91,6 +91,7 @@ namespace SyntenyBuilder
 			StrandIterator& operator -- ();
 			StrandIterator operator -- (int);
 			size_t GetElementId() const;
+			size_t GetOriginalPosition() const;
 			bool operator < (const StrandIterator & comp) const;
 			bool operator == (const StrandIterator & comp) const;
 			bool operator != (const StrandIterator & comp) const;
@@ -111,7 +112,29 @@ namespace SyntenyBuilder
 		template<class Iterator>
 			std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2, Iterator out) const
 			{
+				size_t pos1 = NO_POS;
+				size_t pos2 = NO_POS;
+				for(;it1.GetOriginalPosition() == NO_POS && it1 != it2; ++it1);
+				for(--it2; it2.GetOriginalPosition() == NO_POS && it1 != it2; --it2);
+				size_t start = std::min(pos1, pos2);
+				size_t end = std::max(pos1, pos2) + 1;
+				if(it1.GetDirection() == positive)
+				{
+					std::copy(original_.begin() + start, original_.end() + end, out);
+				}
+				else
+				{
+					std::string rcomp;
+					std::copy(original_.begin() + start, original_.end() + end, std::back_inserter(rcomp));
+					for(size_t i = 0; i < rcomp.size(); i++)
+					{
+						rcomp[i] = Translate(rcomp[i]);
+					}
 
+					std::copy(rcomp.rbegin(), rcomp.rend(), out);
+				}
+
+				return std::make_pair(start, end);
 			}
 
 		template<class Iterator>
@@ -135,6 +158,7 @@ namespace SyntenyBuilder
 		static char Translate(char ch);
 		static const std::string complementary_;		
 		Sequence sequence_;
+		std::string original_;
 	};	
 }
 

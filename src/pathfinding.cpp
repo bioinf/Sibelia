@@ -4,49 +4,44 @@ namespace SyntenyBuilder
 {
 	namespace
 	{
-		typedef boost::unordered_set<size_t> ElementVisitSet;
-		bool Invalid(const ElementVisitSet & visit, const StrandIterator & g)
+		bool Valid(StrandIterator it, const DNASequence & sequence)
 		{
-			return visit.find(g.GetElementId()) != visit.end();
+			return it != sequence.PositiveEnd() && it != sequence.NegativeEnd();
 		}
 
-		void Invalidate(ElementVisitSet & visit, const StrandIterator & g)
+		size_t Extend(const DNASequence & sequence, size_t k, std::vector<StrandIterator> kmer)
 		{
-			visit.insert(g.GetElementId());
-		}
+			size_t ret = 1;
+			boost::function<StrandIterator& (StrandIterator&)> extender = boost::bind(&StrandIterator::operator++, _1);
+			for(size_t i = 0; i < k; i++)
+			{
+				std::for_each(kmer.begin(), kmer.end(), extender);			
+			}
 
-		size_t Extend(ElementVisitSet & visit,
-			std::vector<StrandIterator> kmer,
-			boost::function<void (StrandIterator&)> extender,
-			boost::function<void (const StrandIterator&)> invalidator)
-		{
-			size_t ret = 0;			
-		/*	std::for_each(kmer.begin(), kmer.end(), extender);			
 			for(bool fail = false; !fail; ret++)
 			{
-				fail = !kmer[0].Valid() || visit[kmer[0].GetPosition()];
+				fail = !Valid(kmer[0], sequence);
 				if(!fail)
 				{
 					char consensus = *kmer[0];
 					for(size_t i = 1; i < kmer.size() && !fail; i++)
 					{
-						fail = !kmer[i].Valid() || visit[kmer[i].GetPosition()] || *kmer[i] != consensus;
+						fail = !Valid(kmer[i], sequence) || *kmer[i] != consensus;
 					}
 				}
 
 				if(!fail)
 				{
-					std::for_each(kmer.begin(), kmer.end(), invalidator);
 					std::for_each(kmer.begin(), kmer.end(), extender);
 				}
 			}
 
- 			return ret - 1;*/
+ 			return ret;
 		}
 	}
 
 	void GraphAlgorithm::ListNonBranchingPaths(const DNASequence & sequence,
-		BifurcationStorage & bifStorage,
+		const BifurcationStorage & bifStorage,
 		size_t k,
 		std::ostream & out,
 		std::ostream & indexOut)
@@ -56,44 +51,37 @@ namespace SyntenyBuilder
 		for(size_t i = 0; i < bifStorage.GetMaxId(); i++)
 		{
 			size_t count = bifStorage.CountBifurcations(i);
-			multiKmer.push_back(std::make_pair(count, i));
+			if(count > 1)
+			{
+				multiKmer.push_back(std::make_pair(count, i));
+			}
 		}
 		
 		std::string buf;
 		std::vector<StrandIterator> kmer;
 		std::sort(multiKmer.begin(), multiKmer.end(), std::greater<std::pair<size_t, size_t> >());	
-		ElementVisitSet visit;
-
-		boost::function<StrandIterator& (StrandIterator&)> moveForward = boost::bind(&StrandIterator::operator++, _1);
-		boost::function<StrandIterator& (StrandIterator&)> moveBackward = boost::bind(&StrandIterator::operator--, _1);		
-		boost::function<bool (const StrandIterator&)> invalid = boost::bind(Invalid, boost::ref(visit), _1);
-		boost::function<void (const StrandIterator&)> invalidator = boost::bind(Invalidate, boost::ref(visit), _1);
-
 		for(size_t i = 0; i < multiKmer.size(); i++)
 		{
-			bifStorage.ListPositions(multiKmer[i].second, std::back_inserter(kmer), sequence);
-			kmer.erase(std::remove_if(kmer.begin(), kmer.end(), invalid), kmer.end());
+			bifStorage.ListPositions(multiKmer[i].second, std::back_inserter(kmer));
 			if(kmer.size() > 1)
 			{
-				size_t forward = Extend(visit, kmer, moveForward, invalidator) + 1;
-				size_t backward = Extend(visit, kmer, moveBackward, invalidator);
-				if(forward + backward < k)
+				size_t forward = Extend(sequence, k, kmer);
+				if(forward < 1)
 				{
 					continue;
 				}
 
-				std::for_each(kmer.begin(), kmer.end(), invalidator);
 				out << "Consensus: " << std::endl;
-				StrandIterator end = AdvanceForward(kmer[0], forward);
-				StrandIterator start = AdvanceBackward(kmer[0], backward);
+				StrandIterator start = kmer[0];
+				StrandIterator end = AdvanceForward(kmer[0], forward);				
 				std::copy(start, end, std::ostream_iterator<char>(out));
 				out << std::endl;	
 
 				for(size_t j = 0; j < kmer.size(); j++)
 				{
 					buf.clear();
+					start = kmer[j];
 					end = AdvanceForward(kmer[j], forward);
-					start = AdvanceBackward(kmer[j], backward);
 					std::pair<size_t, size_t> coord = sequence.SpellOriginal(start, end, std::back_inserter(buf));
 					out << (kmer[j].GetDirection() == DNASequence::positive ? '+' : '-') << "s, ";
 					out << coord.first << ':' << coord.second << " " << buf << std::endl;

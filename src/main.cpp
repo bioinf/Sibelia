@@ -105,7 +105,7 @@ int main(int argc, char * argv[])
 			}
 		}
 				
-		std::cerr << std::string(50, '-') << std::endl;
+		std::cerr << SyntenyBuilder::DELIMITER << std::endl;
 		std::string header = fileName;				
 		
 		std::string buf;

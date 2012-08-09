@@ -71,7 +71,10 @@ namespace SyntenyBuilder
 				{			
 					hash += *it * base;
 					base *= HASH_BASE;
-					--it;
+					if(i != k - 1)
+					{
+						--it;
+					}
 				}		
 
 				return hash;

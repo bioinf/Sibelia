@@ -22,7 +22,7 @@ namespace SyntenyBuilder
 		size_t GetBifurcation(DNASequence::StrandIterator it) const;		
 
 		template<class Iterator>
-			size_t ListPositions(size_t bifId, Iterator out, const DNASequence & seq) const
+			size_t ListPositions(size_t bifId, Iterator out) const
 			{
 				size_t ret = 0;
 				for(size_t strand = 0; strand < 2; strand++)

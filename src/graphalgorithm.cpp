@@ -4,6 +4,11 @@ namespace SyntenyBuilder
 {
 	namespace
 	{
+	#ifdef _DEBUG
+		typedef boost::unordered_map<std::string, size_t> KMerBifMap;
+		KMerBifMap idMap;		
+	#endif
+
 		struct BifurcationData
 		{
 		public:
@@ -64,34 +69,30 @@ namespace SyntenyBuilder
 		const char BifurcationData::NO_CHAR = -1;
 	}
 	
-	/*
+	
 #ifdef _DEBUG
-	std::map<std::string, size_t> idMap;
-	void GraphAlgorithm::Test(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k)
-	{
-		IteratorPair it[] = {std::make_pair(sequence.PositiveBegin(), sequence.PositiveEnd()),
-			std::make_pair(sequence.NegativeBegin(), sequence.NegativeRightEnd())};
-		typedef boost::unordered_map<StrandIterator, size_t, KMerIndex::KMerHashFunction,
-			KMerIndex::KMerEqualTo> KMerBifMap;
-		KMerBifMap kmerBif(0, KMerIndex::KMerHashFunction(k), KMerIndex::KMerEqualTo(k));
-		for(size_t strand = 0; strand < 2; strand++)
+	void GraphAlgorithm::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
 		{
-			for(StrandIterator jt = it[strand].first; jt != it[strand].second; ++jt)
+			SlidingWindow<StrandIterator> window[] = 
 			{
-				if(jt.ProperKMer(k))
-				{					
+				SlidingWindow<StrandIterator>(sequence.PositiveBegin(), sequence.PositiveEnd(), k),
+				SlidingWindow<StrandIterator>(sequence.NegativeBegin(), sequence.NegativeEnd(), k)
+			};
+			
+			for(size_t strand = 0; strand < 2; strand++)
+			{
+				for(; window[strand].Valid(); window[strand].Move())
+				{
+					StrandIterator jt = window[strand].GetBegin();
 					size_t actualBifurcation = bifStorage.GetBifurcation(jt);
-					std::map<std::string, size_t>::iterator kt = 
-						idMap.find(std::string(jt, AdvanceForward(jt, k)));
+					KMerBifMap::iterator kt = idMap.find(std::string(jt, AdvanceForward(jt, k)));
 					size_t mustbeBifurcation = kt == idMap.end() ? BifurcationStorage::NO_BIFURCATION :
-						kt->second;
+							kt->second;
 					assert(actualBifurcation == mustbeBifurcation);
 				}
 			}
 		}
-	}
 #endif
-	*/
 
 	size_t GraphAlgorithm::EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k)
 	{
@@ -115,11 +116,18 @@ namespace SyntenyBuilder
 			sequence.NegativeEnd()
 		};
 
-		for(size_t i = 0; i < 4; i++)
+		for(size_t i = 0; i < 2; i++)
 		{
 			bifurcation.insert(std::make_pair(border[i], BifurcationData(bifurcationCount++)));
+			bifurcation[border[i]].UpdateForward(*AdvanceForward(border[i], k));
 		}
 		
+		for(size_t i = 2; i < 4; i++)
+		{
+			bifurcation.insert(std::make_pair(border[i], BifurcationData(bifurcationCount++)));
+			bifurcation[border[i]].UpdateBackward(*AdvanceBackward(border[i], 1));
+		}
+
 		SlidingWindow<StrandIterator> window(++sequence.PositiveBegin(), --sequence.PositiveEnd(), k); 
 		for(size_t count = 0; window.Valid(); window.Move(), count++)
 		{
@@ -128,18 +136,21 @@ namespace SyntenyBuilder
 				std::cerr << "Pos = " << count << std::endl;
 			}
 
+#ifdef _DEBUG
+			CopyN(window.GetBegin(), k, std::ostream_iterator<char>(std::cerr));
+			std::cerr << std::endl;
+#endif
+
 			StrandIterator it = window.GetBegin();
 			BifurcationMap::iterator jt = bifurcation.find(it);
 			if(jt == bifurcation.end())
 			{
-				bifurcation.insert(std::make_pair(it, BifurcationData()));
+				jt = bifurcation.insert(std::make_pair(it, BifurcationData())).first;
 			}
-			else
+
+			if(jt->second.UpdateForward(*window.GetEnd()) || jt->second.UpdateBackward(*(--it)))
 			{
-				if(jt->second.UpdateForward(*window.GetEnd()) || jt->second.UpdateBackward(*(--it)))
-				{
-					jt->second.SetId(bifurcationCount++);
-				}
+				jt->second.SetId(bifurcationCount++);
 			}
 		}
 
@@ -148,6 +159,12 @@ namespace SyntenyBuilder
 		{
 			StrandIterator it = window.GetBegin();
 			BifurcationMap::iterator jt = bifurcation.find(it);
+
+		#ifdef _DEBUG
+			CopyN(window.GetBegin(), k, std::ostream_iterator<char>(std::cerr));
+			std::cerr << std::endl;
+		#endif
+
 			if(jt != bifurcation.end())
 			{
 				if(jt->second.UpdateForward(*window.GetEnd()) || jt->second.UpdateBackward(*(--it)))
@@ -176,14 +193,16 @@ namespace SyntenyBuilder
 			}	
 		}
 
-	#ifdef _DEBUG				
+	#ifdef _DEBUG	
+		std::cerr << DELIMITER << std::endl << "Bifurcations: " << std::endl;
 		for(BifurcationMap::iterator it = bifurcation.begin(); it != bifurcation.end(); ++it)
 		{
 			if(it->second.GetId() != BifurcationData::NO_ID)
 			{
+				idMap[std::string(it->first, AdvanceForward(it->first, k))] = it->second.GetId();
 				std::cerr << "Id = " << it->second.GetId() << std::endl << "Body = ";
 				CopyN(it->first, k, std::ostream_iterator<char>(std::cerr));
-				std::cerr << std::endl;
+				std::cerr << std::endl;				
 			}
 		}
 	#endif

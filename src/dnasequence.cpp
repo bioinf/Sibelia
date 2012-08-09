@@ -16,7 +16,7 @@ namespace SyntenyBuilder
 		return ret;
 	}
 	
-	const char DNASequence::EMPTY_CHARACTER = -1;
+	const size_t DNASequence::NO_POS = -1;
 	const std::string DNASequence::alphabet("agct");	
 	const std::string DNASequence::complementary_(ConstructComplementarityTable());
 
@@ -90,6 +90,11 @@ namespace SyntenyBuilder
 		return ret;
 	}
 
+	size_t DNASequence::StrandIterator::GetOriginalPosition() const
+	{
+		return it_->GetNaked()->pos;
+	}
+
 	DNASequence::StrandIterator& DNASequence::StrandIterator::operator--()
 	{
 		it_->MoveBackward();
@@ -133,11 +138,11 @@ namespace SyntenyBuilder
 		return StrandIterator(new BackwardIterator(sequence_.rend()));
 	}
 
-	DNASequence::DNASequence(const std::string & sequence)
+	DNASequence::DNASequence(const std::string & sequence): original_(sequence)
 	{
 		for(size_t i = 0; i < sequence.size(); i++)
 		{
-			sequence_.push_back(DNACharacter(sequence[i], sequence[i]));
+			sequence_.push_back(DNACharacter(sequence[i], i));
 		}
 	}
 
