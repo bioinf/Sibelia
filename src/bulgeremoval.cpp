@@ -1,5 +1,5 @@
 #include "graphalgorithm.h"
-/*
+
 namespace SyntenyBuilder
 {
 	namespace
@@ -116,14 +116,14 @@ namespace SyntenyBuilder
 			StrandIterator it = startKMer[sourceData.kmerId];
 			for(size_t i = 0; i < sourceData.distance + k; i++, ++it)
 			{
-				occur.push_back(it.GetPosition());
+				occur.push_back(it.GetElementId());
 			}
 
 			it = startKMer[targetData.kmerId];
 			std::sort(occur.begin(), occur.end());
 			for(size_t i = 0; i < targetData.distance + k; i++, ++it)
 			{
-				if(std::binary_search(occur.begin(), occur.end(), it.GetPosition()))
+				if(std::binary_search(occur.begin(), occur.end(), it.GetElementId()))
 				{
 					return true;
 				}
@@ -131,7 +131,7 @@ namespace SyntenyBuilder
 
 			return false;
 		}
-
+		
 		void CollapseBulge(DNASequence & sequence,
 			BifurcationStorage & bifStorage,
 			size_t k,
@@ -156,7 +156,7 @@ namespace SyntenyBuilder
 			for(size_t step = 0; step < targetData.distance + k; step++, ++it)
 			{
 				typedef std::multimap<size_t, size_t>::const_iterator MMIterator;
-				std::pair<MMIterator, MMIterator> kt = restricted.equal_range(it.GetPosition());
+				std::pair<MMIterator, MMIterator> kt = restricted.equal_range(it.GetElementId());
 				for(; kt.first != kt.second; ++kt.first)
 				{
 					if(kt.first->second != targetData.kmerId)
@@ -173,7 +173,7 @@ namespace SyntenyBuilder
 			StrandIterator targetIt = startKMer[targetData.kmerId];
 			size_t diff = targetData.distance - sourceData.distance;
 			sequence.CopyN(sourceIt, sourceData.distance, targetIt);
-			targetIt.Jump(sourceData.distance);
+			targetIt = AdvanceForward(targetIt, sourceData.distance);
 			sequence.EraseN(targetIt, diff);
 			UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
 
@@ -226,6 +226,7 @@ namespace SyntenyBuilder
 		}
 	}
 
+	/*
 	size_t GraphAlgorithm::FindBulges(const DNASequence & sequence, const BifurcationStorage & bifStorage,
 		size_t k, size_t bifId)
 	{
@@ -306,15 +307,15 @@ namespace SyntenyBuilder
 		}
 
 		return ret;
-	}
+	}*/
 
-	size_t GraphAlgorithm::RemoveBulges(BifurcationStorage & bifStorage, 
-		DNASequence & sequence, size_t k, size_t minBranchSize, size_t bifId)
+	size_t GraphAlgorithm::RemoveBulges(DNASequence & sequence,
+		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId)
 	{	
 		size_t ret = 0;		
 		std::vector<StrandIterator> startKMer;
 		std::multimap<size_t, size_t> restricted;
-		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer), sequence) < 2)
+		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
 		{
 			return ret;
 		}
@@ -322,7 +323,7 @@ namespace SyntenyBuilder
 		std::vector<char> endChar(startKMer.size(), ' ');
 		for(size_t i = 0; i < startKMer.size(); i++)
 		{
-			if(startKMer[i].ProperKMer(k + 1))
+			if(ProperKMer(startKMer[i], sequence, k + 1))
 			{                    
 				endChar[i] = *AdvanceForward(startKMer[i], k);
 			}
@@ -330,14 +331,14 @@ namespace SyntenyBuilder
 			StrandIterator it = startKMer[i];
 			for(size_t j = 0; j < k; j++, ++it)
 			{
-				restricted.insert(std::make_pair(it.GetPosition(), i));
+				restricted.insert(std::make_pair(it.GetElementId(), i));
 			}
 		}
 
 		std::vector<BifurcationMark> visit;
 		for(size_t kmerI = 0; kmerI < startKMer.size(); kmerI++)
 		{
-			if(!startKMer[kmerI].Valid())
+			if(!Valid(startKMer[kmerI], sequence))
 			{
 				continue;
 			}
@@ -345,13 +346,13 @@ namespace SyntenyBuilder
 			FillVisit(bifStorage, startKMer[kmerI], minBranchSize, visit);
 			for(size_t kmerJ = kmerI + 1; kmerJ < startKMer.size(); kmerJ++)
 			{
-				if(!startKMer[kmerJ].Valid() || endChar[kmerI] == endChar[kmerJ])
+				if(!Valid(startKMer[kmerJ], sequence) || endChar[kmerI] == endChar[kmerJ])
 				{
 					continue;
 				}
 
 				StrandIterator kmer = ++StrandIterator(startKMer[kmerJ]);
-				for(size_t step = 1; kmer.Valid() && step < minBranchSize; ++kmer, step++)
+				for(size_t step = 1; Valid(kmer, sequence) && step < minBranchSize; ++kmer, step++)
 				{
 					size_t nowBif = bifStorage.GetBifurcation(kmer);
 					if(nowBif != BifurcationStorage::NO_BIFURCATION)
@@ -391,4 +392,4 @@ namespace SyntenyBuilder
 
 		return ret;
 	}
-}*/
+}

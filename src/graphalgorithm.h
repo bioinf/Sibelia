@@ -37,7 +37,7 @@ namespace SyntenyBuilder
 	private:				
 	//	static size_t FindBulges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t bifId);
 	//	static size_t RemoveWhirls(BifurcationStorage & bifStorage, DNASequence & sequence, size_t k, size_t minBranchSize);
-	//	static size_t RemoveBulges(BifurcationStorage & bifStorage, DNASequence & sequence, size_t k, size_t minBranchSize, size_t bifId);		
+		static size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 	};
 }
 

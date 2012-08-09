@@ -89,8 +89,8 @@ int main(int argc, char * argv[])
 				}
 
 				std::cerr << "Simplifying the graph, stage = " << i + 1 << std::endl;
-				SyntenyBuilder::GraphAlgorithm::EnumerateBifurcations(sequence, bifStorage, stage.back().first);
-				//SyntenyBuilder::GraphAlgorithm::SimplifyGraph(dnaseq, stage[i].first, stage[i].second);
+				SyntenyBuilder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, stage.back().first);
+				SyntenyBuilder::GraphAlgorithm::SimplifyGraph(dnaseq, bifStorage, stage[i].first, stage[i].second);
 
 				if(dot)
 				{
@@ -119,7 +119,7 @@ int main(int argc, char * argv[])
 			size_t k = stage.back().first;			
 			std::ofstream condensed((fileName + "_condensed.dot").c_str());
 			std::cerr << "Finding non-branching paths" << std::endl;
-			SyntenyBuilder::GraphAlgorithm::EnumerateBifurcations(sequence, bifStorage, k);
+			SyntenyBuilder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, k);
 			SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(dnaseq, bifStorage, k, general, indices);
 		//	SyntenyBuilder::GraphAlgorithm::SerializeCondensedGraph(dnaseq, stage.back().first, condensed);
 		//	SyntenyBuilder::GraphAlgorithm::FindGraphBulges(sequence, stage.back().first);

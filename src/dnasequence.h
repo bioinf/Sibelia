@@ -41,7 +41,8 @@ namespace SyntenyBuilder
 			virtual void MoveBackward() = 0;
 			virtual GenericIterator* Clone() const = 0;
 			virtual Direction GetDirection() const = 0;
-			virtual const DNACharacter* GetNaked() const = 0;			
+			virtual const DNACharacter* GetNaked() const = 0;
+			virtual GenericIterator* Invert() const = 0;
 			virtual bool Equal(const GenericIterator& toCompare) const = 0;
 		};
 
@@ -53,7 +54,8 @@ namespace SyntenyBuilder
 			void MoveBackward();
 			Direction GetDirection() const;
 			GenericIterator* Clone() const;
-			const DNACharacter* GetNaked() const;
+			GenericIterator* Invert() const;
+			const DNACharacter* GetNaked() const;			
 			bool Equal(const GenericIterator& toCompare) const;
 			ForwardIterator();
 			ForwardIterator(SequencePosIterator it);
@@ -69,6 +71,7 @@ namespace SyntenyBuilder
 			void MoveBackward();
 			Direction GetDirection() const;
 			GenericIterator* Clone() const;
+			GenericIterator* Invert() const;
 			const DNACharacter* GetNaked() const;
 			bool Equal(const GenericIterator& toCompare) const;
 			BackwardIterator();
@@ -102,30 +105,34 @@ namespace SyntenyBuilder
 		private:
 			std::auto_ptr<GenericIterator> it_;
 		};
-
-		DNASequence(const std::string & sequence);
+		
 		StrandIterator PositiveBegin() const;
 		StrandIterator PositiveEnd() const;
 		StrandIterator NegativeBegin() const;
 		StrandIterator NegativeEnd() const;
-		
+		explicit DNASequence(const std::string & sequence);
+
 		template<class Iterator>
 			std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2, Iterator out) const
 			{
-				size_t pos1 = NO_POS;
-				size_t pos2 = NO_POS;
 				for(;it1.GetOriginalPosition() == NO_POS && it1 != it2; ++it1);
 				for(--it2; it2.GetOriginalPosition() == NO_POS && it1 != it2; --it2);
-				size_t start = std::min(pos1, pos2);
-				size_t end = std::max(pos1, pos2) + 1;
+				size_t start = std::min(it1.GetOriginalPosition(), it2.GetOriginalPosition());
+				size_t end = std::max(it1.GetOriginalPosition(), it2.GetOriginalPosition()) + 1;
+
+				if(start == NO_POS || end == NO_POS)
+				{
+					return std::make_pair(0, 0);
+				}
+
 				if(it1.GetDirection() == positive)
 				{
-					std::copy(original_.begin() + start, original_.end() + end, out);
+					std::copy(original_.begin() + start, original_.begin() + end, out);
 				}
 				else
 				{
 					std::string rcomp;
-					std::copy(original_.begin() + start, original_.end() + end, std::back_inserter(rcomp));
+					std::copy(original_.begin() + start, original_.begin() + end, std::back_inserter(rcomp));
 					for(size_t i = 0; i < rcomp.size(); i++)
 					{
 						rcomp[i] = Translate(rcomp[i]);
@@ -160,6 +167,18 @@ namespace SyntenyBuilder
 		Sequence sequence_;
 		std::string original_;
 	};	
+
+	inline bool Valid(DNASequence::StrandIterator it, const DNASequence & sequence)
+	{
+		return it != sequence.PositiveEnd() && it != sequence.NegativeEnd();
+	}
+
+	inline bool ProperKMer(DNASequence::StrandIterator it, const DNASequence & sequence, size_t k)
+	{
+		DNASequence::StrandIterator upperBound = it.GetDirection() == 
+			DNASequence::positive ? sequence.PositiveBegin() :sequence.NegativeBegin();
+		return Valid(AdvanceForward(it, upperBound, k - 1), sequence);
+	}
 }
 
 #endif

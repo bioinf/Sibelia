@@ -4,7 +4,7 @@ namespace SyntenyBuilder
 {
 	namespace
 	{	
-		void OutputEdge(size_t k, StrandIterator it, std::ostream & out)
+		void OutputEdge(size_t k, StrandIterator it, size_t pos, std::ostream & out)
 		{
 			CopyN(it, k, std::ostream_iterator<char>(out));
 			out << " -> ";
@@ -13,11 +13,11 @@ namespace SyntenyBuilder
 			char buf[1 << 8];
 			if(it.GetDirection() == DNASequence::positive)
 			{
-				sprintf(&buf[0], "[color=\"%s\"];", "blue");
+				sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "blue", static_cast<long long unsigned>(pos));
 			}
 			else
 			{
-				sprintf(&buf[0], "[color=\"%s\"];", "red");
+				sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "red", static_cast<long long unsigned>(pos));
 			}
 
 			out << " " << buf << std::endl;
@@ -101,15 +101,17 @@ namespace SyntenyBuilder
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
 		StrandIterator jt = AdvanceForward(sequence.PositiveBegin(), sequence.PositiveEnd(), k); 
-		for(StrandIterator it = sequence.PositiveBegin(); jt != sequence.PositiveEnd(); ++it, ++jt)
+		size_t pos = 0;
+		for(StrandIterator it = sequence.PositiveBegin(); jt != sequence.PositiveEnd(); ++it, ++jt, ++pos)
 		{
-			OutputEdge(k, it, out);
+			OutputEdge(k, it, pos, out);
 		}
 		
+		pos = 0;
 		jt = AdvanceForward(sequence.NegativeBegin(), sequence.NegativeEnd(), k); 
-		for(StrandIterator it = sequence.NegativeBegin(); jt != sequence.NegativeEnd(); ++it, ++jt)
+		for(StrandIterator it = sequence.NegativeBegin(); jt != sequence.NegativeEnd(); ++it, ++jt, ++pos)
 		{
-			OutputEdge(k, it, out);
+			OutputEdge(k, it, pos, out);
 		}
 
 		out << "}";

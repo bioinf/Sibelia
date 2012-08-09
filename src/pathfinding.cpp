@@ -3,15 +3,15 @@
 namespace SyntenyBuilder
 {
 	namespace
-	{
-		bool Valid(StrandIterator it, const DNASequence & sequence)
+	{		
+		bool IsPositive(StrandIterator it)
 		{
-			return it != sequence.PositiveEnd() && it != sequence.NegativeEnd();
+			return it.GetDirection() == DNASequence::positive;
 		}
 
 		size_t Extend(const DNASequence & sequence, size_t k, std::vector<StrandIterator> kmer)
 		{
-			size_t ret = 1;
+			size_t ret = k;
 			boost::function<StrandIterator& (StrandIterator&)> extender = boost::bind(&StrandIterator::operator++, _1);
 			for(size_t i = 0; i < k; i++)
 			{
@@ -36,8 +36,42 @@ namespace SyntenyBuilder
 				}
 			}
 
- 			return ret;
+ 			return ret - 1;
 		}
+
+		void FindMultiEdges(const DNASequence & sequence,
+			const BifurcationStorage & bifStorage,
+			size_t k,
+			std::vector<std::vector<StrandIterator> > & ret)
+		{
+			ret.clear();
+			std::vector<StrandIterator> kmer;
+			std::vector<StrandIterator> edge[4];
+			for(size_t i = 0; i < bifStorage.GetMaxId(); i++)
+			{
+				kmer.clear();
+				bifStorage.ListPositions(i, std::back_inserter(kmer));
+				for(size_t j = 0; j < kmer.size(); j++)
+				{
+					StrandIterator it = AdvanceForward(kmer[j], k);
+					if(Valid(it, sequence))
+					{
+						edge[DNASequence::alphabet.find(*it)].push_back(kmer[j]);
+					}
+				}
+
+				for(size_t j = 0; j < 4; j++)
+				{
+					if(edge[j].size() > 1 && std::find_if(edge[j].begin(), edge[j].end(), IsPositive) != edge[j].end())
+					{
+						ret.push_back(edge[j]);
+					}
+
+					edge[j].clear();
+				}
+			}
+		}
+
 	}
 
 	void GraphAlgorithm::ListNonBranchingPaths(const DNASequence & sequence,
@@ -47,49 +81,42 @@ namespace SyntenyBuilder
 		std::ostream & indexOut)
 	{
 		size_t count = 0;
-		std::vector<std::pair<size_t, size_t> > multiKmer;
-		for(size_t i = 0; i < bifStorage.GetMaxId(); i++)
+		std::vector<std::vector<StrandIterator> > edge;
+		FindMultiEdges(sequence, bifStorage, k, edge);
+		std::vector<std::pair<size_t, size_t> > multiEdge;
+		for(size_t i = 0; i < edge.size(); i++)
 		{
-			size_t count = bifStorage.CountBifurcations(i);
-			if(count > 1)
-			{
-				multiKmer.push_back(std::make_pair(count, i));
-			}
+			multiEdge.push_back(std::make_pair(edge[i].size(), i));
 		}
-		
-		std::string buf;
-		std::vector<StrandIterator> kmer;
-		std::sort(multiKmer.begin(), multiKmer.end(), std::greater<std::pair<size_t, size_t> >());	
-		for(size_t i = 0; i < multiKmer.size(); i++)
-		{
-			bifStorage.ListPositions(multiKmer[i].second, std::back_inserter(kmer));
-			if(kmer.size() > 1)
-			{
-				size_t forward = Extend(sequence, k, kmer);
-				if(forward < 1)
-				{
-					continue;
-				}
 
+		std::string buf;
+		std::sort(multiEdge.begin(), multiEdge.end(), std::greater<std::pair<size_t, size_t> >());
+		for(size_t i = 0; i < multiEdge.size(); i++)
+		{
+			bool repeat = false;
+			size_t edgeId = multiEdge[i].second;
+			size_t forward = Extend(sequence, k, edge[edgeId]);
+			if(edge[edgeId].size())
+			{
 				out << "Consensus: " << std::endl;
-				StrandIterator start = kmer[0];
-				StrandIterator end = AdvanceForward(kmer[0], forward);				
+				StrandIterator start = edge[edgeId][0];
+				StrandIterator end = AdvanceForward(edge[edgeId][0], forward);				
 				std::copy(start, end, std::ostream_iterator<char>(out));
 				out << std::endl;	
 
-				for(size_t j = 0; j < kmer.size(); j++)
+				for(size_t j = 0; j < edge[edgeId].size(); j++)
 				{
 					buf.clear();
-					start = kmer[j];
-					end = AdvanceForward(kmer[j], forward);
+					start = edge[edgeId][j];
+					end = AdvanceForward(edge[edgeId][j], forward);
 					std::pair<size_t, size_t> coord = sequence.SpellOriginal(start, end, std::back_inserter(buf));
-					out << (kmer[j].GetDirection() == DNASequence::positive ? '+' : '-') << "s, ";
+					out << (edge[edgeId][j].GetDirection() == DNASequence::positive ? '+' : '-') << "s, ";
 					out << coord.first << ':' << coord.second << " " << buf << std::endl;
 					indexOut << coord.second - coord.first << ' ' << coord.first << ' ' << coord.second << std::endl;
 				}
 
 				indexOut << DELIMITER << std::endl;
-			}
+			}			
 		}
 	}	
 }

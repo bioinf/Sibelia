@@ -229,16 +229,17 @@ namespace SyntenyBuilder
 			FindBulges(sequence, bifStorage, k, id);
 		}
 	}
+	*/
 
-	void GraphAlgorithm::SimplifyGraph(DNASequence & sequence, size_t k, size_t minBranchSize)
+	void GraphAlgorithm::SimplifyGraph(DNASequence & sequence, 
+		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize)
 	{
 		size_t totalBulges = 0;
 		size_t totalWhirls = 0;
 		size_t iterations = 0;
 		const size_t MOD = 1000;
 		bool anyChanges = true;
-		BifurcationStorage bifStorage;
-		size_t bifurcationCount = GraphAlgorithm::EnumerateBifurcations(sequence, k, bifStorage);
+		size_t bifurcationCount = bifStorage.GetMaxId();
 		std::cerr << "Total bifurcations: " << bifurcationCount << std::endl;
 		do
 		{
@@ -256,12 +257,12 @@ namespace SyntenyBuilder
 					std::cout << "id = " << id << std::endl;
 				}
 
-				totalBulges += RemoveBulges(bifStorage, sequence, k, minBranchSize, id);
+				totalBulges += RemoveBulges(sequence, bifStorage, k, minBranchSize, id);
 			}
 
 			//std::cerr << "Total whirls: " << totalWhirls << std::endl;
 			std::cerr << "Total bulges: " << totalBulges << std::endl;		
 		}
 		while((totalBulges > 0) && iterations < 10);
-	}*/
+	}
 }

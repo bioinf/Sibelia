@@ -33,7 +33,7 @@ namespace SyntenyBuilder
 	{
 	}
 
-	DNASequence::StrandIterator::StrandIterator(const StrandIterator & it): it_(it.it_->Clone())
+	DNASequence::StrandIterator::StrandIterator(const StrandIterator & toCopy): it_(toCopy.it_->Clone())
 	{
 	}
 
@@ -111,6 +111,11 @@ namespace SyntenyBuilder
 	DNASequence::Direction DNASequence::StrandIterator::GetDirection() const
 	{
 		return it_->GetDirection();
+	}
+
+	DNASequence::StrandIterator DNASequence::StrandIterator::Invert() const
+	{
+		return StrandIterator(it_->Invert());
 	}
 
 	char DNASequence::StrandIterator::operator * () const
