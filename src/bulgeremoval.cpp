@@ -33,7 +33,7 @@ namespace SyntenyBuilder
 		{
 			lookBack.clear();
 			lookForward.clear();
-			StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k - 1).Invert();
+			StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k).Invert();
 			StrandIterator bmer = AdvanceForward(startKMer[targetData.kmerId], targetData.distance);
 			for(size_t i = 0; i < k; i++, ++amer, ++bmer)
 			{
@@ -53,7 +53,7 @@ namespace SyntenyBuilder
 			}
 
 			amer = startKMer[targetData.kmerId];
-			bmer = AdvanceForward(amer, k + targetData.distance - 1).Invert();
+			bmer = AdvanceForward(amer, k + targetData.distance).Invert();
 			for(size_t i = 0; i < k + targetData.distance; i++, ++amer, ++bmer)
 			{
 				bifStorage.ErasePoint(amer);
@@ -72,7 +72,7 @@ namespace SyntenyBuilder
 		{
 			size_t anear = 0;
 			size_t bnear = 0;
-			StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k - 1).Invert();
+			StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k).Invert();
 			StrandIterator bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance);
 			for(size_t i = 0; i < k; i++, ++amer, ++bmer)
 			{
@@ -88,9 +88,9 @@ namespace SyntenyBuilder
 			}
 
 			amer = startKMer[targetData.kmerId];
-			bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance + k - 1).Invert();
+			bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance + k).Invert();
 			StrandIterator srcAMer = startKMer[sourceData.kmerId];
-			StrandIterator srcBMer = AdvanceForward(startKMer[sourceData.kmerId], sourceData.distance + k - 1).Invert();
+			StrandIterator srcBMer = AdvanceForward(startKMer[sourceData.kmerId], sourceData.distance + k).Invert();
 			for(size_t i = 0; i < sourceData.distance + 1; i++, ++amer, ++bmer, ++srcAMer, ++srcBMer)
 			{
 				size_t bifId = bifStorage.GetBifurcation(srcAMer);
