@@ -39,10 +39,12 @@ namespace SyntenyBuilder
 			virtual char Spell() const = 0;			
 			virtual void MoveForward() = 0;
 			virtual void MoveBackward() = 0;
+			virtual char TranslateChar(char ch) const = 0;
 			virtual GenericIterator* Clone() const = 0;
 			virtual Direction GetDirection() const = 0;
 			virtual const DNACharacter* GetNaked() const = 0;
 			virtual GenericIterator* Invert() const = 0;
+			virtual SequencePosIterator Base() const = 0;
 			virtual bool Equal(const GenericIterator& toCompare) const = 0;
 		};
 
@@ -52,9 +54,11 @@ namespace SyntenyBuilder
 			char Spell() const;
 			void MoveForward();
 			void MoveBackward();
+			char TranslateChar(char ch) const;
 			Direction GetDirection() const;
 			GenericIterator* Clone() const;
 			GenericIterator* Invert() const;
+			SequencePosIterator Base() const;
 			const DNACharacter* GetNaked() const;			
 			bool Equal(const GenericIterator& toCompare) const;
 			ForwardIterator();
@@ -69,9 +73,11 @@ namespace SyntenyBuilder
 			char Spell() const;
 			void MoveForward();
 			void MoveBackward();
+			char TranslateChar(char ch) const;
 			Direction GetDirection() const;
 			GenericIterator* Clone() const;
 			GenericIterator* Invert() const;
+			SequencePosIterator Base() const;
 			const DNACharacter* GetNaked() const;
 			bool Equal(const GenericIterator& toCompare) const;
 			BackwardIterator();
@@ -95,6 +101,9 @@ namespace SyntenyBuilder
 			StrandIterator operator -- (int);
 			size_t GetElementId() const;
 			size_t GetOriginalPosition() const;
+			SequencePosIterator Base() const;
+			char TranslateChar(char ch) const;
+			const DNACharacter* GetNaked() const;
 			bool operator < (const StrandIterator & comp) const;
 			bool operator == (const StrandIterator & comp) const;
 			bool operator != (const StrandIterator & comp) const;
@@ -106,10 +115,13 @@ namespace SyntenyBuilder
 			std::auto_ptr<GenericIterator> it_;
 		};
 		
+		size_t Size() const;
 		StrandIterator PositiveBegin() const;
 		StrandIterator PositiveEnd() const;
 		StrandIterator NegativeBegin() const;
 		StrandIterator NegativeEnd() const;
+		void EraseN(StrandIterator now, size_t count);
+		void CopyN(StrandIterator source, size_t count, StrandIterator target);
 		explicit DNASequence(const std::string & sequence);
 
 		template<class Iterator>
@@ -143,22 +155,7 @@ namespace SyntenyBuilder
 
 				return std::make_pair(start, end);
 			}
-
-		template<class Iterator>
-			void CopyN(Iterator start, size_t count, StrandIterator out)
-			{				
-			}
-
-		void EraseN(StrandIterator out, size_t count)
-		{
-		}
-
-		template<class Iterator>
-			void SpellRaw(Iterator out) const
-			{
-			}
-
-		size_t Size() const;
+		
 		static const std::string alphabet;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
@@ -168,9 +165,14 @@ namespace SyntenyBuilder
 		std::string original_;
 	};	
 
-	inline bool Valid(DNASequence::StrandIterator it, const DNASequence & sequence)
+	inline bool Valid(const DNASequence::StrandIterator & it, const DNASequence & sequence)
 	{
 		return it != sequence.PositiveEnd() && it != sequence.NegativeEnd();
+	}
+
+	inline bool AtBegin(const DNASequence::StrandIterator & it, const DNASequence & sequence)
+	{
+		return it == sequence.PositiveBegin() || it == sequence.NegativeBegin();
 	}
 
 	inline bool ProperKMer(DNASequence::StrandIterator it, const DNASequence & sequence, size_t k)

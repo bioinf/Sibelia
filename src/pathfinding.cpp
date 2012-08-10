@@ -3,22 +3,53 @@
 namespace SyntenyBuilder
 {
 	namespace
-	{		
+	{	
+		struct PathData
+		{
+		public:
+			PathData() {}
+			PathData(size_t bif1, size_t bif2, size_t multiplicity)
+			{
+				data_.push_back(bif1);
+				data_.push_back(bif2);
+				data_.push_back(multiplicity);
+				std::sort(data_.begin(), data_.begin() + 2);
+			}
+
+			bool operator < (const PathData & toCompare) const
+			{
+				return data_ < toCompare.data_;
+			}
+
+		private:
+			std::vector<size_t> data_;
+		};
+
 		bool IsPositive(StrandIterator it)
 		{
 			return it.GetDirection() == DNASequence::positive;
 		}
 
-		size_t Extend(const DNASequence & sequence, size_t k, std::vector<StrandIterator> kmer)
+		size_t Extend(const DNASequence & sequence, 
+			size_t k,
+			std::vector<StrandIterator> kmer,
+			bool forward)
 		{
-			size_t ret = k;
-			boost::function<StrandIterator& (StrandIterator&)> extender = boost::bind(&StrandIterator::operator++, _1);
-			for(size_t i = 0; i < k; i++)
+			size_t ret = 0;
+			boost::function<bool (const StrandIterator&)> atBegin;
+			boost::function<StrandIterator& (StrandIterator&)> extender;
+			if(forward)
 			{
-				std::for_each(kmer.begin(), kmer.end(), extender);			
+				extender = boost::bind(&StrandIterator::operator++, _1);
+			}		
+			else
+			{				
+				extender = boost::bind(&StrandIterator::operator--, _1);
+				atBegin = boost::bind(AtBegin, _1, boost::cref(sequence));
 			}
 
-			for(bool fail = false; !fail; ret++)
+			bool fail = false;
+			do
 			{
 				fail = !Valid(kmer[0], sequence);
 				if(!fail)
@@ -32,9 +63,18 @@ namespace SyntenyBuilder
 
 				if(!fail)
 				{
-					std::for_each(kmer.begin(), kmer.end(), extender);
+					++ret;
+					if(!forward && std::find_if(kmer.begin(), kmer.end(), atBegin) != kmer.end())
+					{
+						fail = true;
+					}
+					else
+					{
+						std::for_each(kmer.begin(), kmer.end(), extender);
+					}
 				}
 			}
+			while(!fail);
 
  			return ret - 1;
 		}
@@ -71,8 +111,8 @@ namespace SyntenyBuilder
 				}
 			}
 		}
-
 	}
+
 
 	void GraphAlgorithm::ListNonBranchingPaths(const DNASequence & sequence,
 		const BifurcationStorage & bifStorage,
@@ -90,33 +130,35 @@ namespace SyntenyBuilder
 		}
 
 		std::string buf;
-		std::sort(multiEdge.begin(), multiEdge.end(), std::greater<std::pair<size_t, size_t> >());
+		std::set<PathData> visit;
+		std::sort(multiEdge.begin(), multiEdge.end(), std::greater<std::pair<size_t, size_t> >());		
 		for(size_t i = 0; i < multiEdge.size(); i++)
 		{
-			bool repeat = false;
 			size_t edgeId = multiEdge[i].second;
-			size_t forward = Extend(sequence, k, edge[edgeId]);
-			if(edge[edgeId].size())
+			size_t forward = Extend(sequence, k, edge[edgeId], true) + 1;
+			size_t backward = Extend(sequence, k, edge[edgeId], false);
+			StrandIterator start = AdvanceBackward(edge[edgeId][0], backward);
+			StrandIterator end = AdvanceForward(edge[edgeId][0], forward - k);
+			PathData nowData(bifStorage.GetBifurcation(start), bifStorage.GetBifurcation(end), edge[edgeId].size());
+			if(visit.count(nowData) == 0)
 			{
+				visit.insert(nowData);
 				out << "Consensus: " << std::endl;
-				StrandIterator start = edge[edgeId][0];
-				StrandIterator end = AdvanceForward(edge[edgeId][0], forward);				
-				std::copy(start, end, std::ostream_iterator<char>(out));
-				out << std::endl;	
-
+				std::copy(start, AdvanceForward(start, forward), std::ostream_iterator<char>(out));
+				out << std::endl;
 				for(size_t j = 0; j < edge[edgeId].size(); j++)
 				{
 					buf.clear();
-					start = edge[edgeId][j];
+					start = AdvanceBackward(edge[edgeId][j], backward);
 					end = AdvanceForward(edge[edgeId][j], forward);
 					std::pair<size_t, size_t> coord = sequence.SpellOriginal(start, end, std::back_inserter(buf));
 					out << (edge[edgeId][j].GetDirection() == DNASequence::positive ? '+' : '-') << "s, ";
 					out << coord.first << ':' << coord.second << " " << buf << std::endl;
-					indexOut << coord.second - coord.first << ' ' << coord.first << ' ' << coord.second << std::endl;
+					indexOut << coord.second - coord.first << ' ' << coord.first << ' ' << coord.second << std::endl;					
 				}
 
 				indexOut << DELIMITER << std::endl;
-			}			
-		}
+			}
+		}			
 	}	
 }

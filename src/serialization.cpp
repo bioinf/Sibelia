@@ -61,8 +61,6 @@ namespace SyntenyBuilder
 	void GraphAlgorithm::PrintRaw(const DNASequence & s, std::ostream & out)
 	{
 		std::string rcomp;
-		s.SpellRaw(std::ostream_iterator<char>(out));
-		out << std::endl;
 		for(size_t i = 0; i < s.Size(); i++)
 		{
 			out << i % 10;

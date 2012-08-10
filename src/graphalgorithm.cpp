@@ -116,13 +116,13 @@ namespace SyntenyBuilder
 			sequence.NegativeEnd()
 		};
 
-		for(size_t i = 0; i < 2; i++)
+		for(size_t i = 0; i < 1; i++)
 		{
 			bifurcation.insert(std::make_pair(border[i], BifurcationData(bifurcationCount++)));
 			bifurcation[border[i]].UpdateForward(*AdvanceForward(border[i], k));
 		}
 		
-		for(size_t i = 2; i < 4; i++)
+		for(size_t i = 2; i < 3; i++)
 		{
 			bifurcation.insert(std::make_pair(border[i], BifurcationData(bifurcationCount++)));
 			bifurcation[border[i]].UpdateBackward(*AdvanceBackward(border[i], 1));
@@ -135,11 +135,6 @@ namespace SyntenyBuilder
 			{
 				std::cerr << "Pos = " << count << std::endl;
 			}
-
-#ifdef _DEBUG
-			CopyN(window.GetBegin(), k, std::ostream_iterator<char>(std::cerr));
-			std::cerr << std::endl;
-#endif
 
 			StrandIterator it = window.GetBegin();
 			BifurcationMap::iterator jt = bifurcation.find(it);
@@ -159,11 +154,6 @@ namespace SyntenyBuilder
 		{
 			StrandIterator it = window.GetBegin();
 			BifurcationMap::iterator jt = bifurcation.find(it);
-
-		#ifdef _DEBUG
-			CopyN(window.GetBegin(), k, std::ostream_iterator<char>(std::cerr));
-			std::cerr << std::endl;
-		#endif
 
 			if(jt != bifurcation.end())
 			{
@@ -234,6 +224,7 @@ namespace SyntenyBuilder
 	void GraphAlgorithm::SimplifyGraph(DNASequence & sequence, 
 		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize)
 	{
+		size_t prevBulges = 0;
 		size_t totalBulges = 0;
 		size_t totalWhirls = 0;
 		size_t iterations = 0;
@@ -263,6 +254,6 @@ namespace SyntenyBuilder
 			//std::cerr << "Total whirls: " << totalWhirls << std::endl;
 			std::cerr << "Total bulges: " << totalBulges << std::endl;		
 		}
-		while((totalBulges > 0) && iterations < 10);
+		while((totalBulges > 0) && iterations < 5);
 	}
 }

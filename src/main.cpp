@@ -89,7 +89,7 @@ int main(int argc, char * argv[])
 				}
 
 				std::cerr << "Simplifying the graph, stage = " << i + 1 << std::endl;
-				SyntenyBuilder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, stage.back().first);
+				SyntenyBuilder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, stage[i].first);
 				SyntenyBuilder::GraphAlgorithm::SimplifyGraph(dnaseq, bifStorage, stage[i].first, stage[i].second);
 
 				if(dot)

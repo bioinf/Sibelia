@@ -23,6 +23,22 @@ namespace SyntenyBuilder
 			}
 		};
 
+		size_t MaxBifurcationMultiplicity(const BifurcationStorage & bifStorage,
+			StrandIterator it, size_t distance)
+		{
+			size_t ret = 0;
+			for(size_t i = 0; i < distance - 1; i++)
+			{
+				size_t bifId = bifStorage.GetBifurcation(++it);
+				if(bifId != BifurcationStorage::NO_BIFURCATION)
+				{
+					ret = std::max(ret, bifStorage.CountBifurcations(bifId));
+				}
+			}
+
+			return ret;
+		}
+
 		void EraseBifurcations(DNASequence & sequence,
 			BifurcationStorage & bifStorage,
 			size_t k,
@@ -190,15 +206,75 @@ namespace SyntenyBuilder
 		#endif
 		}
 
-		void FillVisit(const BifurcationStorage & bifStorage, 
+		void CollapseBulgeGreedily(DNASequence & sequence,
+			BifurcationStorage & bifStorage,
+			size_t k,
+			std::vector<StrandIterator> & startKMer,
+			const std::multimap<size_t, size_t> & restricted,
+			VisitData sourceData,
+			VisitData targetData)
+		{
+		#ifdef _DEBUG
+			static size_t bulge = 0;
+			std::cerr << "Bulge #" << bulge++ << std::endl;
+			std::cerr << "Before: " << std::endl;
+			GraphAlgorithm::PrintRaw(sequence, std::cerr);
+			std::cerr << "Source branch: " << std::endl;			
+			GraphAlgorithm::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+			std::cerr << "Target branch: " << std::endl;			
+			GraphAlgorithm::PrintPath(startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
+			bifStorage.Dump(std::cerr);
+		#endif
+
+			StrandIterator it = startKMer[targetData.kmerId];
+			for(size_t step = 0; step < targetData.distance + k; step++, ++it)
+			{
+				typedef std::multimap<size_t, size_t>::const_iterator MMIterator;
+				std::pair<MMIterator, MMIterator> kt = restricted.equal_range(it.GetElementId());
+				for(; kt.first != kt.second; ++kt.first)
+				{
+					if(kt.first->second != targetData.kmerId)
+					{
+						startKMer[kt.first->second] = sequence.PositiveEnd();
+					}
+				}
+			}
+
+			std::vector<std::pair<size_t, size_t> > lookForward;
+			std::vector<std::pair<size_t, size_t> > lookBack;
+			EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
+			StrandIterator sourceIt = startKMer[sourceData.kmerId];
+			StrandIterator targetIt = startKMer[targetData.kmerId];
+			size_t diff = targetData.distance - sourceData.distance;
+			sequence.CopyN(sourceIt, sourceData.distance, targetIt);
+			targetIt = AdvanceForward(targetIt, sourceData.distance);
+			sequence.EraseN(targetIt, diff);
+			UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
+
+		#ifdef _DEBUG
+			std::cerr << "After: " << std::endl;
+			GraphAlgorithm::PrintRaw(sequence, std::cerr);
+			std::cerr << "Source branch: " << std::endl;			
+			GraphAlgorithm::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+			std::cerr << "Target branch: " << std::endl;			
+			GraphAlgorithm::PrintPath(startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
+			bifStorage.Dump(std::cerr);
+			std::cerr << DELIMITER << std::endl;
+			GraphAlgorithm::Test(sequence, bifStorage, k);
+		#endif
+		}
+
+		void FillVisit(const DNASequence & sequence,
+			const BifurcationStorage & bifStorage, 
 			StrandIterator kmer,
 			size_t minBranchSize,
 			std::vector<BifurcationMark> & visit)			
 		{
+			++kmer;
 			visit.clear();
-			for(size_t step = 1; step < minBranchSize; step++)
+			for(size_t step = 1; step < minBranchSize && Valid(kmer, sequence); ++kmer, step++)
 			{
-				size_t bifId = bifStorage.GetBifurcation(++kmer);
+				size_t bifId = bifStorage.GetBifurcation(kmer);
 				if(bifId != BifurcationStorage::NO_BIFURCATION)
 				{
 					visit.push_back(BifurcationMark(bifId, step));
@@ -343,7 +419,7 @@ namespace SyntenyBuilder
 				continue;
 			}
 
-			FillVisit(bifStorage, startKMer[kmerI], minBranchSize, visit);
+			FillVisit(sequence, bifStorage, startKMer[kmerI], minBranchSize, visit);
 			for(size_t kmerJ = kmerI + 1; kmerJ < startKMer.size(); kmerJ++)
 			{
 				if(!Valid(startKMer[kmerJ], sequence) || endChar[kmerI] == endChar[kmerJ])
@@ -369,18 +445,20 @@ namespace SyntenyBuilder
 							}
 
 							++ret;
-							bool iless = idata.distance < jdata.distance || (idata.distance == jdata.distance &&
-								idata.kmerId < jdata.kmerId);
+							size_t imlp = MaxBifurcationMultiplicity(bifStorage, startKMer[kmerI], idata.distance);
+							size_t jmlp = MaxBifurcationMultiplicity(bifStorage, startKMer[kmerJ], jdata.distance);
+
+							bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
 							if(iless)
 							{
 								endChar[jdata.kmerId] = endChar[idata.kmerId];
-								CollapseBulge(sequence, bifStorage, k, startKMer, restricted, idata, jdata);
+								CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, restricted, idata, jdata);
 							}
 							else
 							{
 								endChar[idata.kmerId] = endChar[jdata.kmerId];
-								CollapseBulge(sequence, bifStorage, k, startKMer, restricted, jdata, idata);
-								FillVisit(bifStorage, startKMer[kmerI], minBranchSize, visit);
+								CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, restricted, jdata, idata);
+								FillVisit(sequence, bifStorage, startKMer[kmerI], minBranchSize, visit);
 							}
 
 							break;

@@ -47,6 +47,16 @@ namespace SyntenyBuilder
 		return new BackwardIterator(SequenceNegIterator(it_));
 	}
 
+	DNASequence::SequencePosIterator DNASequence::ForwardIterator::Base() const
+	{
+		return it_;
+	}
+
+	char DNASequence::ForwardIterator::TranslateChar(char ch) const
+	{
+		return ch;
+	}
+
 	DNASequence::ForwardIterator::ForwardIterator()
 	{
 	}
@@ -90,6 +100,11 @@ namespace SyntenyBuilder
 		return &(*it_);
 	}
 
+	char DNASequence::BackwardIterator::TranslateChar(char ch) const
+	{
+		return Translate(ch);
+	}
+
 	DNASequence::GenericIterator::~GenericIterator()
 	{
 	}
@@ -110,5 +125,10 @@ namespace SyntenyBuilder
 	DNASequence::GenericIterator* DNASequence::BackwardIterator::Invert() const
 	{	
 		return new ForwardIterator(it_.base());
+	}
+
+	DNASequence::SequencePosIterator DNASequence::BackwardIterator::Base() const
+	{
+		return SequenceNegIterator(it_).base();
 	}
 }

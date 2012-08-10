@@ -123,6 +123,11 @@ namespace SyntenyBuilder
 		return it_->Spell();
 	}
 
+	const DNASequence::DNACharacter* DNASequence::StrandIterator::GetNaked() const
+	{
+		return it_->GetNaked();
+	}
+
 	DNASequence::StrandIterator DNASequence::PositiveBegin() const
 	{
 		return StrandIterator(new ForwardIterator(sequence_.begin()));
@@ -143,6 +148,11 @@ namespace SyntenyBuilder
 		return StrandIterator(new BackwardIterator(sequence_.rend()));
 	}
 
+	DNASequence::SequencePosIterator DNASequence::StrandIterator::Base() const
+	{
+		return it_->Base();
+	}
+
 	DNASequence::DNASequence(const std::string & sequence): original_(sequence)
 	{
 		for(size_t i = 0; i < sequence.size(); i++)
@@ -154,5 +164,35 @@ namespace SyntenyBuilder
 	size_t DNASequence::Size() const
 	{
 		return sequence_.size();
+	}
+
+	char DNASequence::StrandIterator::TranslateChar(char ch) const
+	{
+		return it_->TranslateChar(ch);
+	}
+
+	void DNASequence::EraseN(StrandIterator now, size_t count)
+	{
+		SequencePosIterator it = now.Base();
+		if(now.GetDirection() == negative)
+		{
+			it = AdvanceForward(now, count).Base();
+		}
+
+		for(size_t i = 0; i < count; i++)
+		{
+			it = sequence_.erase(it);
+		}
+	}
+
+	void DNASequence::CopyN(StrandIterator source, size_t count, StrandIterator target)
+	{
+		for(size_t i = 0; i < count; i++)
+		{
+			DNACharacter * ptr = const_cast<DNACharacter*>(target.GetNaked());
+			ptr->actual = target.TranslateChar(*source);
+			++target;
+			++source;
+		}
 	}
 }

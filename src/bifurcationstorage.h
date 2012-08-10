@@ -31,6 +31,7 @@ namespace SyntenyBuilder
 						bifurcationPos_[strand].equal_range(bifId);
 					for(;range.first != range.second; ++range.first)
 					{
+						ret++;
 						*out++ = range.first->second;
 					}
 				}
