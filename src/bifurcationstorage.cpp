@@ -22,29 +22,31 @@ namespace SyntenyBuilder
 		return bifurcationPos_[0].count(bifId) + bifurcationPos_[1].count(bifId);
 	}
 
-	void BifurcationStorage::Dump(std::ostream & out) const
-	{/*
+	void BifurcationStorage::Dump(size_t k, std::ostream & out) const
+	{
 		std::string strandName[] = {"Positive", "Negative"};
 		for(size_t strand = 0; strand < 2; strand++)
 		{
-			out << strandName[strand] << ", pos:" ;
-			for(posBifurcation_::const_iterator it = posBifurcation_[strand].begin();
-				it != posBifurcation_[strand].end(); ++it)
-			{
-				out << " {" << (*it)->second << ", " << (*it)->first << "}";
-			}
-
-			out << std::endl;
-
 			out << strandName[strand] << ", bif:" ;
 			for(CBifMapIterator it = bifurcationPos_[strand].begin();
 				it != bifurcationPos_[strand].end(); ++it)
 			{
-				out << " {" << it->first << ", " << it->second << "}";
+				out << " {" << it->first << ", ";
+				CopyN(it->second, k, std::ostream_iterator<char>(out));
+				out << "}";
 			}
 
+			out << std::endl << strandName[strand] << ", pos:" ;
+			for(PosBifurcation::const_iterator it = posBifurcation_[strand].begin();
+				it != posBifurcation_[strand].end(); ++it)
+			{
+				out << " {";
+				CopyN((*it)->second, k, std::ostream_iterator<char>(out));
+				out << ", " << (*it)->first << "}";
+			}			
+
 			out << std::endl;
-		}*/
+		}
 	}
 
 	void BifurcationStorage::AddPoint(DNASequence::StrandIterator it, size_t bifId)

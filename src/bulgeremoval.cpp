@@ -148,64 +148,6 @@ namespace SyntenyBuilder
 			return false;
 		}
 		
-		void CollapseBulge(DNASequence & sequence,
-			BifurcationStorage & bifStorage,
-			size_t k,
-			std::vector<StrandIterator> & startKMer,
-			const std::multimap<size_t, size_t> & restricted,
-			VisitData sourceData,
-			VisitData targetData)
-		{
-		#ifdef _DEBUG
-			static size_t bulge = 0;
-			std::cerr << "Bulge #" << bulge++ << std::endl;
-			std::cerr << "Before: " << std::endl;
-			GraphAlgorithm::PrintRaw(sequence, std::cerr);
-			std::cerr << "Source branch: " << std::endl;			
-			GraphAlgorithm::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
-			std::cerr << "Target branch: " << std::endl;			
-			GraphAlgorithm::PrintPath(startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
-			bifStorage.Dump(std::cerr);
-		#endif
-
-			StrandIterator it = startKMer[targetData.kmerId];
-			for(size_t step = 0; step < targetData.distance + k; step++, ++it)
-			{
-				typedef std::multimap<size_t, size_t>::const_iterator MMIterator;
-				std::pair<MMIterator, MMIterator> kt = restricted.equal_range(it.GetElementId());
-				for(; kt.first != kt.second; ++kt.first)
-				{
-					if(kt.first->second != targetData.kmerId)
-					{
-						startKMer[kt.first->second] = sequence.PositiveEnd();
-					}
-				}
-			}
-
-			std::vector<std::pair<size_t, size_t> > lookForward;
-			std::vector<std::pair<size_t, size_t> > lookBack;
-			EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
-			StrandIterator sourceIt = startKMer[sourceData.kmerId];
-			StrandIterator targetIt = startKMer[targetData.kmerId];
-			size_t diff = targetData.distance - sourceData.distance;
-			sequence.CopyN(sourceIt, sourceData.distance, targetIt);
-			targetIt = AdvanceForward(targetIt, sourceData.distance);
-			sequence.EraseN(targetIt, diff);
-			UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
-
-		#ifdef _DEBUG
-			std::cerr << "After: " << std::endl;
-			GraphAlgorithm::PrintRaw(sequence, std::cerr);
-			std::cerr << "Source branch: " << std::endl;			
-			GraphAlgorithm::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
-			std::cerr << "Target branch: " << std::endl;			
-			GraphAlgorithm::PrintPath(startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
-			bifStorage.Dump(std::cerr);
-			std::cerr << DELIMITER << std::endl;
-			GraphAlgorithm::Test(sequence, bifStorage, k);
-		#endif
-		}
-
 		void CollapseBulgeGreedily(DNASequence & sequence,
 			BifurcationStorage & bifStorage,
 			size_t k,
@@ -223,7 +165,7 @@ namespace SyntenyBuilder
 			GraphAlgorithm::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 			std::cerr << "Target branch: " << std::endl;			
 			GraphAlgorithm::PrintPath(startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
-			bifStorage.Dump(std::cerr);
+			bifStorage.Dump(k, std::cerr);
 		#endif
 
 			StrandIterator it = startKMer[targetData.kmerId];
@@ -245,11 +187,9 @@ namespace SyntenyBuilder
 			EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
 			StrandIterator sourceIt = startKMer[sourceData.kmerId];
 			StrandIterator targetIt = startKMer[targetData.kmerId];
-			size_t diff = targetData.distance - sourceData.distance;
-			sequence.CopyN(sourceIt, sourceData.distance, targetIt);
-			targetIt = AdvanceForward(targetIt, sourceData.distance);
-			sequence.EraseN(targetIt, diff);
-			UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
+			sequence.Replace(AdvanceForward(sourceIt, k), sourceData.distance,
+				AdvanceForward(targetIt, k), targetData.distance);
+			//UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
 
 		#ifdef _DEBUG
 			std::cerr << "After: " << std::endl;
@@ -258,7 +198,7 @@ namespace SyntenyBuilder
 			GraphAlgorithm::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 			std::cerr << "Target branch: " << std::endl;			
 			GraphAlgorithm::PrintPath(startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
-			bifStorage.Dump(std::cerr);
+			bifStorage.Dump(k, std::cerr);
 			std::cerr << DELIMITER << std::endl;
 			GraphAlgorithm::Test(sequence, bifStorage, k);
 		#endif

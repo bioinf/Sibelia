@@ -15,7 +15,7 @@ namespace SyntenyBuilder
 		void Clear();
 		size_t GetMaxId() const;
 		BifurcationStorage(): maxId_(0) {}
-		void Dump(std::ostream & out) const;
+		void Dump(size_t k, std::ostream & out) const;
 		void ErasePoint(DNASequence::StrandIterator it);
 		void AddPoint(DNASequence::StrandIterator it, size_t bifId);
 		size_t CountBifurcations(size_t bifId) const;

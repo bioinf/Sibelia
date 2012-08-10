@@ -195,4 +195,29 @@ namespace SyntenyBuilder
 			++source;
 		}
 	}
+
+	void DNASequence::Replace(StrandIterator source, size_t sourceDistance, 
+			StrandIterator target, size_t targetDistance)
+	{
+		SequencePosIterator it = target.Base();
+		if(target.GetDirection() == negative)
+		{
+			it = AdvanceForward(target, targetDistance).Base();
+		}
+
+		for(size_t i = 0; i < sourceDistance; i++)
+		{
+			sequence_.insert(it, DNACharacter(target.TranslateChar(*source), source.GetNaked()->pos));
+			++source;
+			if(i != targetDistance - 1)
+			{
+				++target;
+			}
+		}
+
+		for(size_t i = 0; i < targetDistance; i++)
+		{
+			it = sequence_.erase(it);
+		}
+	}
 }

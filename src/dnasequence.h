@@ -120,7 +120,9 @@ namespace SyntenyBuilder
 		StrandIterator PositiveEnd() const;
 		StrandIterator NegativeBegin() const;
 		StrandIterator NegativeEnd() const;
-		void EraseN(StrandIterator now, size_t count);
+		void EraseN(StrandIterator now, size_t count);		
+		void Replace(StrandIterator source, size_t sourceDistance, 
+			StrandIterator target, size_t targetDistance);
 		void CopyN(StrandIterator source, size_t count, StrandIterator target);
 		explicit DNASequence(const std::string & sequence);
 
