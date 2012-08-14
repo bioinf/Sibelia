@@ -29,8 +29,8 @@ namespace SyntenyBuilder
 		};
 
 		typedef std::list<DNACharacter> Sequence;
-		typedef Sequence::const_iterator SequencePosIterator;
-		typedef Sequence::const_reverse_iterator SequenceNegIterator;
+		typedef Sequence::iterator SequencePosIterator;
+		typedef Sequence::reverse_iterator SequenceNegIterator;
 
 		class GenericIterator
 		{
@@ -122,7 +122,9 @@ namespace SyntenyBuilder
 		StrandIterator NegativeEnd() const;
 		void EraseN(StrandIterator now, size_t count);		
 		void Replace(StrandIterator source, size_t sourceDistance, 
-			StrandIterator target, size_t targetDistance);
+			StrandIterator target, size_t targetDistance,
+			const boost::function<void (const StrandIterator&)> & alarmBefore,
+			const boost::function<void (const StrandIterator&)> & alarmAfter);
 		void CopyN(StrandIterator source, size_t count, StrandIterator target);
 		explicit DNASequence(const std::string & sequence);
 

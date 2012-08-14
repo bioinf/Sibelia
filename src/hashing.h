@@ -39,7 +39,8 @@ namespace SyntenyBuilder
 			
 			Iterator GetEnd() const
 			{
-				return ++StrandIterator(kMerEnd_);
+				DNASequence::StrandIterator ret = kMerEnd_;
+				return ++ret;
 			}
 
 			bool Move()

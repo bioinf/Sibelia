@@ -121,7 +121,7 @@ int main(int argc, char * argv[])
 			std::cerr << "Finding non-branching paths" << std::endl;
 			SyntenyBuilder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, k);
 			SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(dnaseq, bifStorage, k, general, indices);
-		//	SyntenyBuilder::GraphAlgorithm::SerializeCondensedGraph(dnaseq, stage.back().first, condensed);
+			SyntenyBuilder::GraphAlgorithm::SerializeCondensedGraph(dnaseq, bifStorage, stage.back().first, condensed);
 		//	SyntenyBuilder::GraphAlgorithm::FindGraphBulges(sequence, stage.back().first);
 		}
 

@@ -130,22 +130,26 @@ namespace SyntenyBuilder
 
 	DNASequence::StrandIterator DNASequence::PositiveBegin() const
 	{
-		return StrandIterator(new ForwardIterator(sequence_.begin()));
+		Sequence & ref = const_cast<Sequence&>(sequence_);
+		return StrandIterator(new ForwardIterator(ref.begin()));
 	}
 
 	DNASequence::StrandIterator DNASequence::PositiveEnd() const
 	{
-		return StrandIterator(new ForwardIterator(sequence_.end()));
+		Sequence & ref = const_cast<Sequence&>(sequence_);
+		return StrandIterator(new ForwardIterator(ref.end()));
 	}
 
 	DNASequence::StrandIterator DNASequence::NegativeBegin() const
 	{
-		return StrandIterator(new BackwardIterator(sequence_.rbegin()));
+		Sequence & ref = const_cast<Sequence&>(sequence_);
+		return StrandIterator(new BackwardIterator(ref.rbegin()));
 	}
 
 	DNASequence::StrandIterator DNASequence::NegativeEnd() const
 	{
-		return StrandIterator(new BackwardIterator(sequence_.rend()));
+		Sequence & ref = const_cast<Sequence&>(sequence_);
+		return StrandIterator(new BackwardIterator(ref.rend()));
 	}
 
 	DNASequence::SequencePosIterator DNASequence::StrandIterator::Base() const
@@ -197,27 +201,47 @@ namespace SyntenyBuilder
 	}
 
 	void DNASequence::Replace(StrandIterator source, size_t sourceDistance, 
-			StrandIterator target, size_t targetDistance)
+			StrandIterator target, size_t targetDistance,
+			const boost::function<void (const StrandIterator&)> & alarmBefore,
+			const boost::function<void (const StrandIterator&)> & alarmAfter)
 	{
+		size_t pos = target.GetNaked()->pos;
+		StrandIterator saveTarget = target;
 		SequencePosIterator it = target.Base();
 		if(target.GetDirection() == negative)
 		{
 			it = AdvanceForward(target, targetDistance).Base();
+			source = AdvanceForward(source, sourceDistance - 1);
 		}
 
 		for(size_t i = 0; i < sourceDistance; i++)
 		{
-			sequence_.insert(it, DNACharacter(target.TranslateChar(*source), source.GetNaked()->pos));
-			++source;
-			if(i != targetDistance - 1)
+			if(i == 0 && it != sequence_.begin())
 			{
-				++target;
+				alarmBefore(StrandIterator(new BackwardIterator(SequenceNegIterator(it))));
 			}
+
+			sequence_.insert(it, DNACharacter(target.TranslateChar(*source), pos));
+
+			if(i == 0 && it != sequence_.begin())
+			{
+				--it;
+				alarmAfter(StrandIterator(new BackwardIterator(SequenceNegIterator(it++))));
+			}
+
+			if(target.GetDirection() == positive)
+			{
+				++source;
+			}
+			else
+			{
+				--source;
+			}			
 		}
 
 		for(size_t i = 0; i < targetDistance; i++)
-		{
-			it = sequence_.erase(it);
+		{						
+			it = sequence_.erase(it);			
 		}
 	}
 }

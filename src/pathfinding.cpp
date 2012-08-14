@@ -23,7 +23,18 @@ namespace SyntenyBuilder
 
 		private:
 			std::vector<size_t> data_;
+			friend std::ostream& operator << (std::ostream & out, const PathData & data);
 		};
+
+		std::ostream& operator << (std::ostream & out, const PathData & o)
+		{
+			for(size_t i = 0; i < o.data_.size(); i++)
+			{
+				out << o.data_[i] << ' ';
+			}
+
+			return out;
+		}
 
 		bool IsPositive(StrandIterator it)
 		{
@@ -143,21 +154,34 @@ namespace SyntenyBuilder
 			if(visit.count(nowData) == 0)
 			{
 				visit.insert(nowData);
-				out << "Consensus: " << std::endl;
-				std::copy(start, AdvanceForward(start, forward), std::ostream_iterator<char>(out));
-				out << std::endl;
+				std::stringstream outBuf;
+				std::stringstream indexOutBuf;
+
+				outBuf << "Consensus: " << std::endl;
+				std::copy(start, AdvanceForward(start, forward), std::ostream_iterator<char>(outBuf));
+				outBuf << std::endl;
+
+				size_t count = 0;
 				for(size_t j = 0; j < edge[edgeId].size(); j++)
 				{
 					buf.clear();
 					start = AdvanceBackward(edge[edgeId][j], backward);
 					end = AdvanceForward(edge[edgeId][j], forward);
 					std::pair<size_t, size_t> coord = sequence.SpellOriginal(start, end, std::back_inserter(buf));
-					out << (edge[edgeId][j].GetDirection() == DNASequence::positive ? '+' : '-') << "s, ";
-					out << coord.first << ':' << coord.second << " " << buf << std::endl;
-					indexOut << coord.second - coord.first << ' ' << coord.first << ' ' << coord.second << std::endl;					
+					if(buf.size() >= k)
+					{
+						count++;
+						outBuf << (edge[edgeId][j].GetDirection() == DNASequence::positive ? '+' : '-') << "s, ";
+						outBuf << coord.first << ':' << coord.second << " " << buf << std::endl;
+						indexOutBuf << coord.second - coord.first << ' ' << coord.first << ' ' << coord.second << std::endl;
+					}					
 				}
 
-				indexOut << DELIMITER << std::endl;
+				if(count > 1)
+				{
+					out << outBuf.str();
+					indexOut << indexOutBuf.str() << DELIMITER << std::endl;
+				}
 			}
 		}			
 	}	

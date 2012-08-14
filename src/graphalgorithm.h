@@ -25,8 +25,8 @@ namespace SyntenyBuilder
 	public:
 		static void FindGraphBulges(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k);
 		static void SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize);		
-		static void SerializeGraph(const DNASequence & seq, size_t k, std::ostream & out);
-		static void SerializeCondensedGraph(const DNASequence & seq, const BifurcationStorage & bifStorage,
+		static void SerializeGraph(const DNASequence & sequence, size_t k, std::ostream & out);
+		static void SerializeCondensedGraph(const DNASequence & sequence, const BifurcationStorage & bifStorage,
 			size_t k, std::ostream & out);
 		static void ListNonBranchingPaths(const DNASequence & sequence, const BifurcationStorage & bifStorage,
 			size_t k, std::ostream & out, std::ostream & indexOut);

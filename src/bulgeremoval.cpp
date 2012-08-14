@@ -4,6 +4,7 @@ namespace SyntenyBuilder
 {
 	namespace
 	{
+		std::ofstream simplificationLog("log");
 		struct BifurcationMark
 		{
 			size_t bifId;
@@ -12,7 +13,7 @@ namespace SyntenyBuilder
 			BifurcationMark(size_t bifId, size_t distance): bifId(bifId),
 				distance(distance) {}
 
-			bool operator < (const BifurcationMark & compare)
+			bool operator < (const BifurcationMark & compare) const
 			{
 				if(bifId != compare.bifId)
 				{
@@ -148,6 +149,56 @@ namespace SyntenyBuilder
 			return false;
 		}
 		
+		struct UglyWorkaround
+		{
+		public:
+			UglyWorkaround(BifurcationStorage & storage): storage_(storage),
+				last(BifurcationStorage::NO_BIFURCATION) {}
+			void Before(const StrandIterator & it)
+			{
+				last = storage_.GetBifurcation(it);
+				storage_.ErasePoint(it);
+			}
+
+			void After(const StrandIterator & it)
+			{
+				if(last != BifurcationStorage::NO_BIFURCATION)
+				{
+					storage_.AddPoint(it, last);
+				}
+			}
+
+		private:
+			size_t last;
+			BifurcationStorage & storage_;
+		};
+
+		void FillVisit(const DNASequence & sequence,
+			const BifurcationStorage & bifStorage, 
+			StrandIterator kmer,
+			size_t minBranchSize,
+			std::vector<BifurcationMark> & visit)			
+		{
+			visit.clear();
+			size_t start = bifStorage.GetBifurcation(kmer);
+			++kmer;
+			for(size_t step = 1; step < minBranchSize && Valid(kmer, sequence); ++kmer, step++)
+			{
+				size_t bifId = bifStorage.GetBifurcation(kmer);
+				if(bifId == start)
+				{
+					break;
+				}
+
+				if(bifId != BifurcationStorage::NO_BIFURCATION)
+				{
+					visit.push_back(BifurcationMark(bifId, step));
+				}
+			}
+
+			std::sort(visit.begin(), visit.end());
+		}
+
 		void CollapseBulgeGreedily(DNASequence & sequence,
 			BifurcationStorage & bifStorage,
 			size_t k,
@@ -167,6 +218,9 @@ namespace SyntenyBuilder
 			GraphAlgorithm::PrintPath(startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
 			bifStorage.Dump(k, std::cerr);
 		#endif
+			
+			std::vector<BifurcationMark> v;
+			FillVisit(sequence, bifStorage, startKMer[sourceData.kmerId], sourceData.distance, v);
 
 			StrandIterator it = startKMer[targetData.kmerId];
 			for(size_t step = 0; step < targetData.distance + k; step++, ++it)
@@ -187,9 +241,14 @@ namespace SyntenyBuilder
 			EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
 			StrandIterator sourceIt = startKMer[sourceData.kmerId];
 			StrandIterator targetIt = startKMer[targetData.kmerId];
-			sequence.Replace(AdvanceForward(sourceIt, k), sourceData.distance,
-				AdvanceForward(targetIt, k), targetData.distance);
-			//UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
+			UglyWorkaround workAround(bifStorage);
+			sequence.Replace(AdvanceForward(sourceIt, k),
+				sourceData.distance,
+				AdvanceForward(targetIt, k),
+				targetData.distance,
+				boost::bind(&UglyWorkaround::Before, boost::ref(workAround), _1),
+				boost::bind(&UglyWorkaround::After, boost::ref(workAround), _1));
+			UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
 
 		#ifdef _DEBUG
 			std::cerr << "After: " << std::endl;
@@ -202,27 +261,7 @@ namespace SyntenyBuilder
 			std::cerr << DELIMITER << std::endl;
 			GraphAlgorithm::Test(sequence, bifStorage, k);
 		#endif
-		}
-
-		void FillVisit(const DNASequence & sequence,
-			const BifurcationStorage & bifStorage, 
-			StrandIterator kmer,
-			size_t minBranchSize,
-			std::vector<BifurcationMark> & visit)			
-		{
-			++kmer;
-			visit.clear();
-			for(size_t step = 1; step < minBranchSize && Valid(kmer, sequence); ++kmer, step++)
-			{
-				size_t bifId = bifStorage.GetBifurcation(kmer);
-				if(bifId != BifurcationStorage::NO_BIFURCATION)
-				{
-					visit.push_back(BifurcationMark(bifId, step));
-				}
-			}
-
-			std::sort(visit.begin(), visit.end());
-		}
+		}		
 
 		void SpellBulges(const DNASequence & sequence, size_t k,
 			size_t bifStart,
@@ -242,93 +281,11 @@ namespace SyntenyBuilder
 		}
 	}
 
-	/*
-	size_t GraphAlgorithm::FindBulges(const DNASequence & sequence, const BifurcationStorage & bifStorage,
-		size_t k, size_t bifId)
-	{
-		size_t ret = 0;
-		VertexVisitMap visit;
-		std::vector<StrandIterator> nowVertex;
-		std::vector<StrandIterator> startKMer;
-		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer), sequence) < 2)
-		{
-			return ret;
-		}
-
-		nowVertex.resize(startKMer.size());
-		std::set<std::vector<size_t> > bulgeVisit;
-		std::vector<char> endChar(startKMer.size(), ' ');
-		for(size_t i = 0; i < startKMer.size(); i++)
-		{
-			if(startKMer[i].ProperKMer(k + 1))
-			{                    
-				nowVertex[i] = AdvanceForward(startKMer[i], 1);
-				endChar[i] = *AdvanceForward(startKMer[i], k);
-			}
-		}
-
-		bool goOn = true;
-		std::vector<size_t> travelRange(startKMer.size(), 1);
-		for(size_t step = 0; goOn; step++)
-		{
-			goOn = false;
-			for(size_t kmerId = 0; kmerId < nowVertex.size(); kmerId++)
-			{
-				StrandIterator & kmer = nowVertex[kmerId];
-				if(kmer.Valid())
-				{
-					goOn = true;
-					size_t bifurcation = bifStorage.GetBifurcation(kmer);
-					VisitData nowData = VisitData(kmerId, travelRange[kmerId]);
-					if(bifurcation != BifurcationStorage::NO_BIFURCATION)
-					{
-						if(bifurcation == bifId)
-						{
-							nowVertex[kmerId] = sequence.PositiveEnd();
-							continue;
-						}						
-					}
-						
-					++kmer;
-					travelRange[kmerId]++;
-					if(bifurcation != BifurcationStorage::NO_BIFURCATION)
-					{
-						visit.insert(std::make_pair(bifurcation, nowData));
-					}
-				}
-			}
-		}
-
-		for(VertexVisitMap::iterator it = visit.begin(); it != visit.end(); )
-		{	
-			std::set<char> ends;
-			std::vector<size_t> bulge;
-			std::vector<VisitData> branch;
-			VertexVisitMap::iterator jt = it;
-			for(; jt != visit.end() && jt->first == it->first; jt++)
-			{				
-				branch.push_back(jt->second);
-				bulge.push_back(jt->second.kmerId);
-				ends.insert(endChar[jt->second.kmerId]);
-			}
-
-			std::sort(bulge.begin(), bulge.end());
-			if(bulge.size() > 1 && bulgeVisit.count(bulge) == 0 && ends.size() > 1)
-			{
-				bulgeVisit.insert(bulge);
-				SpellBulges(sequence, k, bifId, it->first, startKMer, branch);
-			}
-
-			it = jt;
-		}
-
-		return ret;
-	}*/
 
 	size_t GraphAlgorithm::RemoveBulges(DNASequence & sequence,
 		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId)
 	{	
-		size_t ret = 0;		
+		size_t ret = 0;				
 		std::vector<StrandIterator> startKMer;
 		std::multimap<size_t, size_t> restricted;
 		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
@@ -373,6 +330,11 @@ namespace SyntenyBuilder
 					size_t nowBif = bifStorage.GetBifurcation(kmer);
 					if(nowBif != BifurcationStorage::NO_BIFURCATION)
 					{
+						if(nowBif == bifId)
+						{
+							break;
+						}
+
 						std::vector<BifurcationMark>::iterator vt = std::lower_bound(
 							visit.begin(), visit.end(), BifurcationMark(nowBif, 0));
 						if(vt != visit.end() && vt->bifId == nowBif)
@@ -387,19 +349,13 @@ namespace SyntenyBuilder
 							++ret;
 							size_t imlp = MaxBifurcationMultiplicity(bifStorage, startKMer[kmerI], idata.distance);
 							size_t jmlp = MaxBifurcationMultiplicity(bifStorage, startKMer[kmerJ], jdata.distance);
-
-							bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
+							bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);						
 							if(iless)
 							{
 								endChar[jdata.kmerId] = endChar[idata.kmerId];
 								CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, restricted, idata, jdata);
-							}
-							else
-							{
 								endChar[idata.kmerId] = endChar[jdata.kmerId];
-								CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, restricted, jdata, idata);
 								FillVisit(sequence, bifStorage, startKMer[kmerI], minBranchSize, visit);
-							}
 
 							break;
 						}

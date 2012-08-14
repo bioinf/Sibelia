@@ -254,6 +254,6 @@ namespace SyntenyBuilder
 			//std::cerr << "Total whirls: " << totalWhirls << std::endl;
 			std::cerr << "Total bulges: " << totalBulges << std::endl;		
 		}
-		while((totalBulges > 0) && iterations < 5);
+		while((totalBulges > 0) && iterations < 7);
 	}
 }

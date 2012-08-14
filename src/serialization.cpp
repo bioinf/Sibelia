@@ -23,7 +23,7 @@ namespace SyntenyBuilder
 			out << " " << buf << std::endl;
 		}
 		
-		/*
+		
 		void SerializeCondensed(const BifurcationStorage & bifStorage,
 			StrandIterator start, StrandIterator end, std::ostream & out)
 		{
@@ -55,7 +55,7 @@ namespace SyntenyBuilder
 					prev = bifId;
 				}
 			}
-		}*/
+		}
 	}
 
 	void GraphAlgorithm::PrintRaw(const DNASequence & s, std::ostream & out)
@@ -80,19 +80,16 @@ namespace SyntenyBuilder
 		CopyN(e, distance + k, std::ostream_iterator<char>(out));
 		std::cerr << std::endl;
 	}			
-	/*
-	void GraphAlgorithm::SerializeCondensedGraph(const DNASequence & sequence, size_t k, std::ostream & out)
+	
+	void GraphAlgorithm::SerializeCondensedGraph(const DNASequence & sequence,
+		const BifurcationStorage & bifStorage, size_t k, std::ostream & out)
 	{
-		BifurcationStorage bifStorage;
-		size_t bifurcationCount = GraphAlgorithm::EnumerateBifurcations(sequence, k, bifStorage);
-		std::cerr << "Total bifurcations: " << bifurcationCount << std::endl;
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
 		SerializeCondensed(bifStorage, sequence.PositiveBegin(), sequence.PositiveEnd(), out);
-		SerializeCondensed(bifStorage, sequence.NegativeBegin(), sequence.NegativeRightEnd(), out);
-
+		SerializeCondensed(bifStorage, sequence.NegativeBegin(), sequence.NegativeEnd(), out);
 		out << "}" << std::endl;
-	}*/
+	}
 
 	void GraphAlgorithm::SerializeGraph(const DNASequence & sequence, size_t k, std::ostream & out)
 	{
