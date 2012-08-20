@@ -137,15 +137,18 @@ namespace SyntenyBuilder
 			}
 
 			StrandIterator it = window.GetBegin();
-			BifurcationMap::iterator jt = bifurcation.find(it);
-			if(jt == bifurcation.end())
+			if(*it != 'n')
 			{
-				jt = bifurcation.insert(std::make_pair(it, BifurcationData())).first;
-			}
+				BifurcationMap::iterator jt = bifurcation.find(it);
+				if(jt == bifurcation.end())
+				{
+					jt = bifurcation.insert(std::make_pair(it, BifurcationData())).first;
+				}
 
-			if(jt->second.UpdateForward(*window.GetEnd()) || jt->second.UpdateBackward(*(--it)))
-			{
-				jt->second.SetId(bifurcationCount++);
+				if(jt->second.UpdateForward(*window.GetEnd()) || jt->second.UpdateBackward(*(--it)))
+				{
+					jt->second.SetId(bifurcationCount++);
+				}
 			}
 		}
 
@@ -254,6 +257,6 @@ namespace SyntenyBuilder
 			//std::cerr << "Total whirls: " << totalWhirls << std::endl;
 			std::cerr << "Total bulges: " << totalBulges << std::endl;		
 		}
-		while((totalBulges > 0) && iterations < 7);
+		while((totalBulges > 0) && iterations < 4);
 	}
 }

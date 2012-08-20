@@ -1,0 +1,82 @@
+\documentclass[a4paper,12pt]{scrartcl} 
+\usepackage{ulem}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[warn]{mathtext} 
+\usepackage[T2A]{fontenc} 
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel} 
+\usepackage{indentfirst} 
+\usepackage{misccorr} 
+
+\begin{document}
+
+\title{SyntenyFinder: A Synteny Blocks Generation and Genome Comparison Tool}
+\author{Intern: Ilya Minkin\\
+	Advisor: Son Pham}
+\date{}
+\maketitle
+
+\begin{abstract}
+Algorithm for finding synteny blocks from nucleotide sequences is presented. The algorithm is able to reconstruct
+synteny blocks previously found by ad hoc methods.
+\end{abstract}
+
+\section{Introduction}
+
+Recent growth of number of sequenced genomes arises question about their evolution relationship. 
+In order to perform rearrangement analysis, the genomes must be decomposed into conservative segments,
+called synteny blocks. Currently existing tools for solving this problem, like DRIMM-Synteny
+\cite{Pham2010}, require the genomes to be presented as sequences of enumerated local alignments, or \textit{anchors}.
+Usually, anchors represent homologous genes. At this moment, there are no general purpose tools that can
+find synteny blocks from the genomes represented as unannotated nucleotide sequences.
+
+De Bruijn graphs are extensively used in bioinformatics for genome assembly \cite{Pevzner2001, Iqbal2012}. 
+In this work we address problem of finding synteny blocks from nucleotide sequences. We propose new 
+algorithm for this task based on colored De Bruijn graph.
+
+
+\section{Problem description}
+
+Suppose that we are given a set \(S = \lbrace s_{1}, s_{2}, \ldots, s_{n} \rbrace \) of chromosomes, and each
+chromosome is represented as a string over alphabet \(\lbrace A, C, G, T \rbrace \). The task of finding synteny
+blocks is to find a set of so called conserved regions \(C = \lbrace C_{1}, C_{2}, \ldots , C_{n} \rbrace \), where
+each conserved region \(C_{i}\) is a set of substrings of chromosomes from \(S\). Such regions are supposed 
+to be as long as possible.  All substrings forming a conserved region \(C_{i}\) must be "similar" to each other
+according to some criterion of similarity. At this point there is no generally accepted formal criterion of similarity exist, 
+so the problem of finding synteny blocks is ill-defined.
+
+In this work we introduce new criterion of similarity based on De Bruijn graphs and graph simplifications.
+
+
+\section{Algorithm description}
+\subsection{Gener}
+Informally speaking, k-dimensional de Bruijn graph is a graph with vertices representing all possible strings of length \(k\)
+(called \(k\)-mers). In this graph two vertices \(u\) and \(v\) are connected by a oriented edge from \(u\) to \(v\) if exists
+\((k + 1)\)-mer \(w\) such that \(u\) is the prefix of \(w\) and \(v\) is the suffix of \(w\).
+
+\section{Experimental results}
+Results
+\section{Conclusion}
+Conclusion
+
+\begin{thebibliography}{9}
+\bibitem{Pham2010}
+	Son K. Pham, Pavel A. Pevzner.
+	DRIMM-Synteny: decomposing genomes into evolutionary conserved segments.
+	Bioinformatics (2010)  26  (20):  2509-2516.
+\bibitem{Pevzner2001}
+	Pavel A. Pevzner, Haixu Tang, Michael S. Waterman.
+	An Eulerian path approach to DNA fragment assembly.
+	Proc. Natl. Acad. Sci. USA. 2001 Aug 14; 98(17): 9748-53.
+\bibitem{Iqbal2012}	
+	Zamin Iqbal, Mario Caccamo, Isaac Turner, Paul Flicek, McVean.
+	De novo assembly and genotyping of variants using colored de Bruijn graphs.
+	Nat Genet. 2012 Jan 8;44(2):226-32. doi: 10.1038/ng.1028.
+\bibitem{Kellis2004}
+	Manolis Kellis, Bruce W. Birren, Eric S. Lander.
+	Proof and evolutionary analysis of ancient genome duplication in the yeast Saccharomyces cerevisiae.
+	Nature 2004 Apr 8;428 (6983): 617-24.
+\end{thebibliography}
+
+\end{document}

@@ -107,7 +107,11 @@ namespace SyntenyBuilder
 					StrandIterator it = AdvanceForward(kmer[j], k);
 					if(Valid(it, sequence))
 					{
-						edge[DNASequence::alphabet.find(*it)].push_back(kmer[j]);
+						size_t pos = DNASequence::alphabet.find(*it);
+						if(pos != DNASequence::alphabet.npos)
+						{
+							edge[pos].push_back(kmer[j]);
+						}
 					}
 				}
 

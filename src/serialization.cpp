@@ -31,10 +31,13 @@ namespace SyntenyBuilder
 			size_t prev = start != end ? bifStorage.GetBifurcation(start) : -1;
 			for(; start != end; )
 			{
-				size_t step = 0;
+				size_t step = 0;				
 				for(++start; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; 
 					++start, ++step);
+
+				if(start != end)
 				{
+					bool foo = start == end;
 					size_t bifId = bifStorage.GetBifurcation(start);
 					if(bifId != BifurcationStorage::NO_BIFURCATION)
 					{

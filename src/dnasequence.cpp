@@ -13,6 +13,8 @@ namespace SyntenyBuilder
 		ret['T'] = 'A';
 		ret['G'] = 'C';
 		ret['C'] = 'G';
+		ret['N'] = 'N';
+		ret['n'] = 'n';
 		return ret;
 	}
 	
