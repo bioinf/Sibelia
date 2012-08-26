@@ -25,9 +25,11 @@
 \maketitle
 
 \begin{abstract}
-We present algorithm for finding synteny blocks in genomes represented as nucleotide sequences. The algorithm is based
-on colored De Bruijn graphs and graph simplifications. Our method is able to reconstruct synteny blocks previously found
-by ad hoc methods.
+We present an algorithm for finding synteny blocks in genomes represented as nucleotide sequences. The algorithm is based
+on colored de Bruijn graphs and graph simplifications. Our method is suitable for finding synteny blocks in genomes that
+contain regions of highly conserved DNA, i.e. genomes that are evolutionary close to each other. With some modifications
+the algorithm can be applied in more complicated cases.
+
 \end{abstract}
 
 \section{Introduction}
@@ -41,8 +43,7 @@ find synteny blocks from the genomes represented as unannotated nucleotide seque
 
 De Bruijn graphs are extensively used in bioinformatics for genome assembly \cite{Pevzner2001, Iqbal2012}. 
 In this work we address problem of finding synteny blocks from nucleotide sequences. We propose new 
-algorithm for this task based on colored De Bruijn graph.
-
+algorithm for this task based on colored de Bruijn graph.
 
 \section{Problem definition}
 
@@ -51,12 +52,12 @@ chromosome is represented as a string over alphabet \(\lbrace A, C, G, T \rbrace
 blocks is to find a set of so called conserved regions \(C = \lbrace C_{1}, C_{2}, \ldots , C_{n} \rbrace \), where
 each conserved region \(C_{i}\) is a set of substrings of chromosomes from \(S\). Such regions are supposed 
 to cover most of the genome for closely related species.  All substrings forming a conserved region \(C_{i}\) must be
- "similar" to each other according to some criterion of similarity. Note that problem of finding synteny blocks in a set
-of chromosomes is equivalent to a problem of finding synteny blocks in one "superchromosome" obtained from
-concatenating all chromosomes from the set.
-At this moment there is no generally accepted formal criterion of similarity exist, so the problem of finding synteny blocks is ill-defined.
+similar to each other according to some criterion of similarity. Note that problem of finding synteny blocks in a set
+of chromosomes is equivalent to a problem of finding synteny blocks in one superchromosome
+obtained from concatenating all chromosomes from the set -- we can just separate chromosomes by special characters.
 
-In our work we introduce new criterion of similarity based on De Bruijn graphs and graph simplifications.
+At this moment there is no generally accepted formal criterion of similarity exist, so the problem of finding synteny blocks is ill-defined.
+In our work we introduce new criterion of similarity based on de Bruijn graphs and graph simplifications.
 
 \section{General idea}
 
@@ -70,50 +71,59 @@ In our work we introduce new criterion of similarity based on De Bruijn graphs a
 	\\
         \begin{subfigure}[b]{1\textwidth}
 		\includegraphics[scale = 0.50]{graph2.pdf}
-		\small \caption{Same De Bruijn graph after simplification. Replacing \("acGca"\) by \("acTca"\) we obtain long non-branching path
+		\small \caption{Same de Bruijn graph after simplification. Replacing \("acGca"\) by \("acTca"\) we obtain long non-branching path
 			that corresponds to the synteny block.}
 		\label{DeBruijnB}
         \end{subfigure}
-	\small \caption{Illustration of De Bruijn graphs and graph simplification}
+	\small \caption{Illustration of de Bruijn graphs and graph simplification}
 \end{figure}
 
-Informally speaking, \(k\)-dimensional De Bruijn graph is a graph with vertices representing all possible strings of length \(k\)
-(called \(k\)-mers). In this graph two vertices \(u\) and \(v\) are connected by a oriented edge from \(u\) to \(v\) if exists
-\((k + 1)\)-mer \(w\) such that \(u\) is the prefix of \(w\) and \(v\) is the suffix of \(w\).
+As previously mentioned, our method is based on de Bruijn graph.
+Given a fixed value \(k\) and a string \(S\) we can build de Bruijn graph \(G\) from the string as follows.
+Let's denote by \(k\)-prefix of a string \(S\) first \(k\) characters of \(S\), and by \(k\)-suffix last \(k\) characters of \(S\).
+For each unique substring of length \(k\) (called \(k\)-mer) found in \(S\), we add a vertex to \(G\) and mark it with
+corresponding \(k\)-mer. For each \((k + 1)\)-mer \(w\) found in \(S\) we add edge that connects vertex corresponding to
+\(k\) prefix of \(w\) with vertex corresponding to \(k\) suffix of \(w\) and label the edge with position of first character of \(w\)
+(multiedges with different labels are allowed).
 
-Given  a number \(k\) and a string \(S\) we can build De Bruijn \(G\) graph from the string as follows: for each \((k + 1)\)-mer found 
-in \(S\) we add corresponding edge to \(k\)-dimensional De Bruijn graph and label it with position of first symbol belonging to
-the \((k + 1)\)-mer (multiedges with different labels are allowed). In this graph we allow only paths that have consecutive labels
-on edges. It is easy to see that with such restriction every substring of \(S\) corresponds to a valid path in \(G\). Example of such
-De Bruijn graph built from the string \(S = "acgcattgtactcatt" \) and \(k = 2\) is depicted on Figure~\ref{DeBruijnA}.
+In this graph we consider only paths that have consecutive labels on edges. It is easy to see that with such restriction every path in \(G\)
+corresponds to a substring in \(S\). Example of such de Bruijn graph built from the string \(S = "acgcattgtactcatt" \) and \(k = 2\) is
+depicted on Figure~\ref{DeBruijnA}.
 
-Note that two copies of substring \("catt"\) form non-branching path consisting of edges with multiplicity \(2\) in this graph. Single
+Note that two copies of substring \("catt"\) form a non-branching path consisting of edges with multiplicity \(2\) in this graph. Single
 mismatch in substrings \("acGca"\) and \("acTca"\) form so-called "bulge", unoriented cycle generated by two valid paths with
-coinciding ends. If we replace one branch of the bulge by another (say, replace \("acGca"\) by \("acTca"\)) then we will obtain
-long non-branching path (Figure~\ref{DeBruijnB}).
+coinciding ends. If we replace one branch of the bulge by another (replace \("acGca"\) by \("acTca"\) for example), we will obtain
+a long non-branching path (Figure~\ref{DeBruijnB}).
 
 This heuristic forms basis of our method -- conserved regions in different parts of the genome contain conserved basepairs, but
-such regions are disrupted by indels and mismatches. These artifacts generate bulges in the graph that spoil non-branching paths.
-We remove bulges having size less than some predefined constant and thus obtain non-branching paths corresponding to the
-conserved regions. The process of removing from the graph bulges is called \textit{simplification}.
+such regions are disrupted by indels and mismatches. These differences form bulges in the graph that make it different to infer
+structure of the synteny blocks. We remove bulges having size less than some predefined constant and thus obtain non-branching
+paths corresponding to the conserved regions. The process of removing bulges from the graph is called \textit{simplification}.
 
-Conserved regions can be located on opposite strands of DNA. To handle this, we use \textit{colored} De Bruijn graphs \cite{Iqbal2012}.
+Conserved regions can be located on opposite strands of DNA. To handle this, we use \textit{colored} de Bruijn graphs \cite{Iqbal2012}.
 Given string \(S\), for each \((k + 1)\)-mer found in \(S\) we add corresponding edge to the graph and color it \textit{blue}, for 
 each \((k + 1)\)-mer found in reverse-complementary counterpart of \(S\) we add corresponding edge to the graph and color it \textit{red}.
-In this graph, coinciding paths with different colors represent synteny blocks located on opposite strands of DNA.
+In this graph, non-branching paths with different colors represent synteny blocks located on opposite strands of DNA.
 
-Our algorithm depends on two parameters -- \(k\) and minimum allowed size of a bulge. It is reasonable to use as high \(k\) as possible
-to keep graph structure simple and avoid connecting regions that are actually not homologous. But even highly conserved regions can
-lack shared \(k\)-mers for \(k > 30\). To overcome this, we first find a set of local alignments in the genome (by BLAST), then substitute
-one aligned subsequence by another for each found significant local alignment. So the pipeline is following:\\
-1) Find all alignments in the genome(s) and perform substitution (see above) \\
-2) Build De Bruijn graph \\
+Complete pipeline is following:\\
+1) Concatenate input chromosomes into one superchromosome \\
+2) Build de Bruijn graph from the superchromosome \\
 3) Simplify the graph \\
 4) Output synteny blocks as non-branching path in the graph 
 
+Our algorithm depends on two parameters: \(k\) and \(\delta\) (minimum allowed size of a bulge). It is reasonable to use as high \(k\) as possible
+\((k > 50)\) to keep graph structure simple and avoid connecting regions that are actually not homologous. So, our method requires that conserved regions
+in input genomes contain exact shared \(k\)-mers. This is not a problem in genomes that are very close to each other (like different strains of a bacteria),
+but it can create difficulties in genomes that are separated by many evolutionary events.
+
+This issue can be solved, for example, by finding a set of all local alignments in the genomes and substituting one subsequence in each found alignment
+by another. In results section we will demonstrate on a practical half-synthetic example that with such modifications our method is able to handle
+complicated cases. So at this point our method is directly applicable to only evolutionary close genomes and  in near future we plan to extend it to
+wider range of use.
+
 \section{Detailed description}
 
-In this section we will present our algorithm in more formal fashion. Suppose that we are given a string \(S = (s_{0}, s_{1}, \ldots, s_{n - 1})\)
+In this section we formally describe our algorithm for finding synteny blocks. Suppose that we are given a string \(S = (s_{0}, s_{1}, \ldots, s_{n - 1})\)
 over alphabet \(\Sigma = \lbrace A, C, G, T \rbrace\), two numbers \(k\) and \(\delta\). We denote by \(S(i, j)\) the \((i, j)\) substring of S,
 \(S(i, j) = (s_{i}, s_{i + 1}, \ldots, s_{j}) \).  Let's denote by \(\bar{S}\) string that is the reverse complementary of \(S\). 
 
@@ -139,7 +149,7 @@ is called a \textit{bulge}, iff following holds: \\
 4) There are no edges \(e_{1} \in b_{1}, e_{2} \in b_{2} \) such that \(Spell(e_{1}) = Spell(e_{2})\)
 
 A vertex \(v\) is called \textit{bifurcation} iff there are at least two outgoing (ingoing) edges \(e_{1}, e_{2}\) 
-from (to) \(v\) such that \(Spell(e_{1}) \neq Spell(e_{2})\). A set of paths \(P_{nb} = \lbrace P_{1}, P_{2}, \ldots, P_{n} \rbrace\)
+incident \(v\) such that \(Spell(e_{1}) \neq Spell(e_{2})\). A set of paths \(P_{nb} = \lbrace P_{1}, P_{2}, \ldots, P_{n} \rbrace\)
 is said to form a \textit{non-branching path} iff \(|P_{1}| = |P_{2}| = \ldots |P_{n}| \) and \(Spell(e_{i, k}) = Spell(e_{j, k}) \),
 where \(e_{i, j}\) denote \(j\)-th edge in the \(i\)-th path, i.e. all paths spell the same substring.
 

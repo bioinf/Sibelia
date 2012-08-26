@@ -48,7 +48,7 @@ int main(int argc, char * argv[])
 
 		for(size_t i = 0; i < stage.size(); i++)
 		{
-			if(stage[i].first < 3 || stage[i].second < 0)
+			if(stage[i].first < 2 || stage[i].second < 0)
 			{
 				std::cerr << "Incorrect stage record " << std::endl;
 				return -1;
