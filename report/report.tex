@@ -47,7 +47,7 @@ algorithm for this task based on colored de Bruijn graph.
 
 \section{Problem definition}
 
-Suppose that we are given a set \(S = \lbrace s_{1}, s_{2}, \ldots, s_{n} \rbrace \) of chromosomes, and each
+Suppose that we are given a set \(S = \lbrace S_{1}, S_{2}, \ldots, S_{n} \rbrace \) of chromosomes, and each
 chromosome is represented as a string over alphabet \(\lbrace A, C, G, T \rbrace \). The task of finding synteny
 blocks is to find a set of so called conserved regions \(C = \lbrace C_{1}, C_{2}, \ldots , C_{n} \rbrace \), where
 each conserved region \(C_{i}\) is a set of substrings of chromosomes from \(S\). Such regions are supposed 
@@ -98,10 +98,12 @@ a long non-branching path (Figure~\ref{DeBruijnB}).
 This heuristic forms basis of our method -- conserved regions in different parts of the genome contain conserved basepairs, but
 such regions are disrupted by indels and mismatches. These differences form bulges in the graph that make it different to infer
 structure of the synteny blocks. We remove bulges having size less than some predefined constant and thus obtain non-branching
-paths corresponding to the conserved regions. The process of removing bulges from the graph is called \textit{simplification}.
+paths corresponding to the conserved regions. The process of removing bulges from the graph is called \textit{simplification}. We
+sustain one-to-one correspondence between the graph and the string -- when we change something in the graph, then we change
+appropriate characters in the string.
 
 Conserved regions can be located on opposite strands of DNA. To handle this, we use \textit{colored} de Bruijn graphs \cite{Iqbal2012}.
-Given string \(S\), for each \((k + 1)\)-mer found in \(S\) we add corresponding edge to the graph and color it \textit{blue}, for 
+Given a string \(S\), for each \((k + 1)\)-mer found in \(S\) we add corresponding edge to the graph and color it \textit{blue}, for 
 each \((k + 1)\)-mer found in reverse-complementary counterpart of \(S\) we add corresponding edge to the graph and color it \textit{red}.
 In this graph, non-branching paths with different colors represent synteny blocks located on opposite strands of DNA.
 
@@ -114,7 +116,7 @@ Complete pipeline is following:\\
 Our algorithm depends on two parameters: \(k\) and \(\delta\) (minimum allowed size of a bulge). It is reasonable to use as high \(k\) as possible
 \((k > 50)\) to keep graph structure simple and avoid connecting regions that are actually not homologous. So, our method requires that conserved regions
 in input genomes contain exact shared \(k\)-mers. This is not a problem in genomes that are very close to each other (like different strains of a bacteria),
-but it can create difficulties in genomes that are separated by many evolutionary events.
+but it can create difficulties in genomes that had separated a long time ago.
 
 This issue can be solved, for example, by finding a set of all local alignments in the genomes and substituting one subsequence in each found alignment
 by another. In results section we will demonstrate on a practical half-synthetic example that with such modifications our method is able to handle
@@ -123,30 +125,42 @@ wider range of use.
 
 \section{Detailed description}
 
-In this section we formally describe our algorithm for finding synteny blocks. Suppose that we are given a string \(S = (s_{0}, s_{1}, \ldots, s_{n - 1})\)
-over alphabet \(\Sigma = \lbrace A, C, G, T \rbrace\), two numbers \(k\) and \(\delta\). We denote by \(S(i, j)\) the \((i, j)\) substring of S,
-\(S(i, j) = (s_{i}, s_{i + 1}, \ldots, s_{j}) \).  Let's denote by \(\bar{S}\) string that is the reverse complementary of \(S\). 
+In this section we formally describe our algorithm for finding synteny blocks. We are given two numbers \(k\) and \(\delta\) and a
+set \(S = \lbrace S_{1}, S_{2}, \ldots, S_{n} \rbrace \) of chromosomes,
+where each chromosome  \(S_{i} = (s_{i, 1}, s_{i, 1}, \ldots, s_{i, m_i})\) is a string over alphabet \(\Sigma = \lbrace A, C, G, T \rbrace\).
+Let's denote by \(X_{1} \uplus X_{2}\) concatenation of strings \(X_{1}\) and \(X_{2}\). We denote by \(X[i, j]\) a substring of a string \(X\) that
+starts at \(i\) and ends at \(j\), \(X[i, j] = (x_{i}, x_{i + 1}, \ldots, x_{j}) \). \(Rev(X)\) means reverse-complementary counterpart of a string \(X\).
 
-Colored De Bruijn graph is graph \(G_{k} = (V, E) \) where \(V = \Sigma ^ k \). We define three functions: \\
-1) \(Pos : \, E \rightarrow \mathbb{N} \) \\
-2) \(Spell : \, E \rightarrow \Sigma ^ {k + 1} \) \\
-3) \(Color : \, E \rightarrow \lbrace Blue, Red \rbrace \) 
+First step of the algorithm is to obtain superchromosome \(\hat{S} = S_{1} \uplus S_{2} \uplus \ldots \uplus S_{n} \). Concatenated
+strings are interleaved by special characters that indicate ends of the chromosomes, but we omit these technical details. Then we build a linked list of
+pairs \(L = ((\hat{s}_1, 1), (\hat{s}_2, 2), \ldots, (\hat{s}_{m}, m))\) and \(l_i\) is a pointer to \(i\)-th item in the list, \(Next(l_i) = l_{i + 1}\) is next
+element after \(l_i\). Let's denote by \(l_i[1]\) first element of pair of \(i\)-th item of the list (\(l_i[2]\) is second element). First element of a pair represents
+character of the sequence, and second element represents it's original position in string \(\hat{S}\). 
 
-For each \(i \in \lbrace{0, 1, \ldots, n - k - 1} \rbrace \) we add two oriented edges to the graph: \\
-1) \(e = (S(i, i + k - 1), S(i + 1, i + k)), \, Color(e) = Blue, \, Pos(e) = i, \, Spell(e) = S(i, i + k) \) \\
-2) \(\bar{e} = (\bar{S}(i, i + k - 1), \bar{S}(i + 1, i + k)), \, Color(\bar{e}) = Red, \, Pos(\bar{e}) = i, \, Spell(\bar{e}) = \bar{S}(i, i + k) \)
+Colored de Bruijn graph is graph \(G = (V, E) \) where \(V = \Sigma ^ k \). Set of outgoing edges from vertex \(v\) is denoted \(Out(v)\). We define three functions: \\
+1) \(Pos : \, E \rightarrow \lbrace l_1, l_2, \ldots , l_m \rbrace \) \\
+2) \(Color : \, E \rightarrow \lbrace Blue, Red \rbrace \) \\
+3) \(Spell: \, E \rightarrow \Sigma ^ {k + 1} \)
 
-A path in \(G_{k}\) is a sequence of edges \(P = (e_{1}, e_{2}, \ldots, e_{n})\) iff \(Pos(e_{i+1})  = Pos(e_{i}) + 1\) and
+For each \(i \in \lbrace{1, 2, \ldots, n - k} \rbrace \) we add two oriented edges to the graph: \\
+1) \(e^+ = (\hat{S}[i, i + k - 1], \hat{S}[i + 1, i + k]) \), where: \\
+\(Color(e^+) = Blue, \,  Pos(e^+) = l_i, \, Spell(e^+) = \hat{S}[i, i + k] \) \\
+2) \(e^- = (Rev(\hat{S}[i, i + k - 1]), Rev(\hat{S}[i + 1, i + k]))\), where: \\
+ \(Color(e^-) = Red, \, Pos(e^-) = l_{i + k - 1}, \, Spell(e^-) = Rev(\hat{S}[i, i + k])\)
+
+A \textit{valid} path in \(G\) is a sequence of edges \(P = (e_{1}, e_{2}, \ldots, e_{n})\) iff \(Pos(e_{i+1})  = Next(Pos(e_{i}))\) and
 \(Color(e_{i + 1}) = Color(e_{i})\). Let's denote by \(Start(P)\) first vertex of the path \(P\) and by \(End(P)\) the last vertex of \(P\).
 
 \newpage
 
-A pair of paths \(B =\lbrace b_{1}, b_{2} \rbrace \)
+A pair of valid paths \(B =\lbrace b_{1}, b_{2} \rbrace \)
 is called a \textit{bulge}, iff following holds: \\
-1) \(|b_{1}| < \delta\ \wedge |b_{2}| < \delta\) \\
-2) \(Start(b_{1}) = Start(b_{2}) \wedge End(b_{1}) = End(b_{2}) \) \\
-3) \(b_{1}\) and \(b_{2}\) have no common vertices except \(Start(b_{1})\) and \(End(b_{1})\) \\
-4) There are no edges \(e_{1} \in b_{1}, e_{2} \in b_{2} \) such that \(Spell(e_{1}) = Spell(e_{2})\)
+1) \(Start(b_{1}) = Start(b_{2}) \wedge End(b_{1}) = End(b_{2}) \) \\
+2) \(b_{1}\) and \(b_{2}\) have no common vertices except \(Start(b_{1})\) and \(End(b_{1})\) \\
+3) There are no edges \(e_{1} \in b_{1}, e_{2} \in b_{2} \) such that \(Spell(e_{1}) = Spell(e_{2})\) \\
+4) Their sets of positions do not intersect (I'll define it a bit later) 
+
+A bulge \(B =\lbrace b_{1}, b_{2} \rbrace \) is called \textit{bad} iff \(|b_1| < \delta \wedge |b_2| < \delta\) where \(\delta\) is a parameter.
 
 A vertex \(v\) is called \textit{bifurcation} iff there are at least two outgoing (ingoing) edges \(e_{1}, e_{2}\) 
 incident \(v\) such that \(Spell(e_{1}) \neq Spell(e_{2})\). A set of paths \(P_{nb} = \lbrace P_{1}, P_{2}, \ldots, P_{n} \rbrace\)
@@ -155,14 +169,39 @@ where \(e_{i, j}\) denote \(j\)-th edge in the \(i\)-th path, i.e. all paths spe
 
 \begin{figure}
 	\includegraphics[scale = 0.50]{graph3.pdf}
-	\small \caption{Colored De Bruijn graph for string \(S = "acctgtcagt" \) }
+	\small \caption{Colored de Bruijn graph for string \(S = "acctgtcagt" \) }
 	\label{ColoredDeBruijn}
 \end{figure}
 
-Let's illustrate above definitions on a simple example. Colored De Bruijn graph built from string \(S = "acctgtcagt"\)
-is depicted on Figure~\ref{ColoredDeBruijn}. Here \(\bar{S} = "actgacaggt"\). Vertices \("ac", "ct", "tg"\) are 
-bifurcations, while \("cc", "tc", "ga"\) are not. Two paths \(("ac", "ct")\) and \((("ac", "cc"), ("cc", "ct"))\) form a bulge.
-Two multiedges \(("ct", "tg")\) form a non-branching path.
+Let's illustrate above definitions on a simple example. Colored de Bruijn graph built from string \(\hat{S} = "acctgtcagt"\)
+is depicted on figure~\ref{ColoredDeBruijn}. Here \(Rev(\hat{S}) = "actgacaggt"\). Edges' labels denote indices of elements of
+list \(L\). Vertices \("ac", "ct", "tg"\) are bifurcations, while \("cc", "tc", "ga"\) are not. Two paths \(("ac", "ct")\) and \((("ac", "cc"), ("cc", "ct"))\)
+form a bulge. Two multiedges \(("ct", "tg")\) form a non-branching path.
+
+Pseudocode of our algorithm for synteny blocks finding is below. Actually, it lacks some important details, so I will augment it later.
+
+\begin{algorithm}[H]               
+\small \caption*{\(SyntenyFinder(S = \lbrace S_{1}, S_{2}, \ldots, S_{n} \rbrace,  k, \delta)\)} 
+\label{Pseudocode}
+\begin{algorithmic}[1]     
+\State \(\hat{S} = S_{1} \uplus S_{2} \uplus \ldots \uplus S_{n} \)
+\State \(L = ((\hat{s}_1, 1), (\hat{s}_2, 2), \ldots, (\hat{s}_{m}, m))\)
+\State \(G = BuildDeBruijn(L, k)\)
+\State \(run = True\)
+\While{\(run == True\)}
+	\State \(run = False\)
+	\For{\(v \in V(G)\)}
+		\For{\(e_1, e_2 \in Out(v)\)}
+			\If{\(FormBadBulge(e_1, e_2,  \delta)\)}
+				\State \(run = True\)
+				\State \(ReplaceBranch(e_1, e_2)\)
+			\EndIf
+		\EndFor
+	\EndFor
+\EndWhile
+\State \(OutputNonBranchingPaths(G)\)
+\end{algorithmic}
+\end{algorithm}
 
 \section{Experimental results}
 Results

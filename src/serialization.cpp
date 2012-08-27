@@ -99,17 +99,17 @@ namespace SyntenyBuilder
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
 		StrandIterator jt = AdvanceForward(sequence.PositiveBegin(), sequence.PositiveEnd(), k); 
-		size_t pos = 0;
+		size_t pos = 1;
 		for(StrandIterator it = sequence.PositiveBegin(); jt != sequence.PositiveEnd(); ++it, ++jt, ++pos)
 		{
 			OutputEdge(k, it, pos, out);
 		}
 		
-		pos = 0;
+		pos = 1;
 		jt = AdvanceForward(sequence.NegativeBegin(), sequence.NegativeEnd(), k); 
 		for(StrandIterator it = sequence.NegativeBegin(); jt != sequence.NegativeEnd(); ++it, ++jt, ++pos)
 		{
-			OutputEdge(k, it, pos, out);
+			OutputEdge(k, it, sequence.Size() - pos + 1, out);
 		}
 
 		out << "}";
