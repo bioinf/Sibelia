@@ -25,21 +25,25 @@
 \maketitle
 
 \begin{abstract}
-We present an algorithm for finding synteny blocks in genomes represented as nucleotide sequences. The algorithm is based
-on colored de Bruijn graphs and graph simplifications. Our method is suitable for finding synteny blocks in genomes that
-contain regions of highly conserved DNA, i.e. genomes that are evolutionary close to each other. With some modifications
-the algorithm can be applied in more complicated cases.
-
+We present an algorithm for finding synteny blocks in genomes. The algorithm is based on colored de Bruijn graphs and graph simplifications.
+Our method is suitable for finding synteny blocks in genomes that contain regions of highly conserved DNA, i.e. genomes that are evolutionary
+close to each other. With some modifications the algorithm can be applied in more complicated cases.
 \end{abstract}
 
 \section{Introduction}
 
-Recent growth of number of sequenced genomes arises question about their evolution relationship. 
+Recent advances in high throughput sequencing and genome assembling technologies result in appearance of high number of
+completely sequenced genomes, ranging from bacteria to mammalian \cite{Genome10K}. It raises a lot of interesting 
+biological question. For example, it is not obvious how DNA sequence leads to observable phenotype. Comparative genomics
+addresses this question using the fact that common features of two organisms are often encoded by DNA regions that are conserved
+within the species \cite{ComparativeGenomics}. 
+
+Another question is evolution. It is known that genome rearrangements play important role in adaptation in adaptation of bacteria
+for different environments \cite{GenomeEvolutionAdaptation}. And the more exciting is study of mammalian evolution \cite{HumanMouse}.
+
 In order to perform rearrangement analysis, the genomes must be decomposed into conservative segments,
 called synteny blocks. Currently existing tools for solving this problem, like DRIMM-Synteny
 \cite{Pham2010}, require the genomes to be presented as sequences of enumerated local alignments, or \textit{anchors}.
-Usually, anchors represent homologous genes. At this moment, there are no general purpose tools that can
-find synteny blocks from the genomes represented as unannotated nucleotide sequences.
 
 De Bruijn graphs are extensively used in bioinformatics for genome assembly \cite{Pevzner2001, Iqbal2012}. 
 In this work we address problem of finding synteny blocks from nucleotide sequences. We propose new 
@@ -209,6 +213,26 @@ Results
 Conclusion
 
 \begin{thebibliography}{9}
+\bibitem{Genome10K}
+	Genome 10K Community of scientists.
+	Genome 10K: A proposal to obtain whole-genome sequence for 10000 vertebrate species.
+	Journal of Heredity, 100(6): 659-674.
+\bibitem{ComparativeGenomics}
+	Ross C. Hardison.
+	Comparative genomics.
+	PLoS Biology 1(2): e58.
+\bibitem{GenomeEvolutionAdaptation}
+	Fabien Aujoulat, Frederic Roger, Alice Bourdier, Anne Lotthe  Brigitte Lamy, Helene Marchandin, Estelle Jumas-Bilak.
+	From environment to man: genome evolution and adaptation of human opportunistic bacterial pathogens.
+	Genes 2012, 3(2), 191-232.
+\bibitem{HumanMouse}
+	Pavel Pevzner, Glenn Tesler.
+	Genome rearrangements in mammalian evolution: lessons from human and mouse genomes.
+	Genome Research. 2003 Jan;13(1):37-45.
+\bibitem{Kellis2004}
+	Manolis Kellis, Bruce W. Birren, Eric S. Lander.
+	Proof and evolutionary analysis of ancient genome duplication in the yeast Saccharomyces cerevisiae.
+	Nature 2004 Apr 8;428 (6983): 617-24.
 \bibitem{Pham2010}
 	Son K. Pham, Pavel A. Pevzner.
 	DRIMM-Synteny: decomposing genomes into evolutionary conserved segments.
@@ -221,10 +245,6 @@ Conclusion
 	Zamin Iqbal, Mario Caccamo, Isaac Turner, Paul Flicek, McVean.
 	De novo assembly and genotyping of variants using colored de Bruijn graphs.
 	Nat Genet. 2012 Jan 8;44(2):226-32. doi: 10.1038/ng.1028.
-\bibitem{Kellis2004}
-	Manolis Kellis, Bruce W. Birren, Eric S. Lander.
-	Proof and evolutionary analysis of ancient genome duplication in the yeast Saccharomyces cerevisiae.
-	Nature 2004 Apr 8;428 (6983): 617-24.
 \end{thebibliography}
 
 \end{document}

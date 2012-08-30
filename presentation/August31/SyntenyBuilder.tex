@@ -140,7 +140,7 @@ to closely related species (different strains of a bacteria, etc)
 \begin{itemize}
 \item Build de Bruijn graph from the genome
 \item Remove bulges
-\item Bulges are removed by replacing one branche with another
+\item Bulges are removed by replacing one branch with another
 \item Output non-branching paths
 \end{itemize}
 \begin{changemargin}{-1.cm}{-1.cm}
@@ -156,15 +156,206 @@ to closely related species (different strains of a bacteria, etc)
 \frametitle{Bulge removal strategy}
 \begin{itemize}
 \item It does matter which bulge's branch we replace
-\item Synteny blocks with muliplicity \(>2\) can have no \(k\)-mers shared across all regions
+\item Synteny blocks with muliplicity \(>2\) can have no \(k\)-mers shared across all instances of a same block
 \item Example: a synteny block from yeasts \braces{Kellis et al., 2004}
 \begin{changemargin}{-1.cm}{-1.cm}
 \begin{figure}
 \centering
-\includegraphics[scale = 0.45]{Figure5.png}
-\small \caption{Bulge removal illustration}
+\includegraphics[scale = 0.30]{Figure5.png}
+\small \caption{A synteny block example}
 \end{figure}
 \end{changemargin}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Bulge removal strategy}
+\begin{itemize}
+\item Suppose that we have synteny 3 regions, \(k\)-mers are denoted by integers: \\
+2 4 6 \\
+1 2 3 4 5 6 \\
+1 3 5 \\
+\item Let's build de Bruijn graph for this situation:
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.50]{graph1.pdf}
+\end{figure}
+\end{changemargin}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Wrong strategy}
+\begin{itemize}
+\item Initial situation:
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.38]{graph1.pdf}
+\end{figure}
+\end{changemargin}
+\item Replace 1 3 by 1 2 3:
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.38]{graph2.pdf}
+\end{figure}
+\end{changemargin}
+\item Replace 3 4 5 by 3 5:
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.38]{graph3.pdf}
+\end{figure}
+\end{changemargin}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Proper strategy}
+\begin{itemize}
+\item Initial situation:
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.38]{graph1.pdf}
+\end{figure}
+\end{changemargin}
+\item Replace 1 3 by 1 2 3:
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.38]{graph4.pdf}
+\end{figure}
+\end{changemargin}
+\item Replace 4 6 by 4 5 6:
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.38]{graph5.pdf}
+\end{figure}
+\end{changemargin}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Proper strategy}
+\begin{itemize}
+\item From previous slide:
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.38]{graph5.pdf}
+\end{figure}
+\end{changemargin}
+\item Replace 2 4 by 2 3 4:
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.38]{graph6.pdf}
+\end{figure}
+\end{changemargin}
+\item Replace 4 5 by 4 5 6:
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.38]{graph7.pdf}
+\end{figure}
+\end{changemargin}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Proper strategy}
+\begin{itemize}
+\item We incapsulate this intuition into a heuristic
+\item A vertex \(v\) in the graph is called \textit{bifurcation} if there are at least two ingoing (outgoing) edges incident \(v\) that spell different \(k\)-mers.
+\item Let's denote by \(MaxBif(p)\) maximum degree of bifurcation that lies on path \(p\)
+\item If two paths \(p_1\) and \(p_2\) form a bulge, then we replace \(p_1\) by \(p_2\) iff \(MaxBif(p_1) > MaxBif(p_2)\), otherwise we replace 
+\(p_2\) by \(p_1\)
+\item And it seems to work
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results: a simple example}
+\begin{itemize}
+\item We took two bacteria from \textit{Pseudomonas aeruginosa} group and dot plot them: \\
+\textit{Pseudomonas aeruginosa PAO1} \\
+\textit{Pseudomonas aeruginosa UCBPP-PA14} \\
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.20]{PA01POS_PA14POS.png}
+\includegraphics[scale = 0.20]{PA01NEG_PA14POS.png}
+\small \caption{Left plot corresponds to PA01 against PA14, right plot corresponds to reverse-complementary of PA01 against PA14}
+\end{figure}
+\end{changemargin}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results: a simple example}
+\begin{itemize}
+\item Then we constructed the blocks using our program
+\item \(K = 5000, \delta = 25000\)
+\item Results: \\
++9 -0 -1 -2 -3 -4 -5 -6 +7 +10 +8 \\
++9 -7 +6 +5 +4 +3 +2 +1 +0 +10 +8 \\
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results: three bacteria dataset}
+\begin{itemize}
+\item Three strains of \textit{Mycobacterium tuberculosis H37Rv}: \\
+Laboratory reference strain \textit{H37Rv} \\
+CCDC5180 \\
+CCDC5079 \\
+\item One of this strains has multiple drugs resistance
+\item We use \(K = 1000\) and \(\delta = 5000\)
+\item Blocks with multiplicity 3 cover 96\% of the genome
+\item And Son see an evidence of rearrangements there
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results: three bacteria dataset}
+\begin{changemargin}{-1.cm}{-1.cm}
+\begin{figure}
+\centering
+\includegraphics[scale = 0.50]{tuber.pdf}
+\small \caption{}
+\end{figure}
+\end{changemargin}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results: yeasts dataset}
+\begin{itemize}
+\item Well known research about yeasts \textit{Saccharomyces cerevisiae} and \textit{Kluyveromyces waltii} \braces{Kellis et al., 2004} 
+\item This paper shows evidence of so called \textit{double conserved synteny} regions: one region (block) in k.waltii corresponds to two
+regions in cerevisiae
+\item We can't apply our method directly. But we can use alignments of ORFs from 
+the paper to enrich number of \(k\) mers
+\item With \(k = 1000\) and \(\delta = 20 000 \) we cover 67\% of the genome by blocks with multiplicity 3. Our blocks match 212 blocks
+from overall 252 in Kellis paper
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Conclusions}
+\begin{itemize}
+\item Our method is applicable for reconstructing synteny blocks in closely related species
+\item It can be extendede to handle more complicated cases
+\end{itemize}
+Future plans:
+\begin{itemize}
+\item Perform additional tests and evaluations
+\item Release software for finding synteny blocks in closely related species (end of Setptember)
+\item Write a paper
+\item Incorporate a local alignment tool and extend range of use to more complicated cases
 \end{itemize}
 \end{frame}
 
