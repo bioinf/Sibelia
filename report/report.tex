@@ -1,4 +1,4 @@
-\documentclass[a4paper,12pt]{scrartcl} 
+\documentclass[a4paper, 12pt]{scrartcl} 
 \usepackage{ulem}
 \usepackage{graphicx}
 \usepackage{amsmath}
@@ -18,11 +18,17 @@
 \captionsetup{compatibility=false}
 \begin{document}
 
+
 \title{SyntenyFinder: A Synteny Blocks Generation and Genome Comparison Tool}
 \author{Intern: Ilya Minkin\\
 	Advisor: Son Pham}
 \date{}
 \maketitle
+\algnotext{EndFor}
+\algnotext{EndIf}
+\algnotext{EndWhile}
+
+\linespread{1.3}
 
 \begin{abstract}
 We present an algorithm for finding synteny blocks in genomes. The algorithm is based on colored de Bruijn graphs and graph simplifications.
@@ -36,22 +42,18 @@ Recent advances in high throughput sequencing and genome assembling technologies
 completely sequenced genomes, ranging from bacteria to mammalian \cite{Genome10K}. It raises a lot of interesting 
 biological question. For example, it is not obvious how DNA sequence leads to observable phenotype. Comparative genomics
 addresses this question using the fact that common features of two organisms are often encoded by DNA regions that are conserved
-within the species \cite{ComparativeGenomics}. 
-
-Another question is evolution. It is known that genome rearrangements play important role in adaptation in adaptation of bacteria
+within the species \cite{ComparativeGenomics}. Another question is evolution. It is known that genome rearrangements play important role in adaptation in adaptation of bacteria
 for different environments \cite{GenomeEvolutionAdaptation}. And the more exciting is study of mammalian evolution \cite{HumanMouse}.
+Any such research requires a tool that will reveal a structure of the genomes. For example, in order to perform rearrangements analysis, genomes must be decomposed into
+conservative segments, called synteny blocks. Currently existing tools for solving this problem, like DRIMM-Synteny
+\cite{Pham2010}, require genomes to be presented as sequences of enumerated local alignments, or \textit{anchors}.
 
-In order to perform rearrangement analysis, the genomes must be decomposed into conservative segments,
-called synteny blocks. Currently existing tools for solving this problem, like DRIMM-Synteny
-\cite{Pham2010}, require the genomes to be presented as sequences of enumerated local alignments, or \textit{anchors}.
-
+In this paper we address problem of finding synteny blocks in unannotated sequences. Our approach is based on de Bruijn graphs.
 De Bruijn graphs are extensively used in bioinformatics for genome assembly \cite{Pevzner2001, Iqbal2012}. 
-In this work we address problem of finding synteny blocks from nucleotide sequences. We propose new 
-algorithm for this task based on colored de Bruijn graph.
 
-\section{Problem definition}
+\section{Methods}
 
-Suppose that we are given a set \(S = \lbrace S_{1}, S_{2}, \ldots, S_{n} \rbrace \) of chromosomes, and each
+Given a set \(S = \lbrace S_{1}, S_{2}, \ldots, S_{n} \rbrace \) of chromosomes, where each
 chromosome is represented as a string over alphabet \(\lbrace A, C, G, T \rbrace \). The task of finding synteny
 blocks is to find a set of so called conserved regions \(C = \lbrace C_{1}, C_{2}, \ldots , C_{n} \rbrace \), where
 each conserved region \(C_{i}\) is a set of substrings of chromosomes from \(S\). Such regions are supposed 
@@ -62,8 +64,6 @@ obtained from concatenating all chromosomes from the set -- we can just separate
 
 At this moment there is no generally accepted formal criterion of similarity exist, so the problem of finding synteny blocks is ill-defined.
 In our work we introduce new criterion of similarity based on de Bruijn graphs and graph simplifications.
-
-\section{General idea}
 
 \begin{figure}
         \begin{subfigure}[a]{1\textwidth}
@@ -127,9 +127,7 @@ by another. In results section we will demonstrate on a practical half-synthetic
 complicated cases. So at this point our method is directly applicable to only evolutionary close genomes and  in near future we plan to extend it to
 wider range of use.
 
-\section{Detailed description}
-
-In this section we formally describe our algorithm for finding synteny blocks. We are given two numbers \(k\) and \(\delta\) and a
+Let's formally describe our algorithm for finding synteny blocks. We are given two numbers \(k\) and \(\delta\) and a
 set \(S = \lbrace S_{1}, S_{2}, \ldots, S_{n} \rbrace \) of chromosomes,
 where each chromosome  \(S_{i} = (s_{i, 1}, s_{i, 1}, \ldots, s_{i, m_i})\) is a string over alphabet \(\Sigma = \lbrace A, C, G, T \rbrace\).
 Let's denote by \(X_{1} \uplus X_{2}\) concatenation of strings \(X_{1}\) and \(X_{2}\). We denote by \(X[i, j]\) a substring of a string \(X\) that
@@ -162,7 +160,7 @@ is called a \textit{bulge}, iff following holds: \\
 1) \(Start(b_{1}) = Start(b_{2}) \wedge End(b_{1}) = End(b_{2}) \) \\
 2) \(b_{1}\) and \(b_{2}\) have no common vertices except \(Start(b_{1})\) and \(End(b_{1})\) \\
 3) There are no edges \(e_{1} \in b_{1}, e_{2} \in b_{2} \) such that \(Spell(e_{1}) = Spell(e_{2})\) \\
-4) Their sets of positions do not intersect (I'll define it a bit later) 
+4) Their sets of positions do not intersect
 
 A bulge \(B =\lbrace b_{1}, b_{2} \rbrace \) is called \textit{bad} iff \(|b_1| < \delta \wedge |b_2| < \delta\) where \(\delta\) is a parameter.
 
@@ -182,7 +180,11 @@ is depicted on figure~\ref{ColoredDeBruijn}. Here \(Rev(\hat{S}) = "actgacaggt"\
 list \(L\). Vertices \("ac", "ct", "tg"\) are bifurcations, while \("cc", "tc", "ga"\) are not. Two paths \(("ac", "ct")\) and \((("ac", "cc"), ("cc", "ct"))\)
 form a bulge. Two multiedges \(("ct", "tg")\) form a non-branching path.
 
-Pseudocode of our algorithm for synteny blocks finding is below. Actually, it lacks some important details, so I will augment it later.
+Pseudocode of our algorithm for synteny blocks finding is presented below. Procedure of building a de Bruijn graph is described above. Procedure
+\(ReplaceBranch\) works as follows. It takes two paths (edges) as input and then finds two bifurcations with highest degree: one that lies on path that starts
+by edge \(e_1\) and one that lies on path \(e_2\). A path that has lowest maximum degree of a bifurcation is replaced with the other.
+
+Unfortunately, this description lacks many details (due to lack of time).
 
 \begin{algorithm}[H]               
 \small \caption*{\(SyntenyFinder(S = \lbrace S_{1}, S_{2}, \ldots, S_{n} \rbrace,  k, \delta)\)} 
@@ -208,9 +210,38 @@ Pseudocode of our algorithm for synteny blocks finding is below. Actually, it la
 \end{algorithm}
 
 \section{Experimental results}
-Results
+We have implemented our algorithm in C++. To evaluate performance of our program, we have performed several tests.
+First test set consists of two bacteria from \textit{Pseudomonas aeruginosa} group: \textit{Pseudomonas aeruginosa PAO1} and \textit{Pseudomonas aeruginosa UCBPP-PA14}. We built
+dotplots (see figure~\ref{DotPlot}) to explore conserved regions in these strains. It shows that there are two absolutely conserved regions at the start and the end of the genomes and a big
+inversion in the middle. We ran our program on the genomes with \(k = 5000\) and \(\delta = 25000\). As a result, each genome is represented as a permutations of signed integers. Positive
+number denote occurrence of a synteny block on the positive strand, negative number denote occurrence on the negative strand. Here are resulting permutations (one line corresponds to a
+genome): \\
++9 -0 -1 -2 -3 -4 -5 -6 +7 +10 +8 \\
++9 -7 +6 +5 +4 +3 +2 +1 +0 +10 +8
+
+One can see that found synteny blocks are consistent with the dotplots.
+
+Another dataset include three strains of \textit{Mycobacterium tuberculosis H37Rv}: \\
+Laboratory reference strain \textit{H37Rv} \\
+CCDC5180 \\
+CCDC5079
+
+One of this strains has multiple drugs resistance. We used \(K = 1000\) and \(\delta = 5000\) to find synteny blocks. We have found 19 synteny blocks
+with multiplicity \(3\). These blocks cover 96\% of the genome.
+
+\begin{figure}
+\centering
+\includegraphics[scale = 0.30]{PA01POS_PA14POS.png}
+\includegraphics[scale = 0.30]{PA01NEG_PA14POS.png}
+\small \caption{Dot plots of bacteria from \textit{Pseudomonas aeruginosa} group. Left dot plot corresponds to PA01 against PA14, right dot plot corresponds to reverse-complementary of PA01 against PA14}
+\label{DotPlot}
+\end{figure}
+
+
 \section{Conclusion}
-Conclusion
+In this work we present an algorithm, that is able to find synteny blocks from unannotated sequences. It can be applied to genomes of species that are evolutionary close to each other.
+With some modifications our method can be extended for finding synteny blocks in more distant genomes.
+
 
 \begin{thebibliography}{9}
 \bibitem{Genome10K}
