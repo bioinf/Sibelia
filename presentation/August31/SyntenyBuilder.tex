@@ -33,25 +33,50 @@
 \begin{frame}
 \frametitle{Synteny Blocks: Algorithmic challenge}
 \begin{itemize}
-\item Suppose that we are given two genomes
-\item The question is: how are they evolutionary related to each other?
-\item In order to do rearrangements analysis we must decompose genomes into synteny blocks
-\item Synteny blocks are evolutionary conserved segments of the genome
-\item These blocks cover most of the genome
-\item Occur in both genomes with possible variations
+    \item Recent advancements in sequencing technologies and genome assembly algorithms
+\item Multiple strains of the same species:
+    \begin{itemize}
+        \item Mycobacterium tuberculosis: Some strains are susceptible to Tuberculosis treatment, and others with multiple drugs resistance
+        \item Pseudomonas aeruginosa: can express a variety of virulance determinants.
+         \item 1001 strains of arabidopsis
+        \pause
+    \item \textbf{similarities and differences} of these genomes help to clarify their different/common phenotypes.
+    \end{itemize}
+\pause
+\item Genomes from multiple species (G10K)
+    \begin{itemize}
+        \item how are they \textbf{evolutionary related}?
+\item How to prove Whole Genomes Duplication?
+\item How many rounds of WGDs have occurred?
+    \end{itemize}
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{Academic Project}
-Project: Identify synteny blocks for duplicated genomes represented as sequences of \textbf{nucleotides}.
+\frametitle{SyntenyFinder}
 \begin{itemize}
-\item \textbf{None} of the previous synteny blocks reconstruction software (DRIMM-Synteny (Pham and Pevzner 2010) included) can 
-efficiently solve this problem. 
-\item DRIMM-Synteny can find the synteny blocks for complicated genomes. But:
-\pause \item It requires the genome to be represented as sequence of genes. 
+\item These questions lead to a sheer demand for a synteny block generating program that:
+\begin{itemize}
+\item Able to compare genomes from multiple strains within the same species
+\item Able to allow evolutionary studies of genomes belong to different species
+\end{itemize}
+\pause
+\item We introduce \textbf{SyntenyFinder} as the first step of addressing these problems
+\pause
+\item \textbf{SyntenyFinder} constructs synteny blocks on genomes represented as \textbf{sequence of nucleotides}. 
 \end{itemize}
 \end{frame}
+
+%    \begin{frame}
+%    \frametitle{Academic Project}
+%    Project: Identify synteny blocks for duplicated genomes represented as sequences of \textbf{nucleotides}.
+%    \begin{itemize}
+%    \item \textbf{None} of the previous synteny blocks reconstruction software (DRIMM-Synteny (Pham and Pevzner 2010) included) can 
+%    efficiently solve this problem. 
+%    \item DRIMM-Synteny can find the synteny blocks for complicated genomes. But:
+%    \pause \item It requires the genome to be represented as sequence of genes. 
+%    \end{itemize}
+%    \end{frame}
 
 \begin{frame}
 \frametitle{General Idea: de Bruijn Graph}
@@ -299,7 +324,7 @@ to closely related species (different strains of a bacteria, etc)
 \frametitle{Results: a simple example}
 \begin{itemize}
 \item Then we constructed the blocks using our program
-\item \(K = 5000, \delta = 25000\)
+\item \(K = 5000, \delta = 25000\) (Cycle length threshold)
 \item Results: \\
 +9 -0 -1 -2 -3 -4 -5 -6 +7 +10 +8 \\
 +9 -7 +6 +5 +4 +3 +2 +1 +0 +10 +8 \\
@@ -316,7 +341,7 @@ CCDC5079 \\
 \item One of this strains has multiple drugs resistance
 \item We use \(K = 1000\) and \(\delta = 5000\)
 \item Blocks with multiplicity 3 cover 96\% of the genome
-\item And Son see an evidence of rearrangements there
+\item We see an evidence of rearrangements.
 \end{itemize}
 \end{frame}
 
@@ -326,38 +351,48 @@ CCDC5079 \\
 \begin{figure}
 \centering
 \includegraphics[scale = 0.50]{tuber.pdf}
-\small \caption{}
+\small \caption{Black edges -- Drug resistant strain}
 \end{figure}
 \end{changemargin}
 \end{frame}
 
 \begin{frame}
-\frametitle{Results: yeasts dataset}
+\frametitle{When there are not many shared k-mers.}
 \begin{itemize}
-\item Well known research about yeasts \textit{Saccharomyces cerevisiae} and \textit{Kluyveromyces waltii} \braces{Kellis et al., 2004} 
+\item Well known research about yeasts \textit{S. cerevisiae} and \textit{K. waltii} \braces{Kellis et al., 2004} 
 \item This paper shows evidence of so called \textit{double conserved synteny} regions: one region (block) in k.waltii corresponds to two
 regions in cerevisiae
-\item We can't apply our method directly. But we can use alignments of ORFs from 
-the paper to enrich number of \(k\) mers
+\item We enrich number of shared \(k\)-mers by using \textbf{alignment tools}
 \item With \(k = 1000\) and \(\delta = 20 000 \) we cover 67\% of the genome by blocks with multiplicity 3. Our blocks match 212 blocks
-from overall 252 in Kellis paper
+from overall 252 in Kellis paper.
+\item Most uncovered blocks are small
 \end{itemize}
 \end{frame}
+
 
 \begin{frame}
 \frametitle{Conclusions}
 \begin{itemize}
-\item Our method is applicable for reconstructing synteny blocks in closely related species
-\item It can be extendede to handle more complicated cases
-\end{itemize}
-Future plans:
-\begin{itemize}
-\item Perform additional tests and evaluations
-\item Release software for finding synteny blocks in closely related species (end of Setptember)
-\item Write a paper
-\item Incorporate a local alignment tool and extend range of use to more complicated cases
+    \item \textbf{SyntenyFinder} is applicable for reconstructing synteny blocks in closely related species.
+\item It can be extended to handle more complicated cases. 
+\item \textbf{SyntenyFinder} will be introduced at \textbf{WABI 2012.}
 \end{itemize}
 \end{frame}
+
+
+
+\begin{frame}
+\frametitle{Ongoing work and Future Plan}
+\begin{itemize}
+    \item \textbf{In progress}: Paper writing
+\item Perform additional tests and evaluations on additional datasets (with interesting biological stories)
+\item Release software for finding synteny blocks in closely related species (end of September)
+\item Incorporate into MGRA website
+\item Incorporate a local alignment tool and extend the software for more complicated genomes. 
+\end{itemize}
+\end{frame}
+
+
 
 \begin{frame}
 \frametitle{References}
