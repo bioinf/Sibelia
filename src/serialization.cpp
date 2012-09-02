@@ -24,14 +24,16 @@ namespace SyntenyBuilder
 		}
 		
 		
-		void SerializeCondensed(const BifurcationStorage & bifStorage,
+		void SerializeCondensed(const BifurcationStorage & bifStorage, size_t k,
 			StrandIterator start, StrandIterator end, std::ostream & out)
 		{
 			for(; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; ++start);
-			size_t prev = start != end ? bifStorage.GetBifurcation(start) : -1;
+			size_t prev = start != end ? bifStorage.GetBifurcation(start) : -1;			
 			for(; start != end; )
 			{
 				size_t step = 0;				
+
+				StrandIterator origin = start;
 				for(++start; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; 
 					++start, ++step);
 
@@ -43,13 +45,14 @@ namespace SyntenyBuilder
 					{
 						char buf[1 << 8];
 						out << prev << " -> " << bifId;
+						char ch = *AdvanceForward(origin, k);
 						if(start.GetDirection() == DNASequence::positive)
-						{
-							sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "blue", static_cast<long long unsigned>(step + 1));
+						{							
+							sprintf(&buf[0], "[color=\"%s\", label=\"L=%lu C=%c\"];", "blue", static_cast<long long unsigned>(step + 1), ch);
 						}
 						else
 						{
-							sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "red", static_cast<long long unsigned>(step + 1));
+							sprintf(&buf[0], "[color=\"%s\", label=\"L=%lu C=%c\"];", "red", static_cast<long long unsigned>(step + 1), ch);
 						}
 
 						out << " " << buf << std::endl;
@@ -89,8 +92,8 @@ namespace SyntenyBuilder
 	{
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
-		SerializeCondensed(bifStorage, sequence.PositiveBegin(), sequence.PositiveEnd(), out);
-		SerializeCondensed(bifStorage, sequence.NegativeBegin(), sequence.NegativeEnd(), out);
+		SerializeCondensed(bifStorage, k, sequence.PositiveBegin(), sequence.PositiveEnd(), out);
+		SerializeCondensed(bifStorage, k, sequence.NegativeBegin(), sequence.NegativeEnd(), out);
 		out << "}" << std::endl;
 	}
 

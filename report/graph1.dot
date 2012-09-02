@@ -1,18 +1,19 @@
 digraph G
 {
 rankdir=LR
-ac -> cg [color="black", label="0"];
-cg -> gc [color="black", label="1"];
-gc -> ca [color="black", label="2"];
-ca -> at [color="black", label="3"];
-at -> tt [color="black", label="4"];
-tt -> tg [color="black", label="5"];
-tg -> gt [color="black", label="6"];
-gt -> ta [color="black", label="7"];
-ta -> ac [color="black", label="8"];
-ac -> ct [color="black", label="9"];
-ct -> tc [color="black", label="10"];
-tc -> ca [color="black", label="11"];
-ca -> at [color="black", label="12"];
-at -> tt [color="black", label="13"];
+ac -> ct [color="black", label="1"];
+ct -> tg [color="black", label="2"];
+tg -> gc [color="black", label="3"];
+gc -> ca [color="black", label="4"];
+ca -> at [color="black", label="5"];
+at -> ta [color="black", label="6"];
+ta -> ag [color="black", label="7"];
+ag -> ga [color="black", label="8"];
+ga -> ac [color="black", label="9"];
+ac -> ct [color="black", label="10"];
+ct -> tt [color="black", label="11"];
+tt -> tc [color="black", label="12"];
+tc -> ca [color="black", label="13"];
+ca -> at [color="black", label="14"];
+at -> ta [color="black", label="15"];
 }
