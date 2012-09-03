@@ -31,23 +31,23 @@
 \onehalfspacing
 
 \begin{abstract}
-We present an algorithm for finding synteny blocks in genomes. The algorithm is based on de Bruijn graphs and graph simplifications.
-Our method is suitable for finding synteny blocks in genomes that contain regions of highly conserved DNA, i.e. genomes that are evolutionary
+    We present \textit{SyntenyFinder}, a de Bruijn graph based algorithm for finding synteny blocks in genomes. Our 
+method is suitable for finding synteny blocks in genomes that contain regions of highly conserved DNA, i.e. genomes that are evolutionary
 close to each other. We evaluated our tool on several datasets that include different strains of \textit{Mycobacterium tuberculosi} and 
-\textit{Pseudomonas aeruginosa}. We also show that with some modifications the algorithm can be applied to generate synteny blocks in
+\textit{Pseudomonas aeruginosa}. We also showed that with some modifications, the algorithm can be applied to generate synteny blocks in
 distant genomes. 
 \end{abstract}
 
 \section{Introduction}
 
-Recent advances in high throughput sequencing and genome assembling technologies are resulting in numerous of 
+Recent advances in high throughput sequencing and genome assembling technologies are resulting in many 
 finished genomes, ranging from bacterial to mammalian. The comparison of these genomes has been emerging as a powerful
-tool for genome interpretations and has led to many important biological discoveries.
+tool for genome interpretations and has led to many important scientific discoveries.
 
 The genome comparison tasks may be classified into two major directions: comparing genomes of different strains within the same species
 and comparing genomes in different species. While comapring genomes from different species shines the light in their evolutional history, 
-a finner look at the different and common regions of the closely related genomes (genomes within the same species) allow us to understand 
-more about the function of many regions in these genomes and explain how these strains can adapt in different environment. 
+a finer look at the different and common regions of the closely related genomes (genomes within the same species) allows us to understand 
+more about the function of many regions in these genomes and explains how these strains can adapt in different environments. 
 
 %The genome comparison tasks often require to decompose the genomes into highly conserved sequence
 
@@ -66,8 +66,8 @@ It requires input genomes to share exact substrings of fixed length (\(> 100\) b
 closely related genomes, like different strains of the same species. But with some modifications it can be extended to wider range of use, i.e., 
 finding synteny blocks in distant genomes.
 
-In \textit{Overview} section we describe the problem definition and basic intuitions behind our method, section \textit{Algorithm description}
-contains formal description of our method. Finally, in \textit{Results} section, we benchmark our program on several datasets.
+In \textit{Overview} section we describe the problem definition and basic intuitions behind our method, section \textit{Algorithm Description}
+contains formal description of our method. Finally, in \textit{Results} section, we benchmark our program on bacteria and yeasts datasets.
 
 \section{Overview}
 
@@ -76,7 +76,7 @@ chromosome is represented as a string over alphabet \(\lbrace A, C, G, T \rbrace
 blocks is to find a set of so called conserved regions \(C = \lbrace C_{1}, C_{2}, \ldots , C_{n} \rbrace \), where
 each conserved region \(C_{i}\) is a set of substrings of chromosomes from \(S\). Such regions are supposed 
 to cover most of the genome for closely related species.  All substrings forming a conserved region \(C_{i}\) must be
-\emph{similar} to each other according to some criterion of similarity. Note that problem of finding synteny blocks in a set
+\textit{similar} to each other according to some criterion of similarity. Note that problem of finding synteny blocks in a set
 of chromosomes is equivalent to a problem of finding synteny blocks in one superchromosome
 obtained from concatenating all chromosomes from the set -- we can just separate chromosomes by special characters.
 
@@ -248,7 +248,7 @@ and calculates starting and ending indices of the substring of the string \(\hat
 \end{algorithm}
 
 \section{Experimental results}
-We have implemented \emph{SyntenyFinder} in C++. To evaluate performance of our program, we benchmarked it on bacteria and yeasts datasets.
+We have implemented \textit{SyntenyFinder} in C++. To evaluate performance of our program, we benchmarked it on bacteria and yeasts datasets.
 
 First dataset includes three strains of \textit{Mycobacterium tuberculosis} H37Rv: laboratory reference strain H37Rv,
 CCDC5180, CCDC5079. We used \(K = 1000\) and \(\delta = 5000\) as parameters for this running. Our tool found
