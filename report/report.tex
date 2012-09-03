@@ -240,11 +240,13 @@ and calculates starting and ending indices of the substring of the string \(\hat
 \section{Experimental results}
 We have implemented our algorithm in C++. To evaluate performance of our program, we have performed several tests.
 
-First dataset include three strains of \textit{Mycobacterium tuberculosis} H37Rv: laboratory reference strain H37Rv,
+First dataset includes three strains of \textit{Mycobacterium tuberculosis} H37Rv: laboratory reference strain H37Rv,
 CCDC5180, CCDC5079. We used \(K = 1000\) and \(\delta = 5000\) as parameters for this running. Our tool found
 19 synteny blocks shared between all three genomes. These blocks cover 96\% of the genome.
 
-[I'll add evaluation on \textit{Pseudomonas aeruginosa} a bit later]
+Second dataset includes three strains of \textit{Pseudomonas aeruginosa}: 39016, UCBPP-PA14, PAO1 and NCGM2.S1.
+Parameters were \(K = 1000\) and \(\delta = 5000\) as in previous test. We tool found 140 synteny blocks shared between four genomes. 
+These blocks cover 90\% of the genome.
 
 We also performed evaluation on well known yeast dataset including \textit{K.waltii} and \textit{S. cerevisiae}. Paper \cite{Kellis2004} describes
 \(253\) so called regions of \textit{double conserved synteny}: DNA that are conserved between two regions in \textit{S. cerevisiae} and one region in \textit{K.waltii}.
