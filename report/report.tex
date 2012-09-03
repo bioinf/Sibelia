@@ -34,32 +34,40 @@
 We present an algorithm for finding synteny blocks in genomes. The algorithm is based on de Bruijn graphs and graph simplifications.
 Our method is suitable for finding synteny blocks in genomes that contain regions of highly conserved DNA, i.e. genomes that are evolutionary
 close to each other. We evaluated our tool on several datasets that include different strains of \textit{Mycobacterium tuberculosi} and 
-\textit{Pseudomonas aeruginosa}.We also show that with some modifications the algorithm can be applied in more complicated cases. 
+\textit{Pseudomonas aeruginosa}. We also show that with some modifications the algorithm can be applied to generate synteny blocks in
+distant genomes. 
 \end{abstract}
 
 \section{Introduction}
 
-Recent advances in high throughput sequencing and genome assembling technologies result in appearance of high number of
-completely sequenced genomes, ranging from bacteria to mammalian. It raises a lot of interesting biological question, and one of the most
-exciting one is the evolutionary relationship of all these species. 
+Recent advances in high throughput sequencing and genome assembling technologies are resulting in numerous of 
+finished genomes, ranging from bacterial to mammalian. The comparison of these genomes has been emerging as a powerful
+tool for genome interpretations and has led to many important biological discoveries.
 
-It is known that genome rearrangements play important role in the evolution \cite{Pevzner2003a, Pevzner2003b, Bourque2004, Sankof2003}. The
-rearrangements involve large portions of DNA and change their location and orientation. Particularly, rearrangements help bacteria in adaptation to various
-environments \cite{Aujolat2012}. Another interesting evolutionary event is the whole genome duplication, which is usually
-followed by massive gene loss \cite{Arabidopsis2000, Kellis2004}.
+The genome comparison tasks may be classified into two major directions: comparing genomes of different strains within the same species
+and comparing genomes in different species. While comapring genomes from different species shines the light in their evolutional history, 
+a finner look at the different and common regions of the closely related genomes (genomes within the same species) allow us to understand 
+more about the function of many regions in these genomes and explain how these strains can adapt in different environment. 
 
-Although there are algorithms that address problem of restoring evolutionary scenario for a given set of genomes \cite{Alekseyev2009}, they require input
-genomes to be  decomposed to a collection of synteny blocks -- long regions of conserved DNA. Currently existing tools
+%The genome comparison tasks often require to decompose the genomes into highly conserved sequence
+
+%    It is known that genome rearrangements play important role in the evolution \cite{Pevzner2003a, Pevzner2003b, Bourque2004, Sankof2003}. The
+%    rearrangements involve large portions of DNA and change their location and orientation. Particularly, rearrangements help bacteria in adaptation to various
+%    environments \cite{Aujolat2012}. Another interesting evolutionary event is the whole genome duplication, which is usually
+%    followed by massive gene loss \cite{Arabidopsis2000, Kellis2004}.
+
+The genome comparison tasks often require genomes to be  decomposed to a collection of synteny blocks -- long regions of conserved DNA. Currently existing tools
 \cite{Pham2010} are able to reconstruct synteny blocks from genomes represented as sequences of enumerated local alignments, or \textit{anchors}.
 Usually, anchors denote homologous genes.
 
 In this paper we propose \textit{SyntenyFinder} -- a tool for finding synteny blocks in genomes represented as nucleotide sequences.
 Our approach is based on de Bruijn graphs that are extensively used in bioinformatics for genome assembly \cite{Pevzner2001, Iqbal2012}. 
 It requires input genomes to share exact substrings of fixed length (\(> 100\) bp). Therefore, our method can be applied directly to only
-closely related genomes, like different strains of bacteria. But with some modifications it can be extended to wider range of use.
+closely related genomes, like different strains of the same species. But with some modifications it can be extended to wider range of use, i.e., 
+finding synteny blocks in distant genomes.
 
 In \textit{Overview} section we describe the problem definition and basic intuitions behind our method, section \textit{Algorithm description}
-contains formal description of our method, \textit{Results} describes results of evaluation of our program on several datasets.
+contains formal description of our method. Finally, in \textit{Results} section, we benchmark our program on several datasets.
 
 \section{Overview}
 
@@ -68,7 +76,7 @@ chromosome is represented as a string over alphabet \(\lbrace A, C, G, T \rbrace
 blocks is to find a set of so called conserved regions \(C = \lbrace C_{1}, C_{2}, \ldots , C_{n} \rbrace \), where
 each conserved region \(C_{i}\) is a set of substrings of chromosomes from \(S\). Such regions are supposed 
 to cover most of the genome for closely related species.  All substrings forming a conserved region \(C_{i}\) must be
-similar to each other according to some criterion of similarity. Note that problem of finding synteny blocks in a set
+\emph{similar} to each other according to some criterion of similarity. Note that problem of finding synteny blocks in a set
 of chromosomes is equivalent to a problem of finding synteny blocks in one superchromosome
 obtained from concatenating all chromosomes from the set -- we can just separate chromosomes by special characters.
 
@@ -109,8 +117,8 @@ mismatch in substrings \("ctGca"\) and \("ctTca"\) form so-called "bulge", unori
 coinciding ends. If we replace one branch of the bulge by another (replace\("ctGca"\) by \("ctTca"\)), we obtain
 a long non-branching path (Figure~\ref{DeBruijnB}).
 
-This heuristic forms basis of our method -- conserved regions in different parts of the genome contain conserved basepairs, but
-such regions are disrupted by indels and mismatches. These differences form bulges in the graph that make it different to infer
+This heuristic forms basis of our method -- conserved regions in different parts of the genome are usually 
+disrupted by indels and mismatches. These differences form bulges in the graph that make it different to infer
 structure of the synteny blocks. We remove bulges having size less than some predefined constant and thus obtain non-branching
 paths corresponding to the conserved regions. The process of removing bulges from the graph is called \textit{simplification}. We
 sustain one-to-one correspondence between the graph and the string -- when we change something in the graph, we also change
@@ -120,18 +128,19 @@ Conserved regions can be located on opposite strands of DNA. To handle this, we 
 of the input string. We distinguish between direct and reverse complementary edges by coloring them in different colors.
 Given a string \(S\), for each \((k + 1)\)-mer found in \(S\) we add corresponding edge to the graph and color it \textit{blue}, for 
 each \((k + 1)\)-mer found in reverse-complementary counterpart of \(S\) we add corresponding edge to the graph and color it \textit{red}.
-In this graph, non-branching paths with different colors represent synteny blocks located on opposite strands of DNA.
+In this graph, non-branching paths with different colors represent synteny blocks located on opposite strands of DNA. The program 
+consists of 4 steps:
+\begin{itemize}
+    \item Concatenate input chromosomes into one superchromosome 
+    \item Build de Bruijn graph from the superchromosome 
+    \item Simplify the graph 
+    \item Output synteny blocks as non-branching paths in the graph 
+\end{itemize}
 
-Complete pipeline is following:\\
-1) Concatenate input chromosomes into one superchromosome \\
-2) Build de Bruijn graph from the superchromosome \\
-3) Simplify the graph \\
-4) Output synteny blocks as non-branching path in the graph 
-
-Our algorithm depends on two parameters: \(k\) and \(\delta\) (minimum allowed size of a bulge). It is reasonable to use as high \(k\) as possible
+Our algorithm depends on two parameters: \(k\) (vertices size) and \(\delta\) (minimum allowed size of a bulge). It is reasonable to use as high \(k\) as possible
 \((k > 100)\) to keep graph structure simple and avoid connecting regions that are actually not homologous. So, our method requires that conserved regions
 in input genomes contain exact shared \(k\)-mers. This is not a problem in genomes that are very close to each other (like different strains of a bacteria),
-but it can create difficulties in genomes that had separated a long time ago.
+but it can create difficulties in genomes that have long evolutionary distances. 
 
 This issue can be solved, for example, by finding a set of all local alignments in the genomes and substituting one subsequence in each found alignment
 by another. In results section we will demonstrate on a practical half-synthetic example that with such modifications our method is able to handle
@@ -146,7 +155,8 @@ Let's denote by \(X_{1} \uplus X_{2}\) concatenation of strings \(X_{1}\) and \(
 starts at \(i\) and ends at \(j\), \(X[i, j] = (x_{i}, x_{i + 1}, \ldots, x_{j}) \). \(Rev(X)\) means reverse-complementary counterpart of a string \(X\).
 
 First step of the algorithm is to obtain superchromosome \(\hat{S} = S_{1} \uplus S_{2} \uplus \ldots \uplus S_{n} \). Concatenated
-strings are interleaved by special characters that indicate ends of the chromosomes, we omit these technical details. We build a linked list of
+strings are interleaved by special characters that indicate ends of the chromosomes (we omit these technical details for simplicity of the description). 
+We build a linked list of
 pairs \(L = ((\hat{s}_1, 1), (\hat{s}_2, 2), \ldots, (\hat{s}_{m}, m))\) and \(l_i\) is a pointer to \(i\)-th item in the list, function \(Next(l_i) = l_{i + 1}\) returns
 element after \(l_i\) in the list.
 %Let's denote by \(l_i[1]\) the first element of pair of \(i\)-th item of the list (\(l_i[2]\) is the second element).
@@ -238,7 +248,7 @@ and calculates starting and ending indices of the substring of the string \(\hat
 \end{algorithm}
 
 \section{Experimental results}
-We have implemented our algorithm in C++. To evaluate performance of our program, we have performed several tests.
+We have implemented \emph{SyntenyFinder} in C++. To evaluate performance of our program, we benchmarked it on bacteria and yeasts datasets.
 
 First dataset includes three strains of \textit{Mycobacterium tuberculosis} H37Rv: laboratory reference strain H37Rv,
 CCDC5180, CCDC5079. We used \(K = 1000\) and \(\delta = 5000\) as parameters for this running. Our tool found
@@ -253,15 +263,17 @@ We also performed evaluation on well known yeast dataset including \textit{K.wal
 Our method cannot be applied directly for this dataset since homologous genes in these genomes lack exact shared \(k\)-mers even for \(k < 20\). We used
 matching of genes between these two genomes to enrich number of shared \(k\)-mers -- for each pair of homologous genes we substituted sequence of one
 gene by another in the genome. We ran our program on the resulting enriched genome with \(k = 1000\) and \(\delta = 20 \,000\) and selected blocks shared
-across all three genomes having size at least \(1 000\) base pairs. We have found \(270\) such blocks and \(185\) of them match blocks described in \cite{Kellis2004}.
+across all three genomes having size at least \(1 000\) base pairs. We have found \(270\) such blocks and \(185\) of them match the blocks described in \cite{Kellis2004}.
 Total length of the blocks (we count only \textit{S. cerevisiae} regions) described in \cite{Kellis2004} is \(8  \, 390  \, 452\) bp, total length of our blocks is \(7 \, 773 \, 519\) bp, and \(6 \, 641 \, 468\) bp
 from our blocks overlap with blocks from \cite{Kellis2004}. Our blocks cover  \(\frac{7 \, 773 \, 519}{12 \, 495 \, 682} \times 100 \% = 62\% \) of \textit{S. cerevisiae} genome. Most
-blocks from \cite{Kellis2004} that are unmatched by our blocks are short (less than \(10 \, 000\) bp), many of them look inconsistent. This half-synthetic example shows that
+blocks from \cite{Kellis2004} that are unmatched by our blocks are short (less than \(10 \, 000\) bp), many of them do not appear to be
+synteny blocks when we manually check them. This half-synthetic example shows that
 our method is indeed correct and after incorporating a local alignment tool our algorithm can be used to find synteny blocks even in complicated cases.
 
 
 \section{Conclusion}
-In this work we present an algorithm, that is able to find synteny blocks from unannotated sequences. It can be applied to genomes of species that are evolutionary close to each other.
+In this work we present an algorithm, that is able to find synteny blocks from unannotated sequences. It can be applied to genomes of species that are 
+evolutionary close to each other.
 With some modifications our method can be extended for finding synteny blocks in more distant genomes.
 
 
