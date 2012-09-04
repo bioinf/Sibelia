@@ -1,0 +1,26 @@
+digraph G
+{
+rankdir=LR
+ta -> ac [color="blue", label="1"];
+ac -> cc [color="blue", label="2"];
+cc -> ct [color="blue", label="3"];
+ct -> tg [color="blue", label="4"];
+tg -> gt [color="blue", label="5"];
+gt -> tc [color="blue", label="6"];
+tc -> ca [color="blue", label="7"];
+ca -> ag [color="blue", label="8"];
+ag -> gg [color="blue", label="9"];
+gg -> gt [color="blue", label="10"];
+gt -> ta [color="blue", label="11"];
+ta -> ac [color="red", label="13"];
+ac -> cc [color="red", label="12"];
+cc -> ct [color="red", label="11"];
+ct -> tg [color="red", label="10"];
+tg -> ga [color="red", label="9"];
+ga -> ac [color="red", label="8"];
+ac -> ca [color="red", label="7"];
+ca -> ag [color="red", label="6"];
+ag -> gg [color="red", label="5"];
+gg -> gt [color="red", label="4"];
+gt -> ta [color="red", label="3"];
+}

@@ -1,0 +1,101 @@
+% adapted Philippe Dreuw and Thomas Deselaers
+% further adapted from edits by James Malcolm
+% finally, Shawn Lankton made some edits (www.shawnlankton.com)
+
+\ProvidesPackage{beamerthemeLankton}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\mode<presentation>
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\definecolor{butter}{rgb}{0.98824, 0.91373, 0.30980}		% #fce94f
+\definecolor{orange}{rgb}{0.98824, 0.68627, 0.24314}		% #fcaf3e
+\definecolor{deepdeepblue}{rgb}{0.16471, 0.039216, 0.42745}
+\definecolor{deepblue}{rgb}{0.22, 0.1, 0.99}
+\definecolor{normblue}{rgb}{0.27059, 0.38039, 0.95294}
+\definecolor{backgrndblue}{rgb}{0.79608, 0.69804, 1}
+
+\definecolor{lightblue}{RGB}{192, 223, 241}
+\definecolor{darkblue}{RGB}{5, 80, 120}
+
+\setbeamercolor{headline}{bg=lightblue}
+\setbeamercolor{footline}{bg=lightblue}
+\setbeamerfont{footline}{size=\large}
+\setbeamercolor{separation line}{bg=black}
+\setbeamercolor{title in headline}{fg=deepblue}
+\setbeamercolor{author in headline}{fg=normblue}
+\setbeamercolor{institute in headline}{fg=gray}
+
+\setbeamercolor{framesubtitle}{fg=blue, bg=gray}
+\setbeamercolor{author in head/foot}{fg=black,bg=backgrndblue}
+\setbeamercolor{title in head/foot}{fg=black,bg=black}
+\setbeamercolor{website in footline}{fg=black,bg=black}
+\setbeamercolor{email in footline}{fg=black,bg=black}
+
+\setbeamercolor*{normal text}{fg=black, bg=white}
+\setbeamercolor*{block body}{fg=black,bg=white}
+\setbeamercolor*{block title}{fg=darkblue,bg=lightblue}
+\setbeamerfont{block title}{size=\large,series=\sc\bf}
+\setbeamercolor{upper separation line head}{fg=black}
+
+\setbeamertemplate{blocks}[rounded][shadow=true]
+
+\setbeamertemplate{itemize items}[triangle]
+\setbeamertemplate{navigation symbols}{}  % no navigation on a poster
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setbeamertemplate{block begin}{
+  \vskip.5ex
+  \begin{beamercolorbox}[rounded=true,shadow=true,leftskip=1ex,colsep*=.5ex]{block title}%
+    \usebeamerfont*{block title}{\Large \insertblocktitle}
+  \end{beamercolorbox}%
+  {\ifbeamercolorempty[bg]{block body}{}{\nointerlineskip\vskip-0.5pt}}%
+  \usebeamerfont{block body}%
+  \begin{beamercolorbox}[rounded=true,shadow=true,colsep*=.5ex,sep=.5ex,vmode]{block body}%
+    \ifbeamercolorempty[bg]{block body}{\vskip-.25ex}{\vskip-.5ex}\vbox{}%
+  }
+  \setbeamertemplate{block end}{
+  \end{beamercolorbox}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setbeamertemplate{headline}{
+  \leavevmode
+
+  \begin{beamercolorbox}[wd=\paperwidth]{headline}
+    \begin{columns}[T]
+
+      \begin{column}{.01\paperwidth}
+      \end{column}
+
+      \begin{column}{.03\paperwidth}
+        \centering
+        \vskip6ex
+      \end{column}
+
+      \begin{column}{.8\paperwidth}
+        \vskip6ex
+        \centering
+        \usebeamercolor{title in headline}{\color{fg}\textbf{\LARGE{\inserttitle}}\\[1ex]}
+        \usebeamercolor{author in headline}{\color{fg}\Large{\insertauthor}\\[1ex]}
+        \usebeamercolor{institute in headline}{\color{fg}\large{\insertinstitute}\\[1ex]}
+        \vskip2ex
+      \end{column}
+
+      \begin{column}{.03\paperwidth}
+        \centering
+        \vskip6ex
+      \end{column}
+
+      \begin{column}{.08\paperwidth}
+      \end{column}
+
+    \end{columns}
+  \end{beamercolorbox}
+
+  \begin{beamercolorbox}[wd=\paperwidth]{lower separation line head}
+    \rule{0pt}{2pt}
+  \end{beamercolorbox}
+}
+
+% \Mode<all>
