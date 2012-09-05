@@ -4,6 +4,7 @@
 \usepackage{times}
 \usepackage{ragged2e} 
 \usepackage{caption}
+\usepackage{tabularx}
 \usepackage{graphicx}
 \usepackage{subcaption}
 \usepackage{amsmath,amsthm, amssymb, latexsym}
@@ -26,88 +27,158 @@
 \begin{column}{0.32\linewidth}
 
 \begin{block}{Introduction} \justifying
+We propose \textit{SyntenyFinder} -- a tool for finding synteny blocks in genomes represented as nucleotide sequences.
+Our approach is based on de Bruijn graph and can be applied to closely related genomes.
+\begin{figure}
+	\centering
+	\includegraphics[scale = 2.8]{syntenyBlocks.pdf}
+	\small \caption{Rectangles with arrows depict synteny blocks in two yeast genomes (Kellis2004)}
+\end{figure}
 Recent advances in sequencing and genome assembling technologies are resulting in many finished genomes.
-The comparison of these genomes has been emerging as a powerful tool for genome interpretations and has led to many important scientific discoveries.
-The genome comparison tasks often require genomes to be  decomposed to a collection of synteny blocks -- long regions of conserved DNA.
-
-[Here we insert a colorful picture about synteny blocks]
-
-Currently existing tools can reconstruct synteny blocks from genomes represented as sequences of enumerated local alignments, or \textit{anchors}.
-We propose \textit{SyntenyFinder} -- a tool for finding synteny blocks in genomes represented as nucleotide sequences. Our approach is based on de Bruijn graph
-and can be applied to closely related genomes.
+The comparison of these genomes has been emerging as a powerful tool for genome interpretations.
+These tasks often require genomes to be  decomposed to a collection of synteny blocks -- regions of conserved DNA.
 \end{block}
 
-\begin{block}{De Bruijn graphs} \justifying
-\(K\)-dimensional de Bruijn graph \(G(k)\) is a graph which vertex set consists of all possible \(k\)-length strings over the alphabet \(\lbrace A, C, G, T \rbrace\). 
-For each \((k + 1)\) - substring \(w\) in the given string \(S\) we add to \(G(k)\) an edge that connects \(k\)-prefix of \(w\) with \(k\)-suffix of \(w\) and label the edge with
-index of the first character of \(w\).
+\begin{block}{De Bruijn graphs in synteny block mining} \justifying
+Given a string \(S\) and a natural number \(k\) we construct \(k\)-dimensional de Bruijn graph \(G(k)\) as follows:
+
+\begin{itemize}
+\item For each unique \(k\)-substring add a vertex to \(G(k)\)
+\item For each \((k + 1)\)-substring \(w\) in \(S\) add to \(G(k)\) an edge that connects \(k\)-prefix of \(w\) with \(k\)-suffix of \(w\)
+\item Label edges with positions of the corresponding \((k + 1)\)-mers
+\end{itemize}
+
 \begin{figure}
-	\includegraphics[scale = 0.6]{deBruijnEdge.pdf}
-	\small \caption{Forming edge set of a \(4\)-dimensional de Bruijn graph}
+	\centering
+	\includegraphics[scale = 0.78]{simpleGraph.pdf}
+	\small \caption{De Bruijn graph \(G(2)\) built from string \("ACTGCATAGACTTCATA"\)}
 \end{figure}
-In this graph we allow only paths that have consecutive labels on edges, so each valid path spells a substring from \(S\).
-Non-branching paths in the graph \(G(k)\) indicate repeats in the string \(S\), i.e. synteny blocks. But in real genomes
-synteny blocks contain variations that disrupt non-branching paths. These variations create so called \textit{bulges} in
-the graph. In order to reconstruct synteny blocks we must \textit{simplify} the graph.
+
+In this graph we allow only paths that have consecutive labels on edges.
+Graph \(G(k)\) has following properties:
+
+\begin{itemize}
+\item Each valid path in the graph spells a substring from \(S\)
+\item Non-branching paths in the graph indicate exact repeats in \(S\)
+\item Variations in repeats create \textit{bulges} in \(G(k)\)
+\item Bulges are formed by two valid paths with shared ends
+\end{itemize}
+
+We remove bulges with size larger than some predefined constant \(\delta\) to obtain long non-branching paths. This process is 
+called \textit{simplification}.
 \end{block}
 
 \end{column}
 
 \begin{column}{0.32\linewidth}
 
+\begin{block}{Double strandness issue} \justifying
+Remember that a DNA molecule has two strands and synteny blocks can be located on both. We 
+resolve this by following:
+\begin{itemize}
+\item Build graphs for both strands separately
+\item Label edges in these graphs with two different colors
+\item Merge two graphs and work with the resulting graph 
+\end{itemize}
+\end{block}
+
 \begin{block}{SyntenyFinder algorithm} \justifying
 Given two numbers \(k\) and \(\delta\) and a set \(S = \lbrace S_{1}, S_{2}, \ldots, S_{n} \rbrace \) of chromosomes 
 represented as nucleotide strings, our algorithm works as follows:
 \begin{itemize}
-\item Concatenate all string in \(S\) into the supergenome \(\hat{S}\)
-\item Construct graph \(G_+(k)\) from \(\hat{S}\) and color all it's edges \textit{blue}
-\item Construct graph \(G_-(k)\) from reverse-complementary of \(\hat{S}\) and color all it's edges \textit{red}
-\item Obtain \(G(k) = G_+(k) \cup G_-(k)\) and change \(\hat{S}\) so that \(G(k)\) doesn't contain bulges with both branches having size \( < \delta \)
+\item Concatenate all chromosomes in \(S\) into the supergenome \(\hat{S}\)
+\item Construct graph \(G ^ +(k)\) from \(\hat{S}\) and color all it's edges \textit{blue}
+\item Construct graph \(G ^ -(k)\) from reverse-complementary of \(\hat{S}\) and color all it's edges \textit{red}
+\item Obtain \(G(k) = G ^ +(k) \cup G ^ -(k)\) 
+\item Change \(\hat{S}\) so that \(G(k)\) doesn't contain bulges having size \( < \delta \)
 \item Output non-branching paths
 \end{itemize}
-At any moment during simplification there is one-to-one correspondence between the string \(\hat{S}\) and the graph -- any changes in \(\hat{S}\) are immediately reflected in \(G(k)\).
-\end{block}
+At any moment during simplification there is a one-to-one correspondence between the string and the graph -- any changes in \(\hat{S}\) are immediately reflected in \(G(k)\).
 
-\begin{figure}
 \begin{figure}
         \begin{subfigure}[a]{1\textwidth}
 		\centering
 		\includegraphics[scale = 0.75]{graph1.pdf}
 		\justifying
-		\small \caption{De Bruijn graph \(G(k)\) built from \(\hat{S} = "TACCTGTCAGTA"\). Two paths \(("AC", "CC", "CT")\) and \(("AC", "CT"\)) form
-		a \textit{bulge} that indicate an indel in the substrings \("ACCT"\) and \("ACT"\). }
+		\small \caption{De Bruijn graph \(G(2)\) built from \(\hat{S} = "TACCTGTCAGTA"\)}
 		\label{DeBruijnA}
         \end{subfigure}
         \begin{subfigure}[b]{1\textwidth}
 		\centering
 		\includegraphics[scale = 0.75]{graph2.pdf}
-		\small \caption{The same graph after collapsing the bulge. Now long non-branching path spells synteny block \("TACCTG"\).}
+		\small \caption{The same graph after collapsing the bulge.}
 		\label{DeBruijnB}
         \end{subfigure}
 	\small \caption{Illustration of \textit{de Bruijn} graphs and simplification process}
 \end{figure}
 
-\end{figure}
+\end{block}
 
 \end{column}
 
 \begin{column}{0.32\linewidth}
 
 \begin{block}{Results} \justifying
-You can make a poster very quickly and easily by cutting and pasting the \LaTeX~codes from the paper!
+We present benchmarking of our tool on two datasets:
+\begin{itemize}
+\item Four strains of the bacteria \textit{Pseudomonas aeruginosa}
+\item Two different yeast species: \textit{K.waltii} and \textit{S. cerevisiae}
+\end{itemize}
+
+\begin{table}
+\small
+\begin{tabularx}{\textwidth}{ | X | X | X | X | X | X | X |}
+	\hline
+	Dataset & Total size & \(k\) & \(\delta\) & Multiplicity & Count & Coverage\\
+	\hline \hline
+	Bacteria & 27 MBP & 1000 & 5000 & 4 & 140 & 90\% \\
+	\hline
+	Yeast    &  23 MBP & 1000 & 20000 & 3 &  270 & 64\% \\
+	\hline
+\end{tabularx}
+\end{table}
+
+For the yeasts we used local alignments from (Kellis2004) to enrich number of common \(k\)-mers in conserved regions.
+Our blocks share 80\% of their basepairs with the blocks described in (Kellis2004).
 \end{block}
 
 \begin{block}{Discussion} \justifying
-You can make a poster very quickly and easily by cutting and pasting the \LaTeX~codes from the paper!
-\end{block}
-
-\begin{block}{References} \justifying
-You can make a poster very quickly and easily by cutting and pasting the \LaTeX~codes from the paper!
+SyntenyFinder can be efficiently used for finding synteny blocks in closely related genomes represented as nucleotide sequences. 
+Benchmarks show that with some modifications our method can be applied to more distant genomes. Our near plans include:
+\begin{itemize}
+\item Release version for closely related species (Fall 2012)
+\item Extend our tool to a wider range of genomes
+\item Incorporate it into genome rearrangements analysis tools
+\end{itemize}
 \end{block}
 
 \begin{block}{Acknowledgments} \justifying
+We thank Pavel Pevzner, Steve O'Brien, Alla Lapidus, Matt Schultz and Dinh Diep for their 
+for their help and contributions to many useful discussions.
+
 This work was supported by the Government of the Russian Federation (grant 11.G34.31.0018)
 and the National Institutes of Health (NIH grant 3P41RR024851-02S1).
+\end{block}
+
+\begin{block}{References} \justifying
+\begin{thebibliography}{10}
+\small
+\beamertemplatebookbibitems
+\bibitem{Idur1995}
+Idury RM, Waterman MS
+\newblock A new algorithm for DNA sequence assembly.
+\newblock {\em Journal of computational biology}, 1995 Summer; 2(2):291-306.
+\beamertemplatebookbibitems
+\bibitem{Kellis2004}
+Kellis M, Birren BW, Lander ES
+\newblock Proof and evolutionary analysis of ancient genome duplication in the yeast Saccharomyces cerevisiae.
+\newblock {\em Nature}, 2004 Apr 8; 428(6983):617-24.
+\beamertemplatebookbibitems
+\bibitem{Pham2010}
+Pham KS, Pevzner PA
+\newblock DRIMM-Synteny: decomposing genomes into evolutionary conserved segments.
+\newblock {\em Bioinformatics}, 2010; 26(20):2509-2516.
+\end{thebibliography}
 \end{block}
 
 \end{column}

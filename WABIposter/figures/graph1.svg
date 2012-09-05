@@ -16,9 +16,9 @@
    inkscape:version="0.48.2 r9819"
    version="1.1"
    id="svg2"
-   viewBox="0 0 978.8 360"
+   viewBox="0 0 956.4 360"
    height="450"
-   width="1223.5">
+   width="1195.5">
   <sodipodi:namedview
      pagecolor="#ffffff"
      bordercolor="#666666"
@@ -33,8 +33,8 @@
      id="namedview266"
      showgrid="false"
      inkscape:zoom="0.6237006"
-     inkscape:cx="369.57199"
-     inkscape:cy="288.36865"
+     inkscape:cx="768.42882"
+     inkscape:cy="278.74629"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
@@ -54,12 +54,12 @@
   <defs
      id="defs268" />
   <polygon
-     transform="matrix(1.0118137,0,0,1.3468286,8.5869367,350.98217)"
-     points="959,5 -4,5 -4,5 -4,-246 959,-246 "
+     transform="matrix(0.99110863,0,0,1.3468286,5.3041164,350.98217)"
+     points="-4,5 -4,-246 959,-246 959,5 -4,5 "
      id="polygon7"
      style="fill:#ffffff;stroke:#ffffff" />
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="node1"
      class="node">
     <title
@@ -84,7 +84,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">TA</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="node3"
      class="node">
     <title
@@ -109,7 +109,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">AC</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge2"
      class="edge">
     <title
@@ -120,7 +120,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#0000ff" />
     <polygon
-       points="99.152,-117.879 109.556,-119.882 102.672,-111.828 99.152,-117.879 "
+       points="102.672,-111.828 99.152,-117.879 99.152,-117.879 109.556,-119.882 "
        id="polygon28"
        style="fill:#0000ff;stroke:#0000ff" />
     <text
@@ -131,7 +131,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">1</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge22"
      class="edge">
     <title
@@ -142,7 +142,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#ff0000" />
     <polygon
-       points="111.55,-108.306 120.137,-114.511 117.294,-104.305 111.55,-108.306 "
+       points="117.294,-104.305 111.55,-108.306 111.55,-108.306 120.137,-114.511 "
        id="polygon37"
        style="fill:#ff0000;stroke:#ff0000" />
     <text
@@ -153,7 +153,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">12</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="node5"
      class="node">
     <title
@@ -178,7 +178,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">CC</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge4"
      class="edge">
     <title
@@ -189,7 +189,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#0000ff" />
     <polygon
-       points="191.863,-136.997 202,-133.917 192.155,-130.003 191.863,-136.997 "
+       points="192.155,-130.003 191.863,-136.997 191.863,-136.997 202,-133.917 "
        id="polygon53"
        style="fill:#0000ff;stroke:#0000ff" />
     <text
@@ -200,7 +200,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">2</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="node7"
      class="node">
     <title
@@ -225,7 +225,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">CT</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge24"
      class="edge">
     <title
@@ -236,7 +236,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#ff0000" />
     <polygon
-       points="299.095,-105.613 309.69,-105.633 301.42,-99.0104 299.095,-105.613 "
+       points="301.42,-99.0104 299.095,-105.613 299.095,-105.613 309.69,-105.633 "
        id="polygon69"
        style="fill:#ff0000;stroke:#ff0000" />
     <text
@@ -247,7 +247,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">11</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="node15"
      class="node">
     <title
@@ -272,7 +272,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">CA</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge32"
      class="edge">
     <title
@@ -283,7 +283,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#ff0000" />
     <polygon
-       points="712.797,-189.234 717.145,-179.573 707.721,-184.414 712.797,-189.234 "
+       points="707.721,-184.414 712.797,-189.234 712.797,-189.234 717.145,-179.573 "
        id="polygon85"
        style="fill:#ff0000;stroke:#ff0000" />
     <text
@@ -294,7 +294,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">7</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge6"
      class="edge">
     <title
@@ -305,7 +305,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#0000ff" />
     <polygon
-       points="297.583,-125.315 306.723,-119.956 296.236,-118.446 297.583,-125.315 "
+       points="296.236,-118.446 297.583,-125.315 297.583,-125.315 306.723,-119.956 "
        id="polygon94"
        style="fill:#0000ff;stroke:#0000ff" />
     <text
@@ -316,7 +316,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">3</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="node9"
      class="node">
     <title
@@ -341,7 +341,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">TG</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge26"
      class="edge">
     <title
@@ -352,7 +352,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#ff0000" />
     <polygon
-       points="399.69,-118.5 409.69,-115 399.69,-111.5 399.69,-118.5 "
+       points="399.69,-111.5 399.69,-118.5 399.69,-118.5 409.69,-115 "
        id="polygon110"
        style="fill:#ff0000;stroke:#ff0000" />
     <text
@@ -363,7 +363,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">10</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge8"
      class="edge">
     <title
@@ -374,7 +374,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#0000ff" />
     <polygon
-       points="409.945,-97.7474 420.11,-100.733 414.025,-92.0599 409.945,-97.7474 "
+       points="414.025,-92.0599 409.945,-97.7474 409.945,-97.7474 420.11,-100.733 "
        id="polygon119"
        style="fill:#0000ff;stroke:#0000ff" />
     <text
@@ -385,7 +385,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">4</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="node11"
      class="node">
     <title
@@ -410,7 +410,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">GT</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge10"
      class="edge">
     <title
@@ -421,7 +421,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#0000ff" />
     <polygon
-       points="505.375,-85.2257 512.754,-77.623 502.244,-78.9647 505.375,-85.2257 "
+       points="502.244,-78.9647 505.375,-85.2257 505.375,-85.2257 512.754,-77.623 "
        id="polygon135"
        style="fill:#0000ff;stroke:#0000ff" />
     <text
@@ -432,7 +432,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">5</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="node24"
      class="node">
     <title
@@ -457,7 +457,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">GA</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge28"
      class="edge">
     <title
@@ -468,7 +468,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#ff0000" />
     <polygon
-       points="502.724,-152.657 513.21,-154.172 505.958,-146.448 502.724,-152.657 "
+       points="505.958,-146.448 502.724,-152.657 502.724,-152.657 513.21,-154.172 "
        id="polygon151"
        style="fill:#ff0000;stroke:#ff0000" />
     <text
@@ -479,7 +479,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">9</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge40"
      class="edge">
     <title
@@ -490,7 +490,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#ff0000" />
     <polygon
-       points="60.9262,-44.0888 52.0838,-49.9251 62.6358,-50.8768 60.9262,-44.0888 "
+       points="62.6358,-50.8768 60.9262,-44.0888 60.9262,-44.0888 52.0838,-49.9251 "
        id="polygon160"
        style="fill:#ff0000;stroke:#ff0000" />
     <text
@@ -501,7 +501,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">3</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge20"
      class="edge">
     <title
@@ -512,7 +512,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#0000ff" />
     <polygon
-       points="48.0526,-33.1229 42.7948,-42.3211 52.6411,-38.4093 48.0526,-33.1229 "
+       points="52.6411,-38.4093 48.0526,-33.1229 48.0526,-33.1229 42.7948,-42.3211 "
        id="polygon169"
        style="fill:#0000ff;stroke:#0000ff" />
     <text
@@ -523,7 +523,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">10</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="node13"
      class="node">
     <title
@@ -548,7 +548,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">TC</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge12"
      class="edge">
     <title
@@ -559,7 +559,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#0000ff" />
     <polygon
-       points="600.804,-139.208 611.195,-141.276 604.361,-133.179 600.804,-139.208 "
+       points="604.361,-133.179 600.804,-139.208 600.804,-139.208 611.195,-141.276 "
        id="polygon185"
        style="fill:#0000ff;stroke:#0000ff" />
     <text
@@ -570,7 +570,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">6</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge14"
      class="edge">
     <title
@@ -581,7 +581,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#0000ff" />
     <polygon
-       points="693.846,-163.008 704.203,-160.775 694.714,-156.062 693.846,-163.008 "
+       points="694.714,-156.062 693.846,-163.008 693.846,-163.008 704.203,-160.775 "
        id="polygon194"
        style="fill:#0000ff;stroke:#0000ff" />
     <text
@@ -592,7 +592,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">7</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="node17"
      class="node">
     <title
@@ -617,7 +617,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">AG</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge34"
      class="edge">
     <title
@@ -628,7 +628,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#ff0000" />
     <polygon
-       points="805.897,-146.682 811.901,-137.953 801.764,-141.032 805.897,-146.682 "
+       points="801.764,-141.032 805.897,-146.682 805.897,-146.682 811.901,-137.953 "
        id="polygon210"
        style="fill:#ff0000;stroke:#ff0000" />
     <text
@@ -639,7 +639,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">6</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge16"
      class="edge">
     <title
@@ -650,7 +650,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#0000ff" />
     <polygon
-       points="795.051,-136.726 803.563,-130.418 792.975,-130.04 795.051,-136.726 "
+       points="792.975,-130.04 795.051,-136.726 795.051,-136.726 803.563,-130.418 "
        id="polygon219"
        style="fill:#0000ff;stroke:#0000ff" />
     <text
@@ -661,7 +661,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">8</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge18"
      class="edge">
     <title
@@ -672,7 +672,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#0000ff" />
     <polygon
-       points="571.155,-71.5253 560.633,-72.7636 569.631,-78.3573 571.155,-71.5253 "
+       points="569.631,-78.3573 571.155,-71.5253 571.155,-71.5253 560.633,-72.7636 "
        id="polygon228"
        style="fill:#0000ff;stroke:#0000ff" />
     <text
@@ -683,7 +683,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">9</text>
   </g>
   <g
-     transform="translate(18.4,352.8)"
+     transform="translate(-0.8,352.8)"
      id="node29"
      class="node">
     <title
@@ -708,7 +708,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">GG</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge36"
      class="edge">
     <title
@@ -719,7 +719,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#ff0000" />
     <polygon
-       points="895.403,-101.876 903.413,-94.9408 892.826,-95.367 895.403,-101.876 "
+       points="892.826,-95.367 895.403,-101.876 895.403,-101.876 903.413,-94.9408 "
        id="polygon244"
        style="fill:#ff0000;stroke:#ff0000" />
     <text
@@ -730,7 +730,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">5</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge30"
      class="edge">
     <title
@@ -741,7 +741,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#ff0000" />
     <polygon
-       points="157.715,-148.611 147.686,-145.194 153.396,-154.119 157.715,-148.611 "
+       points="153.396,-154.119 157.715,-148.611 157.715,-148.611 147.686,-145.194 "
        id="polygon253"
        style="fill:#ff0000;stroke:#ff0000" />
     <text
@@ -752,7 +752,7 @@
        style="font-size:14px;text-anchor:middle;font-family:'Times New Roman,serif'">8</text>
   </g>
   <g
-     transform="translate(20,352.8)"
+     transform="translate(0.8,352.8)"
      id="edge38"
      class="edge">
     <title
@@ -763,7 +763,7 @@
        inkscape:connector-curvature="0"
        style="fill:none;stroke:#ff0000" />
     <polygon
-       points="571.861,-61.292 562.065,-65.3268 572.239,-68.2818 571.861,-61.292 "
+       points="572.239,-68.2818 571.861,-61.292 571.861,-61.292 562.065,-65.3268 "
        id="polygon262"
        style="fill:#ff0000;stroke:#ff0000" />
     <text
@@ -776,19 +776,19 @@
   <text
      xml:space="preserve"
      style="font-size:32px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
-     x="9.5466719"
-     y="51.849304"
+     x="-0.053327776"
+     y="24.649321"
      id="text3984"
      sodipodi:linespacing="125%"><tspan
        sodipodi:role="line"
        id="tspan3986"
-       x="9.5466719"
-       y="51.849304">5' <tspan
+       x="-0.053327776"
+       y="24.649321">5' <tspan
    style="fill:#0000ff"
    id="tspan3990">TACCTG</tspan>TCAGTA 3'</tspan><tspan
        sodipodi:role="line"
-       x="9.5466719"
-       y="91.849304"
+       x="-0.053327776"
+       y="64.649323"
        id="tspan3988">3' ATGGACA<tspan
    style="fill:#ff0000"
    id="tspan3992">GTCAT </tspan>5'</tspan></text>
