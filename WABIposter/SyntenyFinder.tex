@@ -40,7 +40,7 @@ Our approach is based on de Bruijn graph and can be applied to closely related g
 \end{block}
 
 \begin{block}{De Bruijn graphs in synteny block mining} \justifying
-Given a string \(S\) and a natural number \(k\) we construct \(k\)-dimensional de Bruijn graph \(G(k)\) as follows:
+Given a string \(S\) and a natural number \(k\) we construct the de Bruijn graph \(G(k)\) as follows:
 
 \begin{itemize}
 \item For each unique \(k\)-substring add a vertex to \(G(k)\)
@@ -50,9 +50,9 @@ Given a string \(S\) and a natural number \(k\) we construct \(k\)-dimensional d
 
 \begin{figure}
 	\centering
-	\includegraphics[scale = 0.78]{simpleGraph.pdf}
-	\small \caption{De Bruijn graph \(G(2)\) built from string \("ACTGCATAGACTTCATA"\)}
-\end{figure}
+	\includegraphics[scale = 0.9]{simpleGraph.pdf}
+	\small \caption{De Bruijn graph \(G(2)\) built from string \("ACTGCATACTTCAT"\), bulge indicates a mismatch}
+\end{figure}             
 
 In this graph we allow only paths that have consecutive labels on edges.
 Graph \(G(k)\) has following properties:
@@ -61,7 +61,7 @@ Graph \(G(k)\) has following properties:
 \item Each valid path in the graph spells a substring from \(S\)
 \item Non-branching paths in the graph indicate exact repeats in \(S\)
 \item Variations in repeats create \textit{bulges} in \(G(k)\)
-\item Bulges are formed by two valid paths with shared ends
+\item Bulges are formed by two disjoint valid paths with shared ends
 \end{itemize}
 
 We remove bulges with size larger than some predefined constant \(\delta\) to obtain long non-branching paths. This process is 
@@ -73,12 +73,12 @@ called \textit{simplification}.
 \begin{column}{0.32\linewidth}
 
 \begin{block}{Double strandness issue} \justifying
-Remember that a DNA molecule has two strands and synteny blocks can be located on both. We 
-resolve this by following:
+DNA has two strands and synteny blocks can be located on both. 
+We address this problem by:
 \begin{itemize}
-\item Build graphs for both strands separately
-\item Label edges in these graphs with two different colors
-\item Merge two graphs and work with the resulting graph 
+\item Building graphs for both strands separately
+\item Labeling edges in these graphs with two different colors
+\item Merging two graphs and work with the resulting graph 
 \end{itemize}
 \end{block}
 
@@ -87,29 +87,31 @@ Given two numbers \(k\) and \(\delta\) and a set \(S = \lbrace S_{1}, S_{2}, \ld
 represented as nucleotide strings, our algorithm works as follows:
 \begin{itemize}
 \item Concatenate all chromosomes in \(S\) into the supergenome \(\hat{S}\)
-\item Construct graph \(G ^ +(k)\) from \(\hat{S}\) and color all it's edges \textit{blue}
-\item Construct graph \(G ^ -(k)\) from reverse-complementary of \(\hat{S}\) and color all it's edges \textit{red}
+\item Construct graph \(G ^ +(k)\) from \(\hat{S}\) and color all its edges \textit{blue}
+\item Construct graph \(G ^ -(k)\) from reverse-complementary of \(\hat{S}\) and color all its edges \textit{red}
 \item Obtain \(G(k) = G ^ +(k) \cup G ^ -(k)\) 
 \item Change \(\hat{S}\) so that \(G(k)\) doesn't contain bulges having size \( < \delta \)
-\item Output non-branching paths
+\item Output non-branching paths as synteny blocks
 \end{itemize}
 At any moment during simplification there is a one-to-one correspondence between the string and the graph -- any changes in \(\hat{S}\) are immediately reflected in \(G(k)\).
+
+We also keep some information on the edges to be able to reconstruct original coordinates of the found synteny blocks.
 
 \begin{figure}
         \begin{subfigure}[a]{1\textwidth}
 		\centering
-		\includegraphics[scale = 0.75]{graph1.pdf}
+		\includegraphics[scale = 1.30]{graph1.pdf}
 		\justifying
-		\small \caption{De Bruijn graph \(G(2)\) built from \(\hat{S} = "TACCTGTCAGTA"\)}
+		\small \caption{Fragment of a two-colored de Bruijn graph, bulge indicates an indel}
 		\label{DeBruijnA}
         \end{subfigure}
         \begin{subfigure}[b]{1\textwidth}
 		\centering
-		\includegraphics[scale = 0.75]{graph2.pdf}
-		\small \caption{The same graph after collapsing the bulge.}
+		\includegraphics[scale = 1.30]{graph2.pdf}
+		\small \caption{Fragment of the same graph after simplification}
 		\label{DeBruijnB}
         \end{subfigure}
-	\small \caption{Illustration of \textit{de Bruijn} graphs and simplification process}
+	\small \caption{Illustration of the bulge removal}
 \end{figure}
 
 \end{block}
@@ -119,7 +121,7 @@ At any moment during simplification there is a one-to-one correspondence between
 \begin{column}{0.32\linewidth}
 
 \begin{block}{Results} \justifying
-We present benchmarking of our tool on two datasets:
+We benchmark SyntenyFinder on two datasets.
 \begin{itemize}
 \item Four strains of the bacteria \textit{Pseudomonas aeruginosa}
 \item Two different yeast species: \textit{K.waltii} and \textit{S. cerevisiae}
@@ -146,15 +148,15 @@ Our blocks share 80\% of their basepairs with the blocks described in (Kellis200
 SyntenyFinder can be efficiently used for finding synteny blocks in closely related genomes represented as nucleotide sequences. 
 Benchmarks show that with some modifications our method can be applied to more distant genomes. Our near plans include:
 \begin{itemize}
-\item Release version for closely related species (Fall 2012)
-\item Extend our tool to a wider range of genomes
+\item Release version for closely related species
+\item Extend SyntenyFinder to a wider range of genomes
 \item Incorporate it into genome rearrangements analysis tools
 \end{itemize}
 \end{block}
 
 \begin{block}{Acknowledgments} \justifying
-We thank Pavel Pevzner, Steve O'Brien, Alla Lapidus, Matt Schultz and Dinh Diep for their 
-for their help and contributions to many useful discussions.
+We would like to thank Pavel Pevzner, Steve O'Brien, Alla Lapidus, Matt Schultz and Dinh Diep for their 
+for their help and contributions to many helpful discussions.
 
 This work was supported by the Government of the Russian Federation (grant 11.G34.31.0018)
 and the National Institutes of Health (NIH grant 3P41RR024851-02S1).
@@ -163,11 +165,6 @@ and the National Institutes of Health (NIH grant 3P41RR024851-02S1).
 \begin{block}{References} \justifying
 \begin{thebibliography}{10}
 \small
-\beamertemplatebookbibitems
-\bibitem{Idur1995}
-Idury RM, Waterman MS
-\newblock A new algorithm for DNA sequence assembly.
-\newblock {\em Journal of computational biology}, 1995 Summer; 2(2):291-306.
 \beamertemplatebookbibitems
 \bibitem{Kellis2004}
 Kellis M, Birren BW, Lander ES
