@@ -72,26 +72,26 @@ namespace SyntenyBuilder
 	
 #ifdef _DEBUG
 	void GraphAlgorithm::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
+	{
+		SlidingWindow<StrandIterator> window[] = 
 		{
-			SlidingWindow<StrandIterator> window[] = 
-			{
-				SlidingWindow<StrandIterator>(sequence.PositiveBegin(), sequence.PositiveEnd(), k),
-				SlidingWindow<StrandIterator>(sequence.NegativeBegin(), sequence.NegativeEnd(), k)
-			};
+			SlidingWindow<StrandIterator>(sequence.PositiveBegin(), sequence.PositiveEnd(), k),
+			SlidingWindow<StrandIterator>(sequence.NegativeBegin(), sequence.NegativeEnd(), k)
+		};
 			
-			for(size_t strand = 0; strand < 2; strand++)
+		for(size_t strand = 0; strand < 2; strand++)
+		{
+			for(; window[strand].Valid(); window[strand].Move())
 			{
-				for(; window[strand].Valid(); window[strand].Move())
-				{
-					StrandIterator jt = window[strand].GetBegin();
-					size_t actualBifurcation = bifStorage.GetBifurcation(jt);
-					KMerBifMap::iterator kt = idMap.find(std::string(jt, AdvanceForward(jt, k)));
-					size_t mustbeBifurcation = kt == idMap.end() ? BifurcationStorage::NO_BIFURCATION :
-							kt->second;
-					assert(actualBifurcation == mustbeBifurcation);
-				}
+				StrandIterator jt = window[strand].GetBegin();
+				size_t actualBifurcation = bifStorage.GetBifurcation(jt);
+				KMerBifMap::iterator kt = idMap.find(std::string(jt, AdvanceForward(jt, k)));
+				size_t mustbeBifurcation = kt == idMap.end() ? BifurcationStorage::NO_BIFURCATION :
+						kt->second;
+				assert(actualBifurcation == mustbeBifurcation);
 			}
 		}
+	}
 #endif
 
 	size_t GraphAlgorithm::EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k)
@@ -103,8 +103,8 @@ namespace SyntenyBuilder
 		const size_t MOD = 1000000;
 		size_t bifurcationCount = 0;
 		typedef boost::unordered_map<StrandIterator, BifurcationData,
-			KMerHashFunction, KMerEqualTo> BifurcationMap;
-		BifurcationMap bifurcation(sequence.Size(), KMerHashFunction(k), KMerEqualTo(k));
+			KMerHashFunction, KMerDumbEqualTo> BifurcationMap;
+		BifurcationMap bifurcation(sequence.Size(), KMerHashFunction(k));
 
 		StrandIterator border[] = 
 		{

@@ -119,6 +119,15 @@ namespace SyntenyBuilder
 	private:
 		size_t k_;
 	};
+	
+	class KMerDumbEqualTo
+	{
+	public:
+		bool operator()(DNASequence::StrandIterator it1, DNASequence::StrandIterator it2) const
+		{	
+			return true;
+		}
+	};
 
 	class WindowHashFunction
 	{

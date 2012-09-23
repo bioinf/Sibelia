@@ -29,10 +29,12 @@ namespace SyntenyBuilder
 
 	DNASequence::StrandIterator::StrandIterator()
 	{
+		
 	}
 
 	DNASequence::StrandIterator::StrandIterator(GenericIterator * it): it_(it)
 	{
+		
 	}
 
 	DNASequence::StrandIterator::StrandIterator(const StrandIterator & toCopy): it_(toCopy.it_->Clone())
