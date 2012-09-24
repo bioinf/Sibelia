@@ -4,7 +4,6 @@ namespace SyntenyBuilder
 {
 	namespace
 	{
-		std::ofstream simplificationLog("log");
 		struct BifurcationMark
 		{
 			size_t bifId;

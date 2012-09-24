@@ -10,7 +10,8 @@ namespace SyntenyBuilder
 	class BifurcationStorage
 	{
 	public:
-		static const size_t NO_BIFURCATION;
+		typedef unsigned int BifurcationId;
+		static const BifurcationId NO_BIFURCATION;
 
 		void Clear();
 		size_t GetMaxId() const;
@@ -22,9 +23,10 @@ namespace SyntenyBuilder
 		size_t GetBifurcation(DNASequence::StrandIterator it) const;		
 
 		template<class Iterator>
-			size_t ListPositions(size_t bifId, Iterator out) const
+			size_t ListPositions(size_t inBifId, Iterator out) const
 			{
 				size_t ret = 0;
+				BifurcationId bifId = static_cast<BifurcationId>(inBifId);
 				for(size_t strand = 0; strand < 2; strand++)
 				{
 					std::pair<CBifMapIterator, CBifMapIterator> range = 
@@ -32,7 +34,7 @@ namespace SyntenyBuilder
 					for(;range.first != range.second; ++range.first)
 					{
 						ret++;
-						*out++ = range.first->second;
+						*out++ = StrandIterator(range.first->second, static_cast<DNASequence::Direction>(strand));
 					}
 				}
 
@@ -40,21 +42,32 @@ namespace SyntenyBuilder
 			}
 
 	private:
-		typedef boost::unordered_multimap<size_t, StrandIterator> BifurcationPos;
+		typedef DNASequence::SequencePosIterator BaseIterator;
+		typedef boost::unordered_multimap<BifurcationId, BaseIterator> BifurcationPos;
 		typedef BifurcationPos::iterator BifMapIterator;
 		typedef BifurcationPos::const_iterator CBifMapIterator;
-		struct IteratorLess
+
+		struct IteratorEqual
 		{
 		public:
 			bool operator () (BifMapIterator it1, BifMapIterator it2) const
 			{
-				return it1->second < it2->second;
+				return it1->second == it2->second;
 			}
 		};
 
-		typedef std::set<BifurcationPos::iterator, IteratorLess> PosBifurcation;
+		struct IteratorHash
+		{
+		public:
+			size_t operator () (BifMapIterator it) const
+			{
+				return reinterpret_cast<size_t>(&*it->second);
+			}
+		};
 
-		size_t maxId_;
+		typedef boost::unordered_set<BifurcationPos::iterator, IteratorHash, IteratorEqual> PosBifurcation;
+
+		BifurcationId maxId_;
 		mutable BifurcationPos temp_;
 		BifurcationPos bifurcationPos_[2];
 		PosBifurcation posBifurcation_[2];

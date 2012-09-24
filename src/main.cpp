@@ -77,6 +77,11 @@ int main(int argc, char * argv[])
 		SyntenyBuilder::DNASequence dnaseq(sequence);
 		SyntenyBuilder::BifurcationStorage bifStorage;
 
+	/*	std::cout << "Zzzzz";
+		while(true)
+		{
+		}*/
+
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			std::cerr << "Building the graph, stage = " << i + 1 << std::endl;			

@@ -12,9 +12,11 @@ namespace SyntenyBuilder
 		struct BifurcationData
 		{
 		public:
-			static const size_t NO_ID;
-			static const char NO_CHAR;		
-			BifurcationData(size_t id = NO_ID): id_(id), forward_(NO_CHAR), backward_(NO_CHAR) {}
+			typedef BifurcationStorage::BifurcationId BifurcationId;
+			static const BifurcationId NO_ID;
+			static const char NO_CHAR;	
+
+			BifurcationData(BifurcationId id = NO_ID): id_(id), forward_(NO_CHAR), backward_(NO_CHAR) {}
 			bool UpdateForward(char nowForward)
 			{
 				if(id_ == NO_ID && nowForward != NO_CHAR)
@@ -49,7 +51,7 @@ namespace SyntenyBuilder
 				return false;
 			}
 			
-			void SetId(size_t newId)
+			void SetId(BifurcationId newId)
 			{
 				id_ = newId;
 			}
@@ -60,12 +62,12 @@ namespace SyntenyBuilder
 			}
 
 		private:
-			size_t id_;
+			BifurcationData::BifurcationId id_;
 			char forward_;
 			char backward_;
 		};
 
-		const size_t BifurcationData::NO_ID = -1;
+		const BifurcationData::BifurcationId BifurcationData::NO_ID = -1;
 		const char BifurcationData::NO_CHAR = -1;
 	}
 	
@@ -101,10 +103,11 @@ namespace SyntenyBuilder
 		std::cerr << "Finding all bifurcations in the graph..." << std::endl;
 		
 		const size_t MOD = 1000000;
-		size_t bifurcationCount = 0;
-		typedef boost::unordered_map<StrandIterator, BifurcationData,
-			KMerHashFunction, KMerDumbEqualTo> BifurcationMap;
-		BifurcationMap bifurcation(sequence.Size(), KMerHashFunction(k));
+		BifurcationData::BifurcationId bifurcationCount = 0;
+		typedef boost::unordered_map<size_t, BifurcationData> BifurcationMap;
+		KMerHashFunction hashF(k);
+		SlidingWindow<StrandIterator> window(++sequence.PositiveBegin(), --sequence.PositiveEnd(), k); 
+		BifurcationMap bifurcation(sequence.Size());
 
 		StrandIterator border[] = 
 		{
@@ -116,19 +119,19 @@ namespace SyntenyBuilder
 			sequence.NegativeEnd()
 		};
 
-		for(size_t i = 0; i < 1; i++)
+		StrandIterator addBorder[] = 
 		{
-			bifurcation.insert(std::make_pair(border[i], BifurcationData(bifurcationCount++)));
-			bifurcation[border[i]].UpdateForward(*AdvanceForward(border[i], k));
-		}
-		
-		for(size_t i = 2; i < 3; i++)
+			sequence.PositiveBegin(),
+			AdvanceBackward(sequence.PositiveEnd(), k)
+		};
+
+		for(size_t i = 0; i < 2; i++)
 		{
-			bifurcation.insert(std::make_pair(border[i], BifurcationData(bifurcationCount++)));
-			bifurcation[border[i]].UpdateBackward(*AdvanceBackward(border[i], 1));
+			size_t hash = hashF(addBorder[i]);
+			bifurcation.insert(std::make_pair(hash, BifurcationData(bifurcationCount++)));
+			bifurcation[hash].UpdateForward(*AdvanceForward(addBorder[i], k));
 		}
 
-		SlidingWindow<StrandIterator> window(++sequence.PositiveBegin(), --sequence.PositiveEnd(), k); 
 		for(size_t count = 0; window.Valid(); window.Move(), count++)
 		{
 			if(count % MOD == 0)
@@ -137,12 +140,13 @@ namespace SyntenyBuilder
 			}
 
 			StrandIterator it = window.GetBegin();
+			size_t hash = window.GetValue();
 			if(*it != 'n')
 			{
-				BifurcationMap::iterator jt = bifurcation.find(it);
+				BifurcationMap::iterator jt = bifurcation.find(hash);
 				if(jt == bifurcation.end())
 				{
-					jt = bifurcation.insert(std::make_pair(it, BifurcationData())).first;
+					jt = bifurcation.insert(std::make_pair(hash, BifurcationData())).first;
 				}
 
 				if(jt->second.UpdateForward(*window.GetEnd()) || jt->second.UpdateBackward(*(--it)))
@@ -156,7 +160,8 @@ namespace SyntenyBuilder
 		for(size_t count = 0; window.Valid(); window.Move(), count++)
 		{
 			StrandIterator it = window.GetBegin();
-			BifurcationMap::iterator jt = bifurcation.find(it);
+			size_t hash = window.GetValue();
+			BifurcationMap::iterator jt = bifurcation.find(hash);
 
 			if(jt != bifurcation.end())
 			{
@@ -178,7 +183,8 @@ namespace SyntenyBuilder
 				}
 
 				StrandIterator it = window.GetBegin();
-				BifurcationMap::iterator jt = bifurcation.find(it);
+				size_t hash = window.GetValue();
+				BifurcationMap::iterator jt = bifurcation.find(hash);
 				if(jt != bifurcation.end() && jt->second.GetId() != BifurcationData::NO_ID)
 				{
 					bifStorage.AddPoint(it, jt->second.GetId());

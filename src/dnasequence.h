@@ -16,21 +16,22 @@ namespace SyntenyBuilder
 			negative
 		};
 
-	private:
-		static const size_t NO_POS;
-
+		typedef unsigned int Pos;
 		struct DNACharacter
 		{
 			char actual;
-			size_t pos;
+			Pos pos;
 			DNACharacter() {}
 			DNACharacter(char actual): actual(actual), pos(actual) {}
-			DNACharacter(char actual, size_t pos): actual(actual), pos(pos) {}
+			DNACharacter(char actual, Pos pos): actual(actual), pos(pos) {}
 		};
 
 		typedef std::list<DNACharacter> Sequence;
 		typedef Sequence::iterator SequencePosIterator;
 		typedef Sequence::reverse_iterator SequenceNegIterator;
+
+	private:
+		static const size_t NO_POS;
 
 		class GenericIterator
 		{
@@ -110,6 +111,7 @@ namespace SyntenyBuilder
 			StrandIterator();
 			StrandIterator(GenericIterator * it);
 			StrandIterator(const StrandIterator & toCopy);
+			StrandIterator(SequencePosIterator base, Direction direction);
 			StrandIterator& operator = (const StrandIterator & toCopy);
 		private:
 			std::auto_ptr<GenericIterator> it_;

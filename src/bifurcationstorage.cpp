@@ -1,10 +1,11 @@
 #include "bifurcationstorage.h"
 namespace SyntenyBuilder
 {
-	const size_t BifurcationStorage::NO_BIFURCATION = -1;
+	const BifurcationStorage::BifurcationId BifurcationStorage::NO_BIFURCATION = -1;
 	
 	void BifurcationStorage::Clear()
 	{
+		maxId_ = 0;
 		for(size_t strand = 0; strand < 2; strand++)
 		{
 			posBifurcation_[strand].clear();
@@ -17,8 +18,9 @@ namespace SyntenyBuilder
 		return maxId_ + 1;
 	}
 
-	size_t BifurcationStorage::CountBifurcations(size_t bifId) const
+	size_t BifurcationStorage::CountBifurcations(size_t inBifId) const
 	{
+		BifurcationId bifId = static_cast<BifurcationId>(inBifId);
 		return bifurcationPos_[0].count(bifId) + bifurcationPos_[1].count(bifId);
 	}
 
@@ -31,17 +33,19 @@ namespace SyntenyBuilder
 			for(CBifMapIterator it = bifurcationPos_[strand].begin();
 				it != bifurcationPos_[strand].end(); ++it)
 			{
+				StrandIterator jt(it->second, static_cast<DNASequence::Direction>(strand));
 				out << " {" << it->first << ", ";
-				CopyN(it->second, k, std::ostream_iterator<char>(out));
+				CopyN(jt, k, std::ostream_iterator<char>(out));
 				out << "}";
 			}
-
+			
 			out << std::endl << strandName[strand] << ", pos:" ;
 			for(PosBifurcation::const_iterator it = posBifurcation_[strand].begin();
 				it != posBifurcation_[strand].end(); ++it)
 			{
+				StrandIterator jt((*it)->second, static_cast<DNASequence::Direction>(strand));
 				out << " {";
-				CopyN((*it)->second, k, std::ostream_iterator<char>(out));
+				CopyN(jt, k, std::ostream_iterator<char>(out));
 				out << ", " << (*it)->first << "}";
 			}			
 
@@ -49,13 +53,14 @@ namespace SyntenyBuilder
 		}
 	}
 
-	void BifurcationStorage::AddPoint(DNASequence::StrandIterator it, size_t bifId)
+	void BifurcationStorage::AddPoint(DNASequence::StrandIterator it, size_t inBifId)
 	{
+		BifurcationId bifId = static_cast<BifurcationId>(inBifId);
 		if(GetBifurcation(it) == NO_BIFURCATION)
 		{
 			maxId_ = std::max(maxId_, bifId);
 			size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
-			BifMapIterator place = bifurcationPos_[strand].insert(std::make_pair(bifId, it));			
+			BifMapIterator place = bifurcationPos_[strand].insert(std::make_pair(bifId, it.Base()));			
 			posBifurcation_[strand].insert(place);
 			assert(GetBifurcation(it) == bifId);
 		}
@@ -64,7 +69,7 @@ namespace SyntenyBuilder
 	void BifurcationStorage::ErasePoint(DNASequence::StrandIterator it)
 	{
 		size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
-		BifMapIterator jt = temp_.insert(std::make_pair(-1, it));
+		BifMapIterator jt = temp_.insert(std::make_pair(-1, it.Base()));
 		PosBifurcation::iterator kt = posBifurcation_[strand].find(jt);
 		if(kt != posBifurcation_[strand].end())
 		{
@@ -78,7 +83,7 @@ namespace SyntenyBuilder
 	size_t BifurcationStorage::GetBifurcation(DNASequence::StrandIterator it) const
 	{
 		size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
-		BifMapIterator jt = temp_.insert(std::make_pair(-1, it));
+		BifMapIterator jt = temp_.insert(std::make_pair(-1, it.Base()));
 		PosBifurcation::const_iterator kt = posBifurcation_[strand].find(jt);
 		temp_.clear();
 		return kt == posBifurcation_[strand].end() ? NO_BIFURCATION : (*kt)->first;

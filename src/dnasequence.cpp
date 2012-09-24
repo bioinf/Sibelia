@@ -37,6 +37,21 @@ namespace SyntenyBuilder
 		
 	}
 
+	DNASequence::StrandIterator::StrandIterator(SequencePosIterator it, Direction direction)		
+	{
+		GenericIterator * genericIt = 0;
+		if(direction == positive)
+		{
+			genericIt = new ForwardIterator(it);
+		}
+		else
+		{
+			genericIt = new BackwardIterator(SequenceNegIterator(it));
+		}
+
+		it_ = std::auto_ptr<GenericIterator>(genericIt);
+	}
+
 	DNASequence::StrandIterator::StrandIterator(const StrandIterator & toCopy): it_(toCopy.it_->Clone())
 	{
 	}
@@ -165,7 +180,7 @@ namespace SyntenyBuilder
 	{
 		for(size_t i = 0; i < sequence.size(); i++)
 		{
-			sequence_.push_back(DNACharacter(sequence[i], i));
+			sequence_.push_back(DNACharacter(sequence[i], DNASequence::Pos(i)));
 		}
 	}
 
@@ -225,8 +240,7 @@ namespace SyntenyBuilder
 				alarmBefore(StrandIterator(new BackwardIterator(SequenceNegIterator(it))));
 			}
 
-			sequence_.insert(it, DNACharacter(target.TranslateChar(*source), pos));
-
+			sequence_.insert(it, DNACharacter(target.TranslateChar(*source), DNASequence::Pos(pos)));
 			if(i == 0 && it != sequence_.begin())
 			{
 				--it;
