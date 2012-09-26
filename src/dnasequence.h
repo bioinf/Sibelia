@@ -162,7 +162,9 @@ namespace SyntenyBuilder
 				return std::make_pair(start, end);
 			}
 		
-		static const std::string alphabet;
+		static const char UNKNOWN_BASE;
+		static const char SEPARATION_CHAR;
+		static const std::string alphabet;		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
 		static char Translate(char ch);

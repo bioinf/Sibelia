@@ -19,7 +19,9 @@ namespace SyntenyBuilder
 	}
 	
 	const size_t DNASequence::NO_POS = -1;
-	const std::string DNASequence::alphabet("agct");	
+	const char DNASequence::UNKNOWN_BASE = 'n';
+	const char DNASequence::SEPARATION_CHAR = '$';
+	const std::string DNASequence::alphabet("agctn$");
 	const std::string DNASequence::complementary_(ConstructComplementarityTable());
 
 	char DNASequence::Translate(char ch)
@@ -156,13 +158,13 @@ namespace SyntenyBuilder
 	DNASequence::StrandIterator DNASequence::PositiveEnd() const
 	{
 		Sequence & ref = const_cast<Sequence&>(sequence_);
-		return StrandIterator(new ForwardIterator(ref.end()));
+		return StrandIterator(new ForwardIterator(--ref.end()));
 	}
 
 	DNASequence::StrandIterator DNASequence::NegativeBegin() const
 	{
 		Sequence & ref = const_cast<Sequence&>(sequence_);
-		return StrandIterator(new BackwardIterator(ref.rbegin()));
+		return StrandIterator(new BackwardIterator(++ref.rbegin()));
 	}
 
 	DNASequence::StrandIterator DNASequence::NegativeEnd() const
@@ -182,6 +184,8 @@ namespace SyntenyBuilder
 		{
 			sequence_.push_back(DNACharacter(sequence[i], DNASequence::Pos(i)));
 		}
+
+		sequence_.push_back(DNACharacter(SEPARATION_CHAR, sequence_.size()));
 	}
 
 	size_t DNASequence::Size() const

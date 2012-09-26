@@ -72,15 +72,9 @@ int main(int argc, char * argv[])
 			sequence[i] = tolower(sequence[i]);
 		}	
 		
-	//	sequence.erase(std::remove(sequence.begin(), sequence.end(), 'n'), sequence.end());
 		std::cout << "Total size = " << sequence.size() << std::endl;
 		SyntenyBuilder::DNASequence dnaseq(sequence);
 		SyntenyBuilder::BifurcationStorage bifStorage;
-
-	/*	std::cout << "Zzzzz";
-		while(true)
-		{
-		}*/
 
 		for(size_t i = 0; i < stage.size(); i++)
 		{

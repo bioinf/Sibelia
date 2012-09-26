@@ -13,6 +13,11 @@ namespace SyntenyBuilder
 		}
 	}
 
+	BifurcationStorage::BifurcationStorage(): maxId_(0),
+		bifurcationPos_(2), posBifurcation_(2)
+	{
+	}
+
 	size_t BifurcationStorage::GetMaxId() const
 	{
 		return maxId_ + 1;
@@ -24,9 +29,10 @@ namespace SyntenyBuilder
 		return bifurcationPos_[0].count(bifId) + bifurcationPos_[1].count(bifId);
 	}
 
-	void BifurcationStorage::Dump(size_t k, std::ostream & out) const
-	{
+	void BifurcationStorage::Dump(const DNASequence & sequence, size_t k, std::ostream & out) const
+	{		
 		std::string strandName[] = {"Positive", "Negative"};
+		StrandIterator start[] = {sequence.PositiveBegin(), sequence.NegativeBegin()};
 		for(size_t strand = 0; strand < 2; strand++)
 		{
 			out << strandName[strand] << ", bif:" ;
@@ -34,7 +40,8 @@ namespace SyntenyBuilder
 				it != bifurcationPos_[strand].end(); ++it)
 			{
 				StrandIterator jt(it->second, static_cast<DNASequence::Direction>(strand));
-				out << " {" << it->first << ", ";
+				size_t pos = 0; //std::distance(start[strand], jt);
+				out << " {" << it->first << ", " << pos << ", ";
 				CopyN(jt, k, std::ostream_iterator<char>(out));
 				out << "}";
 			}
@@ -44,7 +51,8 @@ namespace SyntenyBuilder
 				it != posBifurcation_[strand].end(); ++it)
 			{
 				StrandIterator jt((*it)->second, static_cast<DNASequence::Direction>(strand));
-				out << " {";
+				size_t pos = 0; //std::distance(start[strand], jt);
+				out << " {" << pos << ", ";
 				CopyN(jt, k, std::ostream_iterator<char>(out));
 				out << ", " << (*it)->first << "}";
 			}			
@@ -60,6 +68,7 @@ namespace SyntenyBuilder
 		{
 			maxId_ = std::max(maxId_, bifId);
 			size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
+			BaseIterator kt = it.Base();
 			BifMapIterator place = bifurcationPos_[strand].insert(std::make_pair(bifId, it.Base()));			
 			posBifurcation_[strand].insert(place);
 			assert(GetBifurcation(it) == bifId);

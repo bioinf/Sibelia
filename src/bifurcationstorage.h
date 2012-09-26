@@ -15,8 +15,8 @@ namespace SyntenyBuilder
 
 		void Clear();
 		size_t GetMaxId() const;
-		BifurcationStorage(): maxId_(0) {}
-		void Dump(size_t k, std::ostream & out) const;
+		BifurcationStorage();
+		void Dump(const DNASequence & sequence, size_t k, std::ostream & out) const;
 		void ErasePoint(DNASequence::StrandIterator it);
 		void AddPoint(DNASequence::StrandIterator it, size_t bifId);
 		size_t CountBifurcations(size_t bifId) const;
@@ -29,8 +29,7 @@ namespace SyntenyBuilder
 				BifurcationId bifId = static_cast<BifurcationId>(inBifId);
 				for(size_t strand = 0; strand < 2; strand++)
 				{
-					std::pair<CBifMapIterator, CBifMapIterator> range = 
-						bifurcationPos_[strand].equal_range(bifId);
+					std::pair<CBifMapIterator, CBifMapIterator> range = bifurcationPos_[strand].equal_range(bifId);
 					for(;range.first != range.second; ++range.first)
 					{
 						ret++;
@@ -69,8 +68,8 @@ namespace SyntenyBuilder
 
 		BifurcationId maxId_;
 		mutable BifurcationPos temp_;
-		BifurcationPos bifurcationPos_[2];
-		PosBifurcation posBifurcation_[2];
+		std::vector<BifurcationPos> bifurcationPos_;
+		std::vector<PosBifurcation> posBifurcation_;
 	};
 }
 
