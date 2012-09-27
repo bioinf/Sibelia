@@ -1,4 +1,3 @@
-#include "fasta.h"
 #include "graphalgorithm.h"
 
 std::string IntToStr(size_t value)
@@ -43,7 +42,7 @@ int main(int argc, char * argv[])
 		if(stage.empty())
 		{
 			std::cerr << "Stage file is empty or cannot be open" << std::endl;
-			return -1;
+			return 1;
 		}
 
 		for(size_t i = 0; i < stage.size(); i++)
@@ -51,7 +50,7 @@ int main(int argc, char * argv[])
 			if(stage[i].first < 2 || stage[i].second < 0)
 			{
 				std::cerr << "Incorrect stage record " << std::endl;
-				return -1;
+				return 1;
 			}
 		}
 
@@ -63,23 +62,15 @@ int main(int argc, char * argv[])
 		}
 
 		bool dot = argc >= 4 && argv[3] == std::string("-dot");
-
-		std::string sequence;
-		std::vector<std::string> path;
-		reader.GetSequence(sequence);
-		for(size_t i = 0; i < sequence.size(); i++)
-		{
-			sequence[i] = tolower(sequence[i]);
-		}	
 		
-		std::cout << "Total size = " << sequence.size() << std::endl;
-		SyntenyBuilder::DNASequence dnaseq(sequence);
+		std::vector<SyntenyBuilder::FASTAReader::FASTARecord> record;
+		reader.GetSequences(record);
+		SyntenyBuilder::DNASequence dnaseq(record);
 		SyntenyBuilder::BifurcationStorage bifStorage;
-
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			std::cerr << "Building the graph, stage = " << i + 1 << std::endl;			
-			if(stage[i].first < dnaseq.Size())
+			if(stage[i].first < dnaseq.TotalSize())
 			{
 				if(dot)
 				{				
@@ -103,17 +94,12 @@ int main(int argc, char * argv[])
 				exit(1);
 			}
 		}
-				
-		std::cerr << SyntenyBuilder::DELIMITER << std::endl;
+			
 		std::string header = fileName;				
-		
-		std::string buf;
 		std::ofstream general((header + "_blocks").c_str());
 		std::ofstream indices((header + "_indices").c_str());
-		std::string consensus((header + "_consensus.fasta").c_str());
-		std::copy(dnaseq.PositiveBegin(), dnaseq.PositiveEnd(), std::back_inserter(buf));
-		SyntenyBuilder::FASTAWriter::WriteSequence(consensus, fileName + " simplified", buf);
-		if(stage.back().first < dnaseq.Size())
+		std::cerr << SyntenyBuilder::DELIMITER << std::endl;
+		if(stage.back().first < dnaseq.TotalSize())
 		{
 			size_t k = stage.back().first;			
 			std::ofstream condensed((fileName + "_condensed.dot").c_str());
@@ -121,12 +107,11 @@ int main(int argc, char * argv[])
 			SyntenyBuilder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, k);
 			SyntenyBuilder::GraphAlgorithm::ListNonBranchingPaths(dnaseq, bifStorage, k, general, indices);
 			SyntenyBuilder::GraphAlgorithm::SerializeCondensedGraph(dnaseq, bifStorage, stage.back().first, condensed);
-		//	SyntenyBuilder::GraphAlgorithm::FindGraphBulges(sequence, stage.back().first);
 		}
 
 		std::cerr.setf(std::cerr.fixed);
 		std::cerr.precision(2);
-		std::cerr << "Time elapsed: " << double(clock()) / 1000 << std::endl;
+		std::cerr << "Time elapsed: " << double(clock()) / CLOCKS_PER_SEC << std::endl;
 	}
 
 	return 0;

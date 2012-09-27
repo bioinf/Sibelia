@@ -15,6 +15,7 @@ namespace SyntenyBuilder
 		ret['C'] = 'G';
 		ret['N'] = 'N';
 		ret['n'] = 'n';
+		ret['$'] = '$';
 		return ret;
 	}
 	
@@ -78,6 +79,11 @@ namespace SyntenyBuilder
 		return reinterpret_cast<size_t>(it_->GetNaked());
 	}
 
+	bool DNASequence::StrandIterator::AtValidPosition() const
+	{
+		return **this != DNASequence::SEPARATION_CHAR;
+	}
+
 	bool DNASequence::StrandIterator::operator < (const StrandIterator & toCompare) const
 	{
 		if(GetDirection() == toCompare.GetDirection())
@@ -100,12 +106,14 @@ namespace SyntenyBuilder
 
 	DNASequence::StrandIterator& DNASequence::StrandIterator::operator++()
 	{
+		assert(AtValidPosition());
 		it_->MoveForward();
 		return *this;
 	}
 
 	DNASequence::StrandIterator DNASequence::StrandIterator::operator++(int)
 	{
+		assert(AtValidPosition());
 		StrandIterator ret(*this);
 		it_->MoveForward();
 		return ret;
@@ -149,28 +157,34 @@ namespace SyntenyBuilder
 		return it_->GetNaked();
 	}
 
-	DNASequence::StrandIterator DNASequence::PositiveBegin() const
+	DNASequence::StrandIterator DNASequence::PositiveBegin(size_t chr) const
 	{
 		Sequence & ref = const_cast<Sequence&>(sequence_);
-		return StrandIterator(new ForwardIterator(ref.begin()));
+		return StrandIterator(new ForwardIterator(posBegin[chr]));
 	}
 
-	DNASequence::StrandIterator DNASequence::PositiveEnd() const
+	DNASequence::StrandIterator DNASequence::PositiveEnd(size_t chr) const
 	{
-		Sequence & ref = const_cast<Sequence&>(sequence_);
-		return StrandIterator(new ForwardIterator(--ref.end()));
+		return StrandIterator(new ForwardIterator(posEnd[chr]));
 	}
 
-	DNASequence::StrandIterator DNASequence::NegativeBegin() const
+	DNASequence::StrandIterator DNASequence::NegativeBegin(size_t chr) const
 	{
-		Sequence & ref = const_cast<Sequence&>(sequence_);
-		return StrandIterator(new BackwardIterator(++ref.rbegin()));
+		return StrandIterator(new BackwardIterator(SequenceNegIterator(posEnd[chr])));
 	}
 
-	DNASequence::StrandIterator DNASequence::NegativeEnd() const
+	DNASequence::StrandIterator DNASequence::NegativeEnd(size_t chr) const
 	{
-		Sequence & ref = const_cast<Sequence&>(sequence_);
-		return StrandIterator(new BackwardIterator(ref.rend()));
+		return StrandIterator(new BackwardIterator(SequenceNegIterator(posBegin[chr])));
+	}
+
+	DNASequence::StrandIterator DNASequence::Begin(Direction direction, size_t chr) const
+	{
+		return direction == positive ? PositiveBegin(chr) : NegativeBegin(chr);
+	}
+	DNASequence::StrandIterator DNASequence::End(Direction direction, size_t chr) const
+	{
+		return direction == positive ? PositiveEnd(chr) : NegativeEnd(chr);
 	}
 
 	DNASequence::SequencePosIterator DNASequence::StrandIterator::Base() const
@@ -178,19 +192,31 @@ namespace SyntenyBuilder
 		return it_->Base();
 	}
 
-	DNASequence::DNASequence(const std::string & sequence): original_(sequence)
+	DNASequence::DNASequence(const std::vector<FASTAReader::FASTARecord> & record) 
 	{
-		for(size_t i = 0; i < sequence.size(); i++)
+		sequence_.push_back(DNACharacter(SEPARATION_CHAR, -1));
+		for(size_t chr = 0; chr < record.size(); chr++)
 		{
-			sequence_.push_back(DNACharacter(sequence[i], DNASequence::Pos(i)));
-		}
+			SequencePosIterator chrPosBegin = --sequence_.end();
+			for(size_t pos = 0; pos < record[chr].sequence.size(); pos++)
+			{
+				sequence_.push_back(DNACharacter(record[chr].sequence[pos], DNASequence::Pos(pos)));
+			}
 
-		sequence_.push_back(DNACharacter(SEPARATION_CHAR, sequence_.size()));
+			sequence_.push_back(DNACharacter(SEPARATION_CHAR, -1));
+			posBegin.push_back(++chrPosBegin);
+			posEnd.push_back(--sequence_.end());
+		}
 	}
 
-	size_t DNASequence::Size() const
+	size_t DNASequence::TotalSize() const
 	{
 		return sequence_.size();
+	}
+
+	size_t DNASequence::ChrNumber() const
+	{
+		return posBegin.size();
 	}
 
 	char DNASequence::StrandIterator::TranslateChar(char ch) const

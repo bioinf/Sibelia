@@ -9,13 +9,17 @@ namespace SyntenyBuilder
 
 	KSEQ_INIT(FILE*, cread)
 
-	void FASTAReader::GetSequence(std::string & buffer)
+	void FASTAReader::GetSequences(std::vector<FASTARecord> & record)
 	{
-		buffer.clear();
+		record.clear();
 		kseq_t * sequence = kseq_init(fileHandler_);
 		while(kseq_read(sequence) >= 0)
 		{
-			buffer += sequence->seq.s;
+			record.push_back(FASTARecord(sequence->seq.s, sequence->name.s));
+			for(size_t i = 0; i < record.back().sequence.size(); i++)
+			{
+				record.back().sequence[i] = tolower(record.back().sequence[i]);
+			}	
 		}
 
 		kseq_destroy(sequence);

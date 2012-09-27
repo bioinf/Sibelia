@@ -181,7 +181,7 @@ namespace SyntenyBuilder
 			visit.clear();
 			size_t start = bifStorage.GetBifurcation(kmer);
 			++kmer;
-			for(size_t step = 1; step < minBranchSize && Valid(kmer, sequence); ++kmer, step++)
+			for(size_t step = 1; step < minBranchSize && kmer.AtValidPosition(); ++kmer, step++)
 			{
 				size_t bifId = bifStorage.GetBifurcation(kmer);
 				if(bifId == start)
@@ -230,7 +230,7 @@ namespace SyntenyBuilder
 				{
 					if(kt.first->second != targetData.kmerId)
 					{
-						startKMer[kt.first->second] = sequence.PositiveEnd();
+						startKMer[kt.first->second] = sequence.PositiveEnd(0);
 					}
 				}
 			}
@@ -294,7 +294,7 @@ namespace SyntenyBuilder
 		std::vector<char> endChar(startKMer.size(), ' ');
 		for(size_t i = 0; i < startKMer.size(); i++)
 		{
-			if(ProperKMer(startKMer[i], sequence, k + 1))
+			if(ProperKMer(startKMer[i], k + 1))
 			{                    
 				endChar[i] = *AdvanceForward(startKMer[i], k);
 			}
@@ -309,7 +309,7 @@ namespace SyntenyBuilder
 		std::vector<BifurcationMark> visit;
 		for(size_t kmerI = 0; kmerI < startKMer.size(); kmerI++)
 		{
-			if(!Valid(startKMer[kmerI], sequence))
+			if(!startKMer[kmerI].AtValidPosition())
 			{
 				continue;
 			}
@@ -317,13 +317,13 @@ namespace SyntenyBuilder
 			FillVisit(sequence, bifStorage, startKMer[kmerI], minBranchSize, visit);
 			for(size_t kmerJ = kmerI + 1; kmerJ < startKMer.size(); kmerJ++)
 			{
-				if(!Valid(startKMer[kmerJ], sequence) || endChar[kmerI] == endChar[kmerJ])
+				if(!startKMer[kmerJ].AtValidPosition() || endChar[kmerI] == endChar[kmerJ])
 				{
 					continue;
 				}
 
 				StrandIterator kmer = ++StrandIterator(startKMer[kmerJ]);
-				for(size_t step = 1; Valid(kmer, sequence) && step < minBranchSize; ++kmer, step++)
+				for(size_t step = 1; kmer.AtValidPosition() && step < minBranchSize; ++kmer, step++)
 				{
 					size_t nowBif = bifStorage.GetBifurcation(kmer);
 					if(nowBif != BifurcationStorage::NO_BIFURCATION)

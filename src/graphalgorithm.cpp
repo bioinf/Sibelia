@@ -7,36 +7,27 @@ namespace SyntenyBuilder
 		struct BifurcationData
 		{
 		public:
+			static const char NO_CHAR;
+			static const size_t FORWARD;
+			static const size_t BACKWARD;
 			typedef BifurcationStorage::BifurcationId BifurcationId;
-			static const char NO_CHAR;	
 
 			BifurcationData(BifurcationId id = BifurcationStorage::NO_BIFURCATION): id_(id), forward_(NO_CHAR), backward_(NO_CHAR) {}
-			bool UpdateForward(const DNASequence & sequence, StrandIterator it)
+			bool Update(StrandIterator it, size_t direction)
 			{
-				if(id_ == BifurcationStorage::NO_BIFURCATION && Valid(++it, sequence))
+				char BifurcationData::*field[2] = 
 				{
-					if(forward_ == NO_CHAR)
-					{
-						forward_ = *it;
-					}
-					else if(forward_ != *it)
-					{
-						return true;
-					}
-				}
+					&BifurcationData::forward_,
+					&BifurcationData::backward_
+				};
 
-				return false;
-			}
-
-			bool UpdateBackward(const DNASequence & sequence, StrandIterator it)
-			{
-				if(id_ == BifurcationStorage::NO_BIFURCATION && !AtBegin(it, sequence))
+				if(id_ == BifurcationStorage::NO_BIFURCATION && it.AtValidPosition())
 				{
-					if(backward_ == NO_CHAR)
+					if(this->*field[direction] == NO_CHAR)
 					{
-						backward_ = *--it;
+						this->*field[direction]= *it;
 					}
-					else if(backward_ != *--it)
+					else if(this->*field[direction] != *it)
 					{
 						return true;
 					}
@@ -62,6 +53,8 @@ namespace SyntenyBuilder
 		};
 
 		const char BifurcationData::NO_CHAR = -1;
+		const size_t BifurcationData::FORWARD = 0;
+		const size_t BifurcationData::BACKWARD = 1;
 	}
 	
 	
@@ -70,23 +63,22 @@ namespace SyntenyBuilder
 	KMerBifMap idMap;	
 	void GraphAlgorithm::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
 	{
-		SlidingWindow<StrandIterator> window[] = 
-		{
-			SlidingWindow<StrandIterator>(sequence.PositiveBegin(), sequence.PositiveEnd(), k),
-			SlidingWindow<StrandIterator>(sequence.NegativeBegin(), sequence.NegativeEnd(), k)
-		};
-			
 		for(size_t strand = 0; strand < 2; strand++)
 		{
-			size_t pos = 0;
-			for(; window[strand].Valid(); window[strand].Move(), ++pos)
+			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 			{
-				StrandIterator jt = window[strand].GetBegin();
-				size_t actualBifurcation = bifStorage.GetBifurcation(jt);
-				std::string buf(std::string(jt, AdvanceForward(jt, k)));
-				KMerBifMap::iterator kt = idMap.find(buf);
-				size_t mustbeBifurcation = kt == idMap.end() ? BifurcationStorage::NO_BIFURCATION : kt->second;
-				assert(actualBifurcation == mustbeBifurcation);
+				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
+				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
+				SlidingWindow<StrandIterator> window(begin, end, k);
+				for(; window.Valid(); window.Move())
+				{
+					StrandIterator jt = window.GetBegin();
+					size_t actualBifurcation = bifStorage.GetBifurcation(jt);
+					std::string buf(std::string(jt, AdvanceForward(jt, k)));
+					KMerBifMap::iterator kt = idMap.find(buf);
+					size_t mustbeBifurcation = kt == idMap.end() ? BifurcationStorage::NO_BIFURCATION : kt->second;
+					assert(actualBifurcation == mustbeBifurcation);
+				}	
 			}
 		}
 	}
@@ -101,96 +93,112 @@ namespace SyntenyBuilder
 		const size_t MOD = 1000000;
 		BifurcationData::BifurcationId bifurcationCount = 0;
 		typedef boost::unordered_map<size_t, BifurcationData> BifurcationMap;
-		BifurcationMap bifurcation(sequence.Size());
-
-		StrandIterator border[] = 
+		BifurcationMap bifurcation(sequence.TotalSize());
+		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
-			sequence.PositiveBegin(),
-			sequence.NegativeBegin(),
-			AdvanceBackward(sequence.PositiveEnd(), k),
-			AdvanceBackward(sequence.NegativeEnd(), k),	
-			sequence.PositiveEnd(),
-			sequence.NegativeEnd()
-		};
-
-		KMerHashFunction hashF(k);
-		for(size_t i = 0; i < 4; i++)
-		{
-			size_t hash = hashF(border[i]);
-			BifurcationMap::iterator jt = bifurcation.find(hash);
-			if(jt == bifurcation.end())
+			StrandIterator border[] = 
 			{
-				jt = bifurcation.insert(std::make_pair(hash, BifurcationData())).first;
-				jt->second.SetId(bifurcationCount++);
-			}
-		}
+				sequence.PositiveBegin(chr),
+				sequence.NegativeBegin(chr),
+				AdvanceBackward(sequence.PositiveEnd(chr), k),
+				AdvanceBackward(sequence.NegativeEnd(chr), k),	
+			};
 
-		for(size_t i = 0; i < 2; i++)
-		{
-			SlidingWindow<StrandIterator> window(border[i], border[i + 4], k);
-			for(size_t count = 0; window.Valid(); window.Move(), count++)
+			KMerHashFunction hashF(k);
+			for(size_t i = 0; i < 4; i++)
 			{
-				if(count % MOD == 0)
+				size_t hash = hashF(border[i]);
+				BifurcationMap::iterator jt = bifurcation.find(hash);
+				if(jt == bifurcation.end())
 				{
-					std::cerr << "Pos = " << count << std::endl;
-				}
-
-				StrandIterator it = window.GetBegin();
-				size_t hash = window.GetValue();
-				if(*it != DNASequence::UNKNOWN_BASE)
-				{
-					BifurcationMap::iterator jt = bifurcation.find(hash);
-					if(i == 0 && jt == bifurcation.end())
-					{
-						jt = bifurcation.insert(std::make_pair(hash, BifurcationData())).first;
-					}
-
-					if(jt != bifurcation.end() && (jt->second.UpdateForward(sequence, --window.GetEnd()) || jt->second.UpdateBackward(sequence, it)))
-					{
-						jt->second.SetId(bifurcationCount++);
-					}
+					jt = bifurcation.insert(std::make_pair(hash, BifurcationData())).first;
+					jt->second.SetId(bifurcationCount++);
 				}
 			}
 		}
 
-		for(size_t i = 0; i < 2; i++)
+		for(size_t strand = 0; strand < 2; strand++)
 		{
-			SlidingWindow<StrandIterator> window = SlidingWindow<StrandIterator>(border[i], border[i + 4], k);
-			for(size_t count = 0; window.Valid(); window.Move(), count++)
+			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 			{
-				if(count % MOD == 0)
+				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
+				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
+				SlidingWindow<StrandIterator> window(begin, end, k);
+				for(size_t count = 0; window.Valid(); window.Move(), count++)
 				{
-					std::cerr << "Pos = " << count << std::endl;
-				}
+					if(count % MOD == 0)
+					{
+						std::cerr << "Pos = " << count << std::endl;
+					}
 
-				BifurcationMap::iterator jt = bifurcation.find(window.GetValue());
-				if(jt != bifurcation.end() && jt->second.GetId() != BifurcationStorage::NO_BIFURCATION)
+					StrandIterator it = window.GetBegin();
+					size_t hash = window.GetValue();
+					if(*it != DNASequence::UNKNOWN_BASE)
+					{
+						BifurcationMap::iterator jt = bifurcation.find(hash);
+						if(strand == 0 && jt == bifurcation.end())
+						{
+							jt = bifurcation.insert(std::make_pair(hash, BifurcationData())).first;
+						}
+
+						if(jt != bifurcation.end() && (
+							jt->second.Update(window.GetEnd(), BifurcationData::FORWARD) ||
+							jt->second.Update(--window.GetBegin(), BifurcationData::BACKWARD)))
+						{
+							jt->second.SetId(bifurcationCount++);
+						}
+					}
+				}
+			}
+		}
+
+		for(size_t strand = 0; strand < 2; strand++)
+		{
+			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
+			{
+				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
+				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
+				SlidingWindow<StrandIterator> window(begin, end, k);
+				for(size_t count = 0; window.Valid(); window.Move(), count++)
 				{
-					bifStorage.AddPoint(window.GetBegin(), jt->second.GetId());
-				}			
-			}	
-		}				
+					if(count % MOD == 0)
+					{
+						std::cerr << "Pos = " << count << std::endl;
+					}
+
+					BifurcationMap::iterator jt = bifurcation.find(window.GetValue());
+					if(jt != bifurcation.end() && jt->second.GetId() != BifurcationStorage::NO_BIFURCATION)
+					{
+						bifStorage.AddPoint(window.GetBegin(), jt->second.GetId());
+					}			
+				}	
+			}
+		}
 
 	#ifdef _DEBUG	
 		idMap.clear();
-		std::copy(sequence.PositiveBegin(), sequence.PositiveEnd(), std::ostream_iterator<char>(std::cerr));
-		std::cerr << std::endl << DELIMITER << std::endl << "Bifurcations: " << std::endl;
-		for(size_t i = 0; i < 2; i++)
+		
+		PrintRaw(sequence, std::cerr);
+		std::cerr << DELIMITER << std::endl << "Bifurcations: " << std::endl;
+		for(size_t strand = 0; strand < 2; strand++)
 		{
-			for(StrandIterator it = border[i]; it != border[i + 4]; ++it)
-			{				
-				size_t bifId = bifStorage.GetBifurcation(it);
-				if(bifId != BifurcationStorage::NO_BIFURCATION)
+			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
+			{
+				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
+				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
+				SlidingWindow<StrandIterator> window(begin, end, k);
+				for(; window.Valid(); window.Move())
 				{
-					std::string buf(it, AdvanceForward(it, k));
-					if(idMap.count(buf) == 0)
+					BifurcationMap::iterator jt = bifurcation.find(window.GetValue());
+					std::string buf(window.GetBegin(), AdvanceForward(window.GetBegin(), k));
+					if(jt != bifurcation.end() && jt->second.GetId() != BifurcationStorage::NO_BIFURCATION && idMap.count(buf) == 0)
 					{
-						idMap[buf] = bifId;
-						std::cerr << "Id = " << bifId << std::endl << "Body = " << buf << std::endl;
+						idMap[buf] = jt->second.GetId();
+						std::cerr << "Id = " << jt->second.GetId() << std::endl << "Body = " << buf << std::endl;
 					}
-				}
+				}	
 			}
-		}	
+		}
 
 		bifStorage.Dump(sequence, k, std::cerr);
 		Test(sequence, bifStorage, k);
@@ -199,6 +207,7 @@ namespace SyntenyBuilder
 		return bifurcationCount;
 	}
 
+	
 	void GraphAlgorithm::SimplifyGraph(DNASequence & sequence, 
 		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize)
 	{

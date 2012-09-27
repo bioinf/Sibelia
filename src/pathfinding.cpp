@@ -1,7 +1,7 @@
 #include "graphalgorithm.h"
 
 namespace SyntenyBuilder
-{
+{/*
 	namespace
 	{	
 		struct PathData
@@ -97,7 +97,7 @@ namespace SyntenyBuilder
 		{
 			ret.clear();
 			std::vector<StrandIterator> kmer;
-			std::vector<StrandIterator> edge[4];
+			std::vector<StrandIterator> edge[6];
 			for(size_t i = 0; i < bifStorage.GetMaxId(); i++)
 			{
 				kmer.clear();
@@ -187,6 +187,6 @@ namespace SyntenyBuilder
 					indexOut << indexOutBuf.str() << DELIMITER << std::endl;
 				}
 			}
-		}			
-	}	
+		}		
+	}*/		
 }

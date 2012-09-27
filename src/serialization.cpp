@@ -4,80 +4,70 @@ namespace SyntenyBuilder
 {
 	namespace
 	{	
-		void OutputEdge(size_t k, StrandIterator it, size_t pos, std::ostream & out)
+		typedef unsigned long long ull;
+
+		void OutputEdge(size_t k, StrandIterator it, size_t chr, size_t pos, std::ostream & out)
 		{
 			CopyN(it, k, std::ostream_iterator<char>(out));
 			out << " -> ";
 			CopyN(++StrandIterator(it), k, std::ostream_iterator<char>(out));
-
 			char buf[1 << 8];
-			if(it.GetDirection() == DNASequence::positive)
-			{
-				sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "blue", static_cast<long long unsigned>(pos));
-			}
-			else
-			{
-				sprintf(&buf[0], "[color=\"%s\", label=\"%lu\"];", "red", static_cast<long long unsigned>(pos));
-			}
-
+			std::string color = it.GetDirection() == DNASequence::positive ? "blue" : "red";			
+			sprintf(&buf[0], "[color=\"%s\", label=\"(%lu, %lu)\"];", color.c_str(), static_cast<ull>(chr), static_cast<ull>(pos));
 			out << " " << buf << std::endl;
 		}
 		
-		
 		void SerializeCondensed(const BifurcationStorage & bifStorage, size_t k,
-			StrandIterator start, StrandIterator end, std::ostream & out)
+			StrandIterator start, StrandIterator end, size_t chr, std::ostream & out)
 		{
-			for(; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; ++start);
+			ull upos = 0;
+			ull uchr = static_cast<ull>(chr);
+			for(; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; ++start, ++upos);
 			size_t prev = start != end ? bifStorage.GetBifurcation(start) : -1;			
 			for(; start != end; )
 			{
-				size_t step = 0;				
-
+				ull step = 1;				
 				StrandIterator origin = start;
-				for(++start; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; 
-					++start, ++step);
-
+				for(++start; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; ++start, ++step);
 				if(start != end)
 				{
-					bool foo = start == end;
 					size_t bifId = bifStorage.GetBifurcation(start);
 					if(bifId != BifurcationStorage::NO_BIFURCATION)
 					{
 						char buf[1 << 8];
 						out << prev << " -> " << bifId;
 						char ch = *AdvanceForward(origin, k);
-						if(start.GetDirection() == DNASequence::positive)
-						{							
-							sprintf(&buf[0], "[color=\"%s\", label=\"L=%lu C=%c\"];", "blue", static_cast<long long unsigned>(step + 1), ch);
-						}
-						else
-						{
-							sprintf(&buf[0], "[color=\"%s\", label=\"L=%lu C=%c\"];", "red", static_cast<long long unsigned>(step + 1), ch);
-						}
-
+						std::string color = start.GetDirection() == DNASequence::positive ? "blue" : "red";
+						sprintf(&buf[0], "[color=\"%s\", label=\"chr=%lu pos=%lu len=%lu ch=%c\"];", color.c_str(), uchr, upos, step, ch);
 						out << " " << buf << std::endl;
 					}
 
 					prev = bifId;
+					upos += step;
 				}
 			}
 		}
 	}
-
-	void GraphAlgorithm::PrintRaw(const DNASequence & s, std::ostream & out)
+	
+	void GraphAlgorithm::PrintRaw(const DNASequence & sequence, std::ostream & out)
 	{
-		std::string rcomp;
-		for(size_t i = 0; i < s.Size(); i++)
+		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
-			out << i % 10;
-		}
-		
-		out << std::endl;
-		std::copy(s.PositiveBegin(), s.PositiveEnd(), std::ostream_iterator<char>(out));
-		out << std::endl;
-		std::copy(s.NegativeBegin(), s.NegativeEnd(), std::back_inserter(rcomp));
-		std::copy(rcomp.rbegin(), rcomp.rend(), std::ostream_iterator<char>(out));
-		out << std::endl;
+			out << "Sequence #" << chr << std::endl;
+			std::string rcomp;
+			StrandIterator it = sequence.PositiveBegin(chr);
+			for(size_t i = 0; it != sequence.PositiveEnd(chr); i++, ++it)
+			{
+				out << i % 10;
+			}
+
+			out << std::endl;
+			std::copy(sequence.PositiveBegin(chr), sequence.PositiveEnd(chr), std::ostream_iterator<char>(out));
+			out << std::endl;
+			std::copy(sequence.NegativeBegin(chr), sequence.NegativeEnd(chr), std::back_inserter(rcomp));
+			std::copy(rcomp.rbegin(), rcomp.rend(), std::ostream_iterator<char>(out));
+			out << std::endl;
+		}		
 	}
 
 	void GraphAlgorithm::PrintPath(StrandIterator e, size_t k, size_t distance, std::ostream & out)
@@ -85,15 +75,24 @@ namespace SyntenyBuilder
 		out << (e.GetDirection() == DNASequence::positive ? "s+ " : "s- ");
 		CopyN(e, distance + k, std::ostream_iterator<char>(out));
 		std::cerr << std::endl;
-	}			
+	}
+
 	
 	void GraphAlgorithm::SerializeCondensedGraph(const DNASequence & sequence,
 		const BifurcationStorage & bifStorage, size_t k, std::ostream & out)
 	{
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
-		SerializeCondensed(bifStorage, k, sequence.PositiveBegin(), sequence.PositiveEnd(), out);
-		SerializeCondensed(bifStorage, k, sequence.NegativeBegin(), sequence.NegativeEnd(), out);
+		for(size_t strand = 0; strand < 2; strand++)
+		{
+			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
+			{
+				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
+				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
+				SerializeCondensed(bifStorage, k, begin, end, chr, out);
+			}
+		}
+		
 		out << "}" << std::endl;
 	}
 
@@ -101,20 +100,26 @@ namespace SyntenyBuilder
 	{
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
-		StrandIterator jt = AdvanceForward(sequence.PositiveBegin(), sequence.PositiveEnd(), k); 
-		size_t pos = 1;
-		for(StrandIterator it = sequence.PositiveBegin(); jt != sequence.PositiveEnd(); ++it, ++jt, ++pos)
+		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
-			OutputEdge(k, it, pos, out);
-		}
-		
-		pos = 1;
-		jt = AdvanceForward(sequence.NegativeBegin(), sequence.NegativeEnd(), k); 
-		for(StrandIterator it = sequence.NegativeBegin(); jt != sequence.NegativeEnd(); ++it, ++jt, ++pos)
-		{
-			OutputEdge(k, it, sequence.Size() - pos + 1, out);
+			StrandIterator bound[4] = 
+			{
+				sequence.PositiveBegin(chr),
+				sequence.NegativeBegin(chr),
+				sequence.PositiveEnd(chr),
+				sequence.NegativeEnd(chr)
+			};
+
+			for(size_t strand = 0; strand < 2; strand++)
+			{
+				size_t pos = 0;
+				for(SlidingWindow<StrandIterator> window(bound[strand], bound[strand + 2], k + 1); window.Valid(); ++pos, window.Move())
+				{
+					OutputEdge(k, window.GetBegin(), chr, pos, out);
+				}
+			}
 		}
 
-		out << "}";
+		out << "}" << std::endl;
 	}
 }

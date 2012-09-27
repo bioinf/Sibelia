@@ -14,6 +14,15 @@ namespace SyntenyBuilder
 	class FASTAReader
 	{
 	public:
+		struct FASTARecord
+		{
+			std::string sequence;
+			std::string description;
+			FASTARecord() {}
+			FASTARecord(const std::string & sequence, const std::string & description):
+				sequence(sequence), description(description) {}
+		};
+
 		bool IsOk() const
 		{
 			return fileHandler_ != 0 && !feof(fileHandler_) && !ferror(fileHandler_);
@@ -32,7 +41,7 @@ namespace SyntenyBuilder
 			}
 		}
 
-		void GetSequence(std::string & buf);
+		void GetSequences(std::vector<FASTARecord> & record);
 		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(FASTAReader);
@@ -45,7 +54,7 @@ namespace SyntenyBuilder
 		static void WriteSequence(const std::string & fileName, const std::string & header, const std::string & sequence)
 		{
 			std::ofstream out(fileName.c_str());
-			out << "> " << header << std::endl;
+			out << ">" << header << std::endl;
 			for(size_t i = 0; i < sequence.size(); i += 80)
 			{
 				size_t j = std::min(i + 80, sequence.size());

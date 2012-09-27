@@ -1,6 +1,7 @@
 #ifndef _DNA_SEQUENCE_H_
 #define _DNA_SEQUENCE_H_
 
+#include "fasta.h"
 #include "common.h"
 
 #pragma warning(disable:4355)
@@ -105,6 +106,7 @@ namespace SyntenyBuilder
 			SequencePosIterator Base() const;
 			char TranslateChar(char ch) const;
 			const DNACharacter* GetNaked() const;
+			bool AtValidPosition() const;
 			bool operator < (const StrandIterator & comp) const;
 			bool operator == (const StrandIterator & comp) const;
 			bool operator != (const StrandIterator & comp) const;
@@ -117,22 +119,25 @@ namespace SyntenyBuilder
 			std::auto_ptr<GenericIterator> it_;
 		};
 		
-		size_t Size() const;
-		StrandIterator PositiveBegin() const;
-		StrandIterator PositiveEnd() const;
-		StrandIterator NegativeBegin() const;
-		StrandIterator NegativeEnd() const;
+		size_t TotalSize() const;
+		size_t ChrNumber() const;
+		StrandIterator PositiveBegin(size_t chr) const;
+		StrandIterator PositiveEnd(size_t chr) const;
+		StrandIterator NegativeBegin(size_t chr) const;
+		StrandIterator NegativeEnd(size_t chr) const;
+		StrandIterator Begin(Direction, size_t chr) const;
+		StrandIterator End(Direction, size_t chr) const;
 		void EraseN(StrandIterator now, size_t count);		
 		void Replace(StrandIterator source, size_t sourceDistance, 
 			StrandIterator target, size_t targetDistance,
 			const boost::function<void (const StrandIterator&)> & alarmBefore,
 			const boost::function<void (const StrandIterator&)> & alarmAfter);
 		void CopyN(StrandIterator source, size_t count, StrandIterator target);
-		explicit DNASequence(const std::string & sequence);
+		explicit DNASequence(const std::vector<FASTAReader::FASTARecord> & record);
 
 		template<class Iterator>
 			std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2, Iterator out) const
-			{
+			{/*
 				for(;it1.GetOriginalPosition() == NO_POS && it1 != it2; ++it1);
 				for(--it2; it2.GetOriginalPosition() == NO_POS && it1 != it2; --it2);
 				size_t start = std::min(it1.GetOriginalPosition(), it2.GetOriginalPosition());
@@ -159,35 +164,34 @@ namespace SyntenyBuilder
 					std::copy(rcomp.rbegin(), rcomp.rend(), out);
 				}
 
-				return std::make_pair(start, end);
+				return std::make_pair(start, end);*/
+				return std::make_pair(0, 0);
 			}
 		
 		static const char UNKNOWN_BASE;
-		static const char SEPARATION_CHAR;
 		static const std::string alphabet;		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
 		static char Translate(char ch);
-		static const std::string complementary_;		
+		static const char SEPARATION_CHAR;
+		static const std::string complementary_;
+		
 		Sequence sequence_;
-		std::string original_;
+		std::vector<SequencePosIterator> posBegin;
+		std::vector<SequencePosIterator> posEnd;
 	};	
-
-	inline bool Valid(const DNASequence::StrandIterator & it, const DNASequence & sequence)
+	
+	inline bool ProperKMer(DNASequence::StrandIterator it, size_t k)
 	{
-		return it != sequence.PositiveEnd() && it != sequence.NegativeEnd();
-	}
+		for(size_t i = 0; i < k; i++, ++it)
+		{
+			if(!it.AtValidPosition())
+			{
+				return false;
+			}
+		}
 
-	inline bool AtBegin(const DNASequence::StrandIterator & it, const DNASequence & sequence)
-	{
-		return it == sequence.PositiveBegin() || it == sequence.NegativeBegin();
-	}
-
-	inline bool ProperKMer(DNASequence::StrandIterator it, const DNASequence & sequence, size_t k)
-	{
-		DNASequence::StrandIterator upperBound = it.GetDirection() == 
-			DNASequence::positive ? sequence.PositiveBegin() :sequence.NegativeBegin();
-		return Valid(AdvanceForward(it, upperBound, k - 1), sequence);
+		return true;
 	}
 }
 
