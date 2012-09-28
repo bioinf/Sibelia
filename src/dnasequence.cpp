@@ -19,7 +19,6 @@ namespace SyntenyBuilder
 		return ret;
 	}
 	
-	const size_t DNASequence::NO_POS = -1;
 	const char DNASequence::UNKNOWN_BASE = 'n';
 	const char DNASequence::SEPARATION_CHAR = '$';
 	const std::string DNASequence::alphabet("agctn$");
@@ -203,7 +202,7 @@ namespace SyntenyBuilder
 				sequence_.push_back(DNACharacter(record[chr].sequence[pos], DNASequence::Pos(pos)));
 			}
 
-			sequence_.push_back(DNACharacter(SEPARATION_CHAR, -1));
+			sequence_.push_back(DNACharacter(SEPARATION_CHAR, DNASequence::Pos(record[chr].sequence.size())));
 			posBegin.push_back(++chrPosBegin);
 			posEnd.push_back(--sequence_.end());
 		}
@@ -291,5 +290,13 @@ namespace SyntenyBuilder
 		{						
 			it = sequence_.erase(it);			
 		}
+	}
+
+	std::pair<size_t, size_t> DNASequence::SpellOriginal(StrandIterator it1, StrandIterator it2) const
+	{
+		--it2;
+		size_t start = std::min(it1.GetOriginalPosition(), it2.GetOriginalPosition());
+		size_t end = std::max(it1.GetOriginalPosition(), it2.GetOriginalPosition());
+		return std::make_pair(start, end + 1);
 	}
 }

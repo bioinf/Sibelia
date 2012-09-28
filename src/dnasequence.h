@@ -32,8 +32,6 @@ namespace SyntenyBuilder
 		typedef Sequence::reverse_iterator SequenceNegIterator;
 
 	private:
-		static const size_t NO_POS;
-
 		class GenericIterator
 		{
 		public:
@@ -121,6 +119,7 @@ namespace SyntenyBuilder
 		
 		size_t TotalSize() const;
 		size_t ChrNumber() const;
+		static char Translate(char ch);
 		StrandIterator PositiveBegin(size_t chr) const;
 		StrandIterator PositiveEnd(size_t chr) const;
 		StrandIterator NegativeBegin(size_t chr) const;
@@ -134,45 +133,12 @@ namespace SyntenyBuilder
 			const boost::function<void (const StrandIterator&)> & alarmAfter);
 		void CopyN(StrandIterator source, size_t count, StrandIterator target);
 		explicit DNASequence(const std::vector<FASTAReader::FASTARecord> & record);
-
-		template<class Iterator>
-			std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2, Iterator out) const
-			{/*
-				for(;it1.GetOriginalPosition() == NO_POS && it1 != it2; ++it1);
-				for(--it2; it2.GetOriginalPosition() == NO_POS && it1 != it2; --it2);
-				size_t start = std::min(it1.GetOriginalPosition(), it2.GetOriginalPosition());
-				size_t end = std::max(it1.GetOriginalPosition(), it2.GetOriginalPosition()) + 1;
-
-				if(start == NO_POS || end == NO_POS)
-				{
-					return std::make_pair(0, 0);
-				}
-
-				if(it1.GetDirection() == positive)
-				{
-					std::copy(original_.begin() + start, original_.begin() + end, out);
-				}
-				else
-				{
-					std::string rcomp;
-					std::copy(original_.begin() + start, original_.begin() + end, std::back_inserter(rcomp));
-					for(size_t i = 0; i < rcomp.size(); i++)
-					{
-						rcomp[i] = Translate(rcomp[i]);
-					}
-
-					std::copy(rcomp.rbegin(), rcomp.rend(), out);
-				}
-
-				return std::make_pair(start, end);*/
-				return std::make_pair(0, 0);
-			}
+		std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2) const;
 		
 		static const char UNKNOWN_BASE;
 		static const std::string alphabet;		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
-		static char Translate(char ch);
 		static const char SEPARATION_CHAR;
 		static const std::string complementary_;
 		

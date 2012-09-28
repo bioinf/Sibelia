@@ -136,7 +136,7 @@ namespace SyntenyBuilder
 					if(*it != DNASequence::UNKNOWN_BASE)
 					{
 						BifurcationMap::iterator jt = bifurcation.find(hash);
-						if(strand == 0 && jt == bifurcation.end())
+						if(jt == bifurcation.end())
 						{
 							jt = bifurcation.insert(std::make_pair(hash, BifurcationData())).first;
 						}
@@ -177,7 +177,6 @@ namespace SyntenyBuilder
 
 	#ifdef _DEBUG	
 		idMap.clear();
-		
 		PrintRaw(sequence, std::cerr);
 		std::cerr << DELIMITER << std::endl << "Bifurcations: " << std::endl;
 		for(size_t strand = 0; strand < 2; strand++)

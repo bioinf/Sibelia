@@ -16,37 +16,6 @@ namespace SyntenyBuilder
 			sprintf(&buf[0], "[color=\"%s\", label=\"(%lu, %lu)\"];", color.c_str(), static_cast<ull>(chr), static_cast<ull>(pos));
 			out << " " << buf << std::endl;
 		}
-		
-		void SerializeCondensed(const BifurcationStorage & bifStorage, size_t k,
-			StrandIterator start, StrandIterator end, size_t chr, std::ostream & out)
-		{
-			ull upos = 0;
-			ull uchr = static_cast<ull>(chr);
-			for(; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; ++start, ++upos);
-			size_t prev = start != end ? bifStorage.GetBifurcation(start) : -1;			
-			for(; start != end; )
-			{
-				ull step = 1;				
-				StrandIterator origin = start;
-				for(++start; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; ++start, ++step);
-				if(start != end)
-				{
-					size_t bifId = bifStorage.GetBifurcation(start);
-					if(bifId != BifurcationStorage::NO_BIFURCATION)
-					{
-						char buf[1 << 8];
-						out << prev << " -> " << bifId;
-						char ch = *AdvanceForward(origin, k);
-						std::string color = start.GetDirection() == DNASequence::positive ? "blue" : "red";
-						sprintf(&buf[0], "[color=\"%s\", label=\"chr=%lu pos=%lu len=%lu ch=%c\"];", color.c_str(), uchr, upos, step, ch);
-						out << " " << buf << std::endl;
-					}
-
-					prev = bifId;
-					upos += step;
-				}
-			}
-		}
 	}
 	
 	void GraphAlgorithm::PrintRaw(const DNASequence & sequence, std::ostream & out)
@@ -77,22 +46,55 @@ namespace SyntenyBuilder
 		std::cerr << std::endl;
 	}
 
-	
+	void GraphAlgorithm::ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge)
+	{
+		edge.clear();
+		for(size_t strand = 0; strand < 2; strand++)
+		{
+			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
+			{
+				size_t pos = 0;		
+				StrandIterator start = sequence.Begin((DNASequence::Direction)strand, chr);
+				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
+				size_t prevVertex = bifStorage.GetBifurcation(start);
+				for(; start != end; )
+				{
+					size_t step = 1;				
+					StrandIterator origin = start;
+					for(++start; start != end && bifStorage.GetBifurcation(start) == BifurcationStorage::NO_BIFURCATION; ++start, ++step);
+					if(start != end)
+					{
+						char firstChar = *AdvanceForward(origin, k);
+						size_t nowVertex = bifStorage.GetBifurcation(start);
+						std::pair<size_t, size_t> coord = sequence.SpellOriginal(origin, AdvanceForward(start, k));
+						edge.push_back(Edge(chr, start.GetDirection(), prevVertex, nowVertex, pos, step + k, coord.first, coord.second - coord.first, firstChar));
+						prevVertex = nowVertex;
+						pos += step;
+					}
+				}
+			}
+		}
+	}
+
 	void GraphAlgorithm::SerializeCondensedGraph(const DNASequence & sequence,
 		const BifurcationStorage & bifStorage, size_t k, std::ostream & out)
 	{
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
-		for(size_t strand = 0; strand < 2; strand++)
+		std::vector<Edge> edge;
+		ListEdges(sequence, bifStorage, k, edge);
+		for(size_t i = 0; i < edge.size(); i++)
 		{
-			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
-			{
-				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
-				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
-				SerializeCondensed(bifStorage, k, begin, end, chr, out);
-			}
+			char buf[1 << 8];
+			std::string color = edge[i].direction == DNASequence::positive ? "blue" : "red";
+			ull uchr = static_cast<ull>(edge[i].chr);
+			ull upos = static_cast<ull>(edge[i].actualPosition);
+			ull ulength = static_cast<ull>(edge[i].actualLength);
+			out << edge[i].startVertex << " -> " << edge[i].endVertex;
+			sprintf(&buf[0], "[color=\"%s\", label=\"chr=%lu pos=%lu len=%lu ch=%c\"];", color.c_str(), uchr, upos, ulength, edge[i].firstChar);
+			out << " " << buf << std::endl;
 		}
-		
+
 		out << "}" << std::endl;
 	}
 
