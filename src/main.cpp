@@ -1,4 +1,4 @@
-#include "graphalgorithm.h"
+#include "auxiliary.h"
 
 std::string IntToStr(size_t value)
 {

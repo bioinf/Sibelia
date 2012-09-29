@@ -8,9 +8,9 @@ namespace SyntenyBuilder
 		return std::vector<size_t>(feature, feature + sizeof(feature) / sizeof(feature[0]));
 	}
 
-	bool GraphAlgorithm::EdgeEmpty(const Edge & a)
+	bool GraphAlgorithm::EdgeEmpty(const Edge & a, size_t k)
 	{
-		return a.originalLength == 0;
+		return a.originalLength < k;
 	}
 
 	bool GraphAlgorithm::EdgeCompare(const Edge & a, const Edge & b)
@@ -24,7 +24,7 @@ namespace SyntenyBuilder
 		std::vector<Edge> edge;
 		block.resize(sequence.ChrNumber(), std::vector<BlockInstance>());
 		GraphAlgorithm::ListEdges(sequence, bifStorage, k, edge);
-		edge.erase(std::remove_if(edge.begin(), edge.end(), EdgeEmpty), edge.end());
+		edge.erase(std::remove_if(edge.begin(), edge.end(), boost::bind(EdgeEmpty, _1, k)), edge.end());
 		std::sort(edge.begin(), edge.end(), EdgeCompare);
 		std::vector<std::set<std::pair<size_t, size_t> > > visit(sequence.ChrNumber());
 
@@ -42,8 +42,9 @@ namespace SyntenyBuilder
 			{
 				for(; prev < now; prev++)
 				{
+					int strand = edge[prev].direction == DNASequence::positive ? +1 : -1;
 					visit[edge[prev].chr].insert(std::make_pair(edge[prev].originalPosition, edge[prev].originalLength));
-					block[edge[prev].chr].push_back(BlockInstance(blockCount, edge[prev].chr, edge[prev].originalPosition, edge[prev].originalPosition + edge[prev].originalLength));
+					block[edge[prev].chr].push_back(BlockInstance(blockCount * strand, edge[prev].chr, edge[prev].originalPosition, edge[prev].originalPosition + edge[prev].originalLength));
 				}
 
 				blockCount++;

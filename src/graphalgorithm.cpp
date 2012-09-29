@@ -55,6 +55,23 @@ namespace SyntenyBuilder
 		const char BifurcationData::NO_CHAR = -1;
 		const size_t BifurcationData::FORWARD = 0;
 		const size_t BifurcationData::BACKWARD = 1;
+
+		StrandIterator ForwardValidKMer(StrandIterator it, size_t k)
+		{
+			for(; it.AtValidPosition() && *it == DNASequence::UNKNOWN_BASE; ++it);
+			if(!ProperKMer(it, k))
+			{
+				for(; !it.AtValidPosition(); ++it);
+			}
+
+			return it;
+		}
+
+		StrandIterator BackwardValidKMer(StrandIterator it, size_t k)
+		{
+			for(; it.AtValidPosition() && *it == DNASequence::UNKNOWN_BASE; --it);			
+			return it;
+		}
 	}
 	
 	
@@ -98,21 +115,24 @@ namespace SyntenyBuilder
 		{
 			StrandIterator border[] = 
 			{
-				sequence.PositiveBegin(chr),
-				sequence.NegativeBegin(chr),
-				AdvanceBackward(sequence.PositiveEnd(chr), k),
-				AdvanceBackward(sequence.NegativeEnd(chr), k),	
+				ForwardValidKMer(sequence.PositiveBegin(chr), k),
+				ForwardValidKMer(sequence.NegativeBegin(chr), k),
+				BackwardValidKMer(AdvanceBackward(sequence.PositiveEnd(chr), k), k),
+				BackwardValidKMer(AdvanceBackward(sequence.NegativeEnd(chr), k), k)
 			};
 
 			KMerHashFunction hashF(k);
 			for(size_t i = 0; i < 4; i++)
 			{
-				size_t hash = hashF(border[i]);
-				BifurcationMap::iterator jt = bifurcation.find(hash);
-				if(jt == bifurcation.end())
+				if(border[i].AtValidPosition())
 				{
-					jt = bifurcation.insert(std::make_pair(hash, BifurcationData())).first;
-					jt->second.SetId(bifurcationCount++);
+					size_t hash = hashF(border[i]);
+					BifurcationMap::iterator jt = bifurcation.find(hash);
+					if(jt == bifurcation.end())
+					{
+						jt = bifurcation.insert(std::make_pair(hash, BifurcationData())).first;
+						jt->second.SetId(bifurcationCount++);
+					}
 				}
 			}
 		}

@@ -220,7 +220,6 @@ namespace SyntenyBuilder
 			
 			std::vector<BifurcationMark> v;
 			FillVisit(sequence, bifStorage, startKMer[sourceData.kmerId], sourceData.distance, v);
-
 			StrandIterator it = startKMer[targetData.kmerId];
 			for(size_t step = 0; step < targetData.distance + k; step++, ++it)
 			{

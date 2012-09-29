@@ -92,7 +92,7 @@ namespace SyntenyBuilder
 			}
 		};
 
-		static bool EdgeEmpty(const Edge & a);
+		static bool EdgeEmpty(const Edge & a, size_t k);
 		static bool EdgeCompare(const Edge & a, const Edge & b);
 		static std::vector<size_t> EdgeToVector(const Edge & a);
 		static size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
