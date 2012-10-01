@@ -1,1 +1,104 @@
-Building synteny blocks via de Bruijn graph
+SyntenyFinder 1.0
+Release date: 12th October 2012
+
+Authors:
+Ilya Minkin (Saint-Petersburg State University of RAS)
+Nikolay Vyahhi (Saint-Petersburg State University of RAS)
+Son Pham (University of California, San Diego)
+
+Introduction
+============
+
+SyntenyFinder is a tool for finding synteny blocks (regions of conserved DNA)
+in closely related species, like different strains of the same bacterial
+specie. It takes a FASTA file with sequences and locates coordinates of
+the synteny blocks in these genomes.
+
+System requirements
+===================
+
+This version is designed for small-scale genomes. For example, it can find
+synteny blocks in 8 bacterial genomes (50 MB of genomic data) in ~45 minutes
+and using 3 GB of RAM on an Intel i5 laptop. Next versions will be faster and
+require less memory.
+
+Installation
+============
+
+Windows
+------------
+For Windows, binary installer is provided (both 32-bit and 64-bit). However,
+you can build the sources by your own if you want (see "Linux" section). 
+Source code is compatible with MSVS 2010.
+
+Linux
+------------
+SyntenyFinder is distributed in sources. It requires two things to be built:
+1) CMake
+2) GCC C++ compiler (version 4.4.6 works fine)
+
+To build the project, proceed to "build" directory and type following:
+
+cmake ../src
+make
+
+After that you will get executable file "SyntenyFinder".
+
+Usage
+=====
+
+Input
+-----
+
+SyntenyFinder takes a single FASTA file as input. This file can contain
+multiple sequences. To run the program just type:
+
+SyntenyFinder <input FASTA file>
+
+"Build" directory already contains file with two small bacterial genomes in
+file "tiny.fasta". To run SyntenyFinder on this file, just type:
+
+SyntenyFinder tiny.fasta
+
+<Here will be detailed description of a rich set of command-line parameters>
+
+Output
+------
+SyntenyFinder produces 4 output files. Each file has name INPUT_FILE + SUFFIX.
+<Of course, this will be changed very soon>
+Designations of these files are described below. 
+
+Suffix      Content
+-------------------------------------------------------------------------------
+_chr        Input genomes represented as permutations of the synteny blocks
+_indices    Coordinates of the synteny blocks
+_blocks     Coordinates of the blocks and sequences of the blocks
+_report     Reports percentage of the genomes that found synteny blocks cover
+
+More detailed description can be found in file OUTPUT located in the root
+directory. 
+
+License
+=======
+
+<Licensing information will be added later>
+
+Citation
+========
+If you use SyntenyFinder in your research, please cite [1, 2].
+
+Contacts
+========
+E-mail your feedback at ilya.minkinen@gmail.com.
+You also can report bugs or suggest features using issue tracker at GitHub.
+
+References
+==========
+1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks Generation and Genome Comparison Tool" (poster), WABI 2012
+http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
+2. A wonderful paper at a top-rank BI conference [IRONIC]
+
+
+
+
+

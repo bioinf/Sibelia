@@ -1,6 +1,6 @@
 #include "auxiliary.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	namespace
 	{

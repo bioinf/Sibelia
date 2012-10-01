@@ -4,7 +4,7 @@
 #include "lib/kseq.h"
 #include "common.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	//This class provides functionality for reading FASTA files.
 	//Currently this is an OO wrapper around tiny library kseq.h.

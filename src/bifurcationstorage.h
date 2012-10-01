@@ -3,7 +3,7 @@
 
 #include "dnasequence.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	typedef DNASequence::StrandIterator StrandIterator;
 

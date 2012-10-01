@@ -1,9 +1,11 @@
 #include "graphalgorithm.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	namespace
 	{
+		const size_t PROGRESS_STRIDE = 50;
+
 		struct BifurcationData
 		{
 		public:
@@ -101,16 +103,13 @@ namespace SyntenyBuilder
 	}
 #endif
 
-	size_t GraphAlgorithm::EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k)
+	size_t GraphAlgorithm::EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack callBack)
 	{
 		bifStorage.Clear();
-		std::cerr << DELIMITER << std::endl;
-		std::cerr << "Finding all bifurcations in the graph..." << std::endl;
-		
-		const size_t MOD = 1000000;
 		BifurcationData::BifurcationId bifurcationCount = 0;
 		typedef boost::unordered_map<size_t, BifurcationData> BifurcationMap;
 		BifurcationMap bifurcation(sequence.TotalSize());
+		size_t threshold = 0;
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
 			StrandIterator border[] = 
@@ -122,6 +121,7 @@ namespace SyntenyBuilder
 			};
 
 			KMerHashFunction hashF(k);
+			threshold += std::distance(border[0], border[2]);
 			for(size_t i = 0; i < 4; i++)
 			{
 				if(border[i].AtValidPosition())
@@ -137,6 +137,9 @@ namespace SyntenyBuilder
 			}
 		}
 
+		size_t count = 0;
+		size_t totalProgress = 0;
+		threshold = (threshold * 4) / PROGRESS_STRIDE;
 		for(size_t strand = 0; strand < 2; strand++)
 		{
 			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
@@ -144,13 +147,8 @@ namespace SyntenyBuilder
 				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
 				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
 				SlidingWindow<StrandIterator> window(begin, end, k);
-				for(size_t count = 0; window.Valid(); window.Move(), count++)
+				for(; window.Valid(); window.Move())
 				{
-					if(count % MOD == 0)
-					{
-						std::cerr << "Pos = " << count << std::endl;
-					}
-
 					StrandIterator it = window.GetBegin();
 					size_t hash = window.GetValue();
 					if(*it != DNASequence::UNKNOWN_BASE)
@@ -168,6 +166,12 @@ namespace SyntenyBuilder
 							jt->second.SetId(bifurcationCount++);
 						}
 					}
+
+					if(++count >= threshold && !callBack.empty())
+					{
+						count = 0;
+						callBack(++totalProgress);
+					}
 				}
 			}
 		}
@@ -179,18 +183,19 @@ namespace SyntenyBuilder
 				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
 				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
 				SlidingWindow<StrandIterator> window(begin, end, k);
-				for(size_t count = 0; window.Valid(); window.Move(), count++)
+				for(; window.Valid(); window.Move())
 				{
-					if(count % MOD == 0)
-					{
-						std::cerr << "Pos = " << count << std::endl;
-					}
-
 					BifurcationMap::iterator jt = bifurcation.find(window.GetValue());
 					if(jt != bifurcation.end() && jt->second.GetId() != BifurcationStorage::NO_BIFURCATION)
 					{
 						bifStorage.AddPoint(window.GetBegin(), jt->second.GetId());
-					}			
+					}
+
+					if(++count >= threshold && !callBack.empty())
+					{
+						count = 0;
+						callBack(++totalProgress);
+					}
 				}	
 			}
 		}
@@ -227,33 +232,29 @@ namespace SyntenyBuilder
 	}
 
 	
-	void GraphAlgorithm::SimplifyGraph(DNASequence & sequence, 
-		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize)
+	size_t GraphAlgorithm::SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
 	{
+		size_t count = 0;
 		size_t prevBulges = 0;
 		size_t totalBulges = 0;
 		size_t iterations = 0;
-		const size_t MOD = 1000;
+		size_t totalProgress = 0;
 		bool anyChanges = true;
-		size_t bifurcationCount = bifStorage.GetMaxId();
-		std::cerr << "Total bifurcations: " << bifurcationCount << std::endl;
+		size_t threshold = (bifStorage.GetMaxId() * maxIterations) / PROGRESS_STRIDE;
 		do
 		{
 			totalBulges = 0;
-			std::cerr << "Iteration: " << iterations++ << std::endl;
-			std::cerr << "Removing bulges..." << std::endl;
-			for(size_t id = 0; id < bifurcationCount; id++)
-			{
-				if(id % MOD == 0)
-				{
-					std::cout << "id = " << id << std::endl;
-				}
-
+			for(size_t id = 0; id < bifStorage.GetMaxId(); id++)
+			{			
 				totalBulges += RemoveBulges(sequence, bifStorage, k, minBranchSize, id);
+				if(++count >= threshold && !callBack.empty())
+				{
+					count = 0;
+					callBack(++totalProgress);
+				}
 			}
-
-			std::cerr << "Total bulges: " << totalBulges << std::endl;		
 		}
-		while((totalBulges > 0) && iterations < 4);
+		while((totalBulges > 0) && iterations < maxIterations);
+		return totalBulges;
 	}
 }

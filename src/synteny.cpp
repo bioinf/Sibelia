@@ -1,6 +1,6 @@
 #include "graphalgorithm.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	std::vector<size_t> GraphAlgorithm::EdgeToVector(const Edge & a)
 	{

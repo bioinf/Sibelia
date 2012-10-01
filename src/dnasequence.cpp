@@ -1,6 +1,6 @@
 #include "dnasequence.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	inline std::string ConstructComplementarityTable()
 	{

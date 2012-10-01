@@ -1,6 +1,6 @@
 #include "dnasequence.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	char DNASequence::ForwardIterator::Spell() const
 	{

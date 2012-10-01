@@ -1,6 +1,6 @@
 #include "hashing.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	
 }

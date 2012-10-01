@@ -26,25 +26,46 @@ std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName)
 	return ret;
 }
 
+std::vector<std::pair<int, int> > DefaultStageFile()
+{
+	std::pair<int, int> stage[] = 
+	{
+		std::make_pair(30, 150),
+		std::make_pair(100, 1000),
+		std::make_pair(1000, 5000),		
+		std::make_pair(5000, 15000)
+	};
+
+	return std::vector<std::pair<int, int> >(stage, stage + sizeof(stage) / sizeof(stage[0]));
+}
+
+void PutProgressChr(size_t)
+{
+	std::cout << '.';
+}
+
+const std::string DELIMITER(80, '-');
+
 int main(int argc, char * argv[])
 {	
-	if(argc < 3)
+	if(argc != 2)
 	{
 		std::cerr << "Program for building synteny blocks from a FASTA file" << std::endl;
-		std::cerr << "Usage: SyntenyBuilder <input filename> <stage list filename> [-dot]" << std::endl;
+		std::cerr << "Usage: SyntenyFinder <input filename>" << std::endl; // <stage list filename> [-dot]" << std::endl;
 	}
 	else
 	{
 		std::string fileName(argv[1]);
-		std::string stageFile(argv[2]);
+	//	std::string stageFile(argv[2]);
 		std::cout.sync_with_stdio(false);
-		std::vector<std::pair<int, int> > stage = ReadStageFile(stageFile);
-		if(stage.empty())
-		{
-			std::cerr << "Stage file is empty or cannot be open" << std::endl;
-			return 1;
-		}
+		//std::vector<std::pair<int, int> > stage = ReadStageFile(stageFile);
+		//if(stage.empty())
+	//	{
+//			std::cerr << "Stage file is empty or cannot be open" << std::endl;
+			//return 1;
+		//}
 
+		std::vector<std::pair<int, int> > stage = DefaultStageFile();
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			if(stage[i].first < 2 || stage[i].second < 0)
@@ -54,43 +75,46 @@ int main(int argc, char * argv[])
 			}
 		}
 
-		SyntenyBuilder::FASTAReader reader(fileName.c_str());
+		SyntenyFinder::FASTAReader reader(fileName.c_str());
 		if(!reader.IsOk())
 		{
 			std::cerr << "Can't open the input file" << std::endl;
 			return -1;
 		}
 
-		bool dot = argc >= 4 && argv[3] == std::string("-dot");
+		bool dot = false; //argc >= 4 && argv[3] == std::string("-dot");
 		
-		std::vector<SyntenyBuilder::FASTAReader::FASTARecord> record;
+		std::vector<SyntenyFinder::FASTAReader::FASTARecord> record;
 		reader.GetSequences(record);
-		SyntenyBuilder::DNASequence dnaseq(record);
-		SyntenyBuilder::BifurcationStorage bifStorage;
+		SyntenyFinder::DNASequence dnaseq(record);
+		SyntenyFinder::BifurcationStorage bifStorage;
 		for(size_t i = 0; i < stage.size(); i++)
 		{
-			std::cerr << "Building the graph, stage = " << i + 1 << std::endl;			
 			if(stage[i].first < dnaseq.TotalSize())
 			{
 				if(dot)
 				{				
 					std::ofstream before((fileName + "_stage_" + IntToStr(i + 1) + "_before.dot").c_str());
-					SyntenyBuilder::GraphAlgorithm::SerializeGraph(dnaseq, stage[i].first, before);
+					SyntenyFinder::GraphAlgorithm::SerializeGraph(dnaseq, stage[i].first, before);
 				}
 
-				std::cerr << "Simplifying the graph, stage = " << i + 1 << std::endl;
-				SyntenyBuilder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, stage[i].first);
-				SyntenyBuilder::GraphAlgorithm::SimplifyGraph(dnaseq, bifStorage, stage[i].first, stage[i].second);
+				std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
+				std::cout << "Enumerating vertices of the graph..." << std::endl << "[";			
+				SyntenyFinder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, stage[i].first, boost::bind(PutProgressChr, _1));
+				std::cout << "]" << std::endl << "Performing bulge removal..." << std::endl << "[";
+				size_t bulges = SyntenyFinder::GraphAlgorithm::SimplifyGraph(dnaseq, bifStorage, stage[i].first, stage[i].second, 4, boost::bind(PutProgressChr, _1));
+				std::cout << "]" << std::endl << std::endl;
 
 				if(dot)
 				{
 					std::ofstream after((fileName + "_stage_" + IntToStr(i + 1) + "_after.dot").c_str());
-					SyntenyBuilder::GraphAlgorithm::SerializeGraph(dnaseq, stage[i].first, after);
+					SyntenyFinder::GraphAlgorithm::SerializeGraph(dnaseq, stage[i].first, after);
 				}
 			}
 			else
 			{
 				std::cerr << "ERROR: The sequence is too short!" << std::endl;
+				std::cerr << "The sequence must be at least " << stage[i].first << " bp long " << std::endl;
 				exit(1);
 			}
 		}
@@ -115,20 +139,21 @@ int main(int argc, char * argv[])
 			}
 		}
 
-		indices << SyntenyBuilder::DELIMITER << std::endl;
-		blocks << SyntenyBuilder::DELIMITER << std::endl; 
-		report << SyntenyBuilder::DELIMITER << std::endl; 
-		std::cerr << SyntenyBuilder::DELIMITER << std::endl;
+		indices << DELIMITER << std::endl;
+		blocks << DELIMITER << std::endl; 
+		report << DELIMITER << std::endl; 
 		if(stage.back().first < dnaseq.TotalSize())
 		{
 			size_t k = stage.back().first;
-			std::ofstream condensed((fileName + "_condensed.dot").c_str());
-			std::cerr << "Finding synteny blocks" << std::endl;
-			std::vector<std::vector<SyntenyBuilder::GraphAlgorithm::BlockInstance> > chrList;
-			SyntenyBuilder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, k);
-			SyntenyBuilder::GraphAlgorithm::SerializeCondensedGraph(dnaseq, bifStorage, stage.back().first, condensed);
-			SyntenyBuilder::GraphAlgorithm::GenerateSyntenyBlocks(dnaseq, bifStorage, stage.back().first, chrList);
-			std::vector<SyntenyBuilder::GraphAlgorithm::BlockInstance> block;
+	//		std::ofstream condensed((fileName + "_condensed.dot").c_str());
+			std::cout << "Finding synteny blocks and generating the output..." << std::endl;
+			std::vector<std::vector<SyntenyFinder::GraphAlgorithm::BlockInstance> > chrList;
+			std::cout << "Enumerating vertices of the graph..." << std::endl << "[";			
+			SyntenyFinder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, stage.back().first, boost::bind(PutProgressChr, _1));
+			std::cout << "]" << std::endl;
+	//		SyntenyFinder::GraphAlgorithm::SerializeCondensedGraph(dnaseq, bifStorage, stage.back().first, condensed);
+			SyntenyFinder::GraphAlgorithm::GenerateSyntenyBlocks(dnaseq, bifStorage, stage.back().first, chrList);
+			std::vector<SyntenyFinder::GraphAlgorithm::BlockInstance> block;
 			for(size_t i = 0; i < chrList.size(); i++)
 			{
 				block.insert(block.end(), chrList[i].begin(), chrList[i].end());
@@ -142,7 +167,7 @@ int main(int argc, char * argv[])
 				chr << '$' << std::endl;
 			}
 
-			std::sort(block.begin(), block.end(), SyntenyBuilder::CompareBlocksById);
+			std::sort(block.begin(), block.end(), SyntenyFinder::CompareBlocksById);
 			for(size_t now = 0; now < block.size(); )
 			{
 				size_t prev = now;
@@ -164,7 +189,7 @@ int main(int argc, char * argv[])
 						std::string buf(str.begin() + block[now].GetStart(), str.begin() + block[now].GetEnd());
 						for(size_t k = 0; k < buf.size(); k++)
 						{
-							buf[k] = SyntenyBuilder::DNASequence::Translate(buf[k]);
+							buf[k] = SyntenyFinder::DNASequence::Translate(buf[k]);
 						}
 
 						std::copy(buf.rbegin(), buf.rend(), std::ostream_iterator<char>(blocks));
@@ -173,16 +198,16 @@ int main(int argc, char * argv[])
 					blocks << std::endl;
 				}
 
-				indices << SyntenyBuilder::DELIMITER << std::endl;
-				blocks << SyntenyBuilder::DELIMITER << std::endl;				
+				indices << DELIMITER << std::endl;
+				blocks << DELIMITER << std::endl;				
 			}
 
-			SyntenyBuilder::GenerateReport(record, block, report);
+			SyntenyFinder::GenerateReport(record, block, report);
 		}
 
-		std::cerr.setf(std::cerr.fixed);
-		std::cerr.precision(2);
-		std::cerr << "Time elapsed: " << double(clock()) / CLOCKS_PER_SEC << std::endl;
+		std::cout.setf(std::cout.fixed);
+		std::cout.precision(2);
+		std::cout << "Time elapsed: " << double(clock()) / CLOCKS_PER_SEC << " seconds" << std::endl;
 	}
 
 	return 0;

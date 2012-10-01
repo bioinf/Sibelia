@@ -27,9 +27,10 @@
 	TypeName(const TypeName&); \
 	void operator=(const TypeName&)
 
-namespace SyntenyBuilder
+extern const std::string DELIMITER;
+
+namespace SyntenyFinder
 {
-	const std::string DELIMITER(80, '-');
 
 	template<class Iterator1, class Iterator2>
 		void CopyN(Iterator1 it, size_t count, Iterator2 out)

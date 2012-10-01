@@ -3,7 +3,7 @@
 
 #include "dnasequence.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	template<class Iterator>
 		class SlidingWindow

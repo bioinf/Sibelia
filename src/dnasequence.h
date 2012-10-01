@@ -6,7 +6,7 @@
 
 #pragma warning(disable:4355)
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	class DNASequence
 	{

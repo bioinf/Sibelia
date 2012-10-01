@@ -4,7 +4,7 @@
 #include "hashing.h"
 #include "bifurcationstorage.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	struct VisitData
 	{
@@ -75,12 +75,14 @@ namespace SyntenyBuilder
 			size_t end_;
 		};
 
-		static void SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize);		
+		typedef boost::function<void(size_t)> ProgressCallBack;
+		
 		static void SerializeGraph(const DNASequence & sequence, size_t k, std::ostream & out);
 		static void SerializeCondensedGraph(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::ostream & out);
 		static void PrintRaw(const DNASequence & s, std::ostream & out);
 		static void PrintPath(StrandIterator e, size_t k, size_t distance, std::ostream & out);
-		static size_t EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k);
+		static size_t EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack f = ProgressCallBack());
+		static size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		static void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);
 		static void GenerateSyntenyBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<std::vector<BlockInstance> > & chrList);
 	private:	

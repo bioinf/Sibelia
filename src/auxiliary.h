@@ -4,9 +4,9 @@
 #include "fasta.h"
 #include "graphalgorithm.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
-	inline bool CompareBlocksById(const SyntenyBuilder::GraphAlgorithm::BlockInstance & a, const SyntenyBuilder::GraphAlgorithm::BlockInstance & b)
+	inline bool CompareBlocksById(const SyntenyFinder::GraphAlgorithm::BlockInstance & a, const SyntenyFinder::GraphAlgorithm::BlockInstance & b)
 	{
 		return a.GetBlockId() < b.GetBlockId();
 	}

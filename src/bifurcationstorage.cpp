@@ -1,5 +1,5 @@
 #include "bifurcationstorage.h"
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	const BifurcationStorage::BifurcationId BifurcationStorage::NO_BIFURCATION = -1;
 	

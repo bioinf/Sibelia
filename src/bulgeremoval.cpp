@@ -1,6 +1,6 @@
 #include "graphalgorithm.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {
 	namespace
 	{

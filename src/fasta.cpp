@@ -1,6 +1,6 @@
 #include "fasta.h"
 
-namespace SyntenyBuilder
+namespace SyntenyFinder
 {	
 	static size_t cread(FILE * stream, char * buf, size_t size)
 	{
