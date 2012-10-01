@@ -26,16 +26,6 @@ std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName)
 	return ret;
 }
 
-int Abs(int x)
-{
-	return x > 0 ? x : -x;
-}
-
-bool CompareBlocksById(SyntenyBuilder::GraphAlgorithm::BlockInstance & a, SyntenyBuilder::GraphAlgorithm::BlockInstance & b)
-{
-	return Abs(a.GetId()) < Abs(b.GetId());
-}
-
 int main(int argc, char * argv[])
 {	
 	if(argc < 3)
@@ -111,16 +101,23 @@ int main(int argc, char * argv[])
 		std::ofstream blocks((header + "_blocks").c_str());
 		std::ofstream indices((header + "_indices").c_str());
 
-		indices << "Chr_id\tChr description" << std::endl;
-		blocks << "Chr_id\tChr description" << std::endl;
+		std::ostream * outFiles[] = {&report, &blocks, &indices};
+		for(size_t i = 0; i < 3; i++)
+		{
+			*outFiles[i] << "Chr_id\tSize\tDescription" << std::endl;
+		}
+
 		for(size_t i = 0; i < record.size(); i++)
 		{
-			indices << i + 1 << '\t' << record[i].description << std::endl;
-			blocks << i + 1 << '\t' << record[i].description << std::endl;
+			for(size_t j = 0; j < 3; j++)
+			{
+				*outFiles[j] << i + 1 << '\t' << record[i].sequence.size() << '\t' << record[i].description << std::endl;
+			}
 		}
 
 		indices << SyntenyBuilder::DELIMITER << std::endl;
 		blocks << SyntenyBuilder::DELIMITER << std::endl; 
+		report << SyntenyBuilder::DELIMITER << std::endl; 
 		std::cerr << SyntenyBuilder::DELIMITER << std::endl;
 		if(stage.back().first < dnaseq.TotalSize())
 		{
@@ -139,26 +136,26 @@ int main(int argc, char * argv[])
 				chr.setf(std::ios_base::showpos);
 				for(size_t j = 0; j < chrList[i].size(); j++)
 				{
-					chr << chrList[i][j].GetId() << ' ';
+					chr << chrList[i][j].GetSignedBlockId() << ' ';
 				}
 
 				chr << '$' << std::endl;
 			}
 
-			std::sort(block.begin(), block.end(), CompareBlocksById);
+			std::sort(block.begin(), block.end(), SyntenyBuilder::CompareBlocksById);
 			for(size_t now = 0; now < block.size(); )
 			{
 				size_t prev = now;
-				indices << "Block #" << Abs(block[now].GetId()) << std::endl;
+				indices << "Block #" << block[now].GetBlockId() << std::endl;
 				indices << "Chr_id\tStrand\tStart\tEnd\tLength" << std::endl;
-				blocks << "Block #" << Abs(block[now].GetId()) << std::endl;
-				for(; now < block.size() && Abs(block[now].GetId()) == Abs(block[prev].GetId()); now++)
+				blocks << "Block #" << block[now].GetBlockId() << std::endl;
+				for(; now < block.size() && block[now].GetBlockId() == block[prev].GetBlockId(); now++)
 				{
 					std::string & str = record[block[now].GetChr()].sequence;			
 					size_t length = block[now].GetEnd() - block[now].GetStart();
-					indices << block[now].GetChr() + 1 << '\t' << (block[now].GetId() < 0 ? '-' : '+') << '\t' << block[now].GetStart() << '\t' << block[now].GetEnd() << '\t' << length << std::endl;
-					blocks << (block[now].GetId() < 0 ? '-' : '+') << block[now].GetChr() + 1 << ':' << block[now].GetStart() << ':' << block[now].GetEnd() << std::endl;
-					if(block[now].GetId() > 0)
+					indices << block[now].GetChr() + 1 << '\t' << (block[now].GetSignedBlockId() < 0 ? '-' : '+') << '\t' << block[now].GetStart() << '\t' << block[now].GetEnd() << '\t' << length << std::endl;
+					blocks << (block[now].GetSignedBlockId() < 0 ? '-' : '+') << block[now].GetChr() + 1 << ':' << block[now].GetStart() << ':' << block[now].GetEnd() << std::endl;
+					if(block[now].GetSignedBlockId() > 0)
 					{
 						std::copy(str.begin() + block[now].GetStart(), str.begin() + block[now].GetEnd(), std::ostream_iterator<char>(blocks));
 					}
@@ -170,15 +167,17 @@ int main(int argc, char * argv[])
 							buf[k] = SyntenyBuilder::DNASequence::Translate(buf[k]);
 						}
 
-						std::copy(buf.begin(), buf.end(), std::ostream_iterator<char>(blocks));
+						std::copy(buf.rbegin(), buf.rend(), std::ostream_iterator<char>(blocks));
 					}
 
 					blocks << std::endl;
 				}
 
 				indices << SyntenyBuilder::DELIMITER << std::endl;
-				blocks << SyntenyBuilder::DELIMITER << std::endl;
+				blocks << SyntenyBuilder::DELIMITER << std::endl;				
 			}
+
+			SyntenyBuilder::GenerateReport(record, block, report);
 		}
 
 		std::cerr.setf(std::cerr.fixed);

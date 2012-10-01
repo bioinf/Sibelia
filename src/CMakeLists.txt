@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 project(SyntenyBuilder CXX)
-add_executable(SyntenyBuilder main.cpp fasta.cpp debruijngraph.cpp dnasequence.cpp graphalgorithm.cpp)
+include_directories(${SyntenyBuilder_SOURCE_DIR}/lib)
+add_executable(SyntenyBuilder main.cpp auxiliary.cpp bareiterator.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp fasta.cpp graphalgorithm.cpp hashing.cpp serialization.cpp synteny.cpp whirlremoval.cpp)
 set(CMAKE_BUILD_TYPE Release)

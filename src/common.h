@@ -18,7 +18,6 @@
 #include <iostream>
 #include <iterator>
 #include <algorithm>
-#include <boost/ref.hpp>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/unordered_set.hpp>

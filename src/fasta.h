@@ -48,6 +48,8 @@ namespace SyntenyBuilder
 		FILE * fileHandler_;
 	};
 
+	typedef std::vector<FASTAReader::FASTARecord> ChrList;
+
 	class FASTAWriter
 	{
 	public:

@@ -14,6 +14,11 @@ namespace SyntenyBuilder
 		VisitData(size_t kmerId, size_t distance): kmerId(kmerId), distance(distance) {}
 	};
 
+	inline int Abs(int x)
+	{
+		return x > 0 ? x : -x;
+	}
+
 	typedef char Bool;	
 	typedef DNASequence::StrandIterator StrandIterator;
 	typedef std::pair<StrandIterator, StrandIterator> IteratorPair;
@@ -28,9 +33,14 @@ namespace SyntenyBuilder
 		public:
 			BlockInstance() {}
 			BlockInstance(int id, size_t chr, size_t start, size_t end): id_(id), chr_(chr), start_(start), end_(end) {}
-			int GetId() const
+			int GetSignedBlockId() const
 			{
 				return id_;
+			}
+
+			int GetBlockId() const
+			{
+				return Abs(id_);
 			}
 
 			size_t GetChr() const
@@ -46,6 +56,11 @@ namespace SyntenyBuilder
 			size_t GetEnd() const
 			{
 				return end_;
+			}
+
+			size_t GetLength() const
+			{
+				return end_ - start_;
 			}
 
 			bool operator < (const BlockInstance & block) const
