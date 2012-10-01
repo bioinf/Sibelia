@@ -42,6 +42,7 @@ std::vector<std::pair<int, int> > DefaultStageFile()
 void PutProgressChr(size_t)
 {
 	std::cout << '.';
+	std::cout.flush();
 }
 
 const std::string DELIMITER(80, '-');

@@ -8,7 +8,6 @@ Son Pham (University of California, San Diego)
 
 Introduction
 ============
-
 SyntenyFinder is a tool for finding synteny blocks (regions of conserved DNA)
 in closely related species, like different strains of the same bacterial
 specie. It takes a FASTA file with sequences and locates coordinates of
@@ -16,7 +15,6 @@ the synteny blocks in these genomes.
 
 System requirements
 ===================
-
 This version is designed for small-scale genomes. For example, it can find
 synteny blocks in 8 bacterial genomes (50 MB of genomic data) in ~45 minutes
 and using 3 GB of RAM on an Intel i5 laptop. Next versions will be faster and
@@ -49,7 +47,6 @@ Usage
 
 Input
 -----
-
 SyntenyFinder takes a single FASTA file as input. This file can contain
 multiple sequences. To run the program just type:
 
@@ -69,7 +66,7 @@ SyntenyFinder produces 4 output files. Each file has name INPUT_FILE + SUFFIX.
 Designations of these files are described below. 
 
 Suffix      Content
--------------------------------------------------------------------------------
+
 _chr        Input genomes represented as permutations of the synteny blocks
 _indices    Coordinates of the synteny blocks
 _blocks     Coordinates of the blocks and sequences of the blocks
@@ -80,7 +77,6 @@ directory.
 
 License
 =======
-
 <Licensing information will be added later>
 
 Citation
@@ -97,8 +93,3 @@ References
 1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks Generation and Genome Comparison Tool" (poster), WABI 2012
 http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
 2. A wonderful paper at a top-rank BI conference [IRONIC]
-
-
-
-
-
