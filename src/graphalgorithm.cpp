@@ -199,6 +199,28 @@ namespace SyntenyFinder
 				}	
 			}
 		}
+		/*
+		std::vector<StrandIterator> kmer;
+		std::cout << "Bif = " << bifurcationCount << std::endl;
+		std::set<std::string> bifset;
+		std::ofstream bifOf("bifof");
+		for(size_t i = 0; i < bifurcationCount; i++)
+		{
+			bifStorage.ListPositions(i, std::back_inserter(kmer));
+			std::string temp(kmer[0], AdvanceForward(kmer[0], k));
+			bifset.insert(temp);
+			for(size_t j = 0; j < kmer.size(); j++)
+			{
+				std::string now(kmer[j], AdvanceForward(kmer[j], k));
+				if(now != temp)
+				{
+					std::cout << now << "!=" << temp << "OH NO!" << std::endl;
+					throw 1;
+				}
+			}
+		}
+
+		std::copy(bifset.begin(), bifset.end(), std::ostream_iterator<std::string>(bifOf, "\n"));*/
 
 	#ifdef _DEBUG	
 		idMap.clear();
@@ -235,7 +257,6 @@ namespace SyntenyFinder
 	size_t GraphAlgorithm::SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
 	{
 		size_t count = 0;
-		size_t prevBulges = 0;
 		size_t totalBulges = 0;
 		size_t iterations = 0;
 		size_t totalProgress = 0;
@@ -243,9 +264,10 @@ namespace SyntenyFinder
 		size_t threshold = (bifStorage.GetMaxId() * maxIterations) / PROGRESS_STRIDE;
 		do
 		{
-			totalBulges = 0;
+			size_t nowBulges = 0;
 			for(size_t id = 0; id < bifStorage.GetMaxId(); id++)
 			{			
+				if(id % 1000 == 0) std::cout << id << std::endl;
 				totalBulges += RemoveBulges(sequence, bifStorage, k, minBranchSize, id);
 				if(++count >= threshold && !callBack.empty())
 				{

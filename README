@@ -9,7 +9,7 @@ Son Pham (University of California, San Diego)
 Introduction
 ============
 SyntenyFinder is a tool for finding synteny blocks (regions of conserved DNA)
-in closely related species, like different strains of the same bacterial
+in closely related genomes, like different strains of the same bacterial
 specie. It takes a FASTA file with sequences and locates coordinates of
 the synteny blocks in these genomes.
 
