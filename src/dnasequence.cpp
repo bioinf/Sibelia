@@ -159,22 +159,22 @@ namespace SyntenyFinder
 	DNASequence::StrandIterator DNASequence::PositiveBegin(size_t chr) const
 	{
 		Sequence & ref = const_cast<Sequence&>(sequence_);
-		return StrandIterator(new ForwardIterator(posBegin[chr]));
+		return StrandIterator(new ForwardIterator(posBegin_[chr]));
 	}
 
 	DNASequence::StrandIterator DNASequence::PositiveEnd(size_t chr) const
 	{
-		return StrandIterator(new ForwardIterator(posEnd[chr]));
+		return StrandIterator(new ForwardIterator(posEnd_[chr]));
 	}
 
 	DNASequence::StrandIterator DNASequence::NegativeBegin(size_t chr) const
 	{
-		return StrandIterator(new BackwardIterator(SequenceNegIterator(posEnd[chr])));
+		return StrandIterator(new BackwardIterator(SequenceNegIterator(posEnd_[chr])));
 	}
 
 	DNASequence::StrandIterator DNASequence::NegativeEnd(size_t chr) const
 	{
-		return StrandIterator(new BackwardIterator(SequenceNegIterator(posBegin[chr])));
+		return StrandIterator(new BackwardIterator(SequenceNegIterator(posBegin_[chr])));
 	}
 
 	DNASequence::StrandIterator DNASequence::Begin(Direction direction, size_t chr) const
@@ -191,7 +191,7 @@ namespace SyntenyFinder
 		return it_->Base();
 	}
 
-	DNASequence::DNASequence(const std::vector<FASTAReader::FASTARecord> & record) 
+	DNASequence::DNASequence(const std::vector<FASTARecord> & record) 
 	{
 		sequence_.push_back(DNACharacter(SEPARATION_CHAR, -1));
 		for(size_t chr = 0; chr < record.size(); chr++)
@@ -203,8 +203,25 @@ namespace SyntenyFinder
 			}
 
 			sequence_.push_back(DNACharacter(SEPARATION_CHAR, DNASequence::Pos(record[chr].sequence.size())));
-			posBegin.push_back(++chrPosBegin);
-			posEnd.push_back(--sequence_.end());
+			posBegin_.push_back(++chrPosBegin);
+			posEnd_.push_back(--sequence_.end());
+		}
+	}
+
+	DNASequence::DNASequence(const std::vector<FASTARecord> & record, const std::vector<std::vector<Pos> > & original) 
+	{
+		sequence_.push_back(DNACharacter(SEPARATION_CHAR, -1));
+		for(size_t chr = 0; chr < record.size(); chr++)
+		{
+			SequencePosIterator chrPosBegin = --sequence_.end();
+			for(size_t pos = 0; pos < record[chr].sequence.size(); pos++)
+			{
+				sequence_.push_back(DNACharacter(record[chr].sequence[pos], original[chr][pos]));
+			}
+
+			sequence_.push_back(DNACharacter(SEPARATION_CHAR, DNASequence::Pos(record[chr].sequence.size())));
+			posBegin_.push_back(++chrPosBegin);
+			posEnd_.push_back(--sequence_.end());
 		}
 	}
 
@@ -215,7 +232,7 @@ namespace SyntenyFinder
 
 	size_t DNASequence::ChrNumber() const
 	{
-		return posBegin.size();
+		return posBegin_.size();
 	}
 
 	char DNASequence::StrandIterator::TranslateChar(char ch) const
@@ -298,5 +315,12 @@ namespace SyntenyFinder
 		size_t start = std::min(it1.GetOriginalPosition(), it2.GetOriginalPosition());
 		size_t end = std::max(it1.GetOriginalPosition(), it2.GetOriginalPosition());
 		return std::make_pair(start, end + 1);
+	}
+
+	void DNASequence::Clear()
+	{
+		sequence_.clear();
+		posBegin_.clear();
+		posEnd_.clear();
 	}
 }

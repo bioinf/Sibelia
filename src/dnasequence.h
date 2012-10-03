@@ -117,6 +117,7 @@ namespace SyntenyFinder
 			std::auto_ptr<GenericIterator> it_;
 		};
 		
+		void Clear();
 		size_t TotalSize() const;
 		size_t ChrNumber() const;
 		static char Translate(char ch);
@@ -132,7 +133,8 @@ namespace SyntenyFinder
 			const boost::function<void (const StrandIterator&)> & alarmBefore,
 			const boost::function<void (const StrandIterator&)> & alarmAfter);
 		void CopyN(StrandIterator source, size_t count, StrandIterator target);
-		explicit DNASequence(const std::vector<FASTAReader::FASTARecord> & record);
+		explicit DNASequence(const std::vector<FASTARecord> & record);
+		DNASequence(const std::vector<FASTARecord> & record, const std::vector<std::vector<Pos> > & original);
 		std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2) const;
 		
 		static const char UNKNOWN_BASE;
@@ -143,8 +145,8 @@ namespace SyntenyFinder
 		static const std::string complementary_;
 		
 		Sequence sequence_;
-		std::vector<SequencePosIterator> posBegin;
-		std::vector<SequencePosIterator> posEnd;
+		std::vector<SequencePosIterator> posBegin_;
+		std::vector<SequencePosIterator> posEnd_;
 	};	
 	
 	inline bool ProperKMer(DNASequence::StrandIterator it, size_t k)

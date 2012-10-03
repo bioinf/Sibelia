@@ -11,17 +11,18 @@ namespace SyntenyFinder
 	//It looks little ugly, maybe later it will be replaced with
 	//some other library or written by myself.
 
+	struct FASTARecord
+	{
+		std::string sequence;
+		std::string description;
+		FASTARecord() {}
+		FASTARecord(const std::string & sequence, const std::string & description):
+			sequence(sequence), description(description) {}
+	};
+
 	class FASTAReader
 	{
-	public:
-		struct FASTARecord
-		{
-			std::string sequence;
-			std::string description;
-			FASTARecord() {}
-			FASTARecord(const std::string & sequence, const std::string & description):
-				sequence(sequence), description(description) {}
-		};
+	public:		
 
 		bool IsOk() const
 		{
@@ -48,7 +49,7 @@ namespace SyntenyFinder
 		FILE * fileHandler_;
 	};
 
-	typedef std::vector<FASTAReader::FASTARecord> ChrList;
+	typedef std::vector<FASTARecord> ChrList;
 
 	class FASTAWriter
 	{

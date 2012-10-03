@@ -1,7 +1,7 @@
 #ifndef _OUTPUT_GENERATOR_H_
 #define _OUTPUT_GENERATOR_H_
 
-#include "graphalgorithm.h"
+#include "blockfinder.h"
 
 namespace SyntenyFinder
 {	
@@ -18,7 +18,6 @@ namespace SyntenyFinder
 				*out++ = std::make_pair(prev, now);
 			}
 		}
-
 
 	class OutputGenerator
 	{

@@ -1,4 +1,4 @@
-#include "graphalgorithm.h"
+#include "blockfinder.h"
 
 namespace SyntenyFinder
 {
@@ -80,7 +80,7 @@ namespace SyntenyFinder
 #ifdef _DEBUG
 	typedef boost::unordered_map<std::string, size_t> KMerBifMap;
 	KMerBifMap idMap;	
-	void GraphAlgorithm::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
+	void BlockFinder::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
 	{
 		for(size_t strand = 0; strand < 2; strand++)
 		{
@@ -103,7 +103,7 @@ namespace SyntenyFinder
 	}
 #endif
 
-	size_t GraphAlgorithm::EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack callBack)
+	size_t BlockFinder::EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack callBack) const
 	{
 		bifStorage.Clear();
 		BifurcationData::BifurcationId bifurcationCount = 0;
@@ -140,6 +140,7 @@ namespace SyntenyFinder
 		size_t count = 0;
 		size_t totalProgress = 0;
 		threshold = (threshold * 4) / PROGRESS_STRIDE;
+		callBack(totalProgress, start);
 		for(size_t strand = 0; strand < 2; strand++)
 		{
 			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
@@ -170,7 +171,8 @@ namespace SyntenyFinder
 					if(++count >= threshold && !callBack.empty())
 					{
 						count = 0;
-						callBack(++totalProgress);
+						totalProgress = std::min(totalProgress + 1, PROGRESS_STRIDE);
+						callBack(totalProgress, run);
 					}
 				}
 			}
@@ -194,11 +196,23 @@ namespace SyntenyFinder
 					if(++count >= threshold && !callBack.empty())
 					{
 						count = 0;
-						callBack(++totalProgress);
+						totalProgress = std::min(totalProgress + 1, PROGRESS_STRIDE);
+						callBack(totalProgress, run);
 					}
 				}	
 			}
 		}
+
+	/*	size_t maxDegree = 0;
+		size_t sumDegree = 0;
+		for(size_t i = 0; i < bifurcationCount; i++)
+		{
+			sumDegree += bifStorage.CountBifurcations(i);
+			maxDegree = std::max(maxDegree, bifStorage.CountBifurcations(i));
+		}
+
+		std::cout << "Max degree = " << maxDegree << std::endl;
+		std::cout << "Avg degree = " << double(sumDegree) / bifurcationCount << std::endl;*/
 
 	#ifdef _DEBUG	
 		idMap.clear();
@@ -227,18 +241,19 @@ namespace SyntenyFinder
 		bifStorage.Dump(sequence, k, std::cerr);
 		Test(sequence, bifStorage, k);
 	#endif
-
+		callBack(totalProgress, end);
 		return bifurcationCount;
 	}
 
 	
-	size_t GraphAlgorithm::SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
+	size_t BlockFinder::SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
 	{
 		size_t count = 0;
 		size_t totalBulges = 0;
 		size_t iterations = 0;
 		size_t totalProgress = 0;
 		bool anyChanges = true;
+		callBack(totalProgress, start);
 		size_t threshold = (bifStorage.GetMaxId() * maxIterations) / PROGRESS_STRIDE;
 		do
 		{
@@ -249,11 +264,13 @@ namespace SyntenyFinder
 				if(++count >= threshold && !callBack.empty())
 				{
 					count = 0;
-					callBack(++totalProgress);
+					totalProgress = std::min(totalProgress + 1, PROGRESS_STRIDE);
+					callBack(totalProgress, run);
 				}
 			}
 		}
 		while((totalBulges > 0) && iterations < maxIterations);
+		callBack(totalProgress, end);
 		return totalBulges;
 	}
 }

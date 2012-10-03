@@ -39,10 +39,28 @@ std::vector<std::pair<int, int> > DefaultStageFile()
 	return std::vector<std::pair<int, int> >(stage, stage + sizeof(stage) / sizeof(stage[0]));
 }
 
-void PutProgressChr(size_t)
+void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 {
-	std::cout << '.';
-	std::cout.flush();
+	static size_t prev = 0;
+	switch(state)
+	{
+	case SyntenyFinder::BlockFinder::start:
+		prev = 0;
+		std::cout << '[';
+		break;
+	case SyntenyFinder::BlockFinder::run:
+		if(progress != prev)
+		{
+			prev = progress;
+			std::cout << '.';
+			std::cout.flush();
+		}
+
+		break;
+	case SyntenyFinder::BlockFinder::end:
+		std::cout << "]" << std::endl;
+		break;
+	}
 }
 
 const std::string DELIMITER(80, '-');
@@ -82,41 +100,14 @@ int main(int argc, char * argv[])
 			return -1;
 		}
 
-		bool dot = false; //argc >= 4 && argv[3] == std::string("-dot");
-		
-		std::vector<SyntenyFinder::FASTAReader::FASTARecord> chrList;
+		std::vector<SyntenyFinder::FASTARecord> chrList;
 		reader.GetSequences(chrList);
-		SyntenyFinder::DNASequence dnaseq(chrList);
-		SyntenyFinder::BifurcationStorage bifStorage;
+		SyntenyFinder::BlockFinder finder(chrList);
 		for(size_t i = 0; i < stage.size(); i++)
 		{
-			if(stage[i].first < dnaseq.TotalSize())
-			{
-				if(dot)
-				{				
-					std::ofstream before((fileName + "_stage_" + IntToStr(i + 1) + "_before.dot").c_str());
-					SyntenyFinder::GraphAlgorithm::SerializeGraph(dnaseq, stage[i].first, before);
-				}
-
-				std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
-				std::cout << "Enumerating vertices of the graph..." << std::endl << "[";			
-				SyntenyFinder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, stage[i].first, boost::bind(PutProgressChr, _1));
-				std::cout << "]" << std::endl << "Performing bulge removal..." << std::endl << "[";
-				size_t bulges = SyntenyFinder::GraphAlgorithm::SimplifyGraph(dnaseq, bifStorage, stage[i].first, stage[i].second, 4, boost::bind(PutProgressChr, _1));
-				std::cout << "]" << std::endl << std::endl;
-
-				if(dot)
-				{
-					std::ofstream after((fileName + "_stage_" + IntToStr(i + 1) + "_after.dot").c_str());
-					SyntenyFinder::GraphAlgorithm::SerializeGraph(dnaseq, stage[i].first, after);
-				}
-			}
-			else
-			{
-				std::cerr << "ERROR: The sequence is too short!" << std::endl;
-				std::cerr << "The sequence must be at least " << stage[i].first << " bp long " << std::endl;
-				exit(1);
-			}
+			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
+			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
+			finder.PerformGraphSimplifications(stage[i].first, stage[i].second, 4, PutProgressChr);
 		}
 		
 		std::string header = fileName;
@@ -125,24 +116,13 @@ int main(int argc, char * argv[])
 		std::ofstream blocks((header + "_blocks").c_str());
 		std::ofstream indices((header + "_indices").c_str());
 		std::vector<SyntenyFinder::BlockInstance> blockList;
-
-		if(stage.back().first < dnaseq.TotalSize())
-		{
-			size_t k = stage.back().first;
-	//		std::ofstream condensed((fileName + "_condensed.dot").c_str());
-			std::cout << "Finding synteny blocks and generating the output..." << std::endl;
-			std::cout << "Enumerating vertices of the graph..." << std::endl << "[";			
-			SyntenyFinder::GraphAlgorithm::EnumerateBifurcations(dnaseq, bifStorage, stage.back().first, boost::bind(PutProgressChr, _1));
-			std::cout << "]" << std::endl;
-	//		SyntenyFinder::GraphAlgorithm::SerializeCondensedGraph(dnaseq, bifStorage, stage.back().first, condensed);
-
-			SyntenyFinder::GraphAlgorithm::GenerateSyntenyBlocks(dnaseq, bifStorage, stage.back().first, blockList);
-			SyntenyFinder::OutputGenerator generator(chrList, blockList);
-			generator.GenerateReport(report);
-			generator.ListBlocksIndices(indices);
-			generator.ListBlocksSequences(blocks);
-			generator.ListChromosomesAsPermutations(chr);
-		}
+		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
+		finder.GenerateSyntenyBlocks(stage.back().first, blockList, PutProgressChr);
+		SyntenyFinder::OutputGenerator generator(chrList, blockList);
+		generator.GenerateReport(report);
+		generator.ListBlocksIndices(indices);
+		generator.ListBlocksSequences(blocks);
+		generator.ListChromosomesAsPermutations(chr);
 
 		std::cout.setf(std::cout.fixed);
 		std::cout.precision(2);

@@ -1,4 +1,4 @@
-#include "graphalgorithm.h"
+#include "blockfinder.h"
 
 namespace SyntenyFinder
 {
@@ -18,7 +18,7 @@ namespace SyntenyFinder
 		}
 	}
 	
-	void GraphAlgorithm::PrintRaw(const DNASequence & sequence, std::ostream & out)
+	void BlockFinder::PrintRaw(const DNASequence & sequence, std::ostream & out)
 	{
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
@@ -39,14 +39,14 @@ namespace SyntenyFinder
 		}		
 	}
 
-	void GraphAlgorithm::PrintPath(StrandIterator e, size_t k, size_t distance, std::ostream & out)
+	void BlockFinder::PrintPath(StrandIterator e, size_t k, size_t distance, std::ostream & out)
 	{
 		out << (e.GetDirection() == DNASequence::positive ? "s+ " : "s- ");
 		CopyN(e, distance + k, std::ostream_iterator<char>(out));
 		std::cerr << std::endl;
 	}
 
-	void GraphAlgorithm::ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge)
+	void BlockFinder::ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const
 	{
 		edge.clear();
 		for(size_t strand = 0; strand < 2; strand++)
@@ -76,9 +76,12 @@ namespace SyntenyFinder
 		}
 	}
 
-	void GraphAlgorithm::SerializeCondensedGraph(const DNASequence & sequence,
-		const BifurcationStorage & bifStorage, size_t k, std::ostream & out)
+	void BlockFinder::SerializeCondensedGraph(size_t k, std::ostream & out) const
 	{
+		BifurcationStorage bifStorage;
+		DNASequence sequence(chrList_, originalPos_);
+		EnumerateBifurcations(sequence, bifStorage, k);
+
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
 		std::vector<Edge> edge;
@@ -98,8 +101,9 @@ namespace SyntenyFinder
 		out << "}" << std::endl;
 	}
 
-	void GraphAlgorithm::SerializeGraph(const DNASequence & sequence, size_t k, std::ostream & out)
+	void BlockFinder::SerializeGraph(size_t k, std::ostream & out) const
 	{
+		DNASequence sequence(chrList_, originalPos_);
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)

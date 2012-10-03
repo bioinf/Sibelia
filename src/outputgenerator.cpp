@@ -164,7 +164,7 @@ namespace SyntenyFinder
 			}
 			else
 			{
-				out << "All\t" << group.size() << "\t";
+				out << "All\t" << it->second - it->first << "\t";
 			}
 
 			out.precision(2);

@@ -1,29 +1,29 @@
-#include "graphalgorithm.h"
+#include "blockfinder.h"
 
 namespace SyntenyFinder
 {
-	std::vector<size_t> GraphAlgorithm::EdgeToVector(const Edge & a)
+	std::vector<size_t> BlockFinder::EdgeToVector(const Edge & a)
 	{
 		size_t feature[] = {a.startVertex, a.endVertex, a.firstChar, a.direction, a.chr};
 		return std::vector<size_t>(feature, feature + sizeof(feature) / sizeof(feature[0]));
 	}
 
-	bool GraphAlgorithm::EdgeEmpty(const Edge & a, size_t k)
+	bool BlockFinder::EdgeEmpty(const Edge & a, size_t k)
 	{
 		return a.originalLength < k;
 	}
 
-	bool GraphAlgorithm::EdgeCompare(const Edge & a, const Edge & b)
+	bool BlockFinder::EdgeCompare(const Edge & a, const Edge & b)
 	{
 		return EdgeToVector(a) < EdgeToVector(b);
 	}
 
-	void GraphAlgorithm::GenerateSyntenyBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<BlockInstance> & block)
+	void BlockFinder::ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<BlockInstance> & block) const
 	{
 		int blockCount = 1;
 		block.clear();
 		std::vector<Edge> edge;
-		GraphAlgorithm::ListEdges(sequence, bifStorage, k, edge);
+		BlockFinder::ListEdges(sequence, bifStorage, k, edge);
 		std::vector<std::set<std::pair<size_t, size_t> > > visit(sequence.ChrNumber());
 		edge.erase(std::remove_if(edge.begin(), edge.end(), boost::bind(EdgeEmpty, _1, k)), edge.end());
 		std::sort(edge.begin(), edge.end(), EdgeCompare);

@@ -1,4 +1,4 @@
-#include "graphalgorithm.h"
+#include "blockfinder.h"
 
 namespace SyntenyFinder
 {
@@ -210,11 +210,11 @@ namespace SyntenyFinder
 			static size_t bulge = 0;
 			std::cerr << "Bulge #" << bulge++ << std::endl;
 			std::cerr << "Before: " << std::endl;
-			GraphAlgorithm::PrintRaw(sequence, std::cerr);
+			BlockFinder::PrintRaw(sequence, std::cerr);
 			std::cerr << "Source branch: " << std::endl;			
-			GraphAlgorithm::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+			BlockFinder::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 			std::cerr << "Target branch: " << std::endl;			
-			GraphAlgorithm::PrintPath(startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
+			BlockFinder::PrintPath(startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
 			bifStorage.Dump(sequence, k, std::cerr);
 		#endif
 			
@@ -250,14 +250,14 @@ namespace SyntenyFinder
 
 		#ifdef _DEBUG
 			std::cerr << "After: " << std::endl;
-			GraphAlgorithm::PrintRaw(sequence, std::cerr);
+			BlockFinder::PrintRaw(sequence, std::cerr);
 			std::cerr << "Source branch: " << std::endl;			
-			GraphAlgorithm::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+			BlockFinder::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 			std::cerr << "Target branch: " << std::endl;			
-			GraphAlgorithm::PrintPath(startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
+			BlockFinder::PrintPath(startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
 			bifStorage.Dump(sequence, k, std::cerr);
 			std::cerr << DELIMITER << std::endl;
-			GraphAlgorithm::Test(sequence, bifStorage, k);
+			BlockFinder::Test(sequence, bifStorage, k);
 		#endif
 		}		
 
@@ -272,14 +272,14 @@ namespace SyntenyFinder
 			for(size_t i = 0; i < visitData.size(); i++)
 			{
 				std::cerr << "Branch #" << i << ", size = " << visitData[i].distance + k << ":" << std::endl;			
-				GraphAlgorithm::PrintPath(startKMer[visitData[i].kmerId], k, visitData[i].distance, std::cerr);
+				BlockFinder::PrintPath(startKMer[visitData[i].kmerId], k, visitData[i].distance, std::cerr);
 			}
 
 			std::cerr << DELIMITER << std::endl;
 		}
 	}
 
-	size_t GraphAlgorithm::RemoveBulges(DNASequence & sequence,
+	size_t BlockFinder::RemoveBulges(DNASequence & sequence,
 		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId)
 	{	
 		size_t ret = 0;				
