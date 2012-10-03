@@ -18,15 +18,15 @@ namespace SyntenyFinder
 		return EdgeToVector(a) < EdgeToVector(b);
 	}
 
-	void GraphAlgorithm::GenerateSyntenyBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<std::vector<BlockInstance> > & block)
+	void GraphAlgorithm::GenerateSyntenyBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<BlockInstance> & block)
 	{
 		int blockCount = 1;
+		block.clear();
 		std::vector<Edge> edge;
-		block.resize(sequence.ChrNumber(), std::vector<BlockInstance>());
 		GraphAlgorithm::ListEdges(sequence, bifStorage, k, edge);
+		std::vector<std::set<std::pair<size_t, size_t> > > visit(sequence.ChrNumber());
 		edge.erase(std::remove_if(edge.begin(), edge.end(), boost::bind(EdgeEmpty, _1, k)), edge.end());
 		std::sort(edge.begin(), edge.end(), EdgeCompare);
-		std::vector<std::set<std::pair<size_t, size_t> > > visit(sequence.ChrNumber());
 
  		for(size_t now = 0; now < edge.size(); )
 		{
@@ -44,16 +44,13 @@ namespace SyntenyFinder
 				{
 					int strand = edge[prev].direction == DNASequence::positive ? +1 : -1;
 					visit[edge[prev].chr].insert(std::make_pair(edge[prev].originalPosition, edge[prev].originalLength));
-					block[edge[prev].chr].push_back(BlockInstance(blockCount * strand, edge[prev].chr, edge[prev].originalPosition, edge[prev].originalPosition + edge[prev].originalLength));
+					block.push_back(BlockInstance(blockCount * strand, edge[prev].chr, edge[prev].originalPosition, edge[prev].originalPosition + edge[prev].originalLength));
 				}
 
 				blockCount++;
 			}
 		}
 
-		for(size_t i = 0; i < block.size(); i++)
-		{
-			std::sort(block[i].begin(), block[i].end());
-		}
+		std::sort(block.begin(), block.end(), CompareBlocksNaturally);
 	}
 }

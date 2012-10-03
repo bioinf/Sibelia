@@ -93,18 +93,19 @@ namespace SyntenyFinder
 	template<class T>
 		const size_t SlidingWindow<T>::HASH_BASE = 57;
 	
-	class KMerHashFunction
-	{
-	public:
-		size_t operator ()(DNASequence::StrandIterator it) const
+	template<class Iterator>
+		class KMerHashFunction
 		{
-			return SlidingWindow<DNASequence::StrandIterator>::CalcKMerHash(it, k_);
-		}
+		public:
+			size_t operator ()(Iterator it) const
+			{
+				return SlidingWindow<Iterator>::CalcKMerHash(it, k_);
+			}
 
-		KMerHashFunction(size_t k): k_(k) {}
-	private:
-		size_t k_;
-	};		
+			KMerHashFunction(size_t k): k_(k) {}
+		private:
+			size_t k_;
+		};		
 		
 	class KMerEqualTo
 	{

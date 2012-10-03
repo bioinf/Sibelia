@@ -120,7 +120,7 @@ namespace SyntenyFinder
 				BackwardValidKMer(AdvanceBackward(sequence.NegativeEnd(chr), k), k)
 			};
 
-			KMerHashFunction hashF(k);
+			KMerHashFunction<DNASequence::StrandIterator> hashF(k);
 			threshold += std::distance(border[0], border[2]);
 			for(size_t i = 0; i < 4; i++)
 			{
@@ -199,28 +199,6 @@ namespace SyntenyFinder
 				}	
 			}
 		}
-		/*
-		std::vector<StrandIterator> kmer;
-		std::cout << "Bif = " << bifurcationCount << std::endl;
-		std::set<std::string> bifset;
-		std::ofstream bifOf("bifof");
-		for(size_t i = 0; i < bifurcationCount; i++)
-		{
-			bifStorage.ListPositions(i, std::back_inserter(kmer));
-			std::string temp(kmer[0], AdvanceForward(kmer[0], k));
-			bifset.insert(temp);
-			for(size_t j = 0; j < kmer.size(); j++)
-			{
-				std::string now(kmer[j], AdvanceForward(kmer[j], k));
-				if(now != temp)
-				{
-					std::cout << now << "!=" << temp << "OH NO!" << std::endl;
-					throw 1;
-				}
-			}
-		}
-
-		std::copy(bifset.begin(), bifset.end(), std::ostream_iterator<std::string>(bifOf, "\n"));*/
 
 	#ifdef _DEBUG	
 		idMap.clear();
@@ -264,10 +242,9 @@ namespace SyntenyFinder
 		size_t threshold = (bifStorage.GetMaxId() * maxIterations) / PROGRESS_STRIDE;
 		do
 		{
-			size_t nowBulges = 0;
+			iterations++;
 			for(size_t id = 0; id < bifStorage.GetMaxId(); id++)
 			{			
-				if(id % 1000 == 0) std::cout << id << std::endl;
 				totalBulges += RemoveBulges(sequence, bifStorage, k, minBranchSize, id);
 				if(++count >= threshold && !callBack.empty())
 				{

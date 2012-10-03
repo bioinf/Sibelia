@@ -2,6 +2,7 @@
 #define _GRAPH_ALGORITHM_H
 
 #include "hashing.h"
+#include "blockinstance.h"
 #include "bifurcationstorage.h"
 
 namespace SyntenyFinder
@@ -14,69 +15,18 @@ namespace SyntenyFinder
 		VisitData(size_t kmerId, size_t distance): kmerId(kmerId), distance(distance) {}
 	};
 
-	inline int Abs(int x)
-	{
-		return x > 0 ? x : -x;
-	}
+	
 
 	typedef char Bool;	
 	typedef DNASequence::StrandIterator StrandIterator;
 	typedef std::pair<StrandIterator, StrandIterator> IteratorPair;
 	typedef boost::unordered_multimap<size_t, VisitData> VertexVisitMap;
 	typedef boost::unordered_multiset<StrandIterator, WindowHashFunction, KMerEqualTo> KMerMultiSet;	
-
+	
 	class GraphAlgorithm
 	{
 	public:
-		class BlockInstance
-		{
-		public:
-			BlockInstance() {}
-			BlockInstance(int id, size_t chr, size_t start, size_t end): id_(id), chr_(chr), start_(start), end_(end) {}
-			int GetSignedBlockId() const
-			{
-				return id_;
-			}
-
-			int GetBlockId() const
-			{
-				return Abs(id_);
-			}
-
-			size_t GetChr() const
-			{
-				return chr_;
-			}
-
-			size_t GetStart() const
-			{
-				return start_;
-			}
-
-			size_t GetEnd() const
-			{
-				return end_;
-			}
-
-			size_t GetLength() const
-			{
-				return end_ - start_;
-			}
-
-			bool operator < (const BlockInstance & block) const
-			{
-				return start_ < block.start_;
-			}
-
-		private:
-			int id_;
-			size_t chr_;
-			size_t start_;
-			size_t end_;
-		};
-
 		typedef boost::function<void(size_t)> ProgressCallBack;
-		
 		static void SerializeGraph(const DNASequence & sequence, size_t k, std::ostream & out);
 		static void SerializeCondensedGraph(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::ostream & out);
 		static void PrintRaw(const DNASequence & s, std::ostream & out);
@@ -84,7 +34,7 @@ namespace SyntenyFinder
 		static size_t EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack f = ProgressCallBack());
 		static size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		static void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);
-		static void GenerateSyntenyBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<std::vector<BlockInstance> > & chrList);
+		static void GenerateSyntenyBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<BlockInstance> & chrList);
 	private:	
 		struct Edge
 		{

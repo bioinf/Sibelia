@@ -13,7 +13,7 @@ namespace SyntenyFinder
 			CopyN(++StrandIterator(it), k, std::ostream_iterator<char>(out));
 			char buf[1 << 8];
 			std::string color = it.GetDirection() == DNASequence::positive ? "blue" : "red";			
-			sprintf(&buf[0], "[color=\"%s\", label=\"(%lu, %lu)\"];", color.c_str(), static_cast<ull>(chr), static_cast<ull>(pos));
+			sprintf(&buf[0], "[color=\"%s\", label=\"(%i, %i)\"];", color.c_str(), static_cast<int>(chr), static_cast<int>(pos));
 			out << " " << buf << std::endl;
 		}
 	}
@@ -87,11 +87,11 @@ namespace SyntenyFinder
 		{
 			char buf[1 << 8];
 			std::string color = edge[i].direction == DNASequence::positive ? "blue" : "red";
-			ull uchr = static_cast<ull>(edge[i].chr);
-			ull upos = static_cast<ull>(edge[i].actualPosition);
-			ull ulength = static_cast<ull>(edge[i].actualLength);
+			int uchr = static_cast<int>(edge[i].chr);
+			int upos = static_cast<int>(edge[i].actualPosition);
+			int ulength = static_cast<int>(edge[i].actualLength);
 			out << edge[i].startVertex << " -> " << edge[i].endVertex;
-			sprintf(&buf[0], "[color=\"%s\", label=\"chr=%lu pos=%lu len=%lu ch=%c\"];", color.c_str(), uchr, upos, ulength, edge[i].firstChar);
+			sprintf(&buf[0], "[color=\"%s\", label=\"chr=%i pos=%i len=%i ch=%c\"];", color.c_str(), uchr, upos, ulength, edge[i].firstChar);
 			out << " " << buf << std::endl;
 		}
 
