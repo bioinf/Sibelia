@@ -2,8 +2,8 @@ SyntenyFinder 1.0
 Release date: 12th October 2012
 
 Authors:
-Ilya Minkin (Saint-Petersburg State University of RAS)
-Nikolay Vyahhi (Saint-Petersburg State University of RAS)
+Ilya Minkin (St. Petersburg Academic University)
+Nikolay Vyahhi (St. Petersburg Academic University)
 Son Pham (University of California, San Diego)
 
 Introduction
@@ -13,7 +13,7 @@ in closely related genomes, like different strains of the same bacterial
 specie. It takes a FASTA file with sequences and locates coordinates of
 the synteny blocks in these genomes.
 
-System requirements
+System Requirements
 ===================
 This version is designed for small-scale genomes. For example, it can find
 synteny blocks in 8 bacterial genomes (50 MB of genomic data) in ~45 minutes
@@ -35,8 +35,9 @@ SyntenyFinder is distributed in sources. It requires two things to be built:
 1) CMake
 2) GCC C++ compiler (version 4.4.6 works fine)
 
-To build the project, proceed to "build" directory and type following:
+To build the project, type following:
 
+cd build
 cmake ../src
 make
 
@@ -53,7 +54,7 @@ multiple sequences. To run the program just type:
 SyntenyFinder <input FASTA file>
 
 "Build" directory already contains file with two small bacterial genomes in
-file "tiny.fasta". To run SyntenyFinder on this file, just type:
+the file "tiny.fasta". To run SyntenyFinder on this file, just type:
 
 SyntenyFinder tiny.fasta
 
@@ -86,7 +87,8 @@ If you use SyntenyFinder in your research, please cite [1, 2].
 Contacts
 ========
 E-mail your feedback at ilya.minkinen@gmail.com.
-You also can report bugs or suggest features using issue tracker at GitHub.
+You also can report bugs or suggest features using issue tracker at GitHub
+https://github.com/bioinf/SyntenyBuilder/issues.
 
 References
 ==========
