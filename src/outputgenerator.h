@@ -31,7 +31,6 @@ namespace SyntenyFinder
 	private:
 		ChrList chrList_;
 		mutable BlockList blockList_;
-
 		void ListChrs(std::ostream & out) const;
 	};
 }

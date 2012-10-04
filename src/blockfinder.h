@@ -17,9 +17,6 @@ namespace SyntenyFinder
 
 	typedef char Bool;	
 	typedef DNASequence::StrandIterator StrandIterator;
-	typedef std::pair<StrandIterator, StrandIterator> IteratorPair;
-	typedef boost::unordered_multimap<size_t, VisitData> VertexVisitMap;
-	typedef boost::unordered_multiset<StrandIterator, WindowHashFunction, KMerEqualTo> KMerMultiSet;	
 	
 	class BlockFinder
 	{

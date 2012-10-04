@@ -110,8 +110,17 @@ namespace SyntenyFinder
 		typedef boost::unordered_map<size_t, BifurcationData> BifurcationMap;
 		BifurcationMap bifurcation(sequence.TotalSize());
 		size_t threshold = 0;
+		std::vector<Bool> permit(sequence.ChrNumber(), 1);
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
+			size_t length = std::distance(sequence.PositiveBegin(chr), sequence.PositiveBegin(chr));
+			threshold += length;
+			if(length <= k)
+			{
+				permit[chr] = 0;
+				continue;
+			}
+
 			StrandIterator border[] = 
 			{
 				ForwardValidKMer(sequence.PositiveBegin(chr), k),
@@ -121,7 +130,6 @@ namespace SyntenyFinder
 			};
 
 			KMerHashFunction<DNASequence::StrandIterator> hashF(k);
-			threshold += std::distance(border[0], border[2]);
 			for(size_t i = 0; i < 4; i++)
 			{
 				if(border[i].AtValidPosition())
@@ -145,6 +153,11 @@ namespace SyntenyFinder
 		{
 			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 			{
+				if(!permit[chr])
+				{
+					continue;
+				}
+
 				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
 				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
 				SlidingWindow<StrandIterator> window(begin, end, k);
@@ -182,6 +195,11 @@ namespace SyntenyFinder
 		{
 			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 			{
+				if(!permit[chr])
+				{
+					continue;
+				}
+
 				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
 				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
 				SlidingWindow<StrandIterator> window(begin, end, k);
@@ -222,6 +240,11 @@ namespace SyntenyFinder
 		{
 			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 			{
+				if(!permit[chr])
+				{
+					continue;
+				}
+
 				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
 				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
 				SlidingWindow<StrandIterator> window(begin, end, k);
@@ -239,7 +262,7 @@ namespace SyntenyFinder
 		}
 
 		bifStorage.Dump(sequence, k, std::cerr);
-		Test(sequence, bifStorage, k);
+	//	Test(sequence, bifStorage, k);
 	#endif
 		callBack(totalProgress, end);
 		return bifurcationCount;

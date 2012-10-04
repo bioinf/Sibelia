@@ -1,3 +1,4 @@
+#include <tclap/CmdLine.h>
 #include "outputgenerator.h"
 
 std::string IntToStr(size_t value)
@@ -9,24 +10,46 @@ std::string IntToStr(size_t value)
 
 std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName)
 {
-	int count;
+	int count = 0;
 	std::ifstream stageFile(fileName.c_str());
 	if(!stageFile)
 	{
-		return std::vector<std::pair<int, int> >();
+		throw std::exception("cannot open stage file");
 	}
 
-	stageFile >> count;
+	if(!(stageFile >> count))
+	{
+		throw std::exception("cannot read stage file");
+	}
+
+	if(count < 0)
+	{
+		throw std::exception("number of stages must be nonnegative");
+	}
+
 	std::vector<std::pair<int, int> > ret(count);
 	for(int i = 0; i < count; i++)
 	{
-		stageFile >> ret[i].first >> ret[i].second;
+		if(!(stageFile >> ret[i].first >> ret[i].second))
+		{
+			throw std::exception("too few records in the stage file");
+		}
+
+		if(ret[i].first < 2)
+		{
+			throw std::exception("vertex size in stage record must be at least 2");
+		}
+
+		if(ret[i].second < 0)
+		{
+			throw std::exception("minimum branch size in stage record must be nonnegative");
+		}
 	}
 
 	return ret;
 }
 
-std::vector<std::pair<int, int> > DefaultStageFile()
+std::vector<std::pair<int, int> > LooseStageFile()
 {
 	std::pair<int, int> stage[] = 
 	{
@@ -34,6 +57,18 @@ std::vector<std::pair<int, int> > DefaultStageFile()
 		std::make_pair(100, 1000),
 		std::make_pair(1000, 5000),		
 		std::make_pair(5000, 15000)
+	};
+
+	return std::vector<std::pair<int, int> >(stage, stage + sizeof(stage) / sizeof(stage[0]));
+}
+
+std::vector<std::pair<int, int> > FineStageFile()
+{
+	std::pair<int, int> stage[] = 
+	{
+		std::make_pair(30, 150),
+		std::make_pair(100, 1000),
+		std::make_pair(1000, 2500),		
 	};
 
 	return std::vector<std::pair<int, int> >(stage, stage + sizeof(stage) / sizeof(stage[0]));
@@ -67,66 +102,179 @@ const std::string DELIMITER(80, '-');
 
 int main(int argc, char * argv[])
 {	
-	if(argc != 3)
-	{
-		std::cerr << "Program for building synteny blocks from a FASTA file" << std::endl;
-		std::cerr << "Usage: SyntenyFinder <input filename>" << std::endl; // <stage list filename> [-dot]" << std::endl;
-	}
-	else
-	{
-		std::string fileName(argv[1]);
-		std::string stageFile(argv[2]);
-		std::cout.sync_with_stdio(false);
-		std::vector<std::pair<int, int> > stage = ReadStageFile(stageFile);
-		if(stage.empty())
-		{
-			std::cerr << "Stage file is empty or cannot be open" << std::endl;
-			return 1;
-		}
+	std::stringstream parsets;		
+	const std::string parameterSetNameArray[] = {"loose", "fine"};
+	std::vector<std::string> parameterSetName(parameterSetNameArray, parameterSetNameArray + sizeof(parameterSetNameArray) / sizeof(parameterSetNameArray[0]));
+	std::map<std::string, std::vector<std::pair<int, int> > > defaultParameters;
+	defaultParameters["loose"] = LooseStageFile();
+	defaultParameters["fine"] = FineStageFile();
 
-		for(size_t i = 0; i < stage.size(); i++)
-		{
-			if(stage[i].first < 2 || stage[i].second < 0)
-			{
-				std::cerr << "Incorrect stage record " << std::endl;
-				return 1;
-			}
-		}
+	try
+	{  
+		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "0.7071");
+		TCLAP::ValueArg<unsigned int> maxIterations("i",
+			"maxiterations",
+			"Maximum number of iterations during a stage of simplification, default = 4.",
+			false,
+			4,
+			"integer",
+			cmd);
 
-		SyntenyFinder::FASTAReader reader(fileName.c_str());
-		if(!reader.IsOk())
+		TCLAP::ValueArg<std::string> stageFile("k",
+			"stagefile",
+			"File that contains manually chosen simplifications parameters. See USAGE file for more information.",
+			false,
+			"",
+			"file name");
+
+		TCLAP::ValueArg<std::string> graphFile("g",
+			"graphfile",
+			"File for resulting condensed de Bruijn graph (in dot format), default = not set.",
+			false,
+			"",
+			"file name",
+			cmd);
+
+		TCLAP::ValueArg<std::string> sequencesFile("q",
+			"sequncesfile",
+			"File for sequences of synteny blocks (FASTA format), default = not set.",
+			false,
+			"",
+			"file name",
+			cmd);
+
+		TCLAP::ValueArg<std::string> reportFile("r",
+			"reportfile",
+			"File for coverage report, default = \"coverage_report.txt\".",
+			false,
+			"coverage_report.txt",
+			"file name",
+			cmd);
+
+		TCLAP::ValueArg<std::string> coordsFile("c",
+			"coordsfile",
+			"File for listing coordinates of synteny blocks in simple human-readable format, default = \"block_coords.txt\".",
+			false,
+			"block_coords.txt",
+			"file name",
+			cmd);
+
+		TCLAP::ValueArg<std::string> chrFile("p",
+			"permfile",
+			"File for listing genomes represented as signed permutations of synteny blocks, default = \"permutations.txt\".",
+			false,
+			"permutations.txt",
+			"file name",
+			cmd);
+		
+		std::string description = std::string("Parameters set, used for the simplification. ") + 
+			std::string("Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite), default = \"") + 
+			parameterSetName[0] + std::string("\"");
+		TCLAP::ValuesConstraint<std::string> allowedParametersVals(parameterSetName);
+		TCLAP::ValueArg<std::string> parameters("s",
+			"parameters",
+			description,
+			false,
+			parameterSetName[0],
+			&allowedParametersVals);
+
+		TCLAP::ValueArg<unsigned int> minBlockSize("m",
+			"minblocksize",
+			"Minimum size of a synteny block, default value = 5000 BP.",
+			false,
+			5000,
+			"integer",
+			cmd);
+
+		TCLAP::UnlabeledMultiArg<std::string> fileName("filenames",
+			"FASTA file(s) with nucleotide sequences",
+			true,
+			"file name",
+			cmd);
+
+		cmd.xorAdd(parameters, stageFile);
+		cmd.parse(argc, argv);
+
+		std::vector<std::pair<int, int> > stage;
+		if(parameters.isSet())
 		{
-			std::cerr << "Can't open the input file" << std::endl;
-			return -1;
+			stage = defaultParameters[parameters.getValue()];
+		}
+		else
+		{
+			stage = ReadStageFile(stageFile.getValue());
 		}
 
 		std::vector<SyntenyFinder::FASTARecord> chrList;
-		reader.GetSequences(chrList);
+		for(std::vector<std::string>::const_iterator it = fileName.begin(); it != fileName.end(); it++)
+		{
+			SyntenyFinder::FASTAReader reader(*it);
+			if(!reader.IsOk())
+			{
+				throw std::exception(("Cannot open file " + *it).c_str());
+			}
+
+			reader.GetSequences(chrList);
+		}
+
 		SyntenyFinder::BlockFinder finder(chrList);
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
-			finder.PerformGraphSimplifications(stage[i].first, stage[i].second, 4, PutProgressChr);
+			finder.PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
 		}
 		
-		std::string header = fileName;
-		std::ofstream chr((header + "_chr").c_str());
-		std::ofstream report((header + "_report").c_str());
-		std::ofstream blocks((header + "_blocks").c_str());
-		std::ofstream indices((header + "_indices").c_str());
 		std::vector<SyntenyFinder::BlockInstance> blockList;
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
-		finder.GenerateSyntenyBlocks(stage.back().first, blockList, PutProgressChr);
+		finder.GenerateSyntenyBlocks(minBlockSize.getValue(), blockList, PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
-		generator.GenerateReport(report);
-		generator.ListBlocksIndices(indices);
-		generator.ListBlocksSequences(blocks);
-		generator.ListChromosomesAsPermutations(chr);
+
+		const std::string outFile[] = 
+		{
+			chrFile.getValue(),
+			reportFile.getValue(),
+			coordsFile.getValue(),
+			sequencesFile.getValue(),
+			graphFile.getValue()
+		};
+
+		bool doOutput[] = {true, true, true, sequencesFile.isSet(), graphFile.isSet()};
+		boost::function<void(std::ostream&)> outFunction[] = 
+		{
+			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), _1),
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), _1),
+			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), _1),
+			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), _1),
+			boost::bind(&SyntenyFinder::BlockFinder::SerializeCondensedGraph, boost::cref(finder), minBlockSize.getValue(), _1)
+		};
+
+		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);
+		for(size_t i = 0; i < length; i++)
+		{
+			if(doOutput[i])
+			{
+				std::ofstream out(outFile[i]);
+				if(!out)
+				{
+					throw std::exception(("Cannot open file " + outFile[i]).c_str());
+				}
+
+				outFunction[i](out);
+			}
+		}
 
 		std::cout.setf(std::cout.fixed);
 		std::cout.precision(2);
 		std::cout << "Time elapsed: " << double(clock()) / CLOCKS_PER_SEC << " seconds" << std::endl;
+	} 
+	catch (TCLAP::ArgException &e)
+	{
+		std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl; 
+	}
+	catch (std::exception & e)
+	{
+		std::cerr << "error: " << e.what() << std::endl;
 	}
 
 	return 0;
