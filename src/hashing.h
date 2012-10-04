@@ -9,14 +9,15 @@ namespace SyntenyFinder
 		class SlidingWindow
 		{
 		public:
-			static const size_t HASH_BASE;	
+			static const int64_t HASH_MOD;
+			static const int64_t HASH_BASE;	
 			SlidingWindow() {}
 			SlidingWindow(Iterator kMerStart, Iterator end, size_t k): k_(k), highPow_(1), 
 				kMerStart_(kMerStart), kMerEnd_(AdvanceForward(kMerStart, k - 1)), end_(end)
 			{
 				for(size_t i = 1; i < k; i++)
 				{
-					highPow_ *= HASH_BASE;
+					highPow_ = (highPow_ * HASH_BASE) % HASH_MOD;
 				}
 
 				value_ = CalcKMerHash(kMerStart, k);
@@ -45,12 +46,22 @@ namespace SyntenyFinder
 
 			bool Move()
 			{
-				value_ = (value_ - *kMerStart_ * highPow_) * HASH_BASE;
+				int64_t sub = (*kMerStart_ * highPow_) % HASH_MOD;
+				if(sub <= value_)
+				{
+					value_ -= sub;
+				}
+				else
+				{
+					value_ = HASH_MOD - (sub - value_);
+				}
+
+				value_ = (value_ * HASH_BASE) % HASH_MOD;
 				++kMerStart_;
 				++kMerEnd_;
 				if(Valid())
 				{
-					value_ += *kMerEnd_;
+					value_ = (value_ + *kMerEnd_) % HASH_MOD;
 					assert(value_ == CalcKMerHash(kMerStart_, k_));
 					return true;
 				}
@@ -65,13 +76,13 @@ namespace SyntenyFinder
 
 			static size_t CalcKMerHash(Iterator it, size_t k)
 			{
-				size_t base = 1;
-				size_t hash = 0;
+				int64_t base = 1;
+				int64_t hash = 0;
 				std::advance(it, k - 1);
 				for(size_t i = 0; i < k; i++)
 				{			
-					hash += *it * base;
-					base *= HASH_BASE;
+					hash = (hash +  (*it * base) % HASH_MOD) % HASH_MOD;
+					base = (base * HASH_BASE) % HASH_MOD;
 					if(i != k - 1)
 					{
 						--it;
@@ -82,16 +93,19 @@ namespace SyntenyFinder
 			}
 
 		private:
-			size_t k_;
-			size_t highPow_;
+			int64_t k_;
+			int64_t highPow_;
 			Iterator kMerStart_;
 			Iterator kMerEnd_;
 			Iterator end_;
-			size_t value_;
+			int64_t value_;
 		};
 
 	template<class T>
-		const size_t SlidingWindow<T>::HASH_BASE = 57;
+		const int64_t SlidingWindow<T>::HASH_MOD = 2038076783;
+
+	template<class T>
+		const int64_t SlidingWindow<T>::HASH_BASE = 57;
 	
 	template<class Iterator>
 		class KMerHashFunction

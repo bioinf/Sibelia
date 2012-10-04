@@ -232,6 +232,8 @@ namespace SyntenyFinder
 		std::cout << "Max degree = " << maxDegree << std::endl;
 		std::cout << "Avg degree = " << double(sumDegree) / bifurcationCount << std::endl;*/
 
+		std::cout << bifurcationCount << std::endl;
+
 	#ifdef _DEBUG	
 		idMap.clear();
 		PrintRaw(sequence, std::cerr);

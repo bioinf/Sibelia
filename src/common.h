@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <cctype>
+#include <cstdint>
 #include <cstdlib>
 #include <stdint.h>
 #include <set>
