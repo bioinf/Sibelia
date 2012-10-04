@@ -107,7 +107,7 @@ namespace SyntenyFinder
 	{
 		bifStorage.Clear();
 		BifurcationData::BifurcationId bifurcationCount = 0;
-		typedef boost::unordered_map<size_t, BifurcationData> BifurcationMap;
+		typedef boost::unordered_map<uint64_t, BifurcationData> BifurcationMap;
 		BifurcationMap bifurcation(sequence.TotalSize());
 		size_t threshold = 0;
 		std::vector<Bool> permit(sequence.ChrNumber(), 1);
@@ -134,7 +134,7 @@ namespace SyntenyFinder
 			{
 				if(border[i].AtValidPosition())
 				{
-					size_t hash = hashF(border[i]);
+					uint64_t hash = hashF(border[i]);
 					BifurcationMap::iterator jt = bifurcation.find(hash);
 					if(jt == bifurcation.end())
 					{
@@ -164,7 +164,7 @@ namespace SyntenyFinder
 				for(; window.Valid(); window.Move())
 				{
 					StrandIterator it = window.GetBegin();
-					size_t hash = window.GetValue();
+					uint64_t hash = window.GetValue();
 					if(*it != DNASequence::UNKNOWN_BASE)
 					{
 						BifurcationMap::iterator jt = bifurcation.find(hash);

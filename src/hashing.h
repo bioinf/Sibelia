@@ -9,26 +9,25 @@ namespace SyntenyFinder
 		class SlidingWindow
 		{
 		public:
-			static const int64_t HASH_MOD;
-			static const int64_t HASH_BASE;	
+			static const uint64_t HASH_BASE;	
 			SlidingWindow() {}
 			SlidingWindow(Iterator kMerStart, Iterator end, size_t k): k_(k), highPow_(1), 
 				kMerStart_(kMerStart), kMerEnd_(AdvanceForward(kMerStart, k - 1)), end_(end)
 			{
 				for(size_t i = 1; i < k; i++)
 				{
-					highPow_ = (highPow_ * HASH_BASE) % HASH_MOD;
+					highPow_ *= HASH_BASE;
 				}
 
 				value_ = CalcKMerHash(kMerStart, k);
 			}
 
-			size_t GetValue() const
+			uint64_t GetValue() const
 			{
 				return value_;
 			}
 
-			size_t GetK() const
+			uint64_t GetK() const
 			{
 				return k_;
 			}
@@ -46,22 +45,12 @@ namespace SyntenyFinder
 
 			bool Move()
 			{
-				int64_t sub = (*kMerStart_ * highPow_) % HASH_MOD;
-				if(sub <= value_)
-				{
-					value_ -= sub;
-				}
-				else
-				{
-					value_ = HASH_MOD - (sub - value_);
-				}
-
-				value_ = (value_ * HASH_BASE) % HASH_MOD;
+				value_ = (value_ - *kMerStart_ * highPow_) * HASH_BASE;
 				++kMerStart_;
 				++kMerEnd_;
 				if(Valid())
 				{
-					value_ = (value_ + *kMerEnd_) % HASH_MOD;
+					value_ += *kMerEnd_;
 					assert(value_ == CalcKMerHash(kMerStart_, k_));
 					return true;
 				}
@@ -74,15 +63,15 @@ namespace SyntenyFinder
 				return kMerEnd_ != end_;
 			}
 
-			static size_t CalcKMerHash(Iterator it, size_t k)
+			static uint64_t CalcKMerHash(Iterator it, uint64_t k)
 			{
-				int64_t base = 1;
-				int64_t hash = 0;
+				uint64_t base = 1;
+				uint64_t hash = 0;
 				std::advance(it, k - 1);
 				for(size_t i = 0; i < k; i++)
 				{			
-					hash = (hash +  (*it * base) % HASH_MOD) % HASH_MOD;
-					base = (base * HASH_BASE) % HASH_MOD;
+					hash += *it * base;
+					base *= HASH_BASE;
 					if(i != k - 1)
 					{
 						--it;
@@ -93,32 +82,29 @@ namespace SyntenyFinder
 			}
 
 		private:
-			int64_t k_;
-			int64_t highPow_;
+			uint64_t k_;
+			uint64_t highPow_;
 			Iterator kMerStart_;
 			Iterator kMerEnd_;
 			Iterator end_;
-			int64_t value_;
+			uint64_t value_;
 		};
 
 	template<class T>
-		const int64_t SlidingWindow<T>::HASH_MOD = 2038076783;
-
-	template<class T>
-		const int64_t SlidingWindow<T>::HASH_BASE = 57;
+		const uint64_t SlidingWindow<T>::HASH_BASE = 57;
 	
 	template<class Iterator>
 		class KMerHashFunction
 		{
 		public:
-			size_t operator ()(Iterator it) const
+			uint64_t operator ()(Iterator it) const
 			{
 				return SlidingWindow<Iterator>::CalcKMerHash(it, k_);
 			}
 
 			KMerHashFunction(size_t k): k_(k) {}
 		private:
-			size_t k_;
+			uint64_t k_;
 		};		
 		
 	class KMerEqualTo
@@ -149,7 +135,7 @@ namespace SyntenyFinder
 	public:
 		WindowHashFunction(const SlidingWindow<DNASequence::StrandIterator> & window): window_(window) {}
 
-		size_t operator () (DNASequence::StrandIterator it) const
+		uint64_t operator () (DNASequence::StrandIterator it) const
 		{
 			if(window_.GetBegin() == it)
 			{
