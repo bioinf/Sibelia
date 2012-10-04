@@ -232,7 +232,6 @@ namespace SyntenyFinder
 		std::cout << "Max degree = " << maxDegree << std::endl;
 		std::cout << "Avg degree = " << double(sumDegree) / bifurcationCount << std::endl;*/
 
-		std::cout << bifurcationCount << std::endl;
 
 	#ifdef _DEBUG	
 		idMap.clear();
@@ -264,7 +263,7 @@ namespace SyntenyFinder
 		}
 
 		bifStorage.Dump(sequence, k, std::cerr);
-	//	Test(sequence, bifStorage, k);
+		Test(sequence, bifStorage, k);
 	#endif
 		callBack(totalProgress, end);
 		return bifurcationCount;
