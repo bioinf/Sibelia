@@ -113,7 +113,7 @@ namespace SyntenyFinder
 		std::vector<Bool> permit(sequence.ChrNumber(), 1);
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
-			size_t length = std::distance(sequence.PositiveBegin(chr), sequence.PositiveBegin(chr));
+			size_t length = std::distance(sequence.PositiveBegin(chr), sequence.PositiveEnd(chr));
 			threshold += length;
 			if(length <= k)
 			{

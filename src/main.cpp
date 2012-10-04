@@ -14,17 +14,17 @@ std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName)
 	std::ifstream stageFile(fileName.c_str());
 	if(!stageFile)
 	{
-		throw std::exception("cannot open stage file");
+		throw std::runtime_error("cannot open stage file");
 	}
 
 	if(!(stageFile >> count))
 	{
-		throw std::exception("cannot read stage file");
+		throw std::runtime_error("cannot read stage file");
 	}
 
 	if(count < 0)
 	{
-		throw std::exception("number of stages must be nonnegative");
+		throw std::runtime_error("number of stages must be nonnegative");
 	}
 
 	std::vector<std::pair<int, int> > ret(count);
@@ -32,17 +32,17 @@ std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName)
 	{
 		if(!(stageFile >> ret[i].first >> ret[i].second))
 		{
-			throw std::exception("too few records in the stage file");
+			throw std::runtime_error("too few records in the stage file");
 		}
 
 		if(ret[i].first < 2)
 		{
-			throw std::exception("vertex size in stage record must be at least 2");
+			throw std::runtime_error("vertex size in stage record must be at least 2");
 		}
 
 		if(ret[i].second < 0)
 		{
-			throw std::exception("minimum branch size in stage record must be nonnegative");
+			throw std::runtime_error("minimum branch size in stage record must be nonnegative");
 		}
 	}
 
@@ -211,7 +211,7 @@ int main(int argc, char * argv[])
 			SyntenyFinder::FASTAReader reader(*it);
 			if(!reader.IsOk())
 			{
-				throw std::exception(("Cannot open file " + *it).c_str());
+				throw std::runtime_error(("Cannot open file " + *it).c_str());
 			}
 
 			reader.GetSequences(chrList);
@@ -254,10 +254,10 @@ int main(int argc, char * argv[])
 		{
 			if(doOutput[i])
 			{
-				std::ofstream out(outFile[i]);
+				std::ofstream out(outFile[i].c_str());
 				if(!out)
 				{
-					throw std::exception(("Cannot open file " + outFile[i]).c_str());
+					throw std::runtime_error(("Cannot open file " + outFile[i]).c_str());
 				}
 
 				outFunction[i](out);
@@ -272,7 +272,7 @@ int main(int argc, char * argv[])
 	{
 		std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl; 
 	}
-	catch (std::exception & e)
+	catch (std::runtime_error & e)
 	{
 		std::cerr << "error: " << e.what() << std::endl;
 	}

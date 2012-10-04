@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 project(SyntenyFinder CXX)
 include_directories(${SyntenyFinder_SOURCE_DIR}/lib)
-add_executable(SyntenyFinder main.cpp outputgenerator.cpp bareiterator.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp fasta.cpp graphalgorithm.cpp hashing.cpp serialization.cpp synteny.cpp)
+add_executable(SyntenyFinder main.cpp outputgenerator.cpp bareiterator.cpp blockfinder.cpp blockinstance.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp edge.cpp fasta.cpp graphalgorithm.cpp hashing.cpp serialization.cpp synteny.cpp)
 set(CMAKE_BUILD_TYPE Release)
