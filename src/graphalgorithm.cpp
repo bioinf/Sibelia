@@ -148,7 +148,12 @@ namespace SyntenyFinder
 		size_t count = 0;
 		size_t totalProgress = 0;
 		threshold = (threshold * 4) / PROGRESS_STRIDE;
-		callBack(totalProgress, start);
+
+		if(!callBack.empty())
+		{
+			callBack(totalProgress, start);
+		}
+
 		for(size_t strand = 0; strand < 2; strand++)
 		{
 			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
@@ -265,7 +270,12 @@ namespace SyntenyFinder
 		bifStorage.Dump(sequence, k, std::cerr);
 		Test(sequence, bifStorage, k);
 	#endif
-		callBack(PROGRESS_STRIDE, end);
+
+		if(!callBack.empty())
+		{
+			callBack(PROGRESS_STRIDE, end);
+		}
+
 		return bifurcationCount;
 	}
 
@@ -277,7 +287,11 @@ namespace SyntenyFinder
 		size_t iterations = 0;
 		size_t totalProgress = 0;
 		bool anyChanges = true;
-		callBack(totalProgress, start);
+		if(!callBack.empty())
+		{
+			callBack(totalProgress, start);
+		}
+
 		size_t threshold = (bifStorage.GetMaxId() * maxIterations) / PROGRESS_STRIDE;
 		do
 		{
@@ -294,7 +308,12 @@ namespace SyntenyFinder
 			}
 		}
 		while((totalBulges > 0) && iterations < maxIterations);
-		callBack(PROGRESS_STRIDE, end);
+
+		if(!callBack.empty())
+		{
+			callBack(PROGRESS_STRIDE, end);
+		}
+
 		return totalBulges;
 	}
 }

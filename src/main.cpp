@@ -166,8 +166,7 @@ int main(int argc, char * argv[])
 			cmd);
 		
 		std::string description = std::string("Parameters set, used for the simplification. ") + 
-			std::string("Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite), default = \"") + 
-			parameterSetName[0] + std::string("\"");
+			std::string("Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).");
 		TCLAP::ValuesConstraint<std::string> allowedParametersVals(parameterSetName);
 		TCLAP::ValueArg<std::string> parameters("s",
 			"parameters",
@@ -244,7 +243,7 @@ int main(int argc, char * argv[])
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), _1),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), _1),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), _1),
-			boost::bind(&SyntenyFinder::BlockFinder::SerializeCondensedGraph, boost::cref(finder), minBlockSize.getValue(), _1)
+			boost::bind(&SyntenyFinder::BlockFinder::SerializeCondensedGraph, boost::cref(finder), minBlockSize.getValue(), _1, PutProgressChr)
 		};
 
 		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);

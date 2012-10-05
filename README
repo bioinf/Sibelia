@@ -10,8 +10,8 @@ Introduction
 ============
 SyntenyFinder is a tool for finding synteny blocks (regions of conserved DNA)
 in closely related genomes, like different strains of the same bacterial
-specie. It takes a FASTA file with sequences and locates coordinates of
-the synteny blocks in these genomes.
+specie. It takes a set of FASTA files with genomes and locates coordinates of
+the synteny blocks in these sequences.
 
 System Requirements
 ===================

@@ -31,7 +31,7 @@ namespace SyntenyFinder
 		typedef boost::function<void(size_t, State)> ProgressCallBack;
 		BlockFinder(const std::vector<FASTARecord> & chrList);
 		void SerializeGraph(size_t k, std::ostream & out) const;
-		void SerializeCondensedGraph(size_t k, std::ostream & out) const;
+		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack()) const;
 		void GenerateSyntenyBlocks(size_t k, std::vector<BlockInstance> & block, ProgressCallBack f = ProgressCallBack()) const;
 		void PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 
