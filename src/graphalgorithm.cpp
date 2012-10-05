@@ -265,7 +265,7 @@ namespace SyntenyFinder
 		bifStorage.Dump(sequence, k, std::cerr);
 		Test(sequence, bifStorage, k);
 	#endif
-		callBack(totalProgress, end);
+		callBack(PROGRESS_STRIDE, end);
 		return bifurcationCount;
 	}
 
@@ -294,7 +294,7 @@ namespace SyntenyFinder
 			}
 		}
 		while((totalBulges > 0) && iterations < maxIterations);
-		callBack(totalProgress, end);
+		callBack(PROGRESS_STRIDE, end);
 		return totalBulges;
 	}
 }

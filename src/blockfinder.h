@@ -1,5 +1,5 @@
-#ifndef _GRAPH_ALGORITHM_H
-#define _GRAPH_ALGORITHM_H
+#ifndef _BLOCK_FINDER_H_
+#define _BLOCK_FINDER_H_
 
 #include "hashing.h"
 #include "blockinstance.h"

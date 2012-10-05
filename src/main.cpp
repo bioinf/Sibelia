@@ -77,20 +77,18 @@ std::vector<std::pair<int, int> > FineStageFile()
 void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 {
 	static size_t prev = 0;
+	while(prev < progress)
+	{
+		prev++;
+		std::cout << '.';
+		std::cout.flush();
+	}
+
 	switch(state)
 	{
 	case SyntenyFinder::BlockFinder::start:
 		prev = 0;
 		std::cout << '[';
-		break;
-	case SyntenyFinder::BlockFinder::run:
-		if(progress != prev)
-		{
-			prev = progress;
-			std::cout << '.';
-			std::cout.flush();
-		}
-
 		break;
 	case SyntenyFinder::BlockFinder::end:
 		std::cout << "]" << std::endl;
