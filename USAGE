@@ -1,0 +1,35 @@
+Basic usage
+===========
+The easiest way to run "SyntenyFinder" is to type:
+
+SyntenyFinder -s loose <input FASTA file(s)>
+
+For example:
+
+SyntenyFinder -s loose tiny.fasta
+
+It will run "SyntenyFinder" on the file "tiny.fasta" with the "loose" 
+simplification parameters. There is another simplification parameters set, 
+called "fine". To run "SyntenyFinder" on "tiny.fasta" with "fine" parameters
+set, type:
+
+SyntenyFinder -s fine tiny.fasta
+
+The differenece between "loose" and "fine" set is that "loose" usually
+produces fewer blocks, but longer. And it can lose some small synteny
+blocks (< 5000 BP), while "fine" option produces more blocks (but shorter)
+and their coverage is worse. Usually "loose" is the best choice, but if
+you do not want to lose information about small-scale rearrangaments,
+use "fine". You also can set simplification parameters manually 
+(see section "Fine tuning").
+
+Fine tuning
+===========
+<This section will describe "physical meaning" of the parameters and how to
+choose them manually>
+
+References
+==========
+1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks Generation and Genome Comparison Tool" (poster), WABI 2012
+http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
+2. A wonderful paper at a top-rank BI conference [IRONIC]

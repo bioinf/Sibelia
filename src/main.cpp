@@ -159,9 +159,9 @@ int main(int argc, char * argv[])
 
 		TCLAP::ValueArg<std::string> chrFile("p",
 			"permfile",
-			"File for listing genomes represented as signed permutations of synteny blocks, default = \"permutations.txt\".",
+			"File for listing genomes represented as signed permutations of synteny blocks, default = \"genomes_permutations.txt\".",
 			false,
-			"permutations.txt",
+			"genomes_permutations.txt",
 			"file name",
 			cmd);
 		

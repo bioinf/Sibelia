@@ -8,7 +8,7 @@ Son Pham (University of California, San Diego)
 
 Introduction
 ============
-SyntenyFinder is a tool for finding synteny blocks (regions of conserved DNA)
+"SyntenyFinder" is a tool for finding synteny blocks (regions of conserved DNA)
 in closely related genomes, like different strains of the same bacterial
 specie. It takes a set of FASTA files with genomes and locates coordinates of
 the synteny blocks in these sequences.
@@ -31,7 +31,7 @@ Source code is compatible with MSVS 2010.
 
 Linux
 ------------
-SyntenyFinder is distributed in sources. It requires two things to be built:
+"SyntenyFinder" is distributed in sources. It requires two things to be built:
 1) CMake
 2) GCC C++ compiler (version 4.4.6 works fine)
 
@@ -46,34 +46,39 @@ After that you will get executable file "SyntenyFinder".
 Usage
 =====
 
-Input
------
-SyntenyFinder takes a single FASTA file as input. This file can contain
-multiple sequences. To run the program just type:
+Basic usage
+-----------
+"SyntenyFinder" takes a set of FASTA files as input. Each file can contain
+multiple sequences. Easiest way to run the tool is to type:
 
-SyntenyFinder <input FASTA file>
+SyntenyFinder -s loose <input FASTA file(s)>
 
 "Build" directory already contains file with two small bacterial genomes in
 the file "tiny.fasta". To run SyntenyFinder on this file, just type:
 
-SyntenyFinder tiny.fasta
+SyntenyFinder -s loose tiny.fasta
 
-<Here will be detailed description of a rich set of command-line parameters>
+The program also has some parameters that can be set. To see all possible
+parameters, type:
 
-Output
-------
-SyntenyFinder produces 4 output files. Each file has name INPUT_FILE + SUFFIX.
-<Of course, this will be changed very soon>
-Designations of these files are described below. 
+SyntenyFinder -h
 
-Suffix      Content
+Detailed description of the parameters can be found in file "USAGE".
 
-_chr        Input genomes represented as permutations of the synteny blocks
-_indices    Coordinates of the synteny blocks
-_blocks     Coordinates of the blocks and sequences of the blocks
-_report     Reports percentage of the genomes that found synteny blocks cover
+Output description
+------------------
+By default, "SyntenyFinder produces 3 output files. Designations of these files
+are described below. 
 
-More detailed description can be found in file OUTPUT located in the root
+1) block_coords.txt - coordinates of the synteny blocks in simple, 
+human-readable format
+2) coverage_report.txt - reports percentage of the genomes that found synteny
+blocks cover     
+3) genomes_permutations.txt - input genomes represented as permutations of the
+synteny blocks
+
+The program also can produce additional output files (blocks' sequences
+for example). For more information see file "USAGE" located in the root
 directory. 
 
 License
