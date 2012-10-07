@@ -1,7 +1,7 @@
 #ifndef _FASTA_READER_H_
 #define _FASTA_READER_H_
 
-#include "lib/kseq.h"
+#include <kseq.h>
 #include "common.h"
 
 namespace SyntenyFinder
