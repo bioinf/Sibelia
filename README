@@ -27,7 +27,8 @@ Windows
 ------------
 For Windows, binary installer is provided (both 32-bit and 64-bit). However,
 you can build the sources by your own if you want (see "Linux" section). 
-Source code is compatible with MSVS 2010.
+Although the source code is compatible with MSVS 2010, we STRONGLY recommend
+you to use CMake + MinGW or CMake + MSYS for this.
 
 Linux
 ------------

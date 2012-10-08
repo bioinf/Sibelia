@@ -2,6 +2,7 @@
 #define _BLOCK_INSTANCE_H_
 
 #include "common.h"
+#include "dnasequence.h"
 
 namespace SyntenyFinder
 {
@@ -18,6 +19,11 @@ namespace SyntenyFinder
 		int GetSignedBlockId() const
 		{
 			return id_;
+		}
+
+		DNASequence::Direction GetDirection() const
+		{
+			return id_ > 0 ? DNASequence::positive : DNASequence::negative;
 		}
 
 		int GetBlockId() const
