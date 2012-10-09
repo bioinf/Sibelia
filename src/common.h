@@ -17,6 +17,7 @@
 #include <sstream>
 #include <iterator>
 #include <iostream>
+#include <iomanip>
 #include <iterator>
 #include <algorithm>
 #include <boost/bind.hpp>

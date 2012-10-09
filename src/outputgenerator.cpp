@@ -237,4 +237,73 @@ namespace SyntenyFinder
 			}
 		}
 	}
+
+	void OutputGenerator::GenerateCircosOutput(std::ostream & out, const std::string & outDir, const std::string & templateConf) const
+	{
+		//copy template file
+		std::ifstream templ(templateConf.c_str());
+		if (!templ)
+		{
+			throw std::runtime_error(("Cannot open file " + templateConf).c_str());
+		}
+		out << templ.rdbuf();
+
+		//blocks must be sorted by id
+		BlockList sortedBlocks = blockList_;
+		std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareById);
+
+		//write link and highlights file
+		int idLength = log10(sortedBlocks.size()) + 1;
+		int lastId = 0;
+		int linkCount = 0;
+		BlockList blocksToLink;
+		std::ofstream linksFile((outDir + "/circos.segdup.txt").c_str());
+		if (!linksFile)
+		{
+			throw std::runtime_error(("Cannot open file " + outDir + "/circos.segdup.txt").c_str());
+		}
+		std::ofstream highlightFile((outDir + "/circos.highlight.txt").c_str());
+		if (!highlightFile)
+		{
+			throw std::runtime_error(("Cannot open file " + outDir + "/circos.highlight.txt").c_str());
+		}
+
+		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock)
+		{
+			highlightFile << "hs" << itBlock->GetChr() + 1 << " ";
+			highlightFile << itBlock->GetStart() << " " << itBlock->GetEnd() << std::endl;
+
+			if (itBlock->GetBlockId() != lastId)
+			{
+				blocksToLink.clear();
+				lastId = itBlock->GetBlockId();
+			}
+			for (BlockList::iterator itPair = blocksToLink.begin(); itPair != blocksToLink.end(); ++itPair)
+			{
+				//link start
+				linksFile << "block_" << std::setw(idLength) << std::setfill('0') << linkCount << " ";
+				linksFile << "hs" << itBlock->GetChr() + 1 << " ";
+				linksFile << itBlock->GetStart() << " " << itBlock->GetEnd() << std::endl;
+				//link end
+				linksFile << "block_" << std::setw(idLength) << std::setfill('0') << linkCount << " ";
+				linksFile << "hs" << itPair->GetChr() + 1 << " ";
+				linksFile << itPair->GetStart() << " " << itPair->GetEnd() << std::endl;
+
+				++linkCount;
+			}
+			blocksToLink.push_back(*itBlock);
+		}
+
+		//write kariotype file
+		std::ofstream karFile((outDir + "/circos.sequences.txt").c_str());
+		if (!karFile)
+		{
+			throw std::runtime_error(("Cannot open file " + outDir + "/circos.sequences.txt").c_str());
+		}
+		for (size_t i = 0; i < chrList_.size(); ++i)
+		{
+			karFile << "chr - hs" << i + 1 << " " << i + 1 << " 0 " << chrList_[i].sequence.length();
+			karFile	<< " chr" << i + 1 << std::endl;
+		}
+	}
 }

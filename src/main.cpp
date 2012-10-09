@@ -165,6 +165,14 @@ int main(int argc, char * argv[])
 			"file name",
 			cmd);
 		
+		TCLAP::ValueArg<std::string> circosDir("d",
+			"circosdir",
+			"Directory for circos files, default=\".\"",
+			false,
+			".",
+			"file name",
+			cmd);
+
 		std::string description = std::string("Parameters set, used for the simplification. ") + 
 			std::string("Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).");
 		TCLAP::ValuesConstraint<std::string> allowedParametersVals(parameterSetName);
@@ -227,23 +235,29 @@ int main(int argc, char * argv[])
 		finder.GenerateSyntenyBlocks(minBlockSize.getValue(), blockList, PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
+		//const std::string circosOutDir = ".";
+		const std::string templateCircosConf = "circos.template.conf";
+		const std::string defaultCircosOutFile = "circos.conf";
+
 		const std::string outFile[] = 
 		{
 			chrFile.getValue(),
 			reportFile.getValue(),
 			coordsFile.getValue(),
 			sequencesFile.getValue(),
-			graphFile.getValue()
+			graphFile.getValue(),
+			circosDir.getValue() + "/" + defaultCircosOutFile
 		};
 
-		bool doOutput[] = {true, true, true, sequencesFile.isSet(), graphFile.isSet()};
+		bool doOutput[] = {true, true, true, sequencesFile.isSet(), graphFile.isSet(), circosDir.isSet()};
 		boost::function<void(std::ostream&)> outFunction[] = 
 		{
 			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), _1),
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), _1),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), _1),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), _1),
-			boost::bind(&SyntenyFinder::BlockFinder::SerializeCondensedGraph, boost::cref(finder), minBlockSize.getValue(), _1, PutProgressChr)
+			boost::bind(&SyntenyFinder::BlockFinder::SerializeCondensedGraph, boost::cref(finder), minBlockSize.getValue(), _1, PutProgressChr),
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), _1, circosDir.getValue(), templateCircosConf)
 		};
 
 		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);

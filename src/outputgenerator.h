@@ -25,6 +25,7 @@ namespace SyntenyFinder
 		typedef std::vector<BlockInstance> BlockList;
 		OutputGenerator(const ChrList & chrList, const BlockList & blockList): chrList_(chrList), blockList_(blockList) {}
 		void GenerateReport(std::ostream & out) const;
+		void GenerateCircosOutput(std::ostream & out, const std::string & outDir, const std::string & templateConf) const;
 		void ListBlocksIndices(std::ostream & out) const;
 		void ListBlocksSequences(std::ostream & out) const;
 		void ListChromosomesAsPermutations(std::ostream & out) const;
