@@ -235,7 +235,6 @@ int main(int argc, char * argv[])
 		finder.GenerateSyntenyBlocks(minBlockSize.getValue(), blockList, PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
-		//const std::string circosOutDir = ".";
 		const std::string templateCircosConf = "circos.template.conf";
 		const std::string defaultCircosOutFile = "circos.conf";
 
