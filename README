@@ -78,9 +78,8 @@ blocks cover
 3) genomes_permutations.txt - input genomes represented as permutations of the
 synteny blocks
 
-The program also can produce additional output files (blocks' sequences
-for example). For more information see file "USAGE" located in the root
-directory. 
+The program also can produce additional output files (e.g. blocks' sequences).
+For more information see file "USAGE" located in the root directory. 
 
 License
 =======
