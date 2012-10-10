@@ -10,7 +10,7 @@ namespace SyntenyFinder
 	class BifurcationStorage
 	{
 	public:
-		typedef unsigned int BifurcationId;
+		typedef Size BifurcationId;
 		static const BifurcationId NO_BIFURCATION;
 
 		void Clear();

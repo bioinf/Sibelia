@@ -253,7 +253,7 @@ namespace SyntenyFinder
 		std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareById);
 
 		//write link and highlights file
-		int idLength = log10(sortedBlocks.size()) + 1;
+		int idLength = static_cast<int>(log10(static_cast<double>(sortedBlocks.size()))) + 1;
 		int lastId = 0;
 		int linkCount = 0;
 		BlockList blocksToLink;

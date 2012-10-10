@@ -226,18 +226,6 @@ namespace SyntenyFinder
 			}
 		}
 
-	/*	size_t maxDegree = 0;
-		size_t sumDegree = 0;
-		for(size_t i = 0; i < bifurcationCount; i++)
-		{
-			sumDegree += bifStorage.CountBifurcations(i);
-			maxDegree = std::max(maxDegree, bifStorage.CountBifurcations(i));
-		}
-
-		std::cout << "Max degree = " << maxDegree << std::endl;
-		std::cout << "Avg degree = " << double(sumDegree) / bifurcationCount << std::endl;*/
-
-
 	#ifdef _DEBUG	
 		idMap.clear();
 		PrintRaw(sequence, std::cerr);
