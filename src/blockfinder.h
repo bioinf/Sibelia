@@ -39,7 +39,6 @@ namespace SyntenyFinder
 		static void PrintPath(StrandIterator e, size_t k, size_t distance, std::ostream & out);
 		static void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);
 	private:	
-		typedef DNASequence::Pos Pos;
 		typedef std::vector<Pos> PosVector;
 		std::vector<FASTARecord> chrList_;
 		std::vector<PosVector> originalPos_;

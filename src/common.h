@@ -34,6 +34,8 @@ extern const std::string DELIMITER;
 
 namespace SyntenyFinder
 {
+	typedef uint32_t Pos;
+	typedef uint32_t Size;
 
 	template<class Iterator1, class Iterator2>
 		void CopyN(Iterator1 it, size_t count, Iterator2 out)

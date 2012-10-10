@@ -17,7 +17,6 @@ namespace SyntenyFinder
 			negative
 		};
 
-		typedef unsigned int Pos;
 		struct DNACharacter
 		{
 			char actual;
