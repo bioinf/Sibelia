@@ -7,6 +7,8 @@
 
 namespace SyntenyFinder
 {
+#define NEW_ENUMERATION
+
 	struct VisitData
 	{
 		size_t kmerId;
@@ -27,6 +29,7 @@ namespace SyntenyFinder
 			run,
 			end
 		};
+		static const char SEPARATION_CHAR;
 
 		typedef boost::function<void(size_t, State)> ProgressCallBack;
 		BlockFinder(const std::vector<FASTARecord> & chrList);
@@ -66,7 +69,7 @@ namespace SyntenyFinder
 			Size pos;
 			BifurcationInstance() {}
 			BifurcationInstance(Size bifId, Size chr, Size pos): bifId(bifId), chr(chr), pos(pos) {}
-			bool operator < (const BifurcationInstance & toCompare)
+			bool operator < (const BifurcationInstance & toCompare) const
 			{
 				return std::make_pair(chr, pos) < std::make_pair(toCompare.chr, toCompare.pos);
 			}
@@ -78,8 +81,9 @@ namespace SyntenyFinder
 				
 		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
-		size_t EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack f = ProgressCallBack()) const;
-		size_t EnumerateBifurcations(size_t k, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation) const;
+		size_t EnumerateBifurcationsHash(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack f = ProgressCallBack()) const;
+		size_t EnumerateBifurcationsSArray(size_t k, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation) const;
+		void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage) const;
 		void ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<BlockInstance> & chrList) const;
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 

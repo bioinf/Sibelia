@@ -23,47 +23,6 @@ namespace SyntenyFinder
 			}
 		};
 
-		template<class Iterator, class F, class ReturnType>
-			struct FancyIterator
-			{
-			public:
-				FancyIterator& operator++()
-				{
-					++it;
-					return *this;
-				}
-
-				FancyIterator operator++(int)
-				{
-					FancyIterator ret(*this);
-					++(*this);
-					return ret;
-				}
-
-				bool operator == (FancyIterator toCompare) const
-				{
-					return it == toCompare.it;
-				}
-
-				ReturnType operator * () 
-				{
-					return f(*it);
-				}
-
-				FancyIterator() {}
-				FancyIterator(Iterator it, F f): it(it), f(f) {}
-
-			private:
-				F f;
-				Iterator it;
-			};
-
-		template<class Iterator, class F, class ReturnType>
-			FancyIterator<Iterator, F, ReturnType> CFancyIterator(Iterator it, F f, ReturnType)
-			{
-				return FancyIterator<Iterator, F, ReturnType>(it, f);
-			}
-
 		typedef std::pair<size_t, std::vector<BlockInstance> > GroupedBlock;
 		typedef std::vector<GroupedBlock> GroupedBlockList;
 

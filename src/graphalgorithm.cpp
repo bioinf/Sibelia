@@ -82,6 +82,7 @@ namespace SyntenyFinder
 	KMerBifMap idMap;	
 	void BlockFinder::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
 	{
+		return;
 		for(size_t strand = 0; strand < 2; strand++)
 		{
 			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
@@ -103,7 +104,7 @@ namespace SyntenyFinder
 	}
 #endif
 
-	size_t BlockFinder::EnumerateBifurcations(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack callBack) const
+	size_t BlockFinder::EnumerateBifurcationsHash(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack callBack) const
 	{
 		bifStorage.Clear();
 		BifurcationData::BifurcationId bifurcationCount = 0;
@@ -225,7 +226,7 @@ namespace SyntenyFinder
 				}	
 			}
 		}
-
+/*
 	#ifdef _DEBUG	
 		idMap.clear();
 		PrintRaw(sequence, std::cerr);
@@ -258,7 +259,7 @@ namespace SyntenyFinder
 		bifStorage.Dump(sequence, k, std::cerr);
 		Test(sequence, bifStorage, k);
 	#endif
-
+*/
 		if(!callBack.empty())
 		{
 			callBack(PROGRESS_STRIDE, end);
@@ -301,7 +302,7 @@ namespace SyntenyFinder
 		{
 			callBack(PROGRESS_STRIDE, end);
 		}
-
+		
 		return totalBulges;
 	}
 }

@@ -85,6 +85,52 @@ namespace SyntenyFinder
 
 			return it;
 		}
+
+	template<class Iterator, class F, class ReturnType>
+		struct FancyIterator: public std::iterator<std::forward_iterator_tag, char>
+		{
+		public:
+			FancyIterator& operator++()
+			{
+				++it;
+				return *this;
+			}
+
+			FancyIterator operator++(int)
+			{
+				FancyIterator ret(*this);
+				++(*this);
+				return ret;
+			}
+
+			bool operator == (FancyIterator toCompare) const
+			{
+				return it == toCompare.it;
+			}
+
+			bool operator != (FancyIterator toCompare) const
+			{
+				return !(*this == toCompare);
+			}
+
+			ReturnType operator * () 
+			{
+				return f(*it);
+			}
+
+			FancyIterator() {}
+			FancyIterator(Iterator it, F f): it(it), f(f) {}
+
+		private:
+			F f;
+			Iterator it;
+		};
+
+	template<class Iterator, class F, class ReturnType>
+		FancyIterator<Iterator, F, ReturnType> CFancyIterator(Iterator it, F f, ReturnType)
+		{
+			return FancyIterator<Iterator, F, ReturnType>(it, f);
+		}
 }
 
 #endif
