@@ -7,7 +7,7 @@
 
 namespace SyntenyFinder
 {
-#define NEW_ENUMERATION
+//#define NEW_ENUMERATION
 
 	struct VisitData
 	{
