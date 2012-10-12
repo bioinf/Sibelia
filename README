@@ -60,6 +60,9 @@ the file "tiny.fasta". To run SyntenyFinder on this file, just type:
 
 SyntenyFinder -s loose tiny.fasta
 
+File "tiny.fasta" contains sequences of "Helicobacter pylori Gambia94/24" and
+"Helicobacter pylori F32", the were taken frome [2]. 
+
 The program also has some parameters that can be set. To see all possible
 parameters, type:
 
@@ -96,3 +99,4 @@ References
 ==========
 1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks Generation and Genome Comparison Tool" (poster), WABI 2012
 http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
+2. Helicobacter pylori. http://www.ncbi.nlm.nih.gov/genome/genomes/169

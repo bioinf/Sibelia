@@ -34,7 +34,7 @@ By default, "SyntenyFinder" produces 3 files:
 There are also optional output files:
 
 1) Sequences file
-2) Files for generating Circos picture
+2) Files for generating "Circos" picture
 3) Dot file for resulting de Bruijn graph
 
 All these files are described below in details.
@@ -127,40 +127,79 @@ sequence has header in following format:
 Where <description> is a header of the FASTA sequence where the block instance
 is located. Other fields are described in section "Coordinates file".
 
+"Circos" files
+--------------
+Default directory name = not set. To output these files, set cmd parameter
 
+-d <dir name> or --circosdir <dir name>
 
+You can visualize synteny blocks with a colorful circular diagramm by using
+the "Circos" software [2]. To achieve this, do following:
 
-Where: 
+1) Download and install Circos software
+2) Run "SyntenyFinder" with -d options set
+3) Run Circos
 
-   -s <loose|fine>,  --parameters <loose|fine>
-     (OR required)  Parameters set, used for the simplification. Option
-     "loose" produces fewer blocks, but they are larger ("fine" is
-     opposite).
-         -- OR --
-   -k <file name>,  --stagefile <file name>
-     (OR required)  File that contains manually chosen simplifications
-     parameters. See USAGE file for more information.
+For example, to generate Circos diagramm for example "tiny.fasta" perform
+following:
 
-   -m <integer>,  --minblocksize <integer>
-     Minimum size of a synteny block, default value = 5000 BP.
+1) Create directory "circos" in the "build" directory
+2) Run "SyntenyFinder" with following parameters:
 
-   -d <file name>,  --circosdir <file name>
-     Directory for circos files, default = not set
+SyntenyFinder -s loose -d ./circos tiny.fasta
 
-   -g <file name>,  --graphfile <file name>
-     File for resulting condensed de Bruijn graph (in dot format), default
-     = not set.
+3) Run circos in the "circos" directory
 
-   -i <integer>,  --maxiterations <integer>
-     Maximum number of iterations during a stage of simplification, default
-     = 4.
+For example of such diagramms (generated from tiny.fasta), see
+"examples/tiny/circos/tiny.png". Note that the directory for circos files must
+exist before running the program. Also note that such diagramms can become very
+piled with larger genomes. To overcome this, plot only big blocks, see section 
+"Minimum block size".
+
+Resulting de Bruijn graph
+-------------------------
+Default file name = not set. To output this file, set cmd parameter
+
+-g <file name> or  --graphfile <file name>
+
+If you curious, you can also view condensed de Bruijn graph that is used for
+generating synteny blocks. To understand the graph, see [1].
 
 Fine tuning
 ===========
-<This section will describe "physical meaning" of the parameters and how to
-choose them manually>
+Here we will describe parameters that can affect computation results.
+
+Parameters set
+--------------
+Our approach is parameter dependent. To understand the details, please see [1].
+It incorporates several stages of computations. Each stage has two parameters,
+K and D. There are two default parameters set, "loose" and "fine", see section
+"Basic usage". But you can vary these parameters manually.
+
+Using custom parameters set
+---------------------------
+<To be written>
+
+Minimum block size
+------------------
+Default value = 5000. To change this value, set cmd parameter:
+
+-m <integer> or --minblocksize <integer>
+
+If you are interested only in big synteny blocks, like > 100 000 BP, set
+this parameter to an appropriate value.
+
+Maximum number of iterations
+----------------------------
+Default value = 4. Tho change this value, set cmd parameter:
+
+-i <integer> or --maxiterations <integer>
+
+Maximum number of iterations during a stage of simplification. Increasing
+this parameter may slightly increase coverage.
 
 References
 ==========
 1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks Generation and Genome Comparison Tool" (poster), WABI 2012
 http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
+2. Circos. http://circos.ca
