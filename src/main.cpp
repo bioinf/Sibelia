@@ -93,6 +93,8 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 	case SyntenyFinder::BlockFinder::end:
 		std::cout << "]" << std::endl;
 		break;
+	case SyntenyFinder::BlockFinder::run:
+		;
 	}
 }
 
@@ -167,10 +169,10 @@ int main(int argc, char * argv[])
 		
 		TCLAP::ValueArg<std::string> circosDir("d",
 			"circosdir",
-			"Directory for circos files, default=\".\"",
+			"Directory for circos files, default = not set",
 			false,
-			".",
-			"file name",
+			"",
+			"dir name",
 			cmd);
 
 		std::string description = std::string("Parameters set, used for the simplification. ") + 

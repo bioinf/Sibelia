@@ -23,6 +23,11 @@ namespace SyntenyFinder
 		return maxId_ + 1;
 	}
 
+	size_t BifurcationStorage::TotalElements() const
+	{
+		return bifurcationPos_[0].size() + bifurcationPos_[1].size();
+	}
+
 	size_t BifurcationStorage::CountBifurcations(size_t inBifId) const
 	{
 		BifurcationId bifId = static_cast<BifurcationId>(inBifId);

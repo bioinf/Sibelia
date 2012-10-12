@@ -1,9 +1,10 @@
-SyntenyFinder 0.7071
-Release date: 12th October 2012
+SyntenyFinder 1.0
+Release date: 16th October 2012
 
 Authors:
 Ilya Minkin (St. Petersburg Academic University)
 Nikolay Vyahhi (St. Petersburg Academic University)
+Mikhail Kolmogorov (St. Petersburg Academic University)
 Son Pham (University of California, San Diego)
 
 Introduction
@@ -16,8 +17,8 @@ the synteny blocks in these sequences.
 System Requirements
 ===================
 This version is designed for small-scale genomes. For example, it can find
-synteny blocks in 8 bacterial genomes (50 MB of genomic data) in ~45 minutes
-and using 3 GB of RAM on an Intel i5 laptop. Next versions will be faster and
+synteny blocks in 8 bacterial genomes (50 MB of genomic data) in ~35 minutes
+and using 2.5 GB of RAM on an Intel i5 laptop. Next versions will be faster and
 require less memory.
 
 Installation
@@ -34,7 +35,7 @@ Linux and Mac OS X
 ------------------
 "SyntenyFinder" is distributed in sources. It requires two things to be built:
 1) CMake
-2) GCC C++ compiler (version 4.4.6 works fine)
+2) GCC C++ compiler (version 4.2.0+ works fine)
 
 To build the project, type following:
 
@@ -81,13 +82,9 @@ synteny blocks
 The program also can produce additional output files (e.g. blocks' sequences).
 For more information see file "USAGE" located in the root directory. 
 
-License
-=======
-<Licensing information will be added later>
-
 Citation
 ========
-If you use SyntenyFinder in your research, please cite [1, 2].
+If you use SyntenyFinder in your research, please cite [1].
 
 Contacts
 ========
@@ -99,4 +96,3 @@ References
 ==========
 1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks Generation and Genome Comparison Tool" (poster), WABI 2012
 http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
-2. A wonderful paper at a top-rank BI conference [IRONIC]

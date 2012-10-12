@@ -15,6 +15,7 @@ namespace SyntenyFinder
 
 		void Clear();
 		size_t GetMaxId() const;
+		size_t TotalElements() const;
 		BifurcationStorage();
 		void Dump(const DNASequence & sequence, size_t k, std::ostream & out) const;
 		void ErasePoint(DNASequence::StrandIterator it);
