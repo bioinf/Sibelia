@@ -234,7 +234,7 @@ int main(int argc, char * argv[])
 		
 		std::vector<SyntenyFinder::BlockInstance> blockList;
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
-		finder.GenerateSyntenyBlocks(minBlockSize.getValue(), blockList, PutProgressChr);
+		finder.GenerateSyntenyBlocks(std::min(stage.back().first, static_cast<int>(minBlockSize.getValue())), minBlockSize.getValue(), blockList, PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
 		const std::string templateCircosConf = "circos.template.conf";

@@ -288,22 +288,5 @@ namespace SyntenyFinder
 				originalPos_[chr].push_back(static_cast<Pos>(it.GetOriginalPosition()));
 			}
 		}
-	}
-
-	void BlockFinder::GenerateSyntenyBlocks(size_t k, std::vector<BlockInstance> & block, ProgressCallBack enumeration) const
-	{
-		block.clear();
-	#ifdef NEW_ENUMERATION
-		BifurcationStorage bifStorage;
-		std::vector<std::vector<BifurcationInstance> > bifurcation(2);		
-		EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
-		DNASequence sequence(chrList_, originalPos_);
-		ConstructBifStorage(sequence, bifurcation, bifStorage);
-	#else
-		BifurcationStorage bifStorage;
-		DNASequence sequence(chrList_, originalPos_);
-		EnumerateBifurcationsHash(sequence, bifStorage, k);
-	#endif
-		ConvertEdgesToBlocks(sequence, bifStorage, k, block);
-	}
+	}	
 }

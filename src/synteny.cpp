@@ -18,14 +18,31 @@ namespace SyntenyFinder
 		return EdgeToVector(a) < EdgeToVector(b);
 	}
 
-	void BlockFinder::ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<BlockInstance> & block) const
+	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, ProgressCallBack enumeration) const
+	{
+		block.clear();
+	#ifdef NEW_ENUMERATION
+		BifurcationStorage bifStorage;
+		std::vector<std::vector<BifurcationInstance> > bifurcation(2);		
+		EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
+		DNASequence sequence(chrList_, originalPos_);
+		ConstructBifStorage(sequence, bifurcation, bifStorage);
+	#else
+		BifurcationStorage bifStorage;
+		DNASequence sequence(chrList_, originalPos_);
+		EnumerateBifurcationsHash(sequence, bifStorage, k);
+	#endif
+		ConvertEdgesToBlocks(sequence, bifStorage, k, minSize, block);
+	}
+
+	void BlockFinder::ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t minSize, std::vector<BlockInstance> & block) const
 	{
 		int blockCount = 1;
 		block.clear();
 		std::vector<Edge> edge;
 		BlockFinder::ListEdges(sequence, bifStorage, k, edge);
 		std::vector<std::set<std::pair<size_t, size_t> > > visit(sequence.ChrNumber());
-		edge.erase(std::remove_if(edge.begin(), edge.end(), boost::bind(EdgeEmpty, _1, k)), edge.end());
+		edge.erase(std::remove_if(edge.begin(), edge.end(), boost::bind(EdgeEmpty, _1, minSize)), edge.end());
 		std::sort(edge.begin(), edge.end(), EdgeCompare);
 
  		for(size_t now = 0; now < edge.size(); )

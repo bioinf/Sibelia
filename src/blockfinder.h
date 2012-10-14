@@ -35,7 +35,7 @@ namespace SyntenyFinder
 		BlockFinder(const std::vector<FASTARecord> & chrList);
 		void SerializeGraph(size_t k, std::ostream & out) const;
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack()) const;
-		void GenerateSyntenyBlocks(size_t k, std::vector<BlockInstance> & block, ProgressCallBack f = ProgressCallBack()) const;
+		void GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, ProgressCallBack f = ProgressCallBack()) const;
 		void PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 
 		static void PrintRaw(const DNASequence & s, std::ostream & out);
@@ -84,7 +84,7 @@ namespace SyntenyFinder
 		size_t EnumerateBifurcationsHash(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack f = ProgressCallBack()) const;
 		size_t EnumerateBifurcationsSArray(size_t k, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation) const;
 		void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage) const;
-		void ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<BlockInstance> & chrList) const;
+		void ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t minSize, std::vector<BlockInstance> & chrList) const;
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 
 	};
