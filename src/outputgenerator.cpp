@@ -94,8 +94,10 @@ namespace SyntenyFinder
 		out << DELIMITER << std::endl;
 	}
 
-	void OutputGenerator::GenerateReport(std::ostream & out) const
+	void OutputGenerator::GenerateReport(const std::string & fileName) const
 	{
+		std::ofstream out;
+		TryOpenFile(fileName, out);
 		GroupedBlockList sepBlock;
 		std::vector<IndexPair> group;
 		GroupBy(blockList_, compareById, std::back_inserter(group));
@@ -136,8 +138,10 @@ namespace SyntenyFinder
 		out << DELIMITER << std::endl;
 	}
 
-	void OutputGenerator::ListChromosomesAsPermutations(std::ostream & out) const
+	void OutputGenerator::ListChromosomesAsPermutations(const std::string & fileName) const
 	{
+		std::ofstream out;
+		TryOpenFile(fileName, out);
 		std::vector<IndexPair> group;
 		GroupBy(blockList_, compareByChr, std::back_inserter(group));
  		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
@@ -152,8 +156,10 @@ namespace SyntenyFinder
 		}
 	}
 
-	void OutputGenerator::ListBlocksIndices(std::ostream & out) const
+	void OutputGenerator::ListBlocksIndices(const std::string & fileName) const
 	{
+		std::ofstream out;
+		TryOpenFile(fileName, out);
 		ListChrs(out);		
 		std::vector<IndexPair> group;
 		GroupBy(blockList_, compareById, std::back_inserter(group));
@@ -167,8 +173,10 @@ namespace SyntenyFinder
 		}
 	}
 
-	void OutputGenerator::ListBlocksSequences(std::ostream & out) const
+	void OutputGenerator::ListBlocksSequences(const std::string & fileName) const
 	{
+		std::ofstream out;
+		TryOpenFile(fileName, out);
 		std::vector<IndexPair> group;
 		GroupBy(blockList_, compareById, std::back_inserter(group));
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
@@ -197,7 +205,7 @@ namespace SyntenyFinder
 		}
 	}
 
-	void OutputGenerator::GenerateCircosOutput(std::ostream & out, const std::string & outDir, const std::string & templateConf) const
+	void OutputGenerator::GenerateCircosOutput(const std::string & outFile, const std::string & outDir, const std::string & templateConf) const
 	{
 		//copy template file
 		std::ifstream templ(templateConf.c_str());
@@ -205,6 +213,9 @@ namespace SyntenyFinder
 		{
 			throw std::runtime_error(("Cannot open file " + templateConf).c_str());
 		}
+
+		std::ofstream out;
+		TryOpenFile(outFile, out);
 		out << templ.rdbuf();
 
 		//blocks must be sorted by id
@@ -216,16 +227,10 @@ namespace SyntenyFinder
 		int lastId = 0;
 		int linkCount = 0;
 		BlockList blocksToLink;
-		std::ofstream linksFile((outDir + "/circos.segdup.txt").c_str());
-		if (!linksFile)
-		{
-			throw std::runtime_error(("Cannot open file " + outDir + "/circos.segdup.txt").c_str());
-		}
-		std::ofstream highlightFile((outDir + "/circos.highlight.txt").c_str());
-		if (!highlightFile)
-		{
-			throw std::runtime_error(("Cannot open file " + outDir + "/circos.highlight.txt").c_str());
-		}
+		std::ofstream linksFile;				
+		std::ofstream highlightFile;
+		TryOpenFile((outDir + "/circos.segdup.txt"), linksFile);
+		TryOpenFile(outDir + "/circos.highlight.txt", highlightFile);
 
 		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock)
 		{
@@ -254,15 +259,29 @@ namespace SyntenyFinder
 		}
 
 		//write kariotype file
-		std::ofstream karFile((outDir + "/circos.sequences.txt").c_str());
-		if (!karFile)
-		{
-			throw std::runtime_error(("Cannot open file " + outDir + "/circos.sequences.txt").c_str());
-		}
+		std::ofstream karFile;
+		TryOpenFile(outDir + "/circos.sequences.txt", karFile);		
+		
 		for (size_t i = 0; i < chrList_.size(); ++i)
 		{
 			karFile << "chr - hs" << i + 1 << " " << i + 1 << " 0 " << chrList_[i].sequence.length();
 			karFile	<< " chr" << i + 1 << std::endl;
 		}
+	}
+
+	void OutputGenerator::TryOpenFile(const std::string & fileName, std::ofstream & stream) const
+	{
+		stream.open(fileName.c_str());
+		if(!stream)
+		{
+			throw std::runtime_error(("Cannot open file " + fileName).c_str());
+		}
+	}
+
+	void OutputGenerator::OutputBuffer(const std::string & fileName, const std::string & buffer) const
+	{
+		std::ofstream out;
+		TryOpenFile(fileName, out);
+		out << buffer;
 	}
 }

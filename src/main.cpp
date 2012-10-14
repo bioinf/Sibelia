@@ -193,6 +193,12 @@ int main(int argc, char * argv[])
 			"integer",
 			cmd);
 
+		TCLAP::SwitchArg sharedOnly("a",
+			"sharedonly",
+			"Output only blocks that occur exactly once in each input sequence.",			
+			cmd,
+			false);
+
 		TCLAP::UnlabeledMultiArg<std::string> fileName("filenames",
 			"FASTA file(s) with nucleotide sequences",
 			true,
@@ -234,31 +240,21 @@ int main(int argc, char * argv[])
 		
 		std::vector<SyntenyFinder::BlockInstance> blockList;
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
-		finder.GenerateSyntenyBlocks(std::min(stage.back().first, static_cast<int>(minBlockSize.getValue())), minBlockSize.getValue(), blockList, PutProgressChr);
+		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
+		finder.GenerateSyntenyBlocks(lastK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
 		const std::string templateCircosConf = "circos.template.conf";
 		const std::string defaultCircosOutFile = "circos.conf";
-
-		const std::string outFile[] = 
+		
+		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circosDir.isSet()};
+		boost::function<void()> outFunction[] = 
 		{
-			chrFile.getValue(),
-			reportFile.getValue(),
-			coordsFile.getValue(),
-			sequencesFile.getValue(),
-			graphFile.getValue(),
-			circosDir.getValue() + "/" + defaultCircosOutFile
-		};
-
-		bool doOutput[] = {true, true, true, sequencesFile.isSet(), graphFile.isSet(), circosDir.isSet()};
-		boost::function<void(std::ostream&)> outFunction[] = 
-		{
-			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), _1),
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), _1),
-			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), _1),
-			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), _1),
-			boost::bind(&SyntenyFinder::BlockFinder::SerializeCondensedGraph, boost::cref(finder), minBlockSize.getValue(), _1, PutProgressChr),
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), _1, circosDir.getValue(), templateCircosConf)
+			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), chrFile.getValue()),
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), reportFile.getValue()),
+			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), coordsFile.getValue()),
+			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), sequencesFile.getValue()),		
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), circosDir.getValue() + "/" + defaultCircosOutFile, circosDir.getValue(), templateCircosConf)
 		};
 
 		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);
@@ -266,14 +262,15 @@ int main(int argc, char * argv[])
 		{
 			if(doOutput[i])
 			{
-				std::ofstream out(outFile[i].c_str());
-				if(!out)
-				{
-					throw std::runtime_error(("Cannot open file " + outFile[i]).c_str());
-				}
-
-				outFunction[i](out);
+				outFunction[i]();
 			}
+		}
+
+		if(graphFile.isSet())
+		{
+			std::stringstream buffer;
+			finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);
+			generator.OutputBuffer(graphFile.getValue(), buffer.str());
 		}
 
 		std::cout.setf(std::cout.fixed);

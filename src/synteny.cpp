@@ -18,7 +18,7 @@ namespace SyntenyFinder
 		return EdgeToVector(a) < EdgeToVector(b);
 	}
 
-	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, ProgressCallBack enumeration) const
+	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration) const
 	{
 		block.clear();
 	#ifdef NEW_ENUMERATION
@@ -32,10 +32,10 @@ namespace SyntenyFinder
 		DNASequence sequence(chrList_, originalPos_);
 		EnumerateBifurcationsHash(sequence, bifStorage, k);
 	#endif
-		ConvertEdgesToBlocks(sequence, bifStorage, k, minSize, block);
+		ConvertEdgesToBlocks(sequence, bifStorage, k, minSize, sharedOnly, block);
 	}
 
-	void BlockFinder::ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t minSize, std::vector<BlockInstance> & block) const
+	void BlockFinder::ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t minSize, bool sharedOnly, std::vector<BlockInstance> & block) const
 	{
 		int blockCount = 1;
 		block.clear();
@@ -49,13 +49,15 @@ namespace SyntenyFinder
 		{
 			bool hit = false;
 			size_t prev = now;
+			std::vector<size_t> occur(chrList_.size(), 0);
 			for(; now < edge.size() && edge[prev].Coincide(edge[now]); now++)
 			{
+				occur[edge[now].chr]++;
 				std::pair<size_t, size_t> coord(edge[now].originalPosition, edge[now].originalLength);
 				hit = hit || (visit[edge[now].chr].count(coord) != 0);
 			}
 
-			if(!hit && edge[prev].direction == DNASequence::positive && now - prev > 1)
+			if(!hit && edge[prev].direction == DNASequence::positive && now - prev > 1 && (!sharedOnly || std::count(occur.begin(), occur.end(), 1) == chrList_.size()))
 			{
 				for(; prev < now; prev++)
 				{

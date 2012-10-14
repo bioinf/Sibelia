@@ -1,4 +1,4 @@
-SyntenyFinder 1.0
+Sibelia 1.0
 Release date: 16th October 2012
 
 Authors:
@@ -9,7 +9,7 @@ Son Pham (University of California, San Diego)
 
 Introduction
 ============
-"SyntenyFinder" is a tool for finding synteny blocks (regions of conserved DNA)
+"Sibelia" is a tool for finding synteny blocks (regions of conserved DNA)
 in closely related genomes, like different strains of the same bacterial
 specie. It takes a set of FASTA files with genomes and locates coordinates of
 the synteny blocks in these sequences.
@@ -33,7 +33,7 @@ you to use CMake + MinGW or CMake + MSYS for this.
 
 Linux and Mac OS X
 ------------------
-"SyntenyFinder" is distributed in sources. It requires two things to be built:
+"Sibelia" is distributed in sources. It requires two things to be built:
 1) CMake
 2) GCC C++ compiler (version 4.2.0+ works fine)
 
@@ -43,36 +43,36 @@ cd build
 cmake ../src
 make
 
-After that you will get executable file "SyntenyFinder".
+After that you will get executable file "Sibelia".
 
 Usage
 =====
 
 Basic usage
 -----------
-"SyntenyFinder" takes a set of FASTA files as input. Each file can contain
+"Sibelia" takes a set of FASTA files as input. Each file can contain
 multiple sequences. Easiest way to run the tool is to type:
 
-SyntenyFinder -s loose <input FASTA file(s)>
+Sibelia -s loose <input FASTA file(s)>
 
 "Build" directory already contains file with two small bacterial genomes in
-the file "tiny.fasta". To run SyntenyFinder on this file, just type:
+the file "tiny.fasta". To run Sibelia on this file, just type:
 
-SyntenyFinder -s loose tiny.fasta
+Sibelia -s loose tiny.fasta
 
 File "tiny.fasta" contains sequences of "Helicobacter pylori Gambia94/24" and
-"Helicobacter pylori F32", the were taken frome [2]. 
+"Helicobacter pylori F32", they were taken frome [2]. 
 
 The program also has some parameters that can be set. To see all possible
 parameters, type:
 
-SyntenyFinder -h
+Sibelia -h
 
 Detailed description of the parameters can be found in file "USAGE".
 
 Output description
 ------------------
-By default, "SyntenyFinder produces 3 output files. Designations of these files
+By default, "Sibelia produces 3 output files. Designations of these files
 are described below. 
 
 1) block_coords.txt - coordinates of the synteny blocks in simple, 
@@ -82,12 +82,13 @@ blocks cover
 3) genomes_permutations.txt - input genomes represented as permutations of the
 synteny blocks
 
-The program also can produce additional output files (e.g. blocks' sequences).
-For more information see file "USAGE" located in the root directory. 
+The program also can produce additional output files (e.g. blocks' sequences)
+and even visualize the syntey blocks. For more information see file "USAGE" 
+located in the root directory. 
 
 Citation
 ========
-If you use SyntenyFinder in your research, please cite [1].
+If you use "Sibelia" in your research, please cite [1].
 
 Contacts
 ========
@@ -97,6 +98,7 @@ https://github.com/bioinf/SyntenyBuilder/issues.
 
 References
 ==========
-1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks Generation and Genome Comparison Tool" (poster), WABI 2012
+1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks 
+Generation and Genome Comparison Tool" (poster), WABI 2012
 http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
 2. Helicobacter pylori. http://www.ncbi.nlm.nih.gov/genome/genomes/169

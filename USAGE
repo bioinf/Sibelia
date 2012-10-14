@@ -1,19 +1,19 @@
 Basic usage
 ===========
-The easiest way to run "SyntenyFinder" is to type:
+The easiest way to run "Sibelia" is to type:
 
-SyntenyFinder -s loose <input FASTA file(s)>
+Sibelia -s loose <input FASTA file(s)>
 
 For example:
 
-SyntenyFinder -s loose tiny.fasta
+Sibelia -s loose tiny.fasta
 
-It will run "SyntenyFinder" on the file "tiny.fasta" with the "loose" 
+It will run "Sibelia" on the file "tiny.fasta" with the "loose" 
 simplification parameters. There is another simplification parameters set, 
-called "fine". To run "SyntenyFinder" on "tiny.fasta" with "fine" parameters
+called "fine". To run "Sibelia" on "tiny.fasta" with "fine" parameters
 set, type:
 
-SyntenyFinder -s fine tiny.fasta
+Sibelia -s fine tiny.fasta
 
 The differenece between "loose" and "fine" set is that "loose" usually
 produces fewer blocks, but longer. And it can lose some small synteny
@@ -23,18 +23,26 @@ you do not want to lose information about small-scale rearrangaments,
 use "fine". You also can set simplification parameters manually 
 (see section "Fine tuning").
 
+You also may be interested in blocks that occur exactly once in each input
+sequence, such blocks are used as input for MGRA algorithm for example. To get
+such output use option "-a":
+
+Sibelia -s loose -a tiny.fasta
+
+Synteny blocks are also can be visualized with "Circos" [3].
+
 Output description
 ==================
-By default, "SyntenyFinder" produces 3 files: 
+By default, "Sibelia" produces 3 files: 
 
 1) Blocks coordinates
 2) Genomes represented as permutations 
-3) Coverage report.
+3) Coverage report
 
 There are also optional output files:
 
 1) Sequences file
-2) Files for generating "Circos" picture
+2) Files for generating a "Circos" picture
 3) Dot file for resulting de Bruijn graph
 
 All these files are described below in details.
@@ -134,19 +142,19 @@ Default directory name = not set. To output these files, set cmd parameter
 -d <dir name> or --circosdir <dir name>
 
 You can visualize synteny blocks with a colorful circular diagramm by using
-the "Circos" software [2]. To achieve this, do following:
+the "Circos" software [3]. To achieve this, do following:
 
 1) Download and install Circos software
-2) Run "SyntenyFinder" with -d options set
+2) Run "Sibelia" with -d options set
 3) Run Circos
 
 For example, to generate Circos diagramm for example "tiny.fasta" perform
 following:
 
 1) Create directory "circos" in the "build" directory
-2) Run "SyntenyFinder" with following parameters:
+2) Run "Sibelia" with following parameters:
 
-SyntenyFinder -s loose -d ./circos tiny.fasta
+Sibelia -s loose -d ./circos tiny.fasta
 
 3) Run circos in the "circos" directory
 
@@ -200,6 +208,9 @@ this parameter may slightly increase coverage.
 
 References
 ==========
-1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks Generation and Genome Comparison Tool" (poster), WABI 2012
+1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks 
+Generation and Genome Comparison Tool" (poster), WABI 2012
 http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
-2. Circos. http://circos.ca
+2. Max A. Alekseyev and Pavel A. Pevzner. "Breakpoint graphs and ancestral
+genome reconstructions", Genome Res. 2009. 19: 943-957.
+3. Circos. http://circos.ca
