@@ -33,14 +33,25 @@ Citation
 ========
 If you use "Sibelia" in your research, please cite [1].
 
+License
+=======
+"Sibelia" is distributed under GNU GPL v2 license, see COPYING. It also
+uses third-party librarires that are distributed under MIT license [2, 3, 4].
+
 Contacts
 ========
 E-mail your feedback at ilya.minkinen@gmail.com.
 You also can report bugs or suggest features using issue tracker at GitHub
-https://github.com/bioinf/SyntenyBuilder/issues.
+https://github.com/bioinf/Sibelia/issues.
 
 References
 ==========
 1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks 
 Generation and Genome Comparison Tool" (poster), WABI 2012
 http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
+2. kseq.h, author Heng Li
+http://lh3lh3.users.sourceforge.net/kseq.shtml
+3. libdivsufsort, author Yuta Mori
+https://code.google.com/p/libdivsufsort
+4. TCLAP, authors Michael E. Smoot and Daniel Aarno 
+http://tclap.sourceforge.net

@@ -1,3 +1,9 @@
+//***************************************************************************
+//* Copyright (c) 2012 Saint-Petersburg Academic University
+//* All Rights Reserved
+//* See file COPYING for details.
+//****************************************************************************
+
 #include "outputgenerator.h"
 
 namespace SyntenyFinder
@@ -46,11 +52,17 @@ show_tick_labels = yes\n\
 </colors>\n\
 \n\
 <links>\n\
+	crest = 1\n\
+	bezier_radius = 0.3r\n\
+	bezier_radius_purity = 1.0\n\
 	<link>\n\
 		show = yes\n\
+		ribbon = yes\n\
+		stroke_color = vdgrey\n\
+		stroke_thickness = 2\n\
 		file 		  = circos.segdup.txt\n\
 		radius        = 0.99r\n\
-		color         = red\n\
+		color         = red_a4\n\
 		thickness     = 15\n\
 	</link>\n\
 </links>\n\

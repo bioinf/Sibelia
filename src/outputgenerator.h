@@ -1,3 +1,9 @@
+//***************************************************************************
+//* Copyright (c) 2012 Saint-Petersburg Academic University
+//* All Rights Reserved
+//* See file COPYING for details.
+//****************************************************************************
+
 #ifndef _OUTPUT_GENERATOR_H_
 #define _OUTPUT_GENERATOR_H_
 

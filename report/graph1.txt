@@ -1,7 +1,0 @@
-act
-gc
-ata
-g
-act
-tc
-ata

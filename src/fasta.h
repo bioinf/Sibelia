@@ -1,3 +1,9 @@
+//***************************************************************************
+//* Copyright (c) 2012 Saint-Petersburg Academic University
+//* All Rights Reserved
+//* See file COPYING for details.
+//****************************************************************************
+
 #ifndef _FASTA_READER_H_
 #define _FASTA_READER_H_
 

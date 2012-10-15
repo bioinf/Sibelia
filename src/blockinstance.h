@@ -1,3 +1,9 @@
+//***************************************************************************
+//* Copyright (c) 2012 Saint-Petersburg Academic University
+//* All Rights Reserved
+//* See file COPYING for details.
+//****************************************************************************
+
 #ifndef _BLOCK_INSTANCE_H_
 #define _BLOCK_INSTANCE_H_
 

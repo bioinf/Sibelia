@@ -151,7 +151,7 @@ set(SAINDEX_PRId "${SAINT32_PRId}")
 set(SAINT_PRId "${SAINT32_PRId}")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/divsufsort.h.cmake"
                "${CMAKE_CURRENT_BINARY_DIR}/divsufsort.h" @ONLY)
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/divsufsort.h" DESTINATION include)
+
 if(BUILD_DIVSUFSORT64)
   set(W64BIT "64")
   set(SAINDEX_TYPE "${SAINT64_TYPE}")

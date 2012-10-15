@@ -1,19 +1,20 @@
 Basic usage
 ===========
-The easiest way to run "Sibelia" is to type:
+Directory "examples" contains two sets of bacterial genomes. The easiest way 
+to run "Sibelia" is to type:
 
 Sibelia -s loose <input FASTA file(s)>
 
 For example:
 
-Sibelia -s loose tiny.fasta
+Sibelia -s loose Helicobacter_pylori.fasta
 
-It will run "Sibelia" on the file "tiny.fasta" with the "loose" 
-simplification parameters. There is another simplification parameters set, 
-called "fine". To run "Sibelia" on "tiny.fasta" with "fine" parameters
-set, type:
+It will run "Sibelia" on the file "Helicobacter_pylori.fasta" with the "loose"
+simplification parameters. There is another simplification parameters set,
+called "fine". To run "Sibelia" on "Helicobacter_pylori.fasta" with "fine"
+parameters set, type:
 
-Sibelia -s fine tiny.fasta
+Sibelia -s fine Helicobacter_pylori.fasta
 
 The differenece between "loose" and "fine" set is that "loose" usually
 produces fewer blocks, but longer. And it can lose some small synteny
@@ -27,9 +28,10 @@ You also may be interested in blocks that occur exactly once in each input
 sequence, such blocks are used as input for MGRA algorithm for example. To get
 such output use option "-a":
 
-Sibelia -s loose -a tiny.fasta
+Sibelia -s loose -a Helicobacter_pylori.fasta
 
-Synteny blocks are also can be visualized with "Circos" [3].
+Synteny blocks are also can be visualized with "Circos" [3]. Genomes from the
+"examples" dir were taken from [4, 5].
 
 Output description
 ==================
@@ -110,7 +112,7 @@ degree
 example
 
 This table contains one row for each degree and one ("All") row for overall coverage.
-For example (output from "tiny.fasta"):
+For example (output from "Helicobacter_pylori.fasta"):
 
 Degree	Count	Total	Chr 1	Chr 2
 2	23	94.68%	96.40%	93.09%	
@@ -148,21 +150,21 @@ the "Circos" software [3]. To achieve this, do following:
 2) Run "Sibelia" with -d options set
 3) Run Circos
 
-For example, to generate Circos diagramm for example "tiny.fasta" perform
-following:
+For example, to generate Circos diagramm for example "Helicobacter_pylori.fasta"
+perform following:
 
-1) Create directory "circos" in the "build" directory
+1) Create directory "circos" in directory with the FASTA file
 2) Run "Sibelia" with following parameters:
 
-Sibelia -s loose -d ./circos tiny.fasta
+Sibelia -s loose -d ./circos Helicobacter_pylori.fasta
 
 3) Run circos in the "circos" directory
 
-For example of such diagramms (generated from tiny.fasta), see
-"examples/tiny/circos/tiny.png". Note that the directory for circos files must
-exist before running the program. Also note that such diagramms can become very
-piled with larger genomes. To overcome this, plot only big blocks, see section 
-"Minimum block size".
+For example of such diagramms (generated from "Helicobacter_pylori.fastaUSAGE),
+see "examples/Helicobacter_pylori/circos/circos.png". Note that the directory\
+for circos files must exist before running the program. Also note that such
+diagrams can become very piled with larger genomes. To overcome this, plot only
+big blocks, see section "Minimum block size".
 
 Resulting de Bruijn graph
 -------------------------
@@ -222,3 +224,5 @@ http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
 2. Max A. Alekseyev and Pavel A. Pevzner. "Breakpoint graphs and ancestral
 genome reconstructions", Genome Res. 2009. 19: 943-957.
 3. Circos. http://circos.ca
+4. Helicobacter pylori. http://www.ncbi.nlm.nih.gov/genome/169
+5. Staphylococcus aureus. http://www.ncbi.nlm.nih.gov/genome/154
