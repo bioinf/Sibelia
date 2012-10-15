@@ -99,10 +99,11 @@ namespace SyntenyFinder
 			char buf[1 << 8];
 			std::string color = edge[i].direction == DNASequence::positive ? "blue" : "red";
 			int uchr = static_cast<int>(edge[i].chr);
+			int uorpos = static_cast<int>(edge[i].originalPosition);
 			int upos = static_cast<int>(edge[i].actualPosition);
 			int ulength = static_cast<int>(edge[i].actualLength);
 			out << edge[i].startVertex << " -> " << edge[i].endVertex;
-			sprintf(&buf[0], "[color=\"%s\", label=\"chr=%i pos=%i len=%i ch=%c\"];", color.c_str(), uchr, upos, ulength, edge[i].firstChar);
+			sprintf(&buf[0], "[color=\"%s\", label=\"chr=%i pos=%i orpos=%i len=%i ch='%c'\"];", color.c_str(), uchr, upos, uorpos, ulength, edge[i].firstChar);
 			out << " " << buf << std::endl;
 		}
 

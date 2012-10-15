@@ -23,68 +23,11 @@ require less memory.
 
 Installation
 ============
-
-Windows
--------
-For Windows, binary installer is provided (both 32-bit and 64-bit). However,
-you can build the sources by your own if you want (see "Linux" section). 
-Although the source code is compatible with MSVS 2010, we STRONGLY recommend
-you to use CMake + MinGW or CMake + MSYS for this.
-
-Linux and Mac OS X
-------------------
-"Sibelia" is distributed in sources. It requires two things to be built:
-1) CMake
-2) GCC C++ compiler (version 4.2.0+ works fine)
-
-To build the project, type following:
-
-cd build
-cmake ../src
-make
-
-After that you will get executable file "Sibelia".
+See INSTALL.
 
 Usage
 =====
-
-Basic usage
------------
-"Sibelia" takes a set of FASTA files as input. Each file can contain
-multiple sequences. Easiest way to run the tool is to type:
-
-Sibelia -s loose <input FASTA file(s)>
-
-"Build" directory already contains file with two small bacterial genomes in
-the file "tiny.fasta". To run Sibelia on this file, just type:
-
-Sibelia -s loose tiny.fasta
-
-File "tiny.fasta" contains sequences of "Helicobacter pylori Gambia94/24" and
-"Helicobacter pylori F32", they were taken frome [2]. 
-
-The program also has some parameters that can be set. To see all possible
-parameters, type:
-
-Sibelia -h
-
-Detailed description of the parameters can be found in file "USAGE".
-
-Output description
-------------------
-By default, "Sibelia produces 3 output files. Designations of these files
-are described below. 
-
-1) block_coords.txt - coordinates of the synteny blocks in simple, 
-human-readable format
-2) coverage_report.txt - reports percentage of the genomes that found synteny
-blocks cover     
-3) genomes_permutations.txt - input genomes represented as permutations of the
-synteny blocks
-
-The program also can produce additional output files (e.g. blocks' sequences)
-and even visualize the syntey blocks. For more information see file "USAGE" 
-located in the root directory. 
+See USAGE.
 
 Citation
 ========
@@ -101,4 +44,3 @@ References
 1. Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks 
 Generation and Genome Comparison Tool" (poster), WABI 2012
 http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
-2. Helicobacter pylori. http://www.ncbi.nlm.nih.gov/genome/genomes/169

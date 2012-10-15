@@ -36,7 +36,7 @@ Output description
 By default, "Sibelia" produces 3 files: 
 
 1) Blocks coordinates
-2) Genomes represented as permutations 
+2) Genomes represented as permutations of the synteny blocks
 3) Coverage report
 
 There are also optional output files:
@@ -170,12 +170,20 @@ Default file name = not set. To output this file, set cmd parameter
 
 -g <file name> or  --graphfile <file name>
 
-If you curious, you can also view condensed de Bruijn graph that is used for
-generating synteny blocks. To understand the graph, see [1].
+If you are a curious person, you can also view condensed de Bruijn graph that
+is used for generating synteny blocks. To understand the graph, see [1].
 
 Fine tuning
 ===========
 Here we will describe parameters that can affect computation results.
+
+Outputting only shared blocks
+-----------------------------
+Default = not set. Add flag to cmd parameters to set:
+
+-a or --sharedonly
+
+Output only blocks that occur exactly once in each input sequence.
 
 Parameters set
 --------------

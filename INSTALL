@@ -1,0 +1,23 @@
+Installation
+============
+
+Windows
+-------
+For Windows, binary installer is provided (both 32-bit and 64-bit). However,
+you can build the sources by your own if you want (see "Linux" section). 
+Although the source code is compatible with MSVS 2010, we STRONGLY recommend
+you to use CMake + MinGW or CMake + MSYS for this.
+
+Linux and Mac OS X
+------------------
+"Sibelia" is distributed in sources. It requires two things to be built:
+1) CMake
+2) GCC C++ compiler (version 4.2.0+ works fine)
+
+To build the project, type following:
+
+cd build
+cmake ../src
+make
+
+After that you will get executable file "Sibelia".

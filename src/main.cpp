@@ -244,7 +244,7 @@ int main(int argc, char * argv[])
 		finder.GenerateSyntenyBlocks(lastK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
-		const std::string templateCircosConf = "circos.template.conf";
+	//	const std::string templateCircosConf = "circos.template.conf";
 		const std::string defaultCircosOutFile = "circos.conf";
 		
 		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circosDir.isSet()};
@@ -254,7 +254,7 @@ int main(int argc, char * argv[])
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), reportFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), coordsFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), sequencesFile.getValue()),		
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), circosDir.getValue() + "/" + defaultCircosOutFile, circosDir.getValue(), templateCircosConf)
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), circosDir.getValue() + "/" + defaultCircosOutFile, circosDir.getValue())
 		};
 
 		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);

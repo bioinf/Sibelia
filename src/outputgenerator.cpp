@@ -205,18 +205,12 @@ namespace SyntenyFinder
 		}
 	}
 
-	void OutputGenerator::GenerateCircosOutput(const std::string & outFile, const std::string & outDir, const std::string & templateConf) const
+	void OutputGenerator::GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const
 	{
 		//copy template file
-		std::ifstream templ(templateConf.c_str());
-		if (!templ)
-		{
-			throw std::runtime_error(("Cannot open file " + templateConf).c_str());
-		}
-
 		std::ofstream out;
 		TryOpenFile(outFile, out);
-		out << templ.rdbuf();
+		out << circosTemplate_;
 
 		//blocks must be sorted by id
 		BlockList sortedBlocks = blockList_;
@@ -229,7 +223,7 @@ namespace SyntenyFinder
 		BlockList blocksToLink;
 		std::ofstream linksFile;				
 		std::ofstream highlightFile;
-		TryOpenFile((outDir + "/circos.segdup.txt"), linksFile);
+		TryOpenFile(outDir + "/circos.segdup.txt", linksFile);
 		TryOpenFile(outDir + "/circos.highlight.txt", highlightFile);
 
 		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock)

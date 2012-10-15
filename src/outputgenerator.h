@@ -25,13 +25,14 @@ namespace SyntenyFinder
 		typedef std::vector<BlockInstance> BlockList;
 		OutputGenerator(const ChrList & chrList, const BlockList & blockList): chrList_(chrList), blockList_(blockList) {}
 		void GenerateReport(const std::string & fileName) const;
-		void GenerateCircosOutput(const std::string & outFile, const std::string & outDir, const std::string & templateConf) const;
+		void GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const;
 		void ListBlocksIndices(const std::string & fileName) const;
 		void ListBlocksSequences(const std::string & fileName) const;		
 		void ListChromosomesAsPermutations(const std::string & fileName) const;
 		void OutputBuffer(const std::string & fileName, const std::string & buffer) const;
 	private:
 		ChrList chrList_;
+		static const std::string circosTemplate_;
 		mutable BlockList blockList_;
 		void ListChrs(std::ostream & out) const;
 		void TryOpenFile(const std::string & fileName, std::ofstream & stream) const;

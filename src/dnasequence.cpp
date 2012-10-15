@@ -4,7 +4,12 @@ namespace SyntenyFinder
 {
 	inline std::string ConstructComplementarityTable()
 	{
-		std::string ret(1 << 8, ' ');
+		std::string ret(1 << (sizeof(char) * 8), ' ');
+		for(size_t i = 0; i < ret.size(); i++)
+		{
+			ret[i] = static_cast<char>(i);
+		}
+
 		ret['a'] = 't';
 		ret['t'] = 'a';
 		ret['g'] = 'c';
@@ -13,9 +18,6 @@ namespace SyntenyFinder
 		ret['T'] = 'A';
 		ret['G'] = 'C';
 		ret['C'] = 'G';
-		ret['N'] = 'N';
-		ret['n'] = 'n';
-		ret['$'] = '$';
 		return ret;
 	}
 	
