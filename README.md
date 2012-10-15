@@ -1,7 +1,9 @@
 Sibelia 1.0
 Release date: 16th October 2012
 
-Authors:
+Authors
+=======
+
 Ilya Minkin (St. Petersburg Academic University)
 Nikolay Vyahhi (St. Petersburg Academic University)
 Mikhail Kolmogorov (St. Petersburg Academic University)
