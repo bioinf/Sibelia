@@ -1,13 +1,14 @@
 Sibelia 1.0
+
 Release date: 16th October 2012
 
 Authors
 =======
 
-Ilya Minkin (St. Petersburg Academic University)
-Nikolay Vyahhi (St. Petersburg Academic University)
-Mikhail Kolmogorov (St. Petersburg Academic University)
-Son Pham (University of California, San Diego)
+* Ilya Minkin (St. Petersburg Academic University)
+* Nikolay Vyahhi (St. Petersburg Academic University)
+* Mikhail Kolmogorov (St. Petersburg Academic University)
+* Son Pham (University of California, San Diego)
 
 Introduction
 ============
@@ -44,15 +45,16 @@ License
 "Sibelia" is distributed under GNU GPL v2 license, see LICENSE.
 
 It also uses third-party librarires that are distributed under MIT license:
-1. kseq.h, author Heng Li
+* kseq.h, author Heng Li
 http://lh3lh3.users.sourceforge.net/kseq.shtml
-2. libdivsufsort, author Yuta Mori
+* libdivsufsort, author Yuta Mori
 https://code.google.com/p/libdivsufsort
-3. TCLAP, authors Michael E. Smoot and Daniel Aarno 
+* TCLAP, authors Michael E. Smoot and Daniel Aarno 
 http://tclap.sourceforge.net
 
 Contacts
 ========
 E-mail your feedback at ilya.minkinen@gmail.com.
+
 You also can report bugs or suggest features using issue tracker at GitHub
 https://github.com/bioinf/Sibelia/issues.
