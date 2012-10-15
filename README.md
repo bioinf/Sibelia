@@ -26,11 +26,11 @@ require less memory.
 
 Installation
 ============
-See INSTALL.
+See INSTALL.md file.
 
 Usage
 =====
-See USAGE.
+See USAGE.md file.
 
 Citation
 ========
