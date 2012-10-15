@@ -44,13 +44,15 @@ License
 =======
 "Sibelia" is distributed under GNU GPL v2 license, see LICENSE.
 
-It also uses third-party librarires that are distributed under MIT license:
-* kseq.h, author Heng Li
+It also uses third-party librarires:
+* kseq.h (MIT License), author Heng Li
 http://lh3lh3.users.sourceforge.net/kseq.shtml
-* libdivsufsort, author Yuta Mori
+* libdivsufsort (MIT License), author Yuta Mori
 https://code.google.com/p/libdivsufsort
-* TCLAP, authors Michael E. Smoot and Daniel Aarno 
+* TCLAP (MIT License), authors Michael E. Smoot and Daniel Aarno 
 http://tclap.sourceforge.net
+* Boost (Boost Software License)
+http://www.boost.org
 
 Contacts
 ========
