@@ -3,9 +3,9 @@ Installation
 
 Windows
 -------
-For Windows, binary installer is provided (both 32-bit and 64-bit). However,
-you can build the sources by your own if you want (see "Linux" section).
-The code is compatible with MSVS 2010 and MinGW.
+For Windows, binary executables are provided (both 32-bit and 64-bit). However,
+you can build the sources by your own if you want (see "Linux" section). The 
+code is compatible with MSVS 2010 and MinGW.
 
 Linux and Mac OS X
 ------------------
