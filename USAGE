@@ -116,7 +116,7 @@ Degree	Count	Total	Chr 1	Chr 2
 2	23	94.68%	96.40%	93.09%	
 All	23	94.68%	96.40%	93.09%	
 
-It means that there are 23 blocks with degree = 2, i.e. 23 * 2 instances), and
+It means that there are 23 blocks with degree = 2, i.e. 23 * 2 instances, and
 they cover 94.68% of both genomes, 96.40% of Chr 1 and 93.09% of Chr2. Note 
 that synteny blocks can overlap (by at most 5000 BP for loose parameter set),
 so sum in each column may not equal to value at last row.

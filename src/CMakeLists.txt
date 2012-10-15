@@ -6,5 +6,6 @@ include_directories(${Sibelia_SOURCE_DIR}/include ${libdivsufsort_BINARY_DIR}/in
 add_executable(Sibelia resource.cpp main.cpp outputgenerator.cpp bareiterator.cpp blockfinder.cpp blockinstance.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp edge.cpp fasta.cpp graphalgorithm.cpp hashing.cpp serialization.cpp synteny.cpp)
 target_link_libraries(Sibelia divsufsort)
 if(CMAKE_COMPILER_IS_GNUXX)
-	list(APPEND CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS} -g -ftest-coverage -fprofile-arcs")
+	list(APPEND CMAKE_CXX_FLAGS "-std=c++0x")
 endif(CMAKE_COMPILER_IS_GNUXX)
+install(TARGETS Sibelia RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX})
