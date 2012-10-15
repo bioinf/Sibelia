@@ -1,25 +1,26 @@
 Installation
 ============
 
-Windows
--------
-For Windows, binary installer is provided (both 32-bit and 64-bit). However,
-you can build the sources by your own if you want (see "Linux" section).
-The code is compatible with MSVS 2010 and MinGW.
+Sibelia is distributed both as binaries (Windows, Linux and OS X)
+and as source codes. 
 
-Linux and Mac OS X
-------------------
-"Sibelia" is distributed in sources. It requires two things to be built:
-1) CMake
-2) GCC C++ compiler (version 4.2.0+ works fine)
+Building from the Source Code
+-----------------------------
 
-To install the program, type following:
+Building Sibelia requires:
+	CMake
+	GCC C++ compiler (version 4.2.0+ works fine)
 
-cd build
-cmake ../src
-make install
+The code is compatible with MSVS 2010 and MinGW,
+as well as with default Linux and OS X environment.
 
-If you want to install "Sibelia" to a location other than /usr/local/bin, run
-CMake with -DCMAKE_INSTALL_PREFIX option set:
+To build and install the program, type following:
+
+	cd build
+	cmake ../src
+	make install
+
+If you want to install "Sibelia" to a location other than /usr/local/bin,
+run CMake with -DCMAKE_INSTALL_PREFIX option set:
 
 cmake ../src -DCMAKE_INSTALL_PREFIX="<install destination>"
