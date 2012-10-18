@@ -1,4 +1,4 @@
-template<class T, size_t NODE_SIZE>
+template<class T, class allocator, size_t NODE_SIZE>
 	class unrolled_list
 	{
 	public:
