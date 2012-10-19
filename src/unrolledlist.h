@@ -78,10 +78,13 @@ template<class T, class allocator, size_t NODE_SIZE>
 		reverse_iterator rend();
 		const_reverse_iterator rend() const;
 		typedef boost::function<bool (iterator)> notify_predicate;
+		typedef boost::function<bool (reverse_iterator> notify_reverse_predicate;
 		void erase(iterator start, iterator end);
 		void erase(reverse_iterator start, reverse_iterator end);
 		template<class out_it>
-			void insert(iterator target, out_it source_begin, out_it source_end, notify_predicate p, std::vector<iterator> & invalidated);
+			void insert(iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
+				notify_reverse_predicate, std::vector<iterator> & invalidated, std::vector<reverse_iterator> & reverse_invalidated);
 		template<class out_it>
-			void insert(reverse_iterator target, out_it source_begin, out_it source_end, notify_predicate p, std::vector<iterator> & invalidated);
+			void insert(reverse_iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
+				notify_reverse_predicate, std::vector<iterator> & invalidated, std::vector<reverse_iterator> & reverse_invalidated);
 	};
