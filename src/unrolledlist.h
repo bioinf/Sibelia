@@ -2,6 +2,7 @@
 #include <list>
 #include <iterator>
 #include <cassert>
+#include <boost/function.hpp>
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 class unrolled_list
@@ -9,7 +10,8 @@ class unrolled_list
 private:
 	struct chunk
 	{
-		T* data;
+		chunk();
+		T data[NODE_SIZE];
 		size_t count;
 	};
 
@@ -20,7 +22,6 @@ public:
 	public:
 		iterator();
 		iterator(const iterator & it);
-		iterator(const reverse_iterator & it);
 		T& operator * () const;
 		iterator& operator ++ ();
 		iterator operator ++ (int);
@@ -41,7 +42,7 @@ public:
 	public:
 		reverse_iterator();
 		reverse_iterator(const reverse_iterator & it);
-		reverse_iterator(const iterator & it);
+		explicit reverse_iterator(const iterator & it);
 		T& operator * () const;
 		reverse_iterator& operator ++ ();
 		reverse_iterator operator ++ (int);
@@ -50,12 +51,11 @@ public:
 		bool operator == (const reverse_iterator & comp) const;
 		bool operator != (const reverse_iterator & comp) const;
 		reverse_iterator& operator = (const reverse_iterator & to_copy);
+		iterator base() const;
     private:
-        friend class unrolled_list;
-		typename std::list<chunk>::reverse_iterator m_ListPos;
-		size_t              m_ArrayPos;
-		std::list<chunk>*   m_ListInstance;
+    	iterator m_Base;
 	};
+
 
 //	class const_iterator: public std::iterator<std::bidirectional_iterator_tag, T>
 //	{
@@ -90,9 +90,7 @@ public:
 //	};
 
 	unrolled_list();
-//	unrolled_list(const unrolled_list&);
-//	unrolled_list(const T & erased_indicator);
-	~unrolled_list();
+	unrolled_list(const unrolled_list&);
 
 	iterator begin();
 	iterator end();
@@ -103,18 +101,16 @@ public:
 	//const_reverse_iterator rbegin() const;
 	//const_reverse_iterator rend() const;
 
-	//typedef boost::function<bool (iterator)> notify_predicate;
-	//typedef boost::function<bool (reverse_iterator)> notify_reverse_predicate;
-	typedef bool notify_predicate;
-	typedef bool notify_reverse_predicate;
+	typedef boost::function<bool (iterator)> notify_predicate;
+	typedef boost::function<bool (reverse_iterator)> notify_reverse_predicate;
 
-    inline size_t  size()   {return m_Size;}
-    inline bool    empty()  {return m_Size == 0;}
+    inline size_t  size()  const   	{return m_Size;}
+    inline bool    empty() const  	{return m_Size == 0;}
 
 	void erase(iterator start, iterator end);
 	void erase(iterator position);
-	//void erase(reverse_iterator start, reverse_iterator end);
-    //void erase(reverse_iterator position);
+	void erase(reverse_iterator start, reverse_iterator end);
+    void erase(reverse_iterator position);
 
 	template<class out_it>
 	void insert(iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
@@ -124,15 +120,21 @@ public:
 	template<class out_it>
 	void insert(reverse_iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
                 notify_reverse_predicate, std::vector<iterator> & invalidated,
-                 std::vector<reverse_iterator> & reverse_invalidated);
+				std::vector<reverse_iterator> & reverse_invalidated);
 private:
-	chunk new_chunk();
 
     typedef typename std::list<chunk>::iterator type_iter;
     typedef typename std::list<chunk>::reverse_iterator type_rev_iter;
 	std::list<chunk>    m_Data;
 	size_t              m_Size;
 };
+
+template<class T, size_t NODE_SIZE, T ERASED_VALUE>
+unrolled_list<T, NODE_SIZE, ERASED_VALUE>::chunk::chunk():
+	count(0)
+{
+	std::fill(data, data + NODE_SIZE, ERASED_VALUE);
+}
 
 ////////////////
 //begin iterator
@@ -142,13 +144,6 @@ unrolled_list<T, NODE_SIZE, ERASED_VALUE>::iterator::iterator()
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 unrolled_list<T, NODE_SIZE, ERASED_VALUE>::iterator::iterator(const iterator & it):
-    m_ListPos(it.m_ListPos),
-    m_ArrayPos(it.m_ArrayPos),
-    m_ListInstance(it.m_ListInstance)
-{}
-
-template<class T, size_t NODE_SIZE, T ERASED_VALUE>
-unrolled_list<T, NODE_SIZE, ERASED_VALUE>::iterator::iterator(const reverse_iterator & it):
     m_ListPos(it.m_ListPos),
     m_ArrayPos(it.m_ArrayPos),
     m_ListInstance(it.m_ListInstance)
@@ -257,47 +252,26 @@ unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator::reverse_iterator()
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator::reverse_iterator(const reverse_iterator & it):
-    m_ListPos(it.m_ListPos),
-    m_ArrayPos(it.m_ArrayPos),
-    m_ListInstance(it.m_ListInstance)
+	m_Base(it.m_Base)
 {}
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator::reverse_iterator(const iterator & it):
-    m_ListPos(it.m_ListPos),
-    m_ArrayPos(it.m_ArrayPos),
-    m_ListInstance(it.m_ListInstance)
+	m_Base(it)
 {}
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 T& unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator::operator * () const
 {
-	return m_ListPos->data[m_ArrayPos];
+	unrolled_list<T, NODE_SIZE, ERASED_VALUE>::iterator temp(m_Base);
+	return *(--temp);
 }
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 typename unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator&
 unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator::operator ++ ()
 {
-	for (;;)
-	{
-		if (m_ArrayPos > 0)
-		{
-		    --m_ArrayPos;
-		}
-		else
-        {
-            m_ArrayPos = NODE_SIZE - 1;
-			++m_ListPos;
-        }
-
-		if (m_ListPos == m_ListInstance->rend())
-        {
-            m_ArrayPos = NODE_SIZE - 1;
-            break;
-        }
-        if (**this != ERASED_VALUE) break;
-	}
+	--m_Base;
 	return *this;
 }
 
@@ -314,20 +288,7 @@ template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 typename unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator&
 unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator::operator -- ()
 {
-	for (;;)
-	{
-		if (m_ArrayPos < NODE_SIZE - 1)
-		{
-		    ++m_ArrayPos;
-		}
-		else
-        {
-            m_ArrayPos = 0;
-			--m_ListPos;
-        }
-
-		if (**this != ERASED_VALUE) break;
-	}
+	++m_Base;
 	return *this;
 }
 
@@ -343,7 +304,7 @@ unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator::operator -- (int)
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 bool unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator::operator == (const reverse_iterator & comp) const
 {
-	return (m_ListPos == comp.m_ListPos) && (m_ArrayPos == comp.m_ArrayPos);
+	return m_Base == comp.m_Base;
 }
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
@@ -356,11 +317,17 @@ template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 typename unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator&
 unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator::operator = (const reverse_iterator & toCopy)
 {
-	m_ListPos = toCopy.m_ListPos;
-	m_ArrayPos = toCopy.m_ArrayPos;
-	m_ListInstance = toCopy.m_ListInstance;
+	m_Base = toCopy.m_Base;
 	return *this;
 }
+
+template<class T, size_t NODE_SIZE, T ERASED_VALUE>
+typename unrolled_list<T, NODE_SIZE, ERASED_VALUE>::iterator
+unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator::base() const
+{
+	return m_Base;
+}
+
 //end reverse_iterator
 //////////////////////
 
@@ -400,43 +367,14 @@ template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 typename unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator
 unrolled_list<T, NODE_SIZE, ERASED_VALUE>::rbegin()
 {
-    reverse_iterator toReturn;
-    toReturn.m_ListPos = m_Data.rbegin();
-    toReturn.m_ArrayPos = NODE_SIZE - 1;
-    toReturn.m_ListInstance = &m_Data;
-
-    if (toReturn.m_ListPos != m_Data.rend())
-    {
-        while (*toReturn == ERASED_VALUE)
-        {
-            --toReturn.m_ArrayPos;
-            assert(toReturn.m_ArrayPos >= 0);
-        }
-    }
-    return toReturn;
+    return reverse_iterator(this->end());
 }
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 typename unrolled_list<T, NODE_SIZE, ERASED_VALUE>::reverse_iterator
 unrolled_list<T, NODE_SIZE, ERASED_VALUE>::rend()
 {
-    reverse_iterator toReturn;
-    toReturn.m_ListPos = m_Data.rend();
-    toReturn.m_ArrayPos = NODE_SIZE - 1;
-    toReturn.m_ListInstance = &m_Data;
-
-    return toReturn;
-}
-
-template<class T, size_t NODE_SIZE, T ERASED_VALUE>
-typename unrolled_list<T, NODE_SIZE, ERASED_VALUE>::chunk
-unrolled_list<T, NODE_SIZE, ERASED_VALUE>::new_chunk()
-{
-	chunk ch;
-	ch.data = new T[NODE_SIZE];
-	ch.count = 0;
-	std::fill(ch.data, ch.data + NODE_SIZE, ERASED_VALUE);
-	return ch;
+    return reverse_iterator(this->begin());
 }
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
@@ -446,20 +384,11 @@ unrolled_list<T, NODE_SIZE, ERASED_VALUE>::unrolled_list():
 }
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
-unrolled_list<T, NODE_SIZE, ERASED_VALUE>::~unrolled_list()
+unrolled_list<T, NODE_SIZE, ERASED_VALUE>::unrolled_list(const unrolled_list& other):
+	m_Size(other.m_Size),
+	m_Data(other.m_Data)
 {
-    for (type_iter itList = m_Data.begin(); itList != m_Data.end(); ++itList)
-    {
-        delete[] itList->data;
-    }
 }
-
-
-//template<class T, size_t NODE_SIZE, T ERASED_VALUE>
-//unrolled_list<T, NODE_SIZE, ERASED_VALUE>::unrolled_list(const T & erased_indicator):
-//	m_Size(0)
-//{
-//}
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::erase(iterator start, iterator end)
@@ -473,7 +402,6 @@ void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::erase(iterator start, iterator e
 		{
 			iterator old = start;
 			++old;
-			delete[] start.m_ListPos->data;
 			m_Data.erase(start.m_ListPos);
 			start = old;
 		}
@@ -493,10 +421,25 @@ void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::erase(iterator position)
     --position.m_ListPos->count;
     if (position.m_ListPos->count == 0)
     {
-        delete[] position.m_ListPos->data;
         m_Data.erase(position.m_ListPos);
     }
     --m_Size;
+}
+
+
+template<class T, size_t NODE_SIZE, T ERASED_VALUE>
+void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::erase(reverse_iterator start, reverse_iterator end)
+{
+	iterator for_start((++start).base());
+	iterator for_end((++end).base());
+	this->erase(for_end, for_start);
+}
+
+template<class T, size_t NODE_SIZE, T ERASED_VALUE>
+void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::erase(reverse_iterator position)
+{
+	iterator for_pos ((++position).base());
+	this->erase(for_pos);
 }
 
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
@@ -514,7 +457,7 @@ void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::insert	(iterator target, out_it 
 		if (source_begin == source_end) return;
 		if (itList == m_Data.end())
 		{
-			itList = m_Data.insert(itList, this->new_chunk());
+			itList = m_Data.insert(itList, chunk());
 		}
 		if (itList->data[arrayPos] == ERASED_VALUE)
 		{
@@ -526,7 +469,7 @@ void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::insert	(iterator target, out_it 
 		{
 			if (arrayPos == 0)
 			{
-				itList = m_Data.insert(itList, this->new_chunk());
+				itList = m_Data.insert(itList, chunk());
 				itList->data[arrayPos] = *source_begin;
 				++itList->count;
 				++source_begin;
@@ -537,13 +480,21 @@ void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::insert	(iterator target, out_it 
 			    once = false;
 			    type_iter nextNode = itList;
 			    ++nextNode;
-				type_iter newChunk = m_Data.insert(nextNode, this->new_chunk());
+				type_iter newChunk = m_Data.insert(nextNode, chunk());
 				size_t idFrom = arrayPos;
 				size_t idTo = 0;
 				while (idFrom < NODE_SIZE)
 				{
 					if (itList->data[idFrom] != ERASED_VALUE)
 					{
+						iterator inv_iter;
+						inv_iter.m_ListInstance = &m_Data;
+						inv_iter.m_ArrayPos = idFrom;
+						inv_iter.m_ListPos = itList;
+						if (pd(inv_iter)) invalidated.push_back(inv_iter);
+						reverse_iterator inv_rev_iter(inv_iter);
+						if (rpd(inv_rev_iter)) reverse_invalidated.push_back(inv_rev_iter);
+
 						newChunk->data[idTo] = itList->data[idFrom];
 						++newChunk->count;
 						itList->data[idFrom] = ERASED_VALUE;
@@ -567,8 +518,6 @@ void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::insert	(iterator target, out_it 
 	}
 }
 
-//#include <iostream>
-
 template<class T, size_t NODE_SIZE, T ERASED_VALUE>
 template <class out_it>
 void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::insert	(reverse_iterator target, out_it source_begin,
@@ -577,16 +526,15 @@ void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::insert	(reverse_iterator target,
 														std::vector<iterator> & invalidated,
 														std::vector<reverse_iterator> & reverse_invalidated)
 {
-    //std::cout << "-------------\n";
-	type_rev_iter itList = target.m_ListPos;
-	size_t arrayPos = target.m_ArrayPos;
+	type_rev_iter itList = std::reverse_iterator<type_iter> (target.base().m_ListPos);
+	size_t arrayPos = target.base().m_ArrayPos;
 	bool once = true;
 	for (;;)
 	{
 		if (source_begin == source_end) break;
 		if (itList == m_Data.rend())
 		{
-			itList = std::reverse_iterator<type_iter> ( m_Data.insert(itList.base(), this->new_chunk()) );
+			itList = std::reverse_iterator<type_iter> ( m_Data.insert(itList.base(), chunk()) );
 			--itList;
 		}
 		if (itList->data[arrayPos] == ERASED_VALUE)
@@ -599,7 +547,7 @@ void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::insert	(reverse_iterator target,
 		{
 			if (arrayPos == NODE_SIZE - 1)
 			{
-				itList = std::reverse_iterator<type_iter> ( m_Data.insert(itList.base(), this->new_chunk()) );
+				itList = std::reverse_iterator<type_iter> ( m_Data.insert(itList.base(), chunk()) );
 				--itList;
 				itList->data[arrayPos] = *source_begin;
 				++itList->count;
@@ -611,13 +559,21 @@ void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::insert	(reverse_iterator target,
 			    once = false;
 			    type_rev_iter nextNode = itList;
 			    ++nextNode;
-				type_iter newChunk = m_Data.insert(nextNode.base(), this->new_chunk());
+				type_iter newChunk = m_Data.insert(nextNode.base(), chunk());
 				size_t idFrom = arrayPos;
 				size_t idTo = NODE_SIZE - 1;
 				for (;;)
 				{
 					if (itList->data[idFrom] != ERASED_VALUE)
 					{
+						iterator inv_iter;
+						inv_iter.m_ListInstance = &m_Data;
+						inv_iter.m_ArrayPos = idFrom;
+						inv_iter.m_ListPos = (++itList).base();
+						if (pd(inv_iter)) invalidated.push_back(inv_iter);
+						reverse_iterator inv_rev_iter(inv_iter);
+						if (rpd(inv_rev_iter)) reverse_invalidated.push_back(inv_rev_iter);
+
 						newChunk->data[idTo] = itList->data[idFrom];
 						++newChunk->count;
 						itList->data[idFrom] = ERASED_VALUE;
@@ -648,10 +604,6 @@ void unrolled_list<T, NODE_SIZE, ERASED_VALUE>::insert	(reverse_iterator target,
 			++itList;
 			arrayPos = NODE_SIZE - 1;
 		}
-		//
-		//for(iterator it = this->begin(); it != this->end(); ++it) std::cout << *it << " ";
-        //std::cout << std::endl;
-        //
 	}
-	//std::cout << "-------------\n";
 }
+
