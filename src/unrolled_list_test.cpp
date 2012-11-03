@@ -2,6 +2,8 @@
 #include <iostream>
 #include <algorithm>
 
+using namespace SyntenyFinder;
+
 typedef unrolled_list<int, 20> MyList;
 
 typedef unrolled_list<int, 100> MyList100;
@@ -35,7 +37,8 @@ int main()
 
 void memoryTest()
 {
-	MyList100 list(-1);
+	MyList100 list;
+	list.set_erased_value(-1);
 	std::vector<MyList100::iterator> inv;
 	std::vector<MyList100::reverse_iterator> rinv;
 
@@ -58,7 +61,8 @@ void randomTest()
 	const int TEST_UNIT = 1000;
 
 
-	MyList list(-1);
+	MyList list;
+	list.set_erased_value(-1);
 	std::vector<MyList::iterator> inv;
 	std::vector<MyList::reverse_iterator> rinv;
 

@@ -11,7 +11,7 @@
 #include <list>
 #include <iterator>
 #include <cassert>
-#include <boost/function.hpp>
+#include "boost/function.hpp"
 
 namespace SyntenyFinder
 {
@@ -50,12 +50,12 @@ namespace SyntenyFinder
 			unrolled_list*		m_ListInstance;
 		};
 
-		class reverse_iterator: public std::iterator<std::bidirectional_iterator_tag, T>
+		class reverse_iterator: public std::reverse_iterator<typename unrolled_list::iterator>
 		{
 		public:
 			reverse_iterator();
 			reverse_iterator(const reverse_iterator & it);
-			explicit reverse_iterator(const iterator & it);
+			explicit reverse_iterator(const typename unrolled_list::iterator & it);
 			T& operator * () const;
 			reverse_iterator& operator ++ ();
 			reverse_iterator operator ++ (int);
@@ -64,13 +64,10 @@ namespace SyntenyFinder
 			bool operator == (const reverse_iterator & comp) const;
 			bool operator != (const reverse_iterator & comp) const;
 			reverse_iterator& operator = (const reverse_iterator & to_copy);
-			iterator base() const
-			{
-				return m_Base;
-			}
+			typename unrolled_list::iterator base() const;
 
 		private:
-    		iterator m_Base;
+			typename unrolled_list::iterator m_Base;
 		};
 
 
@@ -106,8 +103,10 @@ namespace SyntenyFinder
 	//		const_reverse_iterator& operator = (const const_reverse_iterator & to_copy);
 	//	};
 
+		unrolled_list();
 		unrolled_list(const T& erased_value);
-		unrolled_list(const unrolled_list&);
+		unrolled_list(const unrolled_list& other);
+		unrolled_list& operator= (const unrolled_list& other);
 
 		iterator begin();
 		iterator end();
@@ -123,6 +122,8 @@ namespace SyntenyFinder
 
 		inline size_t  size()  const   	{return m_Size;}
 		inline bool    empty() const  	{return m_Size == 0;}
+
+		void set_erased_value(const T& erased_value);
 
 		void erase(iterator start, iterator end);
 		void erase(iterator position);
@@ -144,7 +145,8 @@ namespace SyntenyFinder
 		typedef typename std::list<chunk>::reverse_iterator type_rev_iter;
 
 		std::list<chunk>    m_Data;
-		const T				m_ErasedValue;
+		T					m_ErasedValue;
+		bool				m_ErasedValueSet;
 		size_t              m_Size;
 	};
 
@@ -275,7 +277,7 @@ namespace SyntenyFinder
 	{}
 
 	template<class T, size_t NODE_SIZE>
-	unrolled_list<T, NODE_SIZE>::reverse_iterator::reverse_iterator(const iterator & it):
+	unrolled_list<T, NODE_SIZE>::reverse_iterator::reverse_iterator(const typename unrolled_list<T, NODE_SIZE>::iterator & it):
 		m_Base(it)
 	{}
 
@@ -340,6 +342,12 @@ namespace SyntenyFinder
 		return *this;
 	}
 
+	template<class T, size_t NODE_SIZE>
+	typename unrolled_list<T, NODE_SIZE>::iterator
+	unrolled_list<T, NODE_SIZE>::reverse_iterator::base() const
+	{
+		return m_Base;
+	}
 
 	//end reverse_iterator
 	//////////////////////
@@ -391,9 +399,18 @@ namespace SyntenyFinder
 	}
 
 	template<class T, size_t NODE_SIZE>
+	unrolled_list<T, NODE_SIZE>::unrolled_list():
+		m_Size(0),
+		m_ErasedValueSet(false)
+	{
+	}
+
+
+	template<class T, size_t NODE_SIZE>
 	unrolled_list<T, NODE_SIZE>::unrolled_list(const T& erased_value):
 		m_ErasedValue(erased_value),
-		m_Size(0)
+		m_Size(0),
+		m_ErasedValueSet(true)
 	{
 	}
 
@@ -401,13 +418,31 @@ namespace SyntenyFinder
 	unrolled_list<T, NODE_SIZE>::unrolled_list(const unrolled_list& other):
 		m_Size(other.m_Size),
 		m_Data(other.m_Data),
-		m_ErasedValue(other.m_ErasedValue)
+		m_ErasedValue(other.m_ErasedValue),
+		m_ErasedValueSet(other.m_ErasedValueSet)
 	{
+	}
+	
+	template<class T, size_t NODE_SIZE>
+	unrolled_list<T, NODE_SIZE>& unrolled_list<T, NODE_SIZE>::operator=(const unrolled_list& other)
+	{
+		m_Size = other.m_Size;
+		m_Data = other.m_Data;
+		m_ErasedValue = other.m_ErasedValue;
+		m_ErasedValueSet = other.m_ErasedValueSet;
+	}
+
+	template<class T, size_t NODE_SIZE>
+	void unrolled_list<T, NODE_SIZE>::set_erased_value(const T& erased_value)
+	{
+		m_ErasedValue = erased_value;
+		m_ErasedValueSet = true;
 	}
 
 	template<class T, size_t NODE_SIZE>
 	void unrolled_list<T, NODE_SIZE>::erase(iterator start, iterator end)
 	{
+		assert(m_ErasedValueSet);
 		while(start != end)
 		{
 			*start = m_ErasedValue;
@@ -432,6 +467,7 @@ namespace SyntenyFinder
 	template<class T, size_t NODE_SIZE>
 	void unrolled_list<T, NODE_SIZE>::erase(iterator position)
 	{
+		assert(m_ErasedValueSet);
 		*position = m_ErasedValue;
 		assert(position.m_ListPos->count > 0);
 		assert(position.m_ListPos->count <= NODE_SIZE);
@@ -447,15 +483,17 @@ namespace SyntenyFinder
 	template<class T, size_t NODE_SIZE>
 	void unrolled_list<T, NODE_SIZE>::erase(reverse_iterator start, reverse_iterator end)
 	{
-		iterator for_start((++start).base());
-		iterator for_end((++end).base());
+		assert(m_ErasedValueSet);
+		iterator for_start = (++start).base();
+		iterator for_end = (++end).base();
 		this->erase(for_end, for_start);
 	}
 
 	template<class T, size_t NODE_SIZE>
 	void unrolled_list<T, NODE_SIZE>::erase(reverse_iterator position)
 	{
-		iterator for_pos ((++position).base());
+		assert(m_ErasedValueSet);
+		iterator for_pos = (++position).base();
 		this->erase(for_pos);
 	}
 
@@ -466,6 +504,7 @@ namespace SyntenyFinder
 											std::vector<iterator> & invalidated,
 											std::vector<reverse_iterator> & reverse_invalidated)
 	{
+		assert(m_ErasedValueSet);
 		type_iter itList = target.m_ListPos;
 		size_t arrayPos = target.m_ArrayPos;
 		bool once = true;
@@ -542,6 +581,7 @@ namespace SyntenyFinder
 											std::vector<iterator> & invalidated,
 											std::vector<reverse_iterator> & reverse_invalidated)
 	{
+		assert(m_ErasedValueSet);
 		type_rev_iter itList = --std::reverse_iterator<type_iter> ((--target.base()).m_ListPos);
 		size_t arrayPos = (--target.base()).m_ArrayPos;
 		bool once = true;
