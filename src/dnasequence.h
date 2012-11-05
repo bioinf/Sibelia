@@ -30,6 +30,15 @@ namespace SyntenyFinder
 			DNACharacter() {}
 			DNACharacter(char actual): actual(actual), pos(actual) {}
 			DNACharacter(char actual, Pos pos): actual(actual), pos(pos) {}
+			bool operator == (const DNACharacter & a) const
+			{
+				return pos == a.pos && actual == a.actual;
+			}
+
+			bool operator != (const DNACharacter & a) const
+			{
+				return !(*this == a);
+			}
 		};
 
 		typedef std::list<DNACharacter> Sequence;

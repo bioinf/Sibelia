@@ -15,7 +15,6 @@
 
 namespace SyntenyFinder
 {
-
 	template<class T, size_t NODE_SIZE>
 	class unrolled_list
 	{
