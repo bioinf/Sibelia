@@ -140,6 +140,10 @@ namespace SyntenyFinder
 		void insert(reverse_iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
 					notify_reverse_predicate, std::vector<iterator> & invalidated,
 					std::vector<reverse_iterator> & reverse_invalidated);
+
+		void push_back(const T & value);
+		void insert(iterator at, const T & value);		
+
 	private:
 
 		typedef typename std::list<chunk>::iterator type_iter;
