@@ -117,12 +117,9 @@ namespace SyntenyFinder
 		reverse_iterator rend();
 		//const_reverse_iterator rbegin() const;
 		//const_reverse_iterator rend() const;
-		
-		typedef boost::function<bool (iterator)> notify_predicate;
-		typedef boost::function<bool (reverse_iterator)> notify_reverse_predicate;
 
-		typedef boost::function<void (iterator, iterator)> notify_before;
-		typedef boost::function<void (iterator, iterator)> notify_after;
+		typedef boost::function<void (iterator, iterator)> notify_func;
+		//typedef boost::function<void (iterator, iterator)> notify_after;
 
 		inline size_t  size()  const   	{return m_Size;}
 		inline bool    empty() const  	{return m_Size == 0;}
@@ -134,26 +131,19 @@ namespace SyntenyFinder
 		void erase(reverse_iterator start, reverse_iterator end);
 		void erase(reverse_iterator position);
 
-		//TO_REMOVE_BEGIN
-		template<class out_it>
-		void insert(iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
-					notify_reverse_predicate, std::vector<iterator> & invalidated,
-					std::vector<reverse_iterator> & reverse_invalidated);
 
 		template<class out_it>
-		void insert(reverse_iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
-					notify_reverse_predicate, std::vector<iterator> & invalidated,
-					std::vector<reverse_iterator> & reverse_invalidated);
-		//TO_REMOVE_END
+		void insert(iterator target, out_it source_begin, out_it source_end,
+					notify_func before = 0, notify_func after = 0);
 
 		template<class out_it>
-		void insert(iterator target, out_it source_begin, out_it source_end, notify_before, notify_after);
+		void insert(reverse_iterator target, out_it source_begin, out_it source_end,
+					notify_func before = 0, notify_func after = 0);
 
-		template<class out_it>
-		void insert(reverse_iterator target, out_it source_begin, out_it source_end, notify_before, notify_after);			
+		void insert(iterator pos, const T & value);
+		void insert(reverse_iterator pos, const T & value);
 
 		void push_back(const T & value);
-		void insert(iterator at, const T & value);		
 
 	private:
 
@@ -191,7 +181,7 @@ namespace SyntenyFinder
 	{
 		return m_ListPos->data[m_ArrayPos];
 	}
-	
+
 	template<class T, size_t NODE_SIZE>
 	T* unrolled_list<T, NODE_SIZE>::iterator::operator -> () const
 	{
@@ -438,8 +428,9 @@ namespace SyntenyFinder
 	template<class T, size_t NODE_SIZE>
 	unrolled_list<T, NODE_SIZE>::unrolled_list(const T& erased_value):
 		m_ErasedValue(erased_value),
-		m_Size(0),
-		m_ErasedValueSet(true)
+		m_ErasedValueSet(true),
+		m_Size(0)
+
 	{
 	}
 
@@ -451,7 +442,7 @@ namespace SyntenyFinder
 		m_ErasedValueSet(other.m_ErasedValueSet)
 	{
 	}
-	
+
 	template<class T, size_t NODE_SIZE>
 	unrolled_list<T, NODE_SIZE>& unrolled_list<T, NODE_SIZE>::operator=(const unrolled_list& other)
 	{
@@ -527,11 +518,29 @@ namespace SyntenyFinder
 	}
 
 	template<class T, size_t NODE_SIZE>
+	void unrolled_list<T, NODE_SIZE>::insert(iterator pos, const T & value)
+	{
+		const T * ptr = &value;
+		this->insert(pos, ptr, ptr + 1);
+	}
+
+	template<class T, size_t NODE_SIZE>
+	void unrolled_list<T, NODE_SIZE>::insert(reverse_iterator pos, const T & value)
+	{
+		const T* ptr = &value;
+		this->insert(pos, ptr, ptr + 1);
+	}
+
+	template<class T, size_t NODE_SIZE>
+	void unrolled_list<T, NODE_SIZE>::push_back(const T & value)
+	{
+		this->insert(this->end(), value);
+	}
+
+	template<class T, size_t NODE_SIZE>
 	template <class out_it>
 	void unrolled_list<T, NODE_SIZE>::insert(iterator target, out_it source_begin, out_it source_end,
-											notify_predicate pd, notify_reverse_predicate rpd,
-											std::vector<iterator> & invalidated,
-											std::vector<reverse_iterator> & reverse_invalidated)
+											notify_func notify_before, notify_func notify_after)
 	{
 		assert(m_ErasedValueSet);
 		type_iter itList = target.m_ListPos;
@@ -563,23 +572,41 @@ namespace SyntenyFinder
 				{
 					assert(once);
 					once = false;
+
+					//before notification
+					if (notify_before)
+					{
+						iterator inv_before_begin;
+						inv_before_begin.m_ListInstance = this;
+						inv_before_begin.m_ArrayPos = arrayPos;
+						inv_before_begin.m_ListPos = itList;
+
+						iterator inv_before_end;
+						inv_before_end.m_ListInstance = this;
+						inv_before_end.m_ListPos = itList;
+						for (size_t index = NODE_SIZE - 1; index >= arrayPos; --index)
+						{
+							if (itList->data[index] != m_ErasedValue)
+							{
+								inv_before_end.m_ArrayPos = index;
+								break;
+							}
+						}
+						++inv_before_end;
+						notify_before(inv_before_begin, inv_before_end);
+					}
+
+					//add new chunk
 					type_iter nextNode = itList;
 					++nextNode;
 					type_iter newChunk = m_Data.insert(nextNode, chunk(m_ErasedValue));
 					size_t idFrom = arrayPos;
 					size_t idTo = 0;
+
 					while (idFrom < NODE_SIZE)
 					{
 						if (itList->data[idFrom] != m_ErasedValue)
 						{
-							iterator inv_iter;
-							inv_iter.m_ListInstance = this;
-							inv_iter.m_ArrayPos = idFrom;
-							inv_iter.m_ListPos = itList;
-							if (pd(inv_iter)) invalidated.push_back(inv_iter);
-							reverse_iterator inv_rev_iter(inv_iter);
-							if (rpd(inv_rev_iter)) reverse_invalidated.push_back(inv_rev_iter);
-
 							newChunk->data[idTo] = itList->data[idFrom];
 							++newChunk->count;
 							itList->data[idFrom] = m_ErasedValue;
@@ -588,6 +615,24 @@ namespace SyntenyFinder
 						}
 						++idFrom;
 					}
+
+					//after notifications
+					if (notify_after)
+					{
+						iterator inv_after_begin;
+						inv_after_begin.m_ListInstance = this;
+						inv_after_begin.m_ArrayPos = 0;
+						inv_after_begin.m_ListPos = newChunk;
+
+						iterator inv_after_end;
+						inv_after_end.m_ListInstance = this;
+						inv_after_end.m_ListPos = newChunk;
+						inv_after_end.m_ArrayPos = idTo - 1;
+						++inv_after_end;
+						notify_after(inv_after_begin, inv_after_end);
+					}
+
+					//copy source data
 					itList->data[arrayPos] = *source_begin;
 					++itList->count;
 					++source_begin;
@@ -605,10 +650,8 @@ namespace SyntenyFinder
 
 	template<class T, size_t NODE_SIZE>
 	template <class out_it>
-	void unrolled_list<T, NODE_SIZE>::insert(reverse_iterator target, out_it source_begin,
-											out_it source_end, notify_predicate pd, notify_reverse_predicate rpd,
-											std::vector<iterator> & invalidated,
-											std::vector<reverse_iterator> & reverse_invalidated)
+	void unrolled_list<T, NODE_SIZE>::insert(reverse_iterator target, out_it source_begin, out_it source_end,
+											notify_func notify_before, notify_func notify_after)
 	{
 		assert(m_ErasedValueSet);
 		type_rev_iter itList = --std::reverse_iterator<type_iter> ((--target.base()).m_ListPos);
@@ -642,6 +685,31 @@ namespace SyntenyFinder
 				{
 					assert(once);
 					once = false;
+
+					//before notification
+					if (notify_before)
+					{
+						iterator inv_before_end;
+						inv_before_end.m_ListInstance = this;
+						inv_before_end.m_ArrayPos = arrayPos;
+						inv_before_end.m_ListPos = --itList.base();
+
+						iterator inv_before_begin;
+						inv_before_begin.m_ListInstance = this;
+						inv_before_begin.m_ListPos = --itList.base();
+						for (size_t index = 0; index <= arrayPos; ++index)
+						{
+							if (itList->data[index] != m_ErasedValue)
+							{
+								inv_before_begin.m_ArrayPos = index;
+								break;
+							}
+						}
+						++inv_before_end;
+						notify_before(inv_before_begin, inv_before_end);
+					}
+
+					//adding new chunk
 					type_iter nextNode = --itList.base();
 					++itList;	//prevent invalidation if itList.base() == end()
 					type_iter newChunk = m_Data.insert(nextNode, chunk(m_ErasedValue));
@@ -652,29 +720,39 @@ namespace SyntenyFinder
 					{
 						if (itList->data[idFrom] != m_ErasedValue)
 						{
-							iterator inv_iter;
-							inv_iter.m_ListInstance = this;
-							inv_iter.m_ArrayPos = idFrom;
-							inv_iter.m_ListPos = --itList.base();
-							if (pd(inv_iter)) invalidated.push_back(inv_iter);
-							reverse_iterator inv_rev_iter(inv_iter);
-							if (rpd(inv_rev_iter)) reverse_invalidated.push_back(inv_rev_iter);
-
 							newChunk->data[idTo] = itList->data[idFrom];
 							++newChunk->count;
 							itList->data[idFrom] = m_ErasedValue;
 							--itList->count;
-							--idTo;
 						}
 						if (idFrom > 0)
 						{
 							--idFrom;
+							--idTo;
 						}
 						else
 						{
 							break;
 						}
 					}
+
+					//after notifications
+					if (notify_after)
+					{
+						iterator inv_after_end;
+						inv_after_end.m_ListInstance = this;
+						inv_after_end.m_ArrayPos = NODE_SIZE - 1;
+						inv_after_end.m_ListPos = newChunk;
+
+						iterator inv_after_begin;
+						inv_after_begin.m_ListInstance = this;
+						inv_after_begin.m_ListPos = newChunk;
+						inv_after_begin.m_ArrayPos = idTo;
+						++inv_after_end;
+						notify_after(inv_after_begin, inv_after_end);
+					}
+
+					//copy source data
 					itList->data[arrayPos] = *source_begin;
 					++itList->count;
 					++source_begin;

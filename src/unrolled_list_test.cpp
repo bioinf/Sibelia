@@ -2,17 +2,15 @@
 #include <iostream>
 #include <algorithm>
 
-using namespace SyntenyFinder;
+typedef SyntenyFinder::unrolled_list<int, 20> MyList;
 
-typedef unrolled_list<int, 20> MyList;
+typedef SyntenyFinder::unrolled_list<int, 100> MyList100;
 
-typedef unrolled_list<int, 100> MyList100;
+void f (MyList::iterator, MyList::iterator) {}
+//bool rf (MyList::reverse_iterator) {return true;}
 
-bool f  (MyList::iterator) {return true;}
-bool rf (MyList::reverse_iterator) {return true;}
-
-bool f100  (MyList100::iterator) {return true;}
-bool rf100 (MyList100::reverse_iterator) {return true;}
+void f100 (MyList100::iterator, MyList100::iterator) {}
+//bool rf100 (MyList100::reverse_iterator) {return true;}
 
 template<class T>
 void advance(T& c, int n)
@@ -37,18 +35,17 @@ int main()
 
 void memoryTest()
 {
-	MyList100 list;
-	list.set_erased_value(-1);
+	MyList100 list(-1);
 	std::vector<MyList100::iterator> inv;
 	std::vector<MyList100::reverse_iterator> rinv;
 
-	MyList100::notify_predicate pred = f100;
-	MyList100::notify_reverse_predicate rpred = rf100;
+	MyList100::notify_func func = f100;
+	//MyList100::notify_reverse_predicate rpred = rf100;
 
 	for (int i = 0; i < 400 / 4 * 1024; ++i)
     {
         int * tmp = new int[1024];
-        list.insert(list.begin(), tmp, tmp + 1024, pred, rpred, inv, rinv);
+        list.insert(list.begin(), tmp, tmp + 1024, func, func);
         delete[] tmp;
     }
 
@@ -61,24 +58,26 @@ void randomTest()
 	const int TEST_UNIT = 1000;
 
 
-	MyList list;
-	list.set_erased_value(-1);
+	MyList list(-1);
 	std::vector<MyList::iterator> inv;
 	std::vector<MyList::reverse_iterator> rinv;
 
-	MyList::notify_predicate pred = f;
-	MyList::notify_reverse_predicate rpred = rf;
+	MyList::notify_func func = f;
+	//MyList::notify_reverse_predicate rpred = rf;
 
 
-	int* toInsert = new int[TEST_SIZE];
+	//int* toInsert = new int[TEST_SIZE];
 	std::list<int> testList;
 	for (int i = 0; i < TEST_SIZE; ++i)
     {
-    	toInsert[i] = rand() % 1000;
+    	int random = rand() % 1000;
+    	list.push_back(random);
+    	testList.push_back(random);
+    	//toInsert[i] = rand() % 1000;
     }
-    list.insert(list.begin(), toInsert, toInsert + TEST_SIZE, pred, rpred, inv, rinv);
-    testList.insert(testList.begin(), toInsert, toInsert + TEST_SIZE);
-    delete[] toInsert;
+    //list.insert(list.begin(), toInsert, toInsert + TEST_SIZE, func, func);
+    //testList.insert(testList.begin(), toInsert, toInsert + TEST_SIZE);
+    //delete[] toInsert;
 
 	MyList::iterator itList = list.begin();
 	std::list<int>::iterator itTest = testList.begin();
@@ -140,7 +139,7 @@ void randomTest()
 			MyList::iterator itBegin = list.begin(); advance(itBegin, pos);
 			std::list<int>::iterator testBegin = testList.begin(); advance(testBegin, pos);
 
-			list.insert(itBegin, toInsert, toInsert + sizeInsert, pred, rpred, inv, rinv);
+			list.insert(itBegin, toInsert, toInsert + sizeInsert, func, func);
 			testList.insert(testBegin, toInsert, toInsert + sizeInsert);
 			listSize += sizeInsert;
 
@@ -166,7 +165,7 @@ void randomTest()
 			MyList::reverse_iterator itBegin = list.rbegin(); advance(itBegin, pos);
 			std::list<int>::reverse_iterator testBegin = testList.rbegin(); advance(testBegin, pos);
 
-			list.insert(itBegin, toInsert, toInsert + sizeInsert, pred, rpred, inv, rinv);
+			list.insert(itBegin, toInsert, toInsert + sizeInsert, func, func);
 			std::reverse(toInsert, toInsert + sizeInsert);
 			testList.insert((testBegin).base(), toInsert, toInsert + sizeInsert);
 			listSize += sizeInsert;
