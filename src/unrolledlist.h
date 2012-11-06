@@ -117,9 +117,11 @@ namespace SyntenyFinder
 		reverse_iterator rend();
 		//const_reverse_iterator rbegin() const;
 		//const_reverse_iterator rend() const;
-
+		
 		typedef boost::function<bool (iterator)> notify_predicate;
 		typedef boost::function<bool (reverse_iterator)> notify_reverse_predicate;
+		typedef boost::function<void (std::vector<iterator>&, std::vector<reverse_iterator>&)> notify_before;
+		typedef boost::function<void (std::vector<iterator>&, std::vector<reverse_iterator>&)> notify_after;
 
 		inline size_t  size()  const   	{return m_Size;}
 		inline bool    empty() const  	{return m_Size == 0;}
@@ -131,6 +133,7 @@ namespace SyntenyFinder
 		void erase(reverse_iterator start, reverse_iterator end);
 		void erase(reverse_iterator position);
 
+		//TO_REMOVE_BEGIN
 		template<class out_it>
 		void insert(iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
 					notify_reverse_predicate, std::vector<iterator> & invalidated,
@@ -140,6 +143,15 @@ namespace SyntenyFinder
 		void insert(reverse_iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
 					notify_reverse_predicate, std::vector<iterator> & invalidated,
 					std::vector<reverse_iterator> & reverse_invalidated);
+		//TO_REMOVE_END
+
+		template<class out_it>
+		void insert(iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
+					notify_reverse_predicate, notify_before, notify_after);
+
+		template<class out_it>
+		void insert(reverse_iterator target, out_it source_begin, out_it source_end, notify_predicate pd,
+					notify_reverse_predicate, notify_before, notify_after);			
 
 		void push_back(const T & value);
 		void insert(iterator at, const T & value);		
