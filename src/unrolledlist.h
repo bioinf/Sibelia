@@ -34,6 +34,7 @@ namespace SyntenyFinder
 			iterator();
 			iterator(const iterator & it);
 			T& operator * () const;
+			T* operator -> () const;
 			iterator& operator ++ ();
 			iterator operator ++ (int);
 			iterator& operator -- ();
@@ -56,6 +57,7 @@ namespace SyntenyFinder
 			reverse_iterator(const reverse_iterator & it);
 			explicit reverse_iterator(const typename unrolled_list::iterator & it);
 			T& operator * () const;
+			T* operator -> () const;
 			reverse_iterator& operator ++ ();
 			reverse_iterator operator ++ (int);
 			reverse_iterator& operator -- ();
@@ -174,6 +176,12 @@ namespace SyntenyFinder
 	{
 		return m_ListPos->data[m_ArrayPos];
 	}
+	
+	template<class T, size_t NODE_SIZE>
+	T* unrolled_list<T, NODE_SIZE>::iterator::operator -> () const
+	{
+		return &m_ListPos->data[m_ArrayPos];
+	}
 
 	template<class T, size_t NODE_SIZE>
 	typename unrolled_list<T, NODE_SIZE>::iterator&
@@ -285,6 +293,13 @@ namespace SyntenyFinder
 	{
 		unrolled_list<T, NODE_SIZE>::iterator temp(m_Base);
 		return *(--temp);
+	}
+
+	template<class T, size_t NODE_SIZE>
+	T* unrolled_list<T, NODE_SIZE>::reverse_iterator::operator -> () const
+	{
+		unrolled_list<T, NODE_SIZE>::iterator temp(m_Base);
+		return &(*(--temp));
 	}
 
 	template<class T, size_t NODE_SIZE>
