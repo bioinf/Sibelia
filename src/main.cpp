@@ -108,6 +108,9 @@ const std::string DELIMITER(80, '-');
 
 int main(int argc, char * argv[])
 {	
+	SyntenyFinder::UnrolledListConsistencyTest();
+	return 0;
+
 	std::stringstream parsets;		
 	const std::string parameterSetNameArray[] = {"loose", "fine"};
 	std::vector<std::string> parameterSetName(parameterSetNameArray, parameterSetNameArray + sizeof(parameterSetNameArray) / sizeof(parameterSetNameArray[0]));

@@ -793,5 +793,8 @@ namespace SyntenyFinder
 			}
 		}
 	}
+
+	void UnrolledListConsistencyTest();
 }
+
 #endif

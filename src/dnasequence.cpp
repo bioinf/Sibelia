@@ -257,7 +257,7 @@ namespace SyntenyFinder
 			size_t targetDistance,
 			Sequence::notify_func before,
 			Sequence::notify_func after)
-	{		
+	{	
 		size_t pos = 0;
 		std::vector<size_t> oldPos;
 		for(StrandIterator jt = target; pos < targetDistance; pos++, ++jt)

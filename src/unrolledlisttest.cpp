@@ -1,6 +1,6 @@
+#include "common.h"
 #include "unrolledlist.h"
-#include <iostream>
-#include <algorithm>
+
 
 typedef SyntenyFinder::unrolled_list<int, 20> MyList;
 
@@ -24,7 +24,75 @@ void advance(T& c, int n)
 void randomTest();
 void memoryTest();
 
-void test()
+typedef SyntenyFinder::unrolled_list<int, 5> UList5;
+typedef std::pair<UList5::iterator, int> KeyValue;
+typedef std::vector<KeyValue> CustomMap;
+
+bool Cmp(const KeyValue & a, const KeyValue & b)
+{
+	return a.first == b.first;
+}
+
+
+void UpdateIteratorsBefore(CustomMap & validIterator, std::vector<size_t> & pos, UList5::iterator start, UList5::iterator end)
+{
+	for(; start != end; ++start)
+	{
+		pos.push_back(std::find_if(validIterator.begin(), validIterator.end(), boost::bind(Cmp, KeyValue(start, -1), _1)) - validIterator.begin());
+	}
+}
+
+void UpdateIteratorsAfter(CustomMap & validIterator, std::vector<size_t> & pos, UList5::iterator start, UList5::iterator end)
+{
+	for(size_t i = 0; start != end; ++start, ++i)
+	{
+		validIterator[pos[i]].first = start;
+	}
+}
+
+void SyntenyFinder::UnrolledListConsistencyTest()
+{
+	UList5 store;
+	store.set_erased_value(-1);
+	std::vector<int> buf;
+	for(int i = 1; i <= 20; i++)
+	{
+		buf.push_back(i);
+	}
+	
+	store.insert(store.end(), buf.begin(), buf.end());
+	int counter = 1;
+	//Only valid iterators here!	
+	CustomMap validIterator;
+	for(UList5::iterator it = store.begin(); it != store.end(); ++it)
+	{
+		validIterator.push_back(std::make_pair(it, counter++));
+	}
+
+	buf.assign(10, 0);
+	std::vector<size_t> invalidatedPos;
+
+	//Perform an insertion
+	UList5::iterator pos = ++store.begin();	
+	store.insert(pos,
+		buf.begin(),
+		buf.end(),
+		boost::bind(UpdateIteratorsBefore, boost::ref(validIterator), boost::ref(invalidatedPos), _1, _2),
+		boost::bind(UpdateIteratorsAfter, boost::ref(validIterator), boost::ref(invalidatedPos), _1, _2));	
+
+	for(UList5::iterator it = store.begin(); it != store.end(); ++it)
+	{
+		std::cout << *it << ' ';
+	}
+
+	//Test consistency
+	for(size_t i = 0; i < validIterator.size(); i++)
+	{
+		assert(*validIterator[i].first == validIterator[i].second);
+	}
+}
+
+void TestUnrolledList()
 {
 	randomTest();
 }
