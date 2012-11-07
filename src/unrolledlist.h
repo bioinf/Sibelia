@@ -42,6 +42,7 @@ namespace SyntenyFinder
 			bool operator == (const iterator & comp) const;
 			bool operator != (const iterator & comp) const;
 			iterator& operator = (const iterator & to_copy);
+			typename unrolled_list::iterator base() const;
 		private:
 			friend class unrolled_list;
 
@@ -367,6 +368,14 @@ namespace SyntenyFinder
 	{
 		return m_Base;
 	}
+
+	template<class T, size_t NODE_SIZE>
+	typename unrolled_list<T, NODE_SIZE>::iterator
+	unrolled_list<T, NODE_SIZE>::iterator::base() const
+	{
+		return *this;
+	}
+
 
 	//end reverse_iterator
 	//////////////////////
