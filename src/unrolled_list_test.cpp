@@ -91,6 +91,41 @@ void randomTest()
 	{
 		action = false;
 
+		//point erase
+		if (listSize > TEST_UNIT * 2)
+		{
+			int pos = rand() % (listSize - 2);
+
+			MyList::iterator itBegin = list.begin(); advance(itBegin, pos);
+			itBegin = list.erase(itBegin);
+			list.erase(itBegin);
+
+			std::list<int>::iterator testBegin = testList.begin(); advance(testBegin, pos);
+			testBegin = testList.erase(testBegin);
+			testList.erase(testBegin);
+
+			listSize -= 2;
+			action = true;
+		}
+
+		//point insert
+		if (listSize < TEST_SIZE * 2)
+		{
+			int pos = rand() % (listSize - 2);
+
+			int value = rand() % 1000;
+			MyList::iterator itBegin = list.begin(); advance(itBegin, pos);
+			itBegin = list.insert(itBegin, value);
+			list.insert(itBegin, value);
+
+			std::list<int>::iterator testBegin = testList.begin(); advance(testBegin, pos);
+			testBegin = testList.insert(testBegin, value);
+			testList.insert(testBegin, value);
+
+			listSize += 2;
+			action = true;
+		}
+
 		//forward erase
 		if (listSize > TEST_UNIT * 2)
 		{
