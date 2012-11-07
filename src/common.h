@@ -92,7 +92,7 @@ namespace SyntenyFinder
 		}
 
 	template<class Iterator, class F, class ReturnType>
-		struct FancyIterator: public std::iterator<std::forward_iterator_tag, char>
+		struct FancyIterator: public std::iterator<std::forward_iterator_tag, ReturnType>
 		{
 		public:
 			FancyIterator& operator++()

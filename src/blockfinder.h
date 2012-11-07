@@ -45,12 +45,17 @@ namespace SyntenyFinder
 		void PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 
 		static void PrintRaw(const DNASequence & s, std::ostream & out);
-		static void PrintPath(StrandIterator e, size_t k, size_t distance, std::ostream & out);
-		static void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);
+		static void PrintPath(const DNASequence & s, StrandIterator e, size_t k, size_t distance, std::ostream & out);
+		void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);
 	private:	
 		typedef std::vector<Pos> PosVector;
 		std::vector<FASTARecord> chrList_;
 		std::vector<PosVector> originalPos_;
+		typedef boost::unordered_map<std::string, size_t> KMerBifMap;
+
+	#ifdef _DEBUG
+		KMerBifMap idMap;
+	#endif
 
 		struct Edge
 		{
@@ -92,7 +97,7 @@ namespace SyntenyFinder
 		void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage) const;
 		void ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t minSize, bool sharedOnly, std::vector<BlockInstance> & chrList) const;
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
-
+		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, std::vector<StrandIterator> & startKMer, const std::multimap<size_t, size_t> & restricted, VisitData sourceData, VisitData targetData);
 	};
 }
 

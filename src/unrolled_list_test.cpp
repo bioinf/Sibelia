@@ -24,13 +24,9 @@ void advance(T& c, int n)
 void randomTest();
 void memoryTest();
 
-int main()
+void test()
 {
 	randomTest();
-
-	std::cin.get();
-
-	return 0;
 }
 
 void memoryTest()

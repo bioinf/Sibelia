@@ -83,12 +83,9 @@ namespace SyntenyFinder
 	}
 	
 	
-#ifdef _DEBUG
-	typedef boost::unordered_map<std::string, size_t> KMerBifMap;
-	KMerBifMap idMap;	
+#ifdef _DEBUG	
 	void BlockFinder::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
-	{
-		return;
+	{	return;
 		for(size_t strand = 0; strand < 2; strand++)
 		{
 			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
@@ -232,40 +229,7 @@ namespace SyntenyFinder
 				}	
 			}
 		}
-/*
-	#ifdef _DEBUG	
-		idMap.clear();
-		PrintRaw(sequence, std::cerr);
-		std::cerr << DELIMITER << std::endl << "Bifurcations: " << std::endl;
-		for(size_t strand = 0; strand < 2; strand++)
-		{
-			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
-			{
-				if(!permit[chr])
-				{
-					continue;
-				}
 
-				StrandIterator begin = sequence.Begin((DNASequence::Direction)strand, chr);
-				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);
-				SlidingWindow<StrandIterator> window(begin, end, k);
-				for(; window.Valid(); window.Move())
-				{
-					BifurcationMap::iterator jt = bifurcation.find(window.GetValue());
-					std::string buf(window.GetBegin(), AdvanceForward(window.GetBegin(), k));
-					if(jt != bifurcation.end() && jt->second.GetId() != BifurcationStorage::NO_BIFURCATION && idMap.count(buf) == 0)
-					{
-						idMap[buf] = jt->second.GetId();
-						std::cerr << "Id = " << jt->second.GetId() << std::endl << "Body = " << buf << std::endl;
-					}
-				}	
-			}
-		}
-
-		bifStorage.Dump(sequence, k, std::cerr);
-		Test(sequence, bifStorage, k);
-	#endif
-*/
 		if(!callBack.empty())
 		{
 			callBack(PROGRESS_STRIDE, end);

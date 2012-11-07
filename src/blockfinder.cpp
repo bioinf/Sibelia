@@ -68,7 +68,7 @@ namespace SyntenyFinder
 			return set.Size() > 1 || set.In(BlockFinder::SEPARATION_CHAR);
 		}
 
-		void Check(const DNASequence & sequence, const BifurcationStorage & now, const BifurcationStorage & old)
+		void MatchBifurcationStorage(const DNASequence & sequence, const BifurcationStorage & now, const BifurcationStorage & old)
 		{			
 			const size_t NO_BIF = BifurcationStorage::NO_BIFURCATION;
 			for(size_t strand = 0; strand < 2; strand++)
@@ -274,13 +274,8 @@ namespace SyntenyFinder
 	#endif
 
 	#ifdef _DEBUG
-	/*	BifurcationStorage old;
-		EnumerateBifurcationsHash(sequence, old, k);
-		Check(sequence, bifStorage, old); */
+		bifStorage.FormDictionary(idMap, k);
 	#endif
-
-	//	std::cout << "Bif=" << bifStorage.GetMaxId() << std::endl;
-	//	std::cout << "Size=" << bifStorage.TotalElements() << std::endl;
 
 		SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)

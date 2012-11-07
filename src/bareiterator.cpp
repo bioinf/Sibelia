@@ -28,7 +28,7 @@ namespace SyntenyFinder
 		return positive;
 	}
 
-	const DNASequence::DNACharacter* DNASequence::ForwardIterator::GetNaked() const
+	DNASequence::DNACharacter* DNASequence::ForwardIterator::GetNaked() const
 	{
 		return &(*it_);
 	}
@@ -101,7 +101,7 @@ namespace SyntenyFinder
 		return false;
 	}
 
-	const DNASequence::DNACharacter* DNASequence::BackwardIterator::GetNaked() const
+	DNASequence::DNACharacter* DNASequence::BackwardIterator::GetNaked() const
 	{
 		return &(*it_);
 	}
@@ -135,6 +135,11 @@ namespace SyntenyFinder
 
 	DNASequence::SequencePosIterator DNASequence::BackwardIterator::Base() const
 	{
-		return SequenceNegIterator(it_).base();
+		return it_.base();
+	}
+
+	DNASequence::SequenceNegIterator DNASequence::BackwardIterator::Natural() const
+	{
+		return it_;
 	}
 }

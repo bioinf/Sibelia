@@ -29,6 +29,8 @@ namespace SyntenyFinder
 	
 	const char DNASequence::UNKNOWN_BASE = 'n';
 	const char DNASequence::SEPARATION_CHAR = '$';
+	const char DNASequence::DELETED_CHAR = -1;
+	const Pos DNASequence::DELETED_POS = -1;
 	const std::string DNASequence::alphabet("agctn$");
 	const std::string DNASequence::complementary_(ConstructComplementarityTable());
 
@@ -197,10 +199,10 @@ namespace SyntenyFinder
 	DNASequence::SequencePosIterator DNASequence::StrandIterator::Base() const
 	{
 		return it_->Base();
-	}
-
-	DNASequence::DNASequence(const std::vector<FASTARecord> & record) 
-	{
+	}	
+	
+	DNASequence::DNASequence(const std::vector<FASTARecord> & record): sequence_(DNACharacter(DELETED_CHAR, DELETED_POS))
+	{		
 		sequence_.push_back(DNACharacter(SEPARATION_CHAR, -1));
 		for(size_t chr = 0; chr < record.size(); chr++)
 		{
@@ -216,7 +218,8 @@ namespace SyntenyFinder
 		}
 	}
 
-	DNASequence::DNASequence(const std::vector<FASTARecord> & record, const std::vector<std::vector<Pos> > & original) 
+	DNASequence::DNASequence(const std::vector<FASTARecord> & record, const std::vector<std::vector<Pos> > & original):
+		sequence_(DNACharacter(DELETED_CHAR, DELETED_POS))
 	{
 		sequence_.push_back(DNACharacter(SEPARATION_CHAR, -1));
 		for(size_t chr = 0; chr < record.size(); chr++)
@@ -232,7 +235,7 @@ namespace SyntenyFinder
 			posEnd_.push_back(--sequence_.end());
 		}
 	}
-
+	
 	size_t DNASequence::TotalSize() const
 	{
 		return sequence_.size();
@@ -248,72 +251,43 @@ namespace SyntenyFinder
 		return it_->TranslateChar(ch);
 	}
 
-	void DNASequence::EraseN(StrandIterator now, size_t count)
-	{
-		SequencePosIterator it = now.Base();
-		if(now.GetDirection() == negative)
+	void DNASequence::Replace(StrandIterator source,
+			size_t sourceDistance, 
+			StrandIterator target,
+			size_t targetDistance,
+			Sequence::notify_func before,
+			Sequence::notify_func after)
+	{		
+		size_t pos = 0;
+		std::vector<size_t> oldPos;
+		for(StrandIterator jt = target; pos < targetDistance; pos++, ++jt)
 		{
-			it = AdvanceForward(now, count).Base();
+			oldPos.push_back(jt.GetOriginalPosition());
 		}
 
-		for(size_t i = 0; i < count; i++)
+		StrandIterator newTarget = AdvanceForward(target, targetDistance);
+		SequencePosIterator begin = target.Base();
+		SequencePosIterator end = newTarget.Base();
+		if(target.GetDirection() == positive)
 		{
-			it = sequence_.erase(it);
+			sequence_.erase(begin, end);
+			sequence_.insert(end, source, AdvanceForward(source, sourceDistance), before, after);
 		}
-	}
-
-	void DNASequence::CopyN(StrandIterator source, size_t count, StrandIterator target)
-	{
-		for(size_t i = 0; i < count; i++)
-		{
-			DNACharacter * ptr = const_cast<DNACharacter*>(target.GetNaked());
-			ptr->actual = target.TranslateChar(*source);
-			++target;
-			++source;
-		}
-	}
-
-	void DNASequence::Replace(StrandIterator source, size_t sourceDistance, 
-			StrandIterator target, size_t targetDistance,
-			const boost::function<void (const StrandIterator&)> & alarmBefore,
-			const boost::function<void (const StrandIterator&)> & alarmAfter)
-	{
-		size_t pos = target.GetNaked()->pos;
-		StrandIterator saveTarget = target;
-		SequencePosIterator it = target.Base();
-		if(target.GetDirection() == negative)
-		{
-			it = AdvanceForward(target, targetDistance).Base();
-			source = AdvanceForward(source, sourceDistance - 1);
+		else
+		{	
+			std::swap(begin, end);			
+			sequence_.erase(begin, end);		
+			source = AdvanceForward(source, sourceDistance).Invert();
+			sequence_.insert(end, source, AdvanceForward(source, sourceDistance), before, after);
+			newTarget = StrandIterator(AdvanceForward(end, sourceDistance), negative);
 		}
 
-		for(size_t i = 0; i < sourceDistance; i++)
+		pos = 0;
+		size_t record = 0;
+		for(StrandIterator jt = newTarget; pos < sourceDistance; pos++, ++jt)
 		{
-			if(i == 0 && it != sequence_.begin())
-			{
-				alarmBefore(StrandIterator(new BackwardIterator(SequenceNegIterator(it))));
-			}
-
-			sequence_.insert(it, DNACharacter(target.TranslateChar(*source), Pos(pos)));
-			if(i == 0 && it != sequence_.begin())
-			{
-				--it;
-				alarmAfter(StrandIterator(new BackwardIterator(SequenceNegIterator(it++))));
-			}
-
-			if(target.GetDirection() == positive)
-			{
-				++source;
-			}
-			else
-			{
-				--source;
-			}			
-		}
-
-		for(size_t i = 0; i < targetDistance; i++)
-		{						
-			it = sequence_.erase(it);			
+			size_t nowPos = record < oldPos.size() ? oldPos[record++] : oldPos.back();
+			jt.it_->GetNaked()->pos = static_cast<Pos>(nowPos);
 		}
 	}
 
@@ -327,8 +301,8 @@ namespace SyntenyFinder
 
 	void DNASequence::Clear()
 	{
-		sequence_.clear();
 		posBegin_.clear();
-		posEnd_.clear();
+		posEnd_.clear();		
+		sequence_.erase(sequence_.begin(), sequence_.end());
 	}
 }

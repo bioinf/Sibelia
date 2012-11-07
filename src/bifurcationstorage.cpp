@@ -7,6 +7,11 @@
 #include "bifurcationstorage.h"
 namespace SyntenyFinder
 {
+	namespace
+	{
+		
+	}
+
 	const BifurcationStorage::BifurcationId BifurcationStorage::NO_BIFURCATION = -1;
 	
 	void BifurcationStorage::Clear()
@@ -107,5 +112,36 @@ namespace SyntenyFinder
 		PosBifurcation::const_iterator kt = posBifurcation_[strand].find(jt);
 		temp_.clear();
 		return kt == posBifurcation_[strand].end() ? NO_BIFURCATION : (*kt)->first;
+	}
+
+	void BifurcationStorage::NotifyBefore(PositiveIterator begin, PositiveIterator end)
+	{
+		NegativeIterator rbegin(begin);
+		NegativeIterator rend(end);
+		SelectInvalid<PositiveIterator, &BifurcationStorage::posInvalid>(begin, end, DNASequence::positive);		
+		SelectInvalid<NegativeIterator, &BifurcationStorage::negInvalid>(rbegin, rend, DNASequence::negative);
+	}
+
+	void BifurcationStorage::NotifyAfter(PositiveIterator begin, PositiveIterator end)
+	{
+		NegativeIterator rbegin(begin);
+		NegativeIterator rend(end);
+		AddInvalid<PositiveIterator, &BifurcationStorage::posInvalid>(begin, end, DNASequence::positive);		
+		AddInvalid<NegativeIterator, &BifurcationStorage::negInvalid>(rbegin, rend, DNASequence::negative);
+	}
+
+	void BifurcationStorage::FormDictionary(boost::unordered_map<std::string, size_t> & dict, size_t k) const
+	{
+		dict.clear();
+		for(size_t dir = 0; dir < 2; dir++)
+		{
+			DNASequence::Direction type = static_cast<DNASequence::Direction>(dir);
+			for(CBifMapIterator it = bifurcationPos_[dir].begin(); it != bifurcationPos_[dir].end(); ++it)
+			{
+				StrandIterator begin(it->second, type);
+				std::string body(begin, AdvanceForward(begin, k));
+				dict[body] = it->first;
+			}
+		}		
 	}
 }

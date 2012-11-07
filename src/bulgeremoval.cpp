@@ -154,30 +154,6 @@ namespace SyntenyFinder
 			return false;
 		}
 		
-		struct UglyWorkaround
-		{
-		public:
-			UglyWorkaround(BifurcationStorage & storage): storage_(storage),
-				last(BifurcationStorage::NO_BIFURCATION) {}
-			void Before(const StrandIterator & it)
-			{
-				last = storage_.GetBifurcation(it);
-				storage_.ErasePoint(it);
-			}
-
-			void After(const StrandIterator & it)
-			{
-				if(last != BifurcationStorage::NO_BIFURCATION)
-				{
-					storage_.AddPoint(it, last);
-				}
-			}
-
-		private:
-			size_t last;
-			BifurcationStorage & storage_;
-		};
-
 		void FillVisit(const DNASequence & sequence,
 			const BifurcationStorage & bifStorage, 
 			StrandIterator kmer,
@@ -204,69 +180,6 @@ namespace SyntenyFinder
 			std::sort(visit.begin(), visit.end());
 		}
 
-		void CollapseBulgeGreedily(DNASequence & sequence,
-			BifurcationStorage & bifStorage,
-			size_t k,
-			std::vector<StrandIterator> & startKMer,
-			const std::multimap<size_t, size_t> & restricted,
-			VisitData sourceData,
-			VisitData targetData)
-		{
-		#ifdef _DEBUG
-			static size_t bulge = 0;
-			std::cerr << "Bulge #" << bulge++ << std::endl;
-			std::cerr << "Before: " << std::endl;
-			BlockFinder::PrintRaw(sequence, std::cerr);
-			std::cerr << "Source branch: " << std::endl;			
-			BlockFinder::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
-			std::cerr << "Target branch: " << std::endl;			
-			BlockFinder::PrintPath(startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
-			bifStorage.Dump(sequence, k, std::cerr);
-		#endif
-			
-			std::vector<BifurcationMark> v;
-			FillVisit(sequence, bifStorage, startKMer[sourceData.kmerId], sourceData.distance, v);
-			StrandIterator it = startKMer[targetData.kmerId];
-			for(size_t step = 0; step < targetData.distance + k; step++, ++it)
-			{
-				typedef std::multimap<size_t, size_t>::const_iterator MMIterator;
-				std::pair<MMIterator, MMIterator> kt = restricted.equal_range(it.GetElementId());
-				for(; kt.first != kt.second; ++kt.first)
-				{
-					if(kt.first->second != targetData.kmerId)
-					{
-						startKMer[kt.first->second] = sequence.PositiveEnd(0);
-					}
-				}
-			}
-
-			std::vector<std::pair<size_t, size_t> > lookForward;
-			std::vector<std::pair<size_t, size_t> > lookBack;
-			EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
-			StrandIterator sourceIt = startKMer[sourceData.kmerId];
-			StrandIterator targetIt = startKMer[targetData.kmerId];
-			UglyWorkaround workAround(bifStorage);
-			sequence.Replace(AdvanceForward(sourceIt, k),
-				sourceData.distance,
-				AdvanceForward(targetIt, k),
-				targetData.distance,
-				boost::bind(&UglyWorkaround::Before, boost::ref(workAround), _1),
-				boost::bind(&UglyWorkaround::After, boost::ref(workAround), _1));
-			UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
-
-		#ifdef _DEBUG
-			std::cerr << "After: " << std::endl;
-			BlockFinder::PrintRaw(sequence, std::cerr);
-			std::cerr << "Source branch: " << std::endl;			
-			BlockFinder::PrintPath(startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
-			std::cerr << "Target branch: " << std::endl;			
-			BlockFinder::PrintPath(startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
-			bifStorage.Dump(sequence, k, std::cerr);
-			std::cerr << DELIMITER << std::endl;
-			BlockFinder::Test(sequence, bifStorage, k);
-		#endif
-		}		
-
 		void SpellBulges(const DNASequence & sequence, size_t k,
 			size_t bifStart,
 			size_t bifEnd,
@@ -278,12 +191,74 @@ namespace SyntenyFinder
 			for(size_t i = 0; i < visitData.size(); i++)
 			{
 				std::cerr << "Branch #" << i << ", size = " << visitData[i].distance + k << ":" << std::endl;			
-				BlockFinder::PrintPath(startKMer[visitData[i].kmerId], k, visitData[i].distance, std::cerr);
+				BlockFinder::PrintPath(sequence, startKMer[visitData[i].kmerId], k, visitData[i].distance, std::cerr);
 			}
 
 			std::cerr << DELIMITER << std::endl;
 		}
 	}
+	
+	void BlockFinder::CollapseBulgeGreedily(DNASequence & sequence,
+		BifurcationStorage & bifStorage,
+		size_t k,
+		std::vector<StrandIterator> & startKMer,
+		const std::multimap<size_t, size_t> & restricted,
+		VisitData sourceData,
+		VisitData targetData)
+	{
+	#ifdef _DEBUG
+		static size_t bulge = 0;
+		std::cerr << "Bulge #" << bulge++ << std::endl;
+		std::cerr << "Before: " << std::endl;
+		BlockFinder::PrintRaw(sequence, std::cerr);
+		std::cerr << "Source branch: " << std::endl;			
+		BlockFinder::PrintPath(sequence, startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+		std::cerr << "Target branch: " << std::endl;			
+		BlockFinder::PrintPath(sequence, startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
+		bifStorage.Dump(sequence, k, std::cerr);
+	#endif
+			
+		std::vector<BifurcationMark> v;
+		FillVisit(sequence, bifStorage, startKMer[sourceData.kmerId], sourceData.distance, v);
+		StrandIterator it = startKMer[targetData.kmerId];
+		for(size_t step = 0; step < targetData.distance + k; step++, ++it)
+		{
+			typedef std::multimap<size_t, size_t>::const_iterator MMIterator;
+			std::pair<MMIterator, MMIterator> kt = restricted.equal_range(it.GetElementId());
+			for(; kt.first != kt.second; ++kt.first)
+			{
+				if(kt.first->second != targetData.kmerId)
+				{
+					startKMer[kt.first->second] = sequence.PositiveEnd(0);
+				}
+			}
+		}
+
+		std::vector<std::pair<size_t, size_t> > lookForward;
+		std::vector<std::pair<size_t, size_t> > lookBack;
+		EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
+		StrandIterator sourceIt = startKMer[sourceData.kmerId];
+		StrandIterator targetIt = startKMer[targetData.kmerId];			
+		sequence.Replace(AdvanceForward(sourceIt, k),
+			sourceData.distance,
+			AdvanceForward(targetIt, k),
+			targetData.distance,
+			boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(bifStorage), _1, _2),
+			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
+		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
+
+	#ifdef _DEBUG
+		std::cerr << "After: " << std::endl;
+		BlockFinder::PrintRaw(sequence, std::cerr);
+		std::cerr << "Source branch: " << std::endl;			
+		BlockFinder::PrintPath(sequence, startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+		std::cerr << "Target branch: " << std::endl;			
+		BlockFinder::PrintPath(sequence, startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
+		bifStorage.Dump(sequence, k, std::cerr);
+		std::cerr << DELIMITER << std::endl;
+		Test(sequence, bifStorage, k);
+	#endif
+	}		
 
 	size_t BlockFinder::RemoveBulges(DNASequence & sequence,
 		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId)

@@ -9,6 +9,7 @@
 
 #include "fasta.h"
 #include "common.h"
+#include "unrolledlist.h"
 
 #pragma warning(disable:4355)
 
@@ -41,11 +42,14 @@ namespace SyntenyFinder
 			}
 		};
 
-		typedef std::list<DNACharacter> Sequence;
+		typedef unrolled_list<DNACharacter, 10> Sequence;
 		typedef Sequence::iterator SequencePosIterator;
 		typedef Sequence::reverse_iterator SequenceNegIterator;
 
 	private:
+		const static char DELETED_CHAR;
+		const static Pos DELETED_POS;
+
 		class GenericIterator
 		{
 		public:
@@ -56,7 +60,7 @@ namespace SyntenyFinder
 			virtual char TranslateChar(char ch) const = 0;
 			virtual GenericIterator* Clone() const = 0;
 			virtual Direction GetDirection() const = 0;
-			virtual const DNACharacter* GetNaked() const = 0;
+			virtual DNACharacter* GetNaked() const = 0;
 			virtual GenericIterator* Invert() const = 0;
 			virtual SequencePosIterator Base() const = 0;
 			virtual bool Equal(const GenericIterator& toCompare) const = 0;
@@ -73,7 +77,7 @@ namespace SyntenyFinder
 			GenericIterator* Clone() const;
 			GenericIterator* Invert() const;
 			SequencePosIterator Base() const;
-			const DNACharacter* GetNaked() const;			
+			DNACharacter* GetNaked() const;			
 			bool Equal(const GenericIterator& toCompare) const;
 			ForwardIterator();
 			ForwardIterator(SequencePosIterator it);
@@ -92,7 +96,8 @@ namespace SyntenyFinder
 			GenericIterator* Clone() const;
 			GenericIterator* Invert() const;
 			SequencePosIterator Base() const;
-			const DNACharacter* GetNaked() const;
+			SequenceNegIterator Natural() const;
+			DNACharacter* GetNaked() const;
 			bool Equal(const GenericIterator& toCompare) const;
 			BackwardIterator();
 			BackwardIterator(SequenceNegIterator it);
@@ -128,7 +133,8 @@ namespace SyntenyFinder
 			StrandIterator(SequencePosIterator base, Direction direction);
 			StrandIterator& operator = (const StrandIterator & toCopy);
 		private:
-			std::auto_ptr<GenericIterator> it_;
+			friend class DNASequence;
+			std::auto_ptr<GenericIterator> it_;			
 		};
 		
 		void Clear();
@@ -141,12 +147,12 @@ namespace SyntenyFinder
 		StrandIterator NegativeEnd(size_t chr) const;
 		StrandIterator Begin(Direction, size_t chr) const;
 		StrandIterator End(Direction, size_t chr) const;
-		void EraseN(StrandIterator now, size_t count);		
-		void Replace(StrandIterator source, size_t sourceDistance, 
-			StrandIterator target, size_t targetDistance,
-			const boost::function<void (const StrandIterator&)> & alarmBefore,
-			const boost::function<void (const StrandIterator&)> & alarmAfter);
-		void CopyN(StrandIterator source, size_t count, StrandIterator target);
+		void Replace(StrandIterator source,
+			size_t sourceDistance, 
+			StrandIterator target,
+			size_t targetDistance,
+			Sequence::notify_func before = 0,
+			Sequence::notify_func after = 0);
 		explicit DNASequence(const std::vector<FASTARecord> & record);
 		DNASequence(const std::vector<FASTARecord> & record, const std::vector<std::vector<Pos> > & original);
 		std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2) const;
