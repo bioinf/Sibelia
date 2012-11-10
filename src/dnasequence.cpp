@@ -265,26 +265,26 @@ namespace SyntenyFinder
 			oldPos.push_back(jt.GetOriginalPosition());
 		}
 
-		StrandIterator newTarget = AdvanceForward(target, targetDistance);
 		SequencePosIterator begin = target.Base();
-		SequencePosIterator end = newTarget.Base();
+		SequencePosIterator end = AdvanceForward(target, targetDistance).Base();
 		if(target.GetDirection() == positive)
 		{
-			sequence_.erase(begin, end);
-			sequence_.insert(end, source, AdvanceForward(source, sourceDistance), before, after);
+			begin = sequence_.erase(begin, end);
+			begin = sequence_.insert(begin, source, AdvanceForward(source, sourceDistance), before, after);
+			target = StrandIterator(begin, positive);
 		}
 		else
 		{	
-			std::swap(begin, end);			
-			sequence_.erase(begin, end);		
+			std::swap(begin, end);
 			source = AdvanceForward(source, sourceDistance).Invert();
-			sequence_.insert(end, source, AdvanceForward(source, sourceDistance), before, after);
-			newTarget = StrandIterator(AdvanceForward(end, sourceDistance), negative);
+			begin = sequence_.erase(begin, end);
+			begin = sequence_.insert(begin, source, AdvanceForward(source, sourceDistance), before, after);
+			target = StrandIterator(AdvanceForward(begin, sourceDistance), negative);
 		}
 
 		pos = 0;
 		size_t record = 0;
-		for(StrandIterator jt = newTarget; pos < sourceDistance; pos++, ++jt)
+		for(StrandIterator jt = target; pos < sourceDistance; pos++, ++jt)
 		{
 			size_t nowPos = record < oldPos.size() ? oldPos[record++] : oldPos.back();
 			jt.it_->GetNaked()->pos = static_cast<Pos>(nowPos);

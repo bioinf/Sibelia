@@ -49,9 +49,10 @@ namespace SyntenyFinder
 		void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);
 	private:	
 		typedef std::vector<Pos> PosVector;
-		std::vector<FASTARecord> chrList_;
-		std::vector<PosVector> originalPos_;
+		typedef std::multimap<size_t, size_t> RestrictionMap;
 		typedef boost::unordered_map<std::string, size_t> KMerBifMap;
+		std::vector<FASTARecord> chrList_;
+		std::vector<PosVector> originalPos_;		
 
 	#ifdef _DEBUG
 		KMerBifMap idMap;
@@ -97,7 +98,7 @@ namespace SyntenyFinder
 		void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage) const;
 		void ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t minSize, bool sharedOnly, std::vector<BlockInstance> & chrList) const;
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
-		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, std::vector<StrandIterator> & startKMer, const std::multimap<size_t, size_t> & restricted, VisitData sourceData, VisitData targetData);
+		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, std::vector<StrandIterator> & startKMer, const RestrictionMap & restricted, VisitData sourceData, VisitData targetData);
 	};
 }
 

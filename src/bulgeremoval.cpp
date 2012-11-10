@@ -29,6 +29,13 @@ namespace SyntenyFinder
 			}
 		};
 
+
+		struct NotificationData
+		{
+
+		};
+
+
 		size_t MaxBifurcationMultiplicity(const BifurcationStorage & bifStorage,
 			StrandIterator it, size_t distance)
 		{
@@ -196,13 +203,14 @@ namespace SyntenyFinder
 
 			std::cerr << DELIMITER << std::endl;
 		}
+
 	}
 	
 	void BlockFinder::CollapseBulgeGreedily(DNASequence & sequence,
 		BifurcationStorage & bifStorage,
 		size_t k,
 		std::vector<StrandIterator> & startKMer,
-		const std::multimap<size_t, size_t> & restricted,
+		const RestrictionMap & restricted,
 		VisitData sourceData,
 		VisitData targetData)
 	{
@@ -223,7 +231,7 @@ namespace SyntenyFinder
 		StrandIterator it = startKMer[targetData.kmerId];
 		for(size_t step = 0; step < targetData.distance + k; step++, ++it)
 		{
-			typedef std::multimap<size_t, size_t>::const_iterator MMIterator;
+			typedef RestrictionMap::const_iterator MMIterator;
 			std::pair<MMIterator, MMIterator> kt = restricted.equal_range(it.GetElementId());
 			for(; kt.first != kt.second; ++kt.first)
 			{
@@ -264,8 +272,8 @@ namespace SyntenyFinder
 		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId)
 	{	
 		size_t ret = 0;				
-		std::vector<StrandIterator> startKMer;
-		std::multimap<size_t, size_t> restricted;
+		RestrictionMap restricted;
+		std::vector<StrandIterator> startKMer;		
 		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
 		{
 			return ret;
@@ -313,8 +321,7 @@ namespace SyntenyFinder
 							break;
 						}
 
-						std::vector<BifurcationMark>::iterator vt = std::lower_bound(
-							visit.begin(), visit.end(), BifurcationMark(nowBif, 0));
+						std::vector<BifurcationMark>::iterator vt = std::lower_bound(visit.begin(), visit.end(), BifurcationMark(nowBif, 0));
 						if(vt != visit.end() && vt->bifId == nowBif)
 						{
 							VisitData jdata(kmerJ, step);

@@ -46,7 +46,7 @@ namespace SyntenyFinder
 	}
 
 	void BifurcationStorage::Dump(const DNASequence & sequence, size_t k, std::ostream & out) const
-	{return;
+	{
 		std::string strandName[] = {"Positive", "Negative"};
 		StrandIterator start[] = {sequence.PositiveBegin(0), sequence.NegativeBegin(0)};
 		for(size_t strand = 0; strand < 2; strand++)
@@ -116,16 +116,16 @@ namespace SyntenyFinder
 
 	void BifurcationStorage::NotifyBefore(PositiveIterator begin, PositiveIterator end)
 	{
-		NegativeIterator rbegin(begin);
-		NegativeIterator rend(end);
+		NegativeIterator rend(begin);
+		NegativeIterator rbegin(end);
 		SelectInvalid<PositiveIterator, &BifurcationStorage::posInvalid>(begin, end, DNASequence::positive);		
 		SelectInvalid<NegativeIterator, &BifurcationStorage::negInvalid>(rbegin, rend, DNASequence::negative);
 	}
 
 	void BifurcationStorage::NotifyAfter(PositiveIterator begin, PositiveIterator end)
 	{
-		NegativeIterator rbegin(begin);
-		NegativeIterator rend(end);
+		NegativeIterator rend(begin);
+		NegativeIterator rbegin(end);
 		AddInvalid<PositiveIterator, &BifurcationStorage::posInvalid>(begin, end, DNASequence::positive);		
 		AddInvalid<NegativeIterator, &BifurcationStorage::negInvalid>(rbegin, rend, DNASequence::negative);
 	}

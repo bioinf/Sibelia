@@ -1,6 +1,5 @@
-#include "common.h"
-#include "unrolledlist.h"
-
+#include "../common.h"
+#include "unrolledlisttest.h"
 
 typedef SyntenyFinder::unrolled_list<int, 20> MyList;
 
@@ -50,7 +49,26 @@ void UpdateIteratorsAfter(CustomMap & validIterator, std::vector<size_t> & pos, 
 	}
 }
 
-void SyntenyFinder::UnrolledListConsistencyTest()
+void UnrolledListEraseConsistencyTest()
+{
+	UList5 store;
+	store.set_erased_value(-1);
+	std::vector<int> buf;
+	for(int i = 1; i <= 20; i++)
+	{
+		buf.push_back(i);
+	}
+	
+	store.insert(store.end(), buf.begin(), buf.end());
+	UList5::iterator it = store.begin();
+	std::advance(it, 5);
+	UList5::reverse_iterator jt(it);
+	std::cout << *jt << ' ' << *it;
+	store.erase(it, store.end());
+	std::cout << *jt;
+}
+
+void UnrolledListInsertConsistencyTest()
 {
 	UList5 store;
 	store.set_erased_value(-1);
@@ -80,11 +98,6 @@ void SyntenyFinder::UnrolledListConsistencyTest()
 		boost::bind(UpdateIteratorsBefore, boost::ref(validIterator), boost::ref(invalidatedPos), _1, _2),
 		boost::bind(UpdateIteratorsAfter, boost::ref(validIterator), boost::ref(invalidatedPos), _1, _2));	
 
-	for(UList5::iterator it = store.begin(); it != store.end(); ++it)
-	{
-		std::cout << *it << ' ';
-	}
-
 	//Test consistency
 	for(size_t i = 0; i < validIterator.size(); i++)
 	{
@@ -92,8 +105,10 @@ void SyntenyFinder::UnrolledListConsistencyTest()
 	}
 }
 
-void TestUnrolledList()
+void SyntenyFinder::TestUnrolledList()
 {
+	UnrolledListEraseConsistencyTest();
+	UnrolledListInsertConsistencyTest();	
 	randomTest();
 }
 
@@ -121,7 +136,6 @@ void randomTest()
 	const int TEST_SIZE = 10000;
 	const int TEST_UNIT = 1000;
 
-
 	MyList list(-1);
 	std::vector<MyList::iterator> inv;
 	std::vector<MyList::reverse_iterator> rinv;
@@ -147,7 +161,7 @@ void randomTest()
 	std::list<int>::iterator itTest = testList.begin();
     for (; itList != list.end() && itTest != testList.end(); ++ itList, ++itTest) assert(*itList == *itTest);
 
-	srand(time(0));
+	srand((unsigned int)time(0));
     int listSize = TEST_SIZE;
     int iteration = 0;
     bool action = false;
