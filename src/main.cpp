@@ -6,6 +6,9 @@
 
 #include <tclap/CmdLine.h>
 #include "outputgenerator.h"
+#include "test/unrolledlisttest.h"
+
+#define _RUN_TEST
 
 std::string IntToStr(size_t value)
 {
@@ -106,8 +109,14 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 
 const std::string DELIMITER(80, '-');
 
+
 int main(int argc, char * argv[])
 {	
+
+#ifdef _RUN_TEST
+	SyntenyFinder::TestUnrolledList();
+#endif
+
 	std::stringstream parsets;		
 	const std::string parameterSetNameArray[] = {"loose", "fine"};
 	std::vector<std::string> parameterSetName(parameterSetNameArray, parameterSetNameArray + sizeof(parameterSetNameArray) / sizeof(parameterSetNameArray[0]));

@@ -1,6 +1,5 @@
-#include "unrolledlist.h"
-#include <iostream>
-#include <algorithm>
+#include "../common.h"
+#include "unrolledlisttest.h"
 
 typedef SyntenyFinder::unrolled_list<int, 20> MyList;
 
@@ -24,13 +23,93 @@ void advance(T& c, int n)
 void randomTest();
 void memoryTest();
 
-int main()
+typedef SyntenyFinder::unrolled_list<int, 5> UList5;
+typedef std::pair<UList5::iterator, int> KeyValue;
+typedef std::vector<KeyValue> CustomMap;
+
+bool Cmp(const KeyValue & a, const KeyValue & b)
 {
+	return a.first == b.first;
+}
+
+
+void UpdateIteratorsBefore(CustomMap & validIterator, std::vector<size_t> & pos, UList5::iterator start, UList5::iterator end)
+{
+	for(; start != end; ++start)
+	{
+		pos.push_back(std::find_if(validIterator.begin(), validIterator.end(), boost::bind(Cmp, KeyValue(start, -1), _1)) - validIterator.begin());
+	}
+}
+
+void UpdateIteratorsAfter(CustomMap & validIterator, std::vector<size_t> & pos, UList5::iterator start, UList5::iterator end)
+{
+	for(size_t i = 0; start != end; ++start, ++i)
+	{
+		validIterator[pos[i]].first = start;
+	}
+}
+
+void UnrolledListEraseConsistencyTest()
+{
+	UList5 store;
+	store.set_erased_value(-1);
+	std::vector<int> buf;
+	for(int i = 1; i <= 20; i++)
+	{
+		buf.push_back(i);
+	}
+	
+	store.insert(store.end(), buf.begin(), buf.end());
+	UList5::iterator it = store.begin();
+	std::advance(it, 5);
+	UList5::reverse_iterator jt(it);
+	std::cout << *jt << ' ' << *it;
+	store.erase(it, store.end());
+	std::cout << *jt;
+}
+
+void UnrolledListInsertConsistencyTest()
+{
+	UList5 store;
+	store.set_erased_value(-1);
+	std::vector<int> buf;
+	for(int i = 1; i <= 20; i++)
+	{
+		buf.push_back(i);
+	}
+	
+	store.insert(store.end(), buf.begin(), buf.end());
+	int counter = 1;
+	//Only valid iterators here!	
+	CustomMap validIterator;
+	for(UList5::iterator it = store.begin(); it != store.end(); ++it)
+	{
+		validIterator.push_back(std::make_pair(it, counter++));
+	}
+
+	buf.assign(10, 0);
+	std::vector<size_t> invalidatedPos;
+
+	//Perform an insertion
+	UList5::iterator pos = ++store.begin();	
+	store.insert(pos,
+		buf.begin(),
+		buf.end(),
+		boost::bind(UpdateIteratorsBefore, boost::ref(validIterator), boost::ref(invalidatedPos), _1, _2),
+		boost::bind(UpdateIteratorsAfter, boost::ref(validIterator), boost::ref(invalidatedPos), _1, _2));	
+
+	//Test consistency
+	for(size_t i = 0; i < validIterator.size(); i++)
+	{
+		assert(*validIterator[i].first == validIterator[i].second);
+	}
+}
+
+void SyntenyFinder::TestUnrolledList()
+{
+	UnrolledListEraseConsistencyTest();
+	UnrolledListInsertConsistencyTest();	
 	randomTest();
-
-	std::cin.get();
-
-	return 0;
 }
 
 void memoryTest()
@@ -57,7 +136,6 @@ void randomTest()
 	const int TEST_SIZE = 10000;
 	const int TEST_UNIT = 1000;
 
-
 	MyList list(-1);
 	std::vector<MyList::iterator> inv;
 	std::vector<MyList::reverse_iterator> rinv;
@@ -83,48 +161,13 @@ void randomTest()
 	std::list<int>::iterator itTest = testList.begin();
     for (; itList != list.end() && itTest != testList.end(); ++ itList, ++itTest) assert(*itList == *itTest);
 
-	srand(time(0));
+	srand((unsigned int)time(0));
     int listSize = TEST_SIZE;
     int iteration = 0;
     bool action = false;
     for (;;)
 	{
 		action = false;
-
-		//point erase
-		if (listSize > TEST_UNIT * 2)
-		{
-			int pos = rand() % (listSize - 2);
-
-			MyList::iterator itBegin = list.begin(); advance(itBegin, pos);
-			itBegin = list.erase(itBegin);
-			list.erase(itBegin);
-
-			std::list<int>::iterator testBegin = testList.begin(); advance(testBegin, pos);
-			testBegin = testList.erase(testBegin);
-			testList.erase(testBegin);
-
-			listSize -= 2;
-			action = true;
-		}
-
-		//point insert
-		if (listSize < TEST_SIZE * 2)
-		{
-			int pos = rand() % (listSize - 2);
-
-			int value = rand() % 1000;
-			MyList::iterator itBegin = list.begin(); advance(itBegin, pos);
-			itBegin = list.insert(itBegin, value);
-			list.insert(itBegin, value);
-
-			std::list<int>::iterator testBegin = testList.begin(); advance(testBegin, pos);
-			testBegin = testList.insert(testBegin, value);
-			testList.insert(testBegin, value);
-
-			listSize += 2;
-			action = true;
-		}
 
 		//forward erase
 		if (listSize > TEST_UNIT * 2)
