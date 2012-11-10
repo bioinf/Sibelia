@@ -109,7 +109,7 @@ void SyntenyFinder::TestUnrolledList()
 {
 	UnrolledListEraseConsistencyTest();
 	UnrolledListInsertConsistencyTest();	
-	randomTest();
+//	randomTest();
 }
 
 void memoryTest()
