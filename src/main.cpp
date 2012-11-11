@@ -114,7 +114,7 @@ int main(int argc, char * argv[])
 {	
 
 #ifdef _RUN_TEST
-	SyntenyFinder::TestUnrolledList();
+//	SyntenyFinder::TestUnrolledList();
 #endif
 
 	std::stringstream parsets;		

@@ -27,14 +27,7 @@ namespace SyntenyFinder
 
 				return distance < compare.distance;
 			}
-		};
-
-
-		struct NotificationData
-		{
-
-		};
-
+		};		
 
 		size_t MaxBifurcationMultiplicity(const BifurcationStorage & bifStorage,
 			StrandIterator it, size_t distance)
@@ -205,15 +198,51 @@ namespace SyntenyFinder
 		}
 
 	}
+
+	void BlockFinder::NotifyBefore(NotificationData data, PositiveIterator begin, PositiveIterator end)
+	{
+		DNASequence::SequenceNegIterator rbegin(end);
+		DNASequence::SequenceNegIterator rend(begin);
+		data.bifStorage->NotifyBefore(begin, end);
+		SelectInvalid<PositiveIterator, &BlockFinder::posInvalid>(data, begin, end, DNASequence::positive);
+		SelectInvalid<NegativeIterator, &BlockFinder::negInvalid>(data, rbegin, rend, DNASequence::negative);
+	}
+
+	void BlockFinder::NotifyAfter(NotificationData data, PositiveIterator begin, PositiveIterator end)
+	{
+		DNASequence::SequenceNegIterator rbegin(end);
+		DNASequence::SequenceNegIterator rend(begin);
+		data.bifStorage->NotifyAfter(begin, end);
+		AddInvalid<PositiveIterator, &BlockFinder::posInvalid>(data, begin, end, DNASequence::positive);
+		AddInvalid<NegativeIterator, &BlockFinder::negInvalid>(data, rbegin, rend, DNASequence::negative);
+	}
 	
+	void BlockFinder::AddRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k)
+	{
+		for(size_t j = 0; j < k; j++, ++it)
+		{
+			restricted.insert(std::make_pair(it.GetElementId(), index));
+		}
+	}
+
+	void BlockFinder::AddRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k)
+	{
+		for(size_t j = 0; j < k; j++, ++it)
+		{
+		//	restricted.erase(std::make_pair(it.GetElementId(), i));
+		}
+	}
+
 	void BlockFinder::CollapseBulgeGreedily(DNASequence & sequence,
 		BifurcationStorage & bifStorage,
 		size_t k,
-		std::vector<StrandIterator> & startKMer,
-		const RestrictionMap & restricted,
+		NotificationData notification,
 		VisitData sourceData,
 		VisitData targetData)
 	{
+		std::vector<StrandIterator> & startKMer = *notification.startKMer;
+		RestrictionMap & restricted = *notification.restricted;
+
 	#ifdef _DEBUG
 		static size_t bulge = 0;
 		std::cerr << "Bulge #" << bulge++ << std::endl;
@@ -238,6 +267,7 @@ namespace SyntenyFinder
 				if(kt.first->second != targetData.kmerId)
 				{
 					startKMer[kt.first->second] = sequence.PositiveEnd(0);
+					notification.iteratorIndex->erase(startKMer[kt.first->second]);
 				}
 			}
 		}
@@ -251,8 +281,8 @@ namespace SyntenyFinder
 			sourceData.distance,
 			AdvanceForward(targetIt, k),
 			targetData.distance,
-			boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(bifStorage), _1, _2),
-			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
+			boost::bind(&BlockFinder::NotifyBefore, boost::ref(*this), notification, _1, _2),
+			boost::bind(&BlockFinder::NotifyAfter, boost::ref(*this), notification, _1, _2));
 		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
 
 	#ifdef _DEBUG
@@ -271,9 +301,11 @@ namespace SyntenyFinder
 	size_t BlockFinder::RemoveBulges(DNASequence & sequence,
 		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId)
 	{	
-		size_t ret = 0;				
+		size_t ret = 0;	
+		IteratorVector startKMer;
 		RestrictionMap restricted;
-		std::vector<StrandIterator> startKMer;		
+		IteratorIndexMap iteratorIndex;
+		NotificationData notification(&restricted, &iteratorIndex, &startKMer, &bifStorage, k);
 		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
 		{
 			return ret;
@@ -288,12 +320,10 @@ namespace SyntenyFinder
 			}
 
 			StrandIterator it = startKMer[i];
-			for(size_t j = 0; j < k; j++, ++it)
-			{
-				restricted.insert(std::make_pair(it.GetElementId(), i));
-			}
+			iteratorIndex[it] = i;
+			AddRestricted(restricted, it, i, k);			
 		}
-
+		
 		std::vector<BifurcationMark> visit;
 		for(size_t kmerI = 0; kmerI < startKMer.size(); kmerI++)
 		{
@@ -338,12 +368,12 @@ namespace SyntenyFinder
 							if(iless)
 							{
 								endChar[jdata.kmerId] = endChar[idata.kmerId];
-								CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, restricted, idata, jdata);
+								CollapseBulgeGreedily(sequence, bifStorage, k, notification, idata, jdata);
 							}
 							else
 							{
 								endChar[idata.kmerId] = endChar[jdata.kmerId];
-								CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, restricted, jdata, idata);
+								CollapseBulgeGreedily(sequence, bifStorage, k, notification, jdata, idata);
 								FillVisit(sequence, bifStorage, startKMer[kmerI], minBranchSize, visit);
 							}
 

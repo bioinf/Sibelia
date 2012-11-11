@@ -47,10 +47,20 @@ namespace SyntenyFinder
 		static void PrintRaw(const DNASequence & s, std::ostream & out);
 		static void PrintPath(const DNASequence & s, StrandIterator e, size_t k, size_t distance, std::ostream & out);
 		void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);
-	private:	
+	private:
+		struct IteratorHash
+		{
+			size_t operator() (const StrandIterator & it) const
+			{
+				return it.GetElementId();
+			}
+		};
+
 		typedef std::vector<Pos> PosVector;
-		typedef std::multimap<size_t, size_t> RestrictionMap;
+		typedef std::vector<StrandIterator> IteratorVector;
 		typedef boost::unordered_map<std::string, size_t> KMerBifMap;
+		typedef boost::unordered_map<StrandIterator, size_t, IteratorHash> IteratorIndexMap;
+		typedef boost::unordered_multimap<size_t, size_t> RestrictionMap;		
 		std::vector<FASTARecord> chrList_;
 		std::vector<PosVector> originalPos_;		
 
@@ -87,10 +97,61 @@ namespace SyntenyFinder
 			}
 		};
 
+		struct NotificationData
+		{
+			RestrictionMap * restricted;
+			IteratorIndexMap * iteratorIndex;
+			IteratorVector * startKMer;
+			BifurcationStorage * bifStorage;
+			size_t k;
+			NotificationData() {}
+			NotificationData(RestrictionMap * restricted, IteratorIndexMap * iteratorIndex, IteratorVector * startKMer, BifurcationStorage * bifStorage, size_t k):
+				restricted(restricted), iteratorIndex(iteratorIndex), startKMer(startKMer), bifStorage(bifStorage), k(k) {}
+		};
+
+		std::vector<size_t> posInvalid;
+		std::vector<size_t> negInvalid;
+		typedef DNASequence::SequencePosIterator PositiveIterator;
+		typedef DNASequence::SequenceNegIterator NegativeIterator;
+
+		template<class Iterator, std::vector<size_t> BlockFinder::*invalidPtr>
+			void SelectInvalid(NotificationData data, Iterator begin, Iterator end, DNASequence::Direction direction)
+			{
+				size_t pos = 0;
+				std::vector<size_t> & invalid = this->*invalidPtr;
+				for(Iterator it = begin; it != end; ++it, ++pos)
+				{
+					StrandIterator st(it.base(), direction);
+					if(data.iteratorIndex->count(st))
+					{
+						invalid.push_back((*data.iteratorIndex)[st]);
+					}
+				}
+			}
+
+		template<class Iterator, std::vector<size_t> BlockFinder::*invalidPtr>
+			void AddInvalid(NotificationData data, Iterator begin, Iterator end, DNASequence::Direction direction)
+			{
+				size_t pos = 0;
+				size_t record = 0;
+				std::vector<size_t> & invalid = this->*invalidPtr;
+				for(Iterator it = begin; it != end; ++it, ++pos)
+				{
+					if(record < invalid.size() && invalid[record] == pos)
+					{
+					}
+				}
+
+				invalid.clear();
+			}
+
 		static bool EdgeEmpty(const Edge & a, size_t k);
 		static bool EdgeCompare(const Edge & a, const Edge & b);
 		static std::vector<size_t> EdgeToVector(const Edge & a);	
-				
+		void AddRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k);
+		void RemoveRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k);
+		void NotifyBefore(NotificationData notify, PositiveIterator begin, PositiveIterator end);
+		void NotifyAfter(NotificationData notify, PositiveIterator begin, PositiveIterator end);		
 		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
 		size_t EnumerateBifurcationsHash(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack f = ProgressCallBack()) const;
@@ -98,7 +159,7 @@ namespace SyntenyFinder
 		void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage) const;
 		void ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t minSize, bool sharedOnly, std::vector<BlockInstance> & chrList) const;
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
-		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, std::vector<StrandIterator> & startKMer, const RestrictionMap & restricted, VisitData sourceData, VisitData targetData);
+		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, NotificationData notification, VisitData sourceData, VisitData targetData);
 	};
 }
 
