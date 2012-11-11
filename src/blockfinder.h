@@ -111,20 +111,27 @@ namespace SyntenyFinder
 
 		std::vector<size_t> posInvalid;
 		std::vector<size_t> negInvalid;
+		static const size_t UNUSED;
 		typedef DNASequence::SequencePosIterator PositiveIterator;
 		typedef DNASequence::SequenceNegIterator NegativeIterator;
+
 
 		template<class Iterator, std::vector<size_t> BlockFinder::*invalidPtr>
 			void SelectInvalid(NotificationData data, Iterator begin, Iterator end, DNASequence::Direction direction)
 			{
-				size_t pos = 0;
 				std::vector<size_t> & invalid = this->*invalidPtr;
-				for(Iterator it = begin; it != end; ++it, ++pos)
+				for(Iterator it = begin; it != end; ++it)
 				{
 					StrandIterator st(it.base(), direction);
-					if(data.iteratorIndex->count(st))
+					IteratorIndexMap::iterator index = data.iteratorIndex->find(st);
+					if(index != data.iteratorIndex->end())
 					{
-						invalid.push_back((*data.iteratorIndex)[st]);
+						invalid.push_back(index->second);
+						RemoveRestricted(*data.restricted, st, index->second, data.k);
+					}
+					else
+					{
+						invalid.push_back(UNUSED);
 					}
 				}
 			}
@@ -132,13 +139,14 @@ namespace SyntenyFinder
 		template<class Iterator, std::vector<size_t> BlockFinder::*invalidPtr>
 			void AddInvalid(NotificationData data, Iterator begin, Iterator end, DNASequence::Direction direction)
 			{
-				size_t pos = 0;
-				size_t record = 0;
+				size_t pos = 0;				
 				std::vector<size_t> & invalid = this->*invalidPtr;
 				for(Iterator it = begin; it != end; ++it, ++pos)
 				{
-					if(record < invalid.size() && invalid[record] == pos)
+					if(invalid[pos] != UNUSED)
 					{
+						(*data.startKMer)[invalid[pos]] = StrandIterator(it.base(), direction);
+						AddRestricted(*data.restricted, (*data.startKMer)[invalid[pos]], invalid[pos], data.k);
 					}
 				}
 

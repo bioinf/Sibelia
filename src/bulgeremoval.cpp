@@ -8,8 +8,15 @@
 
 namespace SyntenyFinder
 {
+	const size_t BlockFinder::UNUSED = -1;
+
 	namespace
 	{
+		bool CmpSizePair(const std::pair<size_t, size_t> & a, const std::pair<size_t, size_t> & b)
+		{
+			return a.first == b.first && a.second == b.second;
+		}
+
 		struct BifurcationMark
 		{
 			size_t bifId;
@@ -225,11 +232,15 @@ namespace SyntenyFinder
 		}
 	}
 
-	void BlockFinder::AddRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k)
+	void BlockFinder::RemoveRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k)
 	{
 		for(size_t j = 0; j < k; j++, ++it)
 		{
-		//	restricted.erase(std::make_pair(it.GetElementId(), i));
+			typedef RestrictionMap::iterator RIterator;
+			std::pair<RIterator, RIterator> range = restricted.equal_range(it.GetElementId());
+			RIterator toErase = std::find_if(range.first, range.second, boost::bind(CmpSizePair, _1, std::make_pair(it.GetElementId(), index)));
+			assert(toErase != restricted.end());
+			restricted.erase(toErase);
 		}
 	}
 
