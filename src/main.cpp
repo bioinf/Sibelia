@@ -6,6 +6,8 @@
 
 #include <tclap/CmdLine.h>
 #include "outputgenerator.h"
+#include "unrolledlisttest.h"
+
 
 std::string IntToStr(size_t value)
 {
@@ -106,9 +108,10 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 
 const std::string DELIMITER(80, '-');
 
+
 int main(int argc, char * argv[])
 {	
-	SyntenyFinder::UnrolledListConsistencyTest();
+	testUnrolledList();
 	return 0;
 
 	std::stringstream parsets;		
