@@ -8,7 +8,7 @@
 #include "outputgenerator.h"
 #include "test/unrolledlisttest.h"
 
-#define _RUN_TEST
+//#define _RUN_TEST
 
 std::string IntToStr(size_t value)
 {
