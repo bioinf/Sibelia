@@ -6,9 +6,8 @@
 
 #include <tclap/CmdLine.h>
 #include "outputgenerator.h"
-#include "test/unrolledlisttest.h"
+#include "unrolledlisttest.h"
 
-//#define _RUN_TEST
 
 std::string IntToStr(size_t value)
 {
@@ -112,10 +111,8 @@ const std::string DELIMITER(80, '-');
 
 int main(int argc, char * argv[])
 {	
-
-#ifdef _RUN_TEST
-	SyntenyFinder::TestUnrolledList();
-#endif
+	testUnrolledList();
+	return 0;
 
 	std::stringstream parsets;		
 	const std::string parameterSetNameArray[] = {"loose", "fine"};

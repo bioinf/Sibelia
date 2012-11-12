@@ -1,29 +1,17 @@
-#include "../common.h"
-#include "unrolledlisttest.h"
-
-typedef SyntenyFinder::unrolled_list<int, 20> MyList;
-
-typedef SyntenyFinder::unrolled_list<int, 100> MyList100;
-
-void f (MyList::iterator, MyList::iterator) {}
-//bool rf (MyList::reverse_iterator) {return true;}
-
-void f100 (MyList100::iterator, MyList100::iterator) {}
-//bool rf100 (MyList100::reverse_iterator) {return true;}
-
-template<class T>
-void advance(T& c, int n)
-{
-	for (int i = 0; i < n; ++i)
-	{
-		++c;
-	}
-}
+#include "common.h"
+#include "unrolledlist.h"
 
 void randomTest();
 void memoryTest();
 
+
 typedef SyntenyFinder::unrolled_list<int, 5> UList5;
+typedef SyntenyFinder::unrolled_list<int, 20> UList20;
+typedef SyntenyFinder::unrolled_list<int, 100> UList100;
+
+void dummy20 (UList20::iterator, UList20::iterator) {}
+void dummy100 (UList100::iterator, UList100::iterator) {}
+
 typedef std::pair<UList5::iterator, int> KeyValue;
 typedef std::vector<KeyValue> CustomMap;
 
@@ -49,26 +37,7 @@ void UpdateIteratorsAfter(CustomMap & validIterator, std::vector<size_t> & pos, 
 	}
 }
 
-void UnrolledListEraseConsistencyTest()
-{
-	UList5 store;
-	store.set_erased_value(-1);
-	std::vector<int> buf;
-	for(int i = 1; i <= 20; i++)
-	{
-		buf.push_back(i);
-	}
-	
-	store.insert(store.end(), buf.begin(), buf.end());
-	UList5::iterator it = store.begin();
-	std::advance(it, 5);
-	UList5::reverse_iterator jt(it);
-	std::cout << *jt << ' ' << *it;
-	store.erase(it, store.end());
-	std::cout << *jt;
-}
-
-void UnrolledListInsertConsistencyTest()
+void UnrolledListConsistencyTest()
 {
 	UList5 store;
 	store.set_erased_value(-1);
@@ -98,6 +67,11 @@ void UnrolledListInsertConsistencyTest()
 		boost::bind(UpdateIteratorsBefore, boost::ref(validIterator), boost::ref(invalidatedPos), _1, _2),
 		boost::bind(UpdateIteratorsAfter, boost::ref(validIterator), boost::ref(invalidatedPos), _1, _2));	
 
+	for(UList5::iterator it = store.begin(); it != store.end(); ++it)
+	{
+		std::cout << *it << ' ';
+	}
+
 	//Test consistency
 	for(size_t i = 0; i < validIterator.size(); i++)
 	{
@@ -105,21 +79,18 @@ void UnrolledListInsertConsistencyTest()
 	}
 }
 
-void SyntenyFinder::TestUnrolledList()
+void TestUnrolledList()
 {
-	UnrolledListEraseConsistencyTest();
-	UnrolledListInsertConsistencyTest();	
 	randomTest();
 }
 
 void memoryTest()
 {
-	MyList100 list(-1);
-	std::vector<MyList100::iterator> inv;
-	std::vector<MyList100::reverse_iterator> rinv;
+	UList100 list(-1);
+	std::vector<UList100::iterator> inv;
+	std::vector<UList100::reverse_iterator> rinv;
 
-	MyList100::notify_func func = f100;
-	//MyList100::notify_reverse_predicate rpred = rf100;
+	UList100::notify_func func = dummy100;
 
 	for (int i = 0; i < 400 / 4 * 1024; ++i)
     {
@@ -128,40 +99,53 @@ void memoryTest()
         delete[] tmp;
     }
 
-    //std::cin.get();
+    std::cin.get();
+}
+
+void checkValid(UList20& list, std::list<int>& testList)
+{
+	UList20::iterator itList = list.begin();
+	std::list<int>::iterator itTest = testList.begin();
+	while (itTest != testList.end())
+	{
+		if (*itList != *itTest || itList == list.end())
+		{
+			for(UList20::iterator it = list.begin(); it != list.end(); ++it) std::cout << *it << " ";
+			std::cout << "\n====================\n";
+			for(std::list<int>::iterator it = testList.begin(); it != testList.end(); ++it) std::cout << *it << " ";
+			std::cout << std::endl;
+			assert(0);
+		}
+		++itList;
+		++itTest;
+	}
 }
 
 void randomTest()
 {
-	const int TEST_SIZE = 10000;
-	const int TEST_UNIT = 1000;
-
-	MyList list(-1);
-	std::vector<MyList::iterator> inv;
-	std::vector<MyList::reverse_iterator> rinv;
-
-	MyList::notify_func func = f;
-	//MyList::notify_reverse_predicate rpred = rf;
+	const int TEST_SIZE = 1000;
+	const int TEST_UNIT = 50;
 
 
-	//int* toInsert = new int[TEST_SIZE];
+	UList20 list(-1);
+	std::vector<UList20::iterator> inv;
+	std::vector<UList20::reverse_iterator> rinv;
+
+	UList20::notify_func func = dummy20;
+
 	std::list<int> testList;
 	for (int i = 0; i < TEST_SIZE; ++i)
     {
     	int random = rand() % 1000;
     	list.push_back(random);
     	testList.push_back(random);
-    	//toInsert[i] = rand() % 1000;
     }
-    //list.insert(list.begin(), toInsert, toInsert + TEST_SIZE, func, func);
-    //testList.insert(testList.begin(), toInsert, toInsert + TEST_SIZE);
-    //delete[] toInsert;
 
-	MyList::iterator itList = list.begin();
+	UList20::iterator itList = list.begin();
 	std::list<int>::iterator itTest = testList.begin();
     for (; itList != list.end() && itTest != testList.end(); ++ itList, ++itTest) assert(*itList == *itTest);
 
-	srand((unsigned int)time(0));
+	srand(time(0));
     int listSize = TEST_SIZE;
     int iteration = 0;
     bool action = false;
@@ -169,14 +153,51 @@ void randomTest()
 	{
 		action = false;
 
+		//point erase
+		if (listSize > TEST_UNIT * 2)
+		{
+			int pos = rand() % (listSize - 2);
+
+			UList20::iterator itBegin = list.begin(); advance(itBegin, pos);
+			itBegin = list.erase(itBegin);
+			list.erase(itBegin);
+
+			std::list<int>::iterator testBegin = testList.begin(); advance(testBegin, pos);
+			testBegin = testList.erase(testBegin);
+			testList.erase(testBegin);
+
+			listSize -= 2;
+			action = true;
+		}
+		checkValid(list, testList);
+
+		//point insert
+		if (listSize < TEST_SIZE * 2)
+		{
+			int pos = rand() % (listSize - 2);
+
+			int value = rand() % 1000;
+			UList20::iterator itBegin = list.begin(); advance(itBegin, pos);
+			itBegin = list.insert(itBegin, value);
+			list.insert(itBegin, value);
+
+			std::list<int>::iterator testBegin = testList.begin(); advance(testBegin, pos);
+			testBegin = testList.insert(testBegin, value);
+			testList.insert(testBegin, value);
+
+			listSize += 2;
+			action = true;
+		}
+		checkValid(list, testList);
+
 		//forward erase
 		if (listSize > TEST_UNIT * 2)
 		{
 			//how much erase
 			int toErase = rand() % TEST_UNIT;
 			int pos = rand() % (listSize - toErase - 1);
-			MyList::iterator itBegin = list.begin(); advance(itBegin, pos);
-			MyList::iterator itEnd = list.begin(); advance(itEnd, pos + toErase);
+			UList20::iterator itBegin = list.begin(); advance(itBegin, pos);
+			UList20::iterator itEnd = list.begin(); advance(itEnd, pos + toErase);
 			std::list<int>::iterator testBegin = testList.begin(); advance(testBegin, pos);
 			std::list<int>::iterator testEnd = testList.begin(); advance(testEnd, pos + toErase);
 
@@ -185,14 +206,16 @@ void randomTest()
 			listSize -= toErase;
 			action = true;
 		}
+		checkValid(list, testList);
+
 		//reverse erase
 		if (listSize > TEST_UNIT * 2)
 		{
 			//how much erase
 			int toErase = rand() % TEST_UNIT;
 			int pos = rand() % (listSize - toErase - 1);
-			MyList::reverse_iterator itBegin = list.rbegin(); advance(itBegin, pos);
-			MyList::reverse_iterator itEnd = list.rbegin(); advance(itEnd, pos + toErase);
+			UList20::reverse_iterator itBegin = list.rbegin(); advance(itBegin, pos);
+			UList20::reverse_iterator itEnd = list.rbegin(); advance(itEnd, pos + toErase);
 			std::list<int>::reverse_iterator testBegin = testList.rbegin(); advance(testBegin, pos);
 			std::list<int>::reverse_iterator testEnd = testList.rbegin(); advance(testEnd, pos + toErase);
 
@@ -201,11 +224,12 @@ void randomTest()
 			listSize -= toErase;
 			action = true;
 		}
+		checkValid(list, testList);
 
 		//forward insert
 		if (listSize < TEST_SIZE * 2)
 		{
-			int sizeInsert = rand() % TEST_UNIT;
+			int sizeInsert = rand() % TEST_UNIT + 1;
 			int* toInsert = new int[sizeInsert];
 
 			for (int i = 0; i < sizeInsert; ++i)
@@ -214,7 +238,7 @@ void randomTest()
 			}
 
 			int pos = rand() % listSize;
-			MyList::iterator itBegin = list.begin(); advance(itBegin, pos);
+			UList20::iterator itBegin = list.begin(); advance(itBegin, pos);
 			std::list<int>::iterator testBegin = testList.begin(); advance(testBegin, pos);
 
 			list.insert(itBegin, toInsert, toInsert + sizeInsert, func, func);
@@ -224,11 +248,12 @@ void randomTest()
 			delete[] toInsert;
 			action = true;
 		}
+		checkValid(list, testList);
 
 		//reverse insert
 		if (listSize < TEST_SIZE * 2)
 		{
-			int sizeInsert = rand() % TEST_UNIT;
+			int sizeInsert = rand() % TEST_UNIT + 1;
 			int* toInsert = new int[sizeInsert];
 
 			for (int i = 0; i < sizeInsert; ++i)
@@ -236,11 +261,8 @@ void randomTest()
 				toInsert[i] = rand() % 1000;
 			}
 
-			//for(MyList::iterator it = list.begin(); it != list.end(); ++it) std::cout << *it << " ";
-			//std::cout << std::endl;
-
 			int pos = rand() % listSize;
-			MyList::reverse_iterator itBegin = list.rbegin(); advance(itBegin, pos);
+			UList20::reverse_iterator itBegin = list.rbegin(); advance(itBegin, pos);
 			std::list<int>::reverse_iterator testBegin = testList.rbegin(); advance(testBegin, pos);
 
 			list.insert(itBegin, toInsert, toInsert + sizeInsert, func, func);
@@ -252,35 +274,10 @@ void randomTest()
 			action = true;
 		}
 
-
-		//////////////////////////////////
-		//checking
-		int iter = 0;
-		MyList::iterator itList = list.begin();
-		std::list<int>::iterator itTest = testList.begin();
-		while (itTest != testList.end())
-		{
-			assert(itList != list.end());
-			if (*itList != *itTest)
-			{
-				for(MyList::iterator it = list.begin(); it != list.end(); ++it) std::cout << *it << " ";
-				std::cout << "\n====================\n";
-				for(std::list<int>::iterator it = testList.begin(); it != testList.end(); ++it) std::cout << *it << " ";
-				std::cout << std::endl;
-				assert(0);
-			}
-			++itList;
-			++itTest;
-			++iter;
-		}
-		//////////////////////////////
-		std::cout 	<< "iteration: " << iteration++ << " list size: " << list.size() << std::endl;
+		checkValid(list, testList);
+		std::cout 	<< "iteration: " << iteration++ << " list size: " << list.size()
+					<< " with " << list.debugGetNodesCount() << " nodes" << std::endl;
 
 		if (!action) break;
-
-		inv.clear();
-		rinv.clear();
-
-		//if (iteration > 500000) break;
 	}
 }
