@@ -133,9 +133,9 @@ namespace SyntenyFinder
 		typedef typename std::list<chunk>::iterator type_iter;
 		typedef typename std::list<chunk>::reverse_iterator type_rev_iter;
 
-		iterator 	create_iterator(type_iter listPos, size_t arrayPos);
-		void		lazyUpdateBeginEnd();
-		void		updateEndMark();
+		static iterator 	create_iterator(type_iter listPos, size_t arrayPos);
+		void				lazyUpdateBeginEnd();
+		void				updateEndMark();
 
 		std::list<chunk>    m_Data;
 		size_t              m_Size;
@@ -146,6 +146,7 @@ namespace SyntenyFinder
 		iterator			m_Begin;
 		iterator			m_End;
 		type_iter			m_LastChunk;
+		bool				m_LastChunkSet;
 	};
 
 	template<class T, size_t NODE_SIZE>
@@ -321,9 +322,9 @@ namespace SyntenyFinder
 		m_Size(0),
 		m_ErasedValueSet(false),
 		m_BeginEndDirty(false),
-		m_Begin(this->create_iterator(m_Data.begin(), 0)),
-		m_End(this->create_iterator(m_Data.end(), 0)),
-		m_LastChunk(m_Data.begin())
+		m_Begin(create_iterator(m_Data.begin(), 0)),
+		m_End(create_iterator(m_Data.end(), 0)),
+		m_LastChunkSet(false)
 	{
 	}
 
@@ -334,9 +335,9 @@ namespace SyntenyFinder
 		m_ErasedValue(erased_value),
 		m_ErasedValueSet(true),
 		m_BeginEndDirty(false),
-		m_Begin(this->create_iterator(m_Data.begin(), 0)),
-		m_End(this->create_iterator(m_Data.end(), 0)),
-		m_LastChunk(m_Data.begin())
+		m_Begin(create_iterator(m_Data.begin(), 0)),
+		m_End(create_iterator(m_Data.end(), 0)),
+		m_LastChunkSet(false)
 	{
 	}
 
@@ -348,6 +349,7 @@ namespace SyntenyFinder
 		m_ErasedValueSet(other.m_ErasedValueSet),
 		m_BeginEndDirty(other.m_BeginEndDirty),
 		m_LastChunk(other.m_LastChunk),
+		m_LastChunkSet(other.m_LastChunkSet),
 		m_Begin(other.m_Begin),
 		m_End(other.m_End)
 	{
@@ -362,6 +364,7 @@ namespace SyntenyFinder
 		m_ErasedValueSet = other.m_ErasedValueSet;
 		m_BeginEndDirty = other.m_BeginEndDirty;
 		m_LastChunk = other.m_LastChunk;
+		m_LastChunkSet = other.m_LastChunkSet;
 		m_Begin = other.m_Begin;
 		m_End = other.m_End;
 	}
@@ -403,10 +406,11 @@ namespace SyntenyFinder
 	template<class T, size_t NODE_SIZE>
 	void unrolled_list<T, NODE_SIZE>::updateEndMark()
 	{
-		if (!m_Data.empty()) m_LastChunk->is_end = false;
+		if (m_LastChunkSet) m_LastChunk->is_end = false;
 		type_iter prevToEnd = --m_Data.end();
 		prevToEnd->is_end = true;
 		m_LastChunk = prevToEnd;
+		m_LastChunkSet = true;
 	}
 
 	template<class T, size_t NODE_SIZE>

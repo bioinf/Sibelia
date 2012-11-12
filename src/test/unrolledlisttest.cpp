@@ -142,7 +142,7 @@ void randomTest()
 	std::list<int>::iterator itTest = testList.begin();
     for (; itList != list.end() && itTest != testList.end(); ++ itList, ++itTest) assert(*itList == *itTest);
 
-	srand(time(0));
+	srand((unsigned)time(0));
     int listSize = TEST_SIZE;
     int iteration = 0;
     bool action = false;
