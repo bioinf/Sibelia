@@ -56,7 +56,7 @@ namespace SyntenyFinder
 				it != bifurcationPos_[strand].end(); ++it)
 			{
 				StrandIterator jt(it->second, static_cast<DNASequence::Direction>(strand));
-				size_t pos = 0; //std::distance(start[strand], jt);
+				size_t pos = sequence.GlobalIndex(jt);
 				out << " {" << it->first << ", " << pos << ", ";
 				CopyN(jt, k, std::ostream_iterator<char>(out));
 				out << "}";
@@ -67,7 +67,7 @@ namespace SyntenyFinder
 				it != posBifurcation_[strand].end(); ++it)
 			{
 				StrandIterator jt((*it)->second, static_cast<DNASequence::Direction>(strand));
-				size_t pos = 0; //std::distance(start[strand], jt);
+				size_t pos = sequence.GlobalIndex(jt);
 				out << " {" << pos << ", ";
 				CopyN(jt, k, std::ostream_iterator<char>(out));
 				out << ", " << (*it)->first << "}";

@@ -103,6 +103,7 @@ namespace SyntenyFinder
 			size_t bnear = 0;
 			StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k).Invert();
 			StrandIterator bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance);
+
 			for(size_t i = 0; i < k; i++, ++amer, ++bmer)
 			{
 				if(anear < lookBack.size() && i == lookBack[anear].first)
@@ -122,6 +123,7 @@ namespace SyntenyFinder
 			StrandIterator srcBMer = AdvanceForward(startKMer[sourceData.kmerId], sourceData.distance + k).Invert();
 			for(size_t i = 0; i < sourceData.distance + 1; i++, ++amer, ++bmer, ++srcAMer, ++srcBMer)
 			{
+				std::cout << *amer;
 				size_t bifId = bifStorage.GetBifurcation(srcAMer);
 				if(bifId != BifurcationStorage::NO_BIFURCATION)
 				{
@@ -134,6 +136,8 @@ namespace SyntenyFinder
 					bifStorage.AddPoint(bmer, bifId);
 				}
 			}
+
+			std::cout << std::endl;
 		}
 
 		bool Overlap(size_t k,
@@ -330,9 +334,8 @@ namespace SyntenyFinder
 				endChar[i] = *AdvanceForward(startKMer[i], k);
 			}
 
-			StrandIterator it = startKMer[i];
-			iteratorIndex[it] = i;
-			AddRestricted(restricted, it, i, k);			
+			iteratorIndex[startKMer[i]] = i;
+			AddRestricted(restricted, startKMer[i], i, k);			
 		}
 		
 		std::vector<BifurcationMark> visit;

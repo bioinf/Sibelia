@@ -8,7 +8,7 @@
 #include "outputgenerator.h"
 #include "test/unrolledlisttest.h"
 
-#define _RUN_TEST
+//#define _RUN_TEST
 
 std::string IntToStr(size_t value)
 {
@@ -114,7 +114,7 @@ int main(int argc, char * argv[])
 {	
 
 #ifdef _RUN_TEST
-//	SyntenyFinder::TestUnrolledList();
+	SyntenyFinder::TestUnrolledList();
 #endif
 
 	std::stringstream parsets;		

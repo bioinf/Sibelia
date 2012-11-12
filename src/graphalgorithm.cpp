@@ -85,7 +85,7 @@ namespace SyntenyFinder
 	
 #ifdef _DEBUG	
 	void BlockFinder::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
-	{	return;
+	{	
 		for(size_t strand = 0; strand < 2; strand++)
 		{
 			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)

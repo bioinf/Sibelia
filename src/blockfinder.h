@@ -115,7 +115,6 @@ namespace SyntenyFinder
 		typedef DNASequence::SequencePosIterator PositiveIterator;
 		typedef DNASequence::SequenceNegIterator NegativeIterator;
 
-
 		template<class Iterator, std::vector<size_t> BlockFinder::*invalidPtr>
 			void SelectInvalid(NotificationData data, Iterator begin, Iterator end, DNASequence::Direction direction)
 			{

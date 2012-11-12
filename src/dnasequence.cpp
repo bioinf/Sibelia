@@ -305,4 +305,9 @@ namespace SyntenyFinder
 		posEnd_.clear();		
 		sequence_.erase(sequence_.begin(), sequence_.end());
 	}
+
+	size_t DNASequence::GlobalIndex(StrandIterator it) const
+	{
+		return std::distance(++(const_cast<DNASequence*>(this)->sequence_.begin()), it.Base());
+	}
 }
