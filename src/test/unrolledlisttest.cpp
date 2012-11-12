@@ -1,9 +1,7 @@
-#include "common.h"
-#include "unrolledlist.h"
+#include "unrolledlisttest.h"
 
 void randomTest();
 void memoryTest();
-
 
 typedef SyntenyFinder::unrolled_list<int, 5> UList5;
 typedef SyntenyFinder::unrolled_list<int, 20> UList20;
@@ -19,7 +17,6 @@ bool Cmp(const KeyValue & a, const KeyValue & b)
 {
 	return a.first == b.first;
 }
-
 
 void UpdateIteratorsBefore(CustomMap & validIterator, std::vector<size_t> & pos, UList5::iterator start, UList5::iterator end)
 {

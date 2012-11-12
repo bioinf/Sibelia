@@ -35,15 +35,14 @@ namespace SyntenyFinder
 			run,
 			end
 		};
-		static const char SEPARATION_CHAR;
 
+		static const char SEPARATION_CHAR;
 		typedef boost::function<void(size_t, State)> ProgressCallBack;
 		BlockFinder(const std::vector<FASTARecord> & chrList);
 		void SerializeGraph(size_t k, std::ostream & out) const;
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack()) const;
 		void GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack()) const;
 		void PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
-
 		static void PrintRaw(const DNASequence & s, std::ostream & out);
 		static void PrintPath(const DNASequence & s, StrandIterator e, size_t k, size_t distance, std::ostream & out);
 		void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);

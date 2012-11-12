@@ -269,17 +269,21 @@ namespace SyntenyFinder
 		SequencePosIterator end = AdvanceForward(target, targetDistance).Base();
 		if(target.GetDirection() == positive)
 		{
+			before(AdvanceBackward(begin, 1), begin);
 			begin = sequence_.erase(begin, end);
 			begin = sequence_.insert(begin, source, AdvanceForward(source, sourceDistance), before, after);
+			after(AdvanceBackward(begin, 1), begin);
 			target = StrandIterator(begin, positive);
 		}
 		else
 		{	
 			std::swap(begin, end);
 			source = AdvanceForward(source, sourceDistance).Invert();
+			before(AdvanceBackward(begin, 1), begin);
 			begin = sequence_.erase(begin, end);
 			begin = sequence_.insert(begin, source, AdvanceForward(source, sourceDistance), before, after);
 			target = StrandIterator(AdvanceForward(begin, sourceDistance), negative);
+			after(AdvanceBackward(begin, 1), begin);
 		}
 
 		pos = 0;

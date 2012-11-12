@@ -6,7 +6,7 @@
 
 #include <tclap/CmdLine.h>
 #include "outputgenerator.h"
-#include "unrolledlisttest.h"
+#include "test/unrolledlisttest.h"
 
 
 std::string IntToStr(size_t value)
@@ -106,13 +106,16 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 	}
 }
 
-const std::string DELIMITER(80, '-');
+#define _RUN_TEST_
 
+const std::string DELIMITER(80, '-');
 
 int main(int argc, char * argv[])
 {	
+
+#ifdef _RUN_TEST_
 	testUnrolledList();
-	return 0;
+#endif
 
 	std::stringstream parsets;		
 	const std::string parameterSetNameArray[] = {"loose", "fine"};
@@ -120,7 +123,6 @@ int main(int argc, char * argv[])
 	std::map<std::string, std::vector<std::pair<int, int> > > defaultParameters;
 	defaultParameters["loose"] = LooseStageFile();
 	defaultParameters["fine"] = FineStageFile();
-
 	try
 	{  
 		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "0.7071");

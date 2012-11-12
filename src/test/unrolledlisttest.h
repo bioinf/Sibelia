@@ -1,11 +1,17 @@
-#ifndef _UNROLLED_LIST_TEST_H_
-#define _UNROLLED_LIST_TEST_H_
+#ifndef UNROLLED_LIST_TEST_H
+#define UNROLLED_LIST_TEST_H
 
+#include "../common.h"
 #include "../unrolledlist.h"
 
-namespace SyntenyFinder
+void UnrolledListConsistencyTest();
+void memoryTest();
+void randomTest();
+
+inline void testUnrolledList()
 {
-	void TestUnrolledList();
+	UnrolledListConsistencyTest();
+	randomTest();
 }
 
 #endif
