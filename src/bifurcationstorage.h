@@ -116,7 +116,7 @@ namespace SyntenyFinder
 				{
 					if(record < invalid.size() && invalid[record].first == pos)
 					{
-						AddPoint(StrandIterator(it.base(), DNASequence::positive), invalid[record++].second);
+						AddPoint(StrandIterator(it.base(), direction), invalid[record++].second);
 					}
 				}
 

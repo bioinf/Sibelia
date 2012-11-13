@@ -157,6 +157,8 @@ namespace SyntenyFinder
 		DNASequence(const std::vector<FASTARecord> & record, const std::vector<std::vector<Pos> > & original);
 		std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2) const;
 		size_t GlobalIndex(StrandIterator it) const;
+		void SubscribeIterator(SequencePosIterator & it);
+		void UnsubscribeIterator(SequencePosIterator & it);
 		
 		static const char UNKNOWN_BASE;
 		static const std::string alphabet;		
@@ -164,10 +166,35 @@ namespace SyntenyFinder
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
 		static const char SEPARATION_CHAR;
 		static const std::string complementary_;
+
+		struct IteratorPtrHash
+		{
+			size_t operator()(SequencePosIterator * it) const
+			{
+				return reinterpret_cast<size_t>(&(**it));
+			}
+		};
+
+		struct IteratorPtrCompare
+		{
+			bool operator()(SequencePosIterator * it, SequencePosIterator * jt) const
+			{
+				return (*it) == (*jt);
+			}
+		};
+
+		typedef boost::unordered_multiset<SequencePosIterator*, IteratorPtrHash, IteratorPtrCompare> IteratorMap;
+		typedef IteratorMap::iterator IteratorPlace;
+		typedef std::pair<IteratorPlace, IteratorPlace> IteratorRange;		
+
+		void NotifyBefore(SequencePosIterator begin, SequencePosIterator end, Sequence::notify_func before);
+		void NotifyAfter(SequencePosIterator begin, SequencePosIterator end, Sequence::notify_func after);
 		
 		Sequence sequence_;
 		std::vector<SequencePosIterator> posBegin_;
 		std::vector<SequencePosIterator> posEnd_;
+		IteratorMap iteratorStore_;
+		std::vector<IteratorRange> toReplace_;
 	};	
 	
 	inline bool ProperKMer(DNASequence::StrandIterator it, size_t k)

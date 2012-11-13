@@ -90,56 +90,6 @@ namespace SyntenyFinder
 			}
 		}
 
-		void UpdateBifurcations(DNASequence & sequence,
-			BifurcationStorage & bifStorage,
-			size_t k,
-			const std::vector<StrandIterator> & startKMer,
-			VisitData sourceData,
-			VisitData targetData,
-			const std::vector<std::pair<size_t, size_t> > & lookForward,
-			const std::vector<std::pair<size_t, size_t> > & lookBack)
-		{
-			size_t anear = 0;
-			size_t bnear = 0;
-			StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k).Invert();
-			StrandIterator bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance);
-
-			for(size_t i = 0; i < k; i++, ++amer, ++bmer)
-			{
-				if(anear < lookBack.size() && i == lookBack[anear].first)
-				{
-					bifStorage.AddPoint(amer, lookBack[anear++].second);
-				}
-
-				if(bnear < lookForward.size() && i == lookForward[bnear].first)
-				{
-					bifStorage.AddPoint(bmer, lookForward[bnear++].second);
-				}
-			}
-
-			amer = startKMer[targetData.kmerId];
-			bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance + k).Invert();
-			StrandIterator srcAMer = startKMer[sourceData.kmerId];
-			StrandIterator srcBMer = AdvanceForward(startKMer[sourceData.kmerId], sourceData.distance + k).Invert();
-			for(size_t i = 0; i < sourceData.distance + 1; i++, ++amer, ++bmer, ++srcAMer, ++srcBMer)
-			{
-				std::cout << *amer;
-				size_t bifId = bifStorage.GetBifurcation(srcAMer);
-				if(bifId != BifurcationStorage::NO_BIFURCATION)
-				{
-					bifStorage.AddPoint(amer, bifId);
-				}
-
-				bifId = bifStorage.GetBifurcation(srcBMer);
-				if(bifId != BifurcationStorage::NO_BIFURCATION)
-				{
-					bifStorage.AddPoint(bmer, bifId);
-				}
-			}
-
-			std::cout << std::endl;
-		}
-
 		bool Overlap(size_t k,
 			const std::vector<StrandIterator> & startKMer,
 			VisitData sourceData,
@@ -210,6 +160,56 @@ namespace SyntenyFinder
 
 	}
 
+	void BlockFinder::UpdateBifurcations(DNASequence & sequence,
+			BifurcationStorage & bifStorage,
+			size_t k,
+			const std::vector<StrandIterator> & startKMer,
+			VisitData sourceData,
+			VisitData targetData,
+			const std::vector<std::pair<size_t, size_t> > & lookForward,
+			const std::vector<std::pair<size_t, size_t> > & lookBack)
+	{
+		size_t anear = 0;
+		size_t bnear = 0;
+		StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k).Invert();
+		StrandIterator bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance);
+		for(size_t i = 0; i < k; i++, ++amer, ++bmer)
+		{
+			if(anear < lookBack.size() && i == lookBack[anear].first)
+			{
+				bifStorage.AddPoint(amer, lookBack[anear++].second);
+				assert(bifStorage.GetBifurcation(amer) == GetMustBeBifurcation(amer, k));
+			}
+
+			if(bnear < lookForward.size() && i == lookForward[bnear].first)
+			{
+				bifStorage.AddPoint(bmer, lookForward[bnear++].second);
+				assert(bifStorage.GetBifurcation(bmer) == GetMustBeBifurcation(bmer, k));
+			}
+		}
+
+		amer = startKMer[targetData.kmerId];
+		bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance + k).Invert();
+		StrandIterator srcAMer = startKMer[sourceData.kmerId];
+		StrandIterator srcBMer = AdvanceForward(startKMer[sourceData.kmerId], sourceData.distance + k).Invert();
+		for(size_t i = 0; i < sourceData.distance + 1; i++, ++amer, ++bmer, ++srcAMer, ++srcBMer)
+		{				
+			size_t bifId = bifStorage.GetBifurcation(srcAMer);
+			if(bifId != BifurcationStorage::NO_BIFURCATION)
+			{
+				bifStorage.AddPoint(amer, bifId);
+				assert(bifStorage.GetBifurcation(amer) == GetMustBeBifurcation(amer, k));
+			}
+
+			bifId = bifStorage.GetBifurcation(srcBMer);
+			if(bifId != BifurcationStorage::NO_BIFURCATION)
+			{
+				bifStorage.AddPoint(bmer, bifId);
+				assert(bifStorage.GetBifurcation(bmer) == GetMustBeBifurcation(bmer, k));
+			}
+		}
+	}
+
 	void BlockFinder::NotifyBefore(NotificationData data, PositiveIterator begin, PositiveIterator end)
 	{
 		DNASequence::SequenceNegIterator rbegin(end);
@@ -270,8 +270,6 @@ namespace SyntenyFinder
 		bifStorage.Dump(sequence, k, std::cerr);
 	#endif
 			
-		std::vector<BifurcationMark> v;
-		FillVisit(sequence, bifStorage, startKMer[sourceData.kmerId], sourceData.distance, v);
 		StrandIterator it = startKMer[targetData.kmerId];
 		for(size_t step = 0; step < targetData.distance + k; step++, ++it)
 		{

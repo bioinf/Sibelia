@@ -47,7 +47,7 @@ namespace SyntenyFinder
 
 	void BlockFinder::PrintPath(const DNASequence & s, StrandIterator e, size_t k, size_t distance, std::ostream & out)
 	{
-		out << (e.GetDirection() == DNASequence::positive ? "+ " : "- ");
+		out << (e.GetDirection() == DNASequence::positive ? "+" : "-") << s.GlobalIndex(e) << ' ';
 		CopyN(e, distance + k, std::ostream_iterator<char>(out));
 		std::cerr << std::endl;
 	}

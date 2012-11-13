@@ -84,6 +84,13 @@ namespace SyntenyFinder
 	
 	
 #ifdef _DEBUG	
+	size_t BlockFinder::GetMustBeBifurcation(StrandIterator jt, size_t k)
+	{		
+		std::string buf(std::string(jt, AdvanceForward(jt, k)));
+		KMerBifMap::iterator kt = idMap.find(buf);
+		return kt == idMap.end() ? BifurcationStorage::NO_BIFURCATION : kt->second;
+	}
+
 	void BlockFinder::Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k)
 	{	
 		for(size_t strand = 0; strand < 2; strand++)
@@ -96,11 +103,10 @@ namespace SyntenyFinder
 				for(; window.Valid(); window.Move())
 				{
 					StrandIterator jt = window.GetBegin();
+					size_t pos = sequence.GlobalIndex(jt);
 					size_t actualBifurcation = bifStorage.GetBifurcation(jt);
-					std::string buf(std::string(jt, AdvanceForward(jt, k)));
-					KMerBifMap::iterator kt = idMap.find(buf);
-					size_t mustbeBifurcation = kt == idMap.end() ? BifurcationStorage::NO_BIFURCATION : kt->second;
-					assert(actualBifurcation == mustbeBifurcation);
+					size_t mustBeBifurcation = GetMustBeBifurcation(jt, k);
+					assert(actualBifurcation == mustBeBifurcation);
 				}	
 			}
 		}

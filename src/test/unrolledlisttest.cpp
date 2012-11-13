@@ -1,3 +1,9 @@
+//***************************************************************************
+//* Copyright (c) 2012 Saint-Petersburg Academic University
+//* All Rights Reserved
+//* See file LICENSE for details.
+//****************************************************************************
+
 #include "unrolledlisttest.h"
 
 void randomTest();
@@ -32,6 +38,19 @@ void UpdateIteratorsAfter(CustomMap & validIterator, std::vector<size_t> & pos, 
 	{
 		validIterator[pos[i]].first = start;
 	}
+}
+
+void InsertTest()
+{
+	UList100 store(-1);
+	std::vector<int> buf(100, 1);
+	store.insert(store.begin(), buf.begin(), buf.end());
+	UList100::iterator begin = store.begin();
+	UList100::iterator end = store.begin();
+	std::advance(begin, 10);
+	std::advance(end, 12);
+	begin = store.erase(begin, end);
+	store.insert(begin, buf.rbegin(), buf.rbegin() + 10);
 }
 
 void UnrolledListConsistencyTest()
@@ -74,11 +93,6 @@ void UnrolledListConsistencyTest()
 	{
 		assert(*validIterator[i].first == validIterator[i].second);
 	}
-}
-
-void TestUnrolledList()
-{
-	randomTest();
 }
 
 void memoryTest()

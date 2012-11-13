@@ -210,14 +210,15 @@ Default value = not set. To select the parameters set, use cmd parameter:
 	-s <loose|fine> or --parameters <loose|fine>
 
 Approach used in "Sibelia" is parameter dependent. To understand the details,
-please see the next section and [1].
+please see the next section and [1]. The "loose" option produces longer blocks
+and better coverage, while "fine" can capture small-scale rearrangements, for
+example, inversions of size < 15 000 BP.
 
 Using custom parameters set
 ---------------------------
-The algorithm consists of several stages of computations.Each stage has two parameters,
+The algorithm consists of several stages of computations. Each stage has two parameters,
 K and D. There are two default parameters set, "loose" and "fine", see section
 "Basic usage". But you can vary these parameters manually.
-Maximum number of iterations
 
 
 Maximum number of iterations

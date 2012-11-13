@@ -126,6 +126,7 @@ namespace SyntenyFinder
 					{
 						invalid.push_back(index->second);
 						RemoveRestricted(*data.restricted, st, index->second, data.k);
+						data.iteratorIndex->erase(st);
 					}
 					else
 					{
@@ -143,8 +144,10 @@ namespace SyntenyFinder
 				{
 					if(invalid[pos] != UNUSED)
 					{
-						(*data.startKMer)[invalid[pos]] = StrandIterator(it.base(), direction);
+						StrandIterator st(it.base(), direction);
+						(*data.startKMer)[invalid[pos]] = st;
 						AddRestricted(*data.restricted, (*data.startKMer)[invalid[pos]], invalid[pos], data.k);
+						(*data.iteratorIndex)[st] = invalid[pos];
 					}
 				}
 
@@ -154,6 +157,7 @@ namespace SyntenyFinder
 		static bool EdgeEmpty(const Edge & a, size_t k);
 		static bool EdgeCompare(const Edge & a, const Edge & b);
 		static std::vector<size_t> EdgeToVector(const Edge & a);	
+		size_t GetMustBeBifurcation(StrandIterator it, size_t k);
 		void AddRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k);
 		void RemoveRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k);
 		void NotifyBefore(NotificationData notify, PositiveIterator begin, PositiveIterator end);
@@ -166,6 +170,8 @@ namespace SyntenyFinder
 		void ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t minSize, bool sharedOnly, std::vector<BlockInstance> & chrList) const;
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, NotificationData notification, VisitData sourceData, VisitData targetData);
+		void UpdateBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const std::vector<StrandIterator> & startKMer, VisitData sourceData, VisitData targetData,
+			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBack);
 	};
 }
 
