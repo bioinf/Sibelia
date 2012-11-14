@@ -11,7 +11,7 @@ namespace SyntenyFinder
 	namespace
 	{
 		const char COVERED = 1;
-		struct FooIt: public std::iterator<std::forward_iterator_tag, char>
+		struct FooIt: public std::iterator<std::forward_iterator_tag, char> // TODO: rename struct, or explain wtf at least
 		{
 			FooIt& operator++()
 			{
@@ -42,6 +42,16 @@ namespace SyntenyFinder
 			std::stringstream out;			
 			out << block.GetChr() + 1 << '\t' << (block.GetSignedBlockId() < 0 ? '-' : '+') << '\t';
 			out << block.GetStart() << '\t' << block.GetEnd() << '\t' << block.GetEnd() - block.GetStart();
+			return out.str();
+		}
+
+		// function to sort blocks in one chromosome by starting position (it's sorted lexicographically by D3)
+		std::string OutputD3BlockID(const BlockInstance & block)
+		{
+			std::stringstream out;
+			out << "chr" << block.GetChr() + 1 << ".";
+			out << std::setfill('0') << std::setw(8) << block.GetStart() << "-";
+			out << std::setfill('0') << std::setw(8) << block.GetEnd();
 			return out.str();
 		}
 
@@ -278,7 +288,7 @@ namespace SyntenyFinder
         TryOpenFile(outFile, out);
         out << "chart_data = [" << std::endl;
 
-        //blocks must be sorted by id
+        //blocks must be sorted by start
         BlockList sortedBlocks = blockList_;
         std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareByStart);
 
@@ -292,8 +302,8 @@ namespace SyntenyFinder
             else
                 first_line = false;
             out << "    {";
-            out << "\"name\":\"chr" << itBlock->GetChr() + 1 << "." << std::setfill('0') << std::setw(8) << itBlock->GetStart() << "-" << std::setfill('0') << std::setw(10) << itBlock->GetEnd() << "\",";
-            out << "\"size\":" << (itBlock->GetEnd() - itBlock->GetStart()) << ",";
+            out << "\"name\":\"" << OutputD3BlockID(*itBlock) << "\",";
+            out << "\"size\":" << itBlock->GetLength() << ",";
             out << "\"imports\":[";
             bool first = true;
             for (BlockList::iterator itPair = sortedBlocks.begin(); itPair != sortedBlocks.end(); ++itPair)
@@ -304,7 +314,7 @@ namespace SyntenyFinder
                         out << ",";
                     else
                         first = false;
-                    out << "\"chr" << itPair->GetChr() + 1 << "." << std::setfill('0') << std::setw(8) << itPair->GetStart() << "-" << std::setfill('0') << std::setw(10) << itPair->GetEnd() << "\"";
+                    out << "\"" << OutputD3BlockID(*itPair) << "\"";
                 }
 			}
             out << "]";
