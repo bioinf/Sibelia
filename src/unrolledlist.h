@@ -379,7 +379,7 @@ namespace SyntenyFinder
 	template<class T, size_t NODE_SIZE>
 	void unrolled_list<T, NODE_SIZE>::lazyUpdateBeginEnd()
 	{
-		//if (!m_BeginEndDirty) return;
+		if (!m_BeginEndDirty) return;
 
 		m_Begin = this->create_iterator(m_Data.begin(), 0);
 		if (m_Begin.m_ListPos != m_Data.end())
@@ -543,8 +543,10 @@ namespace SyntenyFinder
 
 		type_iter itList = target.m_ListPos;
 		size_t arrayPos = target.m_ArrayPos;
-		bool once = true;
 		iterator to_return;
+		iterator inv_after_begin;
+		iterator inv_after_end;
+		bool invalidated = false;
 		bool return_set = false;
 
 		while (source_begin != source_end)
@@ -568,9 +570,6 @@ namespace SyntenyFinder
 				//insert new chunk and move previous elements to it
 				else
 				{
-					assert(once);
-					once = false;
-
 					//before notification
 					if (notify_before)
 					{
@@ -586,6 +585,8 @@ namespace SyntenyFinder
 							}
 						}
 						++inv_before_end;
+
+						m_BeginEndDirty = true;
 						notify_before(inv_before_begin, inv_before_end);
 					}
 
@@ -611,14 +612,13 @@ namespace SyntenyFinder
 						++idFrom;
 					}
 
-					//after notifications
+					//for after notifications
 					if (notify_after)
 					{
-						iterator inv_after_begin = this->create_iterator(newChunk, 0);
-						iterator inv_after_end = this->create_iterator(newChunk, idTo - 1);
-
-						++inv_after_end;
-						notify_after(inv_after_begin, inv_after_end);
+						assert(!invalidated);
+						inv_after_begin = this->create_iterator(newChunk, 0);
+						inv_after_end = this->create_iterator(newChunk, idTo - 1);
+						invalidated = true;
 					}
 				}
 			}
@@ -645,6 +645,12 @@ namespace SyntenyFinder
 		}
 
 		m_BeginEndDirty = true;
+		if (invalidated)
+		{
+			++inv_after_end;
+			notify_after(inv_after_begin, inv_after_end);
+		}
+
 		return to_return;
 	}
 
@@ -659,8 +665,10 @@ namespace SyntenyFinder
 
 		type_rev_iter itList = --std::reverse_iterator<type_iter> ((--target.base()).m_ListPos);
 		size_t arrayPos = (--target.base()).m_ArrayPos;
-		bool once = true;
 		reverse_iterator to_return;
+		iterator inv_after_begin;
+		iterator inv_after_end;
+		bool invalidated = false;
 		bool return_set = false;
 
 		while (source_begin != source_end)
@@ -682,9 +690,6 @@ namespace SyntenyFinder
 				}
 				else
 				{
-					assert(once);
-					once = false;
-
 					//before notification
 					if (notify_before)
 					{
@@ -700,6 +705,8 @@ namespace SyntenyFinder
 							}
 						}
 						++inv_before_end;
+
+						m_BeginEndDirty = true;
 						notify_before(inv_before_begin, inv_before_end);
 					}
 
@@ -735,11 +742,10 @@ namespace SyntenyFinder
 					//after notifications
 					if (notify_after)
 					{
-						iterator inv_after_end = this->create_iterator(newChunk, NODE_SIZE - 1);
-						iterator inv_after_begin = this->create_iterator(newChunk, idTo);
-
-						++inv_after_end;
-						notify_after(inv_after_begin, inv_after_end);
+						assert(!invalidated);
+						inv_after_end = this->create_iterator(newChunk, NODE_SIZE - 1);
+						inv_after_begin = this->create_iterator(newChunk, idTo);
+						invalidated = true;
 					}
 				}
 			}
@@ -769,6 +775,11 @@ namespace SyntenyFinder
 		}
 
 		m_BeginEndDirty = true;
+		if (invalidated)
+		{
+			++inv_after_end;
+			notify_after(inv_after_begin, inv_after_end);
+		}
 		return to_return;
 	}
 }
