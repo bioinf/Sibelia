@@ -13,3 +13,5 @@ presentation/*.toc
 *.toc
 *.aux
 *.gz
+.idea
+
