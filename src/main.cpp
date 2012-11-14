@@ -182,21 +182,17 @@ int main(int argc, char * argv[])
 			"file name",
 			cmd);
 		
-		TCLAP::ValueArg<std::string> circosDir("d",
-			"circosdir",
-			"Directory for circos files, default = not set",
-			false,
-			"",
-			"dir name",
-			cmd);
+		TCLAP::SwitchArg circos("",
+			"circos",
+			"Enable circos output.",
+			cmd,
+			false);
 
-		TCLAP::ValueArg<std::string> d3File("3",
-			"d3file",
-			"File for D3 chart, default = d3.json",
-			false,
-			"d3.json",
-			"file name",
-			cmd);
+		TCLAP::SwitchArg d3("",
+			"d3",
+			"Enable d3 output.",
+			cmd,
+			false);
 
 		std::string description = std::string("Parameters set, used for the simplification. ") +
 			std::string("Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).");
@@ -268,17 +264,19 @@ int main(int argc, char * argv[])
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
 	//	const std::string templateCircosConf = "circos.template.conf";
-		const std::string defaultCircosOutFile = "circos.conf";
+//		const std::string defaultCircosOutFile = "circos.conf";
+//		const std::string defaultCircosOutFile = "circos.conf";
 
-		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circosDir.isSet(), true};
+
+		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circos.isSet(), d3.isSet()};
 		boost::function<void()> outFunction[] = 
 		{
 			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), chrFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), reportFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), coordsFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), sequencesFile.getValue()),		
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), circosDir.getValue() + "/" + defaultCircosOutFile, circosDir.getValue()),
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), d3File.getValue())
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), "circos/circos.conf", "circos"),
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), "d3.json")
 		};
 
 		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);

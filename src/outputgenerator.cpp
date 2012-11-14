@@ -213,6 +213,8 @@ namespace SyntenyFinder
 
 	void OutputGenerator::GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const
 	{
+		// TODO: create directory outDir
+
 		//copy template file
 		std::ofstream out;
 		TryOpenFile(outFile, out);
@@ -290,7 +292,7 @@ namespace SyntenyFinder
             else
                 first_line = false;
             out << "    {";
-            out << "\"name\":\"chr" << itBlock->GetChr() + 1 << "." << std::setfill('0') << std::setw(10) << itBlock->GetStart() << "-" << std::setfill('0') << std::setw(10) << itBlock->GetEnd() << "\",";
+            out << "\"name\":\"chr" << itBlock->GetChr() + 1 << "." << std::setfill('0') << std::setw(8) << itBlock->GetStart() << "-" << std::setfill('0') << std::setw(10) << itBlock->GetEnd() << "\",";
             out << "\"size\":" << (itBlock->GetEnd() - itBlock->GetStart()) << ",";
             out << "\"imports\":[";
             bool first = true;
@@ -302,7 +304,7 @@ namespace SyntenyFinder
                         out << ",";
                     else
                         first = false;
-                    out << "\"chr" << itPair->GetChr() + 1 << "." << std::setfill('0') << std::setw(10) << itPair->GetStart() << "-" << std::setfill('0') << std::setw(10) << itPair->GetEnd() << "\"";
+                    out << "\"chr" << itPair->GetChr() + 1 << "." << std::setfill('0') << std::setw(8) << itPair->GetStart() << "-" << std::setfill('0') << std::setw(10) << itPair->GetEnd() << "\"";
                 }
 			}
             out << "]";
