@@ -89,6 +89,7 @@ namespace SyntenyFinder
 	typedef boost::function<bool(const BlockInstance&, const BlockInstance&)> BlockComparer;
 	extern const BlockComparer compareById;
 	extern const BlockComparer compareByChr;
+	extern const BlockComparer compareByStart;
 }
 
 

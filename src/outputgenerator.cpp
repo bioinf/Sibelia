@@ -278,7 +278,7 @@ namespace SyntenyFinder
 
         //blocks must be sorted by id
         BlockList sortedBlocks = blockList_;
-        std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareById);
+        std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareByStart);
 
         // write to output file
         int lastId = 0;
@@ -290,7 +290,7 @@ namespace SyntenyFinder
             else
                 first_line = false;
             out << "    {";
-            out << "\"name\":\"chr" << itBlock->GetChr() + 1 << ".block" << itBlock->GetBlockId() << "\",";
+            out << "\"name\":\"chr" << itBlock->GetChr() + 1 << "." << std::setfill('0') << std::setw(10) << itBlock->GetStart() << "-" << std::setfill('0') << std::setw(10) << itBlock->GetEnd() << "\",";
             out << "\"size\":" << (itBlock->GetEnd() - itBlock->GetStart()) << ",";
             out << "\"imports\":[";
             bool first = true;
@@ -302,7 +302,7 @@ namespace SyntenyFinder
                         out << ",";
                     else
                         first = false;
-                    out << "\"chr" << itPair->GetChr() + 1 << ".block" << itPair->GetBlockId() << "\"";
+                    out << "\"chr" << itPair->GetChr() + 1 << "." << std::setfill('0') << std::setw(10) << itPair->GetStart() << "-" << std::setfill('0') << std::setw(10) << itPair->GetEnd() << "\"";
                 }
 			}
             out << "]";
