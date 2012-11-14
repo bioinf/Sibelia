@@ -114,20 +114,36 @@ namespace SyntenyFinder
 		return kt == posBifurcation_[strand].end() ? NO_BIFURCATION : (*kt)->first;
 	}
 
-	void BifurcationStorage::NotifyBefore(PositiveIterator begin, PositiveIterator end)
+	void BifurcationStorage::NotifyBefore(StrandIterator begin, StrandIterator end)
 	{
-		NegativeIterator rend(begin);
-		NegativeIterator rbegin(end);
-		SelectInvalid<PositiveIterator, &BifurcationStorage::posInvalid>(begin, end, DNASequence::positive);		
-		SelectInvalid<NegativeIterator, &BifurcationStorage::negInvalid>(rbegin, rend, DNASequence::negative);
+		size_t pos = 0;
+		size_t direction = begin.GetDirection();
+		for(StrandIterator it = begin; it != end; ++it, ++pos)
+		{			
+			BifurcationId bifId = static_cast<BifurcationId>(GetBifurcation(it));
+			if(bifId != NO_BIFURCATION)
+			{
+				invalid[direction].push_back(BifurcationRecord(pos, bifId));
+				ErasePoint(it);
+			}
+		}		
+
 	}
 
-	void BifurcationStorage::NotifyAfter(PositiveIterator begin, PositiveIterator end)
+	void BifurcationStorage::NotifyAfter(StrandIterator begin, StrandIterator end)
 	{
-		NegativeIterator rend(begin);
-		NegativeIterator rbegin(end);
-		AddInvalid<PositiveIterator, &BifurcationStorage::posInvalid>(begin, end, DNASequence::positive);		
-		AddInvalid<NegativeIterator, &BifurcationStorage::negInvalid>(rbegin, rend, DNASequence::negative);
+		size_t pos = 0;
+		size_t record = 0;
+		size_t direction = begin.GetDirection();
+		for(StrandIterator it = begin; it != end; ++it, ++pos)
+		{
+			if(record < invalid[direction].size() && invalid[direction][record].first == pos)
+			{
+				AddPoint(it, invalid[direction][record++].second);
+			}
+		}
+
+		invalid[direction].clear();
 	}
 
 	void BifurcationStorage::FormDictionary(boost::unordered_map<std::string, size_t> & dict, size_t k) const

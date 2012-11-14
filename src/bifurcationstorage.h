@@ -32,8 +32,8 @@ namespace SyntenyFinder
 		void AddPoint(DNASequence::StrandIterator it, size_t bifId);
 		size_t CountBifurcations(size_t bifId) const;
 		size_t GetBifurcation(DNASequence::StrandIterator it) const;
-		void NotifyBefore(PositiveIterator begin, PositiveIterator end);
-		void NotifyAfter(PositiveIterator begin, PositiveIterator end);
+		void NotifyBefore(StrandIterator begin, StrandIterator end);
+		void NotifyAfter(StrandIterator begin, StrandIterator end);
 		void FormDictionary(boost::unordered_map<std::string, size_t> & dict, size_t k) const;
 
 		template<class Iterator>
@@ -78,50 +78,14 @@ namespace SyntenyFinder
 			}
 		};
 
+		typedef std::pair<size_t, BifurcationId> BifurcationRecord;
 		typedef boost::unordered_set<BifurcationPos::iterator, IteratorHash, IteratorEqual> PosBifurcation;
 
 		BifurcationId maxId_;
 		mutable BifurcationPos temp_;
 		std::vector<BifurcationPos> bifurcationPos_;
 		std::vector<PosBifurcation> posBifurcation_;
-
-		typedef std::pair<size_t, BifurcationId> BifurcationRecord;
-		std::vector<BifurcationRecord> posInvalid;
-		std::vector<BifurcationRecord> negInvalid;
-
-		template<class Iterator, std::vector<BifurcationRecord> BifurcationStorage::*invalidPtr>
-			void SelectInvalid(Iterator begin, Iterator end, DNASequence::Direction direction)
-			{
-				size_t pos = 0;
-				std::vector<BifurcationRecord> & invalid = this->*invalidPtr;
-				for(Iterator it = begin; it != end; ++it, ++pos)
-				{
-					StrandIterator st(it.base(), direction);
-					BifurcationId bifId = static_cast<BifurcationId>(GetBifurcation(st));
-					if(bifId != NO_BIFURCATION)
-					{
-						invalid.push_back(BifurcationRecord(pos, bifId));
-						ErasePoint(st);
-					}
-				}
-			}
-
-		template<class Iterator, std::vector<BifurcationRecord> BifurcationStorage::*invalidPtr>
-			void AddInvalid(Iterator begin, Iterator end, DNASequence::Direction direction)
-			{
-				size_t pos = 0;
-				size_t record = 0;
-				std::vector<BifurcationRecord> & invalid = this->*invalidPtr;
-				for(Iterator it = begin; it != end; ++it, ++pos)
-				{
-					if(record < invalid.size() && invalid[record].first == pos)
-					{
-						AddPoint(StrandIterator(it.base(), direction), invalid[record++].second);
-					}
-				}
-
-				invalid.clear();
-			}
+		std::vector<BifurcationRecord> invalid[2];
 	};
 }
 

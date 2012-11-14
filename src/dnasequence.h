@@ -96,13 +96,13 @@ namespace SyntenyFinder
 			GenericIterator* Clone() const;
 			GenericIterator* Invert() const;
 			SequencePosIterator Base() const;
-			SequenceNegIterator Natural() const;
+			SequencePosIterator Natural() const;
 			DNACharacter* GetNaked() const;
 			bool Equal(const GenericIterator& toCompare) const;
 			BackwardIterator();
-			BackwardIterator(SequenceNegIterator it);
+			BackwardIterator(SequencePosIterator it);
 		private:
-			SequenceNegIterator it_;
+			SequencePosIterator it_;
 		};
 
 	public:			
@@ -136,6 +136,8 @@ namespace SyntenyFinder
 			friend class DNASequence;
 			std::auto_ptr<GenericIterator> it_;			
 		};
+
+		typedef boost::function<void(StrandIterator, StrandIterator)> NotifyFunction;
 		
 		void Clear();
 		size_t TotalSize() const;
@@ -151,17 +153,14 @@ namespace SyntenyFinder
 			size_t sourceDistance, 
 			StrandIterator target,
 			size_t targetDistance,
-			Sequence::notify_func before = 0,
-			Sequence::notify_func after = 0);
+			NotifyFunction before = 0,
+			NotifyFunction after = 0);
 		explicit DNASequence(const std::vector<FASTARecord> & record);
 		DNASequence(const std::vector<FASTARecord> & record, const std::vector<std::vector<Pos> > & original);
 		std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2) const;
-		size_t GlobalIndex(StrandIterator it) const;
-		void SubscribeIterator(SequencePosIterator & it);
-		void UnsubscribeIterator(SequencePosIterator & it);
-		
+		size_t GlobalIndex(StrandIterator it) const;		
 		static const char UNKNOWN_BASE;
-		static const std::string alphabet;		
+		static const std::string alphabet;			
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
 		static const char SEPARATION_CHAR;
@@ -187,8 +186,10 @@ namespace SyntenyFinder
 		typedef IteratorMap::iterator IteratorPlace;
 		typedef std::pair<IteratorPlace, IteratorPlace> IteratorRange;		
 
-		void NotifyBefore(SequencePosIterator begin, SequencePosIterator end, Sequence::notify_func before);
-		void NotifyAfter(SequencePosIterator begin, SequencePosIterator end, Sequence::notify_func after);
+		void SubscribeIterator(SequencePosIterator & it);
+		void UnsubscribeIterator(SequencePosIterator & it);
+		void NotifyBefore(SequencePosIterator begin, SequencePosIterator end, NotifyFunction before);
+		void NotifyAfter(SequencePosIterator begin, SequencePosIterator end, NotifyFunction after);
 		
 		Sequence sequence_;
 		std::vector<SequencePosIterator> posBegin_;

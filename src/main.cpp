@@ -8,7 +8,6 @@
 #include "outputgenerator.h"
 #include "test/unrolledlisttest.h"
 
-
 std::string IntToStr(size_t value)
 {
 	std::stringstream ss;
@@ -106,7 +105,7 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 	}
 }
 
-//#define _RUN_TEST_
+#define _RUN_TEST_
 
 const std::string DELIMITER(80, '-');
 
@@ -258,9 +257,7 @@ int main(int argc, char * argv[])
 		finder.GenerateSyntenyBlocks(lastK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
-	//	const std::string templateCircosConf = "circos.template.conf";
 		const std::string defaultCircosOutFile = "circos.conf";
-		
 		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circosDir.isSet()};
 		boost::function<void()> outFunction[] = 
 		{

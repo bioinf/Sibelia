@@ -53,6 +53,32 @@ void InsertTest()
 	store.insert(begin, buf.rbegin(), buf.rbegin() + 10);
 }
 
+void CheckSize(size_t mustBeSize, UList100 & store, UList100::iterator, UList100::iterator)
+{
+	size_t realSize = std::distance(store.begin(), store.end());
+	assert(realSize == mustBeSize);
+}
+
+void EndTest()
+{
+	UList100 store;
+	store.set_erased_value(-1);
+	size_t initialSize = 20;
+	for(size_t i = 0; i < initialSize; i++)
+	{
+		store.push_back(i + 1);
+	}
+	
+	size_t addSize = 10;
+	std::vector<size_t> buf(addSize, 0);
+	size_t mustBeSize = initialSize + addSize;
+	store.insert(++store.begin(),
+		buf.begin(),
+		buf.end(),
+		0,
+		boost::bind(CheckSize, mustBeSize, boost::ref(store), _1, _2));
+}
+
 void UnrolledListConsistencyTest()
 {
 	UList5 store;
@@ -76,7 +102,7 @@ void UnrolledListConsistencyTest()
 	std::vector<size_t> invalidatedPos;
 
 	//Perform an insertion
-	UList5::iterator pos = ++store.begin();	
+	UList5::iterator pos = store.begin();	
 	store.insert(pos,
 		buf.begin(),
 		buf.end(),

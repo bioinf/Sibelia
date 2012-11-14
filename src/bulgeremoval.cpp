@@ -208,25 +208,7 @@ namespace SyntenyFinder
 				assert(bifStorage.GetBifurcation(bmer) == GetMustBeBifurcation(bmer, k));
 			}
 		}
-	}
-
-	void BlockFinder::NotifyBefore(NotificationData data, PositiveIterator begin, PositiveIterator end)
-	{
-		DNASequence::SequenceNegIterator rbegin(end);
-		DNASequence::SequenceNegIterator rend(begin);
-		data.bifStorage->NotifyBefore(begin, end);
-		SelectInvalid<PositiveIterator, &BlockFinder::posInvalid>(data, begin, end, DNASequence::positive);
-		SelectInvalid<NegativeIterator, &BlockFinder::negInvalid>(data, rbegin, rend, DNASequence::negative);
-	}
-
-	void BlockFinder::NotifyAfter(NotificationData data, PositiveIterator begin, PositiveIterator end)
-	{
-		DNASequence::SequenceNegIterator rbegin(end);
-		DNASequence::SequenceNegIterator rend(begin);
-		data.bifStorage->NotifyAfter(begin, end);
-		AddInvalid<PositiveIterator, &BlockFinder::posInvalid>(data, begin, end, DNASequence::positive);
-		AddInvalid<NegativeIterator, &BlockFinder::negInvalid>(data, rbegin, rend, DNASequence::negative);
-	}
+	}	
 	
 	void BlockFinder::AddRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k)
 	{

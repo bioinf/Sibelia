@@ -10,6 +10,7 @@
 #include "../common.h"
 #include "../unrolledlist.h"
 
+void EndTest();
 void InsertTest();
 void UnrolledListConsistencyTest();
 void memoryTest();
@@ -17,9 +18,10 @@ void randomTest();
 
 inline void TestUnrolledList()
 {
-	InsertTest();
-	UnrolledListConsistencyTest();
-	randomTest();
+	EndTest();
+	//UnrolledListConsistencyTest();
+	//InsertTest();	
+	//randomTest();
 }
 
 #endif

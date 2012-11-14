@@ -107,52 +107,9 @@ namespace SyntenyFinder
 			NotificationData(RestrictionMap * restricted, IteratorIndexMap * iteratorIndex, IteratorVector * startKMer, BifurcationStorage * bifStorage, size_t k):
 				restricted(restricted), iteratorIndex(iteratorIndex), startKMer(startKMer), bifStorage(bifStorage), k(k) {}
 		};
-
-		std::vector<size_t> posInvalid;
-		std::vector<size_t> negInvalid;
-		static const size_t UNUSED;
-		typedef DNASequence::SequencePosIterator PositiveIterator;
-		typedef DNASequence::SequenceNegIterator NegativeIterator;
-
-		template<class Iterator, std::vector<size_t> BlockFinder::*invalidPtr>
-			void SelectInvalid(NotificationData data, Iterator begin, Iterator end, DNASequence::Direction direction)
-			{
-				std::vector<size_t> & invalid = this->*invalidPtr;
-				for(Iterator it = begin; it != end; ++it)
-				{
-					StrandIterator st(it.base(), direction);
-					IteratorIndexMap::iterator index = data.iteratorIndex->find(st);
-					if(index != data.iteratorIndex->end())
-					{
-						invalid.push_back(index->second);
-						RemoveRestricted(*data.restricted, st, index->second, data.k);
-						data.iteratorIndex->erase(st);
-					}
-					else
-					{
-						invalid.push_back(UNUSED);
-					}
-				}
-			}
-
-		template<class Iterator, std::vector<size_t> BlockFinder::*invalidPtr>
-			void AddInvalid(NotificationData data, Iterator begin, Iterator end, DNASequence::Direction direction)
-			{
-				size_t pos = 0;				
-				std::vector<size_t> & invalid = this->*invalidPtr;
-				for(Iterator it = begin; it != end; ++it, ++pos)
-				{
-					if(invalid[pos] != UNUSED)
-					{
-						StrandIterator st(it.base(), direction);
-						(*data.startKMer)[invalid[pos]] = st;
-						AddRestricted(*data.restricted, (*data.startKMer)[invalid[pos]], invalid[pos], data.k);
-						(*data.iteratorIndex)[st] = invalid[pos];
-					}
-				}
-
-				invalid.clear();
-			}
+		
+		std::vector<size_t> invalid[2];
+		static const size_t UNUSED;		
 
 		static bool EdgeEmpty(const Edge & a, size_t k);
 		static bool EdgeCompare(const Edge & a, const Edge & b);
@@ -160,8 +117,8 @@ namespace SyntenyFinder
 		size_t GetMustBeBifurcation(StrandIterator it, size_t k);
 		void AddRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k);
 		void RemoveRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k);
-		void NotifyBefore(NotificationData notify, PositiveIterator begin, PositiveIterator end);
-		void NotifyAfter(NotificationData notify, PositiveIterator begin, PositiveIterator end);		
+		void NotifyBefore(NotificationData notify, StrandIterator begin, StrandIterator end);
+		void NotifyAfter(NotificationData notify, StrandIterator begin, StrandIterator end);		
 		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
 		size_t EnumerateBifurcationsHash(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack f = ProgressCallBack()) const;

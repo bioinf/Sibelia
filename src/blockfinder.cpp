@@ -121,7 +121,7 @@ namespace SyntenyFinder
 		}
 	}
 
-	const char BlockFinder::SEPARATION_CHAR = '$';
+	const char BlockFinder::SEPARATION_CHAR = '#';
 
 	BlockFinder::BlockFinder(const std::vector<FASTARecord> & chrList): chrList_(chrList)
 	{
@@ -134,6 +134,43 @@ namespace SyntenyFinder
 				originalPos_[i][j] = static_cast<Pos>(j);
 			}
 		}
+	}
+
+	void BlockFinder::NotifyBefore(NotificationData data, StrandIterator begin, StrandIterator end)
+	{
+		size_t direction = begin.GetDirection();
+		data.bifStorage->NotifyBefore(begin, end);		
+		for(StrandIterator it = begin; it != end; ++it)
+		{			
+			IteratorIndexMap::iterator index = data.iteratorIndex->find(it);
+			if(index != data.iteratorIndex->end())
+			{
+				invalid[direction].push_back(index->second);
+				RemoveRestricted(*data.restricted, it, index->second, data.k);
+				data.iteratorIndex->erase(it);
+			}
+			else
+			{
+				invalid[direction].push_back(UNUSED);
+			}
+		}
+	}
+
+	void BlockFinder::NotifyAfter(NotificationData data, StrandIterator begin, StrandIterator end)
+	{
+		size_t pos = 0;
+		size_t direction = begin.GetDirection();					
+		for(StrandIterator it = begin; it != end; ++it, ++pos)
+		{
+			if(invalid[direction][pos] != UNUSED)
+			{				
+				(*data.startKMer)[invalid[direction][pos]] = it;
+				AddRestricted(*data.restricted, (*data.startKMer)[invalid[direction][pos]], invalid[direction][pos], data.k);
+				(*data.iteratorIndex)[it] = invalid[direction][pos];
+			}
+		}
+
+		invalid[direction].clear();
 	}
 
 	size_t BlockFinder::EnumerateBifurcationsSArray(size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif) const

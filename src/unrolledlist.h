@@ -379,7 +379,7 @@ namespace SyntenyFinder
 	template<class T, size_t NODE_SIZE>
 	void unrolled_list<T, NODE_SIZE>::lazyUpdateBeginEnd()
 	{
-		if (!m_BeginEndDirty) return;
+		//if (!m_BeginEndDirty) return;
 
 		m_Begin = this->create_iterator(m_Data.begin(), 0);
 		if (m_Begin.m_ListPos != m_Data.end())

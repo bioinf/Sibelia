@@ -50,7 +50,7 @@ namespace SyntenyFinder
 	
 	DNASequence::GenericIterator* DNASequence::ForwardIterator::Invert() const
 	{
-		return new BackwardIterator(SequenceNegIterator(it_));
+		return new BackwardIterator(AdvanceBackward(it_, 1));
 	}
 
 	DNASequence::SequencePosIterator DNASequence::ForwardIterator::Base() const
@@ -78,12 +78,12 @@ namespace SyntenyFinder
 
 	void DNASequence::BackwardIterator::MoveForward()
 	{
-		++it_;
+		--it_;
 	}
 
 	void DNASequence::BackwardIterator::MoveBackward()
 	{
-		--it_;
+		++it_;
 	}
 
 	DNASequence::Direction DNASequence::BackwardIterator::GetDirection() const
@@ -119,7 +119,7 @@ namespace SyntenyFinder
 	{
 	}
 
-	DNASequence::BackwardIterator::BackwardIterator(SequenceNegIterator it): it_(it)
+	DNASequence::BackwardIterator::BackwardIterator(SequencePosIterator it): it_(it)
 	{
 	}
 
@@ -130,15 +130,15 @@ namespace SyntenyFinder
 
 	DNASequence::GenericIterator* DNASequence::BackwardIterator::Invert() const
 	{	
-		return new ForwardIterator(it_.base());
+		return new ForwardIterator(AdvanceForward(it_, 1));
 	}
 
 	DNASequence::SequencePosIterator DNASequence::BackwardIterator::Base() const
 	{
-		return it_.base();
+		return it_;
 	}
 
-	DNASequence::SequenceNegIterator DNASequence::BackwardIterator::Natural() const
+	DNASequence::SequencePosIterator DNASequence::BackwardIterator::Natural() const
 	{
 		return it_;
 	}

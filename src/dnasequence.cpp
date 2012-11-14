@@ -58,7 +58,7 @@ namespace SyntenyFinder
 		}
 		else
 		{
-			genericIt = new BackwardIterator(SequenceNegIterator(it));
+			genericIt = new BackwardIterator(it);
 		}
 
 		it_ = std::auto_ptr<GenericIterator>(genericIt);
@@ -168,7 +168,6 @@ namespace SyntenyFinder
 
 	DNASequence::StrandIterator DNASequence::PositiveBegin(size_t chr) const
 	{
-		Sequence & ref = const_cast<Sequence&>(sequence_);
 		return StrandIterator(new ForwardIterator(posBegin_[chr]));
 	}
 
@@ -179,12 +178,12 @@ namespace SyntenyFinder
 
 	DNASequence::StrandIterator DNASequence::NegativeBegin(size_t chr) const
 	{
-		return StrandIterator(new BackwardIterator(SequenceNegIterator(posEnd_[chr])));
+		return PositiveEnd(chr).Invert();
 	}
 
 	DNASequence::StrandIterator DNASequence::NegativeEnd(size_t chr) const
 	{
-		return StrandIterator(new BackwardIterator(SequenceNegIterator(posBegin_[chr])));
+		return PositiveBegin(chr).Invert();
 	}
 
 	DNASequence::StrandIterator DNASequence::Begin(Direction direction, size_t chr) const
@@ -273,18 +272,57 @@ namespace SyntenyFinder
 		}
 	}
 
-	void DNASequence::NotifyBefore(SequencePosIterator begin, SequencePosIterator end, Sequence::notify_func before)
+	void DNASequence::NotifyBefore(SequencePosIterator begin, SequencePosIterator end, NotifyFunction before)
 	{
-		before(begin, end);
+		if(end == sequence_.end())
+		{
+			--end;
+		}
+
+		if(before)
+		{
+			SequencePosIterator nowBegin = begin;
+			while(nowBegin != end)
+			{
+				SequencePosIterator nowEnd = nowBegin;
+				for(; nowEnd != end && *nowEnd != SEPARATION_CHAR; ++nowEnd);
+				StrandIterator pbegin(nowBegin, positive);
+				StrandIterator pend(nowEnd, positive);
+				before(pbegin, pend);
+				before(pend.Invert(), pbegin.Invert());
+				nowBegin = nowEnd != end ? ++nowEnd : nowEnd;
+			}			
+		}
+
 		for(; begin != end; ++begin)
 		{			
 			toReplace_.push_back(iteratorStore_.equal_range(&begin));
 		}
 	}
 
-	void DNASequence::NotifyAfter(SequencePosIterator begin, SequencePosIterator end, Sequence::notify_func after)
+	void DNASequence::NotifyAfter(SequencePosIterator begin, SequencePosIterator end, NotifyFunction after)
 	{
-		after(begin, end);
+		SequencePosIterator ttt = sequence_.end();
+		if(end == sequence_.end())
+		{
+			--end;
+		}
+
+		if(after)
+		{
+			SequencePosIterator nowBegin = begin;
+			while(nowBegin != end)
+			{
+				SequencePosIterator nowEnd = nowBegin;
+				for(; nowEnd != end && *nowEnd != SEPARATION_CHAR; ++nowEnd);
+				StrandIterator pbegin(nowBegin, positive);
+				StrandIterator pend(nowEnd, positive);
+				after(pbegin, pend);
+				after(pend.Invert(), pbegin.Invert());
+				nowBegin = nowEnd != end ? ++nowEnd : nowEnd;
+			}			
+		}
+
 		size_t pos = 0;
 		for(; begin != end; ++begin, ++pos)
 		{
@@ -301,8 +339,8 @@ namespace SyntenyFinder
 			size_t sourceDistance, 
 			StrandIterator target,
 			size_t targetDistance,
-			Sequence::notify_func before,
-			Sequence::notify_func after)
+			NotifyFunction before,
+			NotifyFunction after)
 	{	
 		size_t pos = 0;
 		std::vector<size_t> oldPos;
@@ -312,26 +350,23 @@ namespace SyntenyFinder
 		}
 
 		Sequence::notify_func seqBefore = boost::bind(&DNASequence::NotifyBefore, boost::ref(*this), _1, _2, before);
-		Sequence::notify_func seqAfter = boost::bind(&DNASequence::NotifyAfter, boost::ref(*this), _1, _2, after);
-		SequencePosIterator begin = target.Base();
-		SequencePosIterator end = AdvanceForward(target, targetDistance).Base();
+		Sequence::notify_func seqAfter = boost::bind(&DNASequence::NotifyAfter, boost::ref(*this), _1, _2, after);		
 		if(target.GetDirection() == positive)
 		{
+			SequencePosIterator begin = target.Base();
+			SequencePosIterator end = AdvanceForward(target, targetDistance).Base();
 			std::string buf(source, AdvanceForward(source, sourceDistance));
-			seqBefore(AdvanceBackward(begin, 1), begin);
 			begin = sequence_.erase(begin, end);
-			seqAfter(AdvanceBackward(begin, 1), begin);
 			begin = sequence_.insert(begin, buf.begin(), buf.end(), seqBefore, seqAfter);
 			target = StrandIterator(begin, positive);
 		}
 		else
 		{	
-			std::swap(begin, end);
+			SequencePosIterator begin = AdvanceForward(target, targetDistance).Invert().Base();
+			SequencePosIterator end = target.Invert().Base();
 			source = AdvanceForward(source, sourceDistance).Invert();
 			std::string buf(source, AdvanceForward(source, sourceDistance));
-			seqBefore(AdvanceBackward(begin, 1), begin);
 			begin = sequence_.erase(begin, end);
-			seqAfter(AdvanceBackward(begin, 1), begin);
 			begin = sequence_.insert(begin, buf.begin(), buf.end(), seqBefore, seqAfter);
 			target = StrandIterator(AdvanceForward(begin, sourceDistance), negative);
 		}
