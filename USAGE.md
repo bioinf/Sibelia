@@ -112,11 +112,11 @@ chromosomes
 2. Count -- number of synteny blocks with a given degree
 3. Total -- portion of all the input chromosomes that cover blocks with a given
 degree
-4. Chr <n> -- portion of the chromosome with id <n> that cover blocks with a given
-example
+4. Chr <n> -- portion of the chromosome with id <n> that cover blocks with a 
+given example
 
-This table contains one row for each degree and one ("All") row for overall coverage.
-For example (output from "Helicobacter_pylori.fasta"):
+This table contains one row for each degree and one ("All") row for overall
+coverage. For example (output from "Helicobacter_pylori.fasta"):
 
 	Degree	Count	Total	Chr 1	Chr 2
 	2	23	94.68%	96.40%	93.09%	
@@ -209,10 +209,11 @@ Default value = not set. To select the parameters set, use cmd parameter:
 
 	-s <loose|fine> or --parameters <loose|fine>
 
+This option is incompatible with "-k", you must specify one of these, not both.
 Approach used in "Sibelia" is parameter dependent. To understand the details,
 please see the next section and [1]. The "loose" option produces longer blocks
 and better coverage, while "fine" can capture small-scale rearrangements, for
-example, inversions of size < 15 000 BP.
+example, inversions of size < 15000 BP. 
 
 Using custom parameters set
 ---------------------------
