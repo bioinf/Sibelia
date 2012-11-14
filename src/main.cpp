@@ -190,7 +190,15 @@ int main(int argc, char * argv[])
 			"dir name",
 			cmd);
 
-		std::string description = std::string("Parameters set, used for the simplification. ") + 
+		TCLAP::ValueArg<std::string> d3File("3",
+			"d3file",
+			"File for D3 chart, default = d3.json",
+			false,
+			"d3.json",
+			"file name",
+			cmd);
+
+		std::string description = std::string("Parameters set, used for the simplification. ") +
 			std::string("Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).");
 		TCLAP::ValuesConstraint<std::string> allowedParametersVals(parameterSetName);
 		TCLAP::ValueArg<std::string> parameters("s",
@@ -261,15 +269,16 @@ int main(int argc, char * argv[])
 
 	//	const std::string templateCircosConf = "circos.template.conf";
 		const std::string defaultCircosOutFile = "circos.conf";
-		
-		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circosDir.isSet()};
+
+		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circosDir.isSet(), true};
 		boost::function<void()> outFunction[] = 
 		{
 			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), chrFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), reportFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), coordsFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), sequencesFile.getValue()),		
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), circosDir.getValue() + "/" + defaultCircosOutFile, circosDir.getValue())
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), circosDir.getValue() + "/" + defaultCircosOutFile, circosDir.getValue()),
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), d3File.getValue())
 		};
 
 		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);

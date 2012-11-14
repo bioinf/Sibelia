@@ -269,6 +269,48 @@ namespace SyntenyFinder
 		}
 	}
 
+	void OutputGenerator::GenerateD3Output(const std::string & outFile) const
+	{
+        //open output file
+        std::ofstream out;
+        TryOpenFile(outFile, out);
+        out << "chart_data = [" << std::endl;
+
+        //blocks must be sorted by id
+        BlockList sortedBlocks = blockList_;
+        std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareById);
+
+        // write to output file
+        int lastId = 0;
+        bool first_line = true;
+		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock) // O(N^2) by number of blocks, can be optimized
+		{
+            if (!first_line)
+                out << ",";
+            else
+                first_line = false;
+            out << "    {";
+            out << "\"name\":\"chr" << itBlock->GetChr() + 1 << ".block" << itBlock->GetBlockId() << "\",";
+            out << "\"size\":" << (itBlock->GetEnd() - itBlock->GetStart()) << ",";
+            out << "\"imports\":[";
+            bool first = true;
+            for (BlockList::iterator itPair = sortedBlocks.begin(); itPair != sortedBlocks.end(); ++itPair)
+            {
+                if (itPair->GetBlockId() == itBlock->GetBlockId() && itPair != itBlock)
+                {
+                    if (!first)
+                        out << ",";
+                    else
+                        first = false;
+                    out << "\"chr" << itPair->GetChr() + 1 << ".block" << itPair->GetBlockId() << "\"";
+                }
+			}
+            out << "]";
+            out << "}" << std::endl;
+		}
+        out << "];" << std::endl;
+	}
+
 	void OutputGenerator::TryOpenFile(const std::string & fileName, std::ofstream & stream) const
 	{
 		stream.open(fileName.c_str());
