@@ -273,7 +273,7 @@ namespace SyntenyFinder
 	}
 
 	void DNASequence::NotifyBefore(SequencePosIterator begin, SequencePosIterator end, NotifyFunction before)
-	{
+	{	
 		if(before)
 		{
 			SequencePosIterator nowBegin = begin;
@@ -291,12 +291,12 @@ namespace SyntenyFinder
 
 		for(; begin != end; ++begin)
 		{			
-			toReplace_.push_back(iteratorStore_.equal_range(&begin));
+			toReplace_.push_back(iteratorStore_.find(&begin));
 		}
 	}
 
 	void DNASequence::NotifyAfter(SequencePosIterator begin, SequencePosIterator end, NotifyFunction after)
-	{
+	{	
 		if(after)
 		{
 			SequencePosIterator nowBegin = begin;
@@ -316,8 +316,9 @@ namespace SyntenyFinder
 		std::vector<boost::reference_wrapper<SequencePosIterator> > resubscribe;
 		for(; begin != end; ++begin, ++pos)
 		{
-			for(IteratorPlace it = toReplace_[pos].first; it != toReplace_[pos].second; )
+			if(toReplace_[pos] != iteratorStore_.end())
 			{
+				IteratorPlace it = toReplace_[pos];
 				**it = begin;
 				resubscribe.push_back(boost::ref(**it));
 				it = iteratorStore_.erase(it);
@@ -327,7 +328,6 @@ namespace SyntenyFinder
 		toReplace_.clear();
 		assert(posEnd_.back() == --sequence_.end());
 		std::for_each(resubscribe.begin(), resubscribe.end(), boost::bind(&DNASequence::SubscribeIterator, boost::ref(*this), _1));
-
 	}
 
 	void DNASequence::Replace(StrandIterator source,
@@ -363,7 +363,7 @@ namespace SyntenyFinder
 			std::string buf(source, AdvanceForward(source, sourceDistance));
 			begin = sequence_.erase(begin, end);
 			begin = sequence_.insert(begin, buf.begin(), buf.end(), seqBefore, seqAfter);
-			target = StrandIterator(AdvanceForward(begin, sourceDistance), negative);
+			target = StrandIterator(AdvanceForward(begin, sourceDistance - 1), negative);
 		}
 
 		pos = 0;

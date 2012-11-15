@@ -182,7 +182,7 @@ namespace SyntenyFinder
 			}
 		};
 
-		typedef boost::unordered_multiset<SequencePosIterator*, IteratorPtrHash, IteratorPtrCompare> IteratorMap;
+		typedef boost::unordered_set<SequencePosIterator*, IteratorPtrHash, IteratorPtrCompare> IteratorMap;
 		typedef IteratorMap::iterator IteratorPlace;
 		typedef std::pair<IteratorPlace, IteratorPlace> IteratorRange;		
 
@@ -195,7 +195,7 @@ namespace SyntenyFinder
 		std::vector<SequencePosIterator> posBegin_;
 		std::vector<SequencePosIterator> posEnd_;
 		IteratorMap iteratorStore_;
-		std::vector<IteratorRange> toReplace_;
+		std::vector<IteratorPlace> toReplace_;
 	};	
 	
 	inline bool ProperKMer(DNASequence::StrandIterator it, size_t k)

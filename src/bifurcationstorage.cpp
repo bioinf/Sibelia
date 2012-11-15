@@ -117,13 +117,14 @@ namespace SyntenyFinder
 	void BifurcationStorage::NotifyBefore(StrandIterator begin, StrandIterator end)
 	{
 		size_t pos = 0;
-		size_t direction = begin.GetDirection();
+		nowInvalid_ = 0;
+		invalid_.push_back(std::vector<BifurcationRecord>());
 		for(StrandIterator it = begin; it != end; ++it, ++pos)
 		{			
 			BifurcationId bifId = static_cast<BifurcationId>(GetBifurcation(it));
 			if(bifId != NO_BIFURCATION)
 			{
-				invalid[direction].push_back(BifurcationRecord(pos, bifId));
+				invalid_.back().push_back(BifurcationRecord(pos, bifId));
 				ErasePoint(it);
 			}
 		}		
@@ -134,16 +135,18 @@ namespace SyntenyFinder
 	{
 		size_t pos = 0;
 		size_t record = 0;
-		size_t direction = begin.GetDirection();
 		for(StrandIterator it = begin; it != end; ++it, ++pos)
 		{
-			if(record < invalid[direction].size() && invalid[direction][record].first == pos)
+			if(record < invalid_[nowInvalid_].size() && invalid_[nowInvalid_][record].first == pos)
 			{
-				AddPoint(it, invalid[direction][record++].second);
+				AddPoint(it, invalid_[nowInvalid_][record++].second);
 			}
 		}
 
-		invalid[direction].clear();
+		if(++nowInvalid_ == invalid_.size())
+		{
+			invalid_.clear();
+		}
 	}
 
 	void BifurcationStorage::FormDictionary(boost::unordered_map<std::string, size_t> & dict, size_t k) const

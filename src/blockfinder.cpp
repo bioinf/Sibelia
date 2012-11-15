@@ -138,20 +138,21 @@ namespace SyntenyFinder
 
 	void BlockFinder::NotifyBefore(NotificationData data, StrandIterator begin, StrandIterator end)
 	{
-		size_t direction = begin.GetDirection();
+		nowInvalid_ = 0;
+		invalid_.push_back(std::vector<size_t>());
 		data.bifStorage->NotifyBefore(begin, end);		
 		for(StrandIterator it = begin; it != end; ++it)
 		{			
 			IteratorIndexMap::iterator index = data.iteratorIndex->find(it);
 			if(index != data.iteratorIndex->end())
 			{
-				invalid[direction].push_back(index->second);
+				invalid_.back().push_back(index->second);
 				RemoveRestricted(*data.restricted, it, index->second, data.k);
 				data.iteratorIndex->erase(it);
 			}
 			else
 			{
-				invalid[direction].push_back(UNUSED);
+				invalid_.back().push_back(UNUSED);
 			}
 		}
 	}
@@ -159,19 +160,21 @@ namespace SyntenyFinder
 	void BlockFinder::NotifyAfter(NotificationData data, StrandIterator begin, StrandIterator end)
 	{
 		size_t pos = 0;
-		size_t direction = begin.GetDirection();
 		data.bifStorage->NotifyAfter(begin, end);
 		for(StrandIterator it = begin; it != end; ++it, ++pos)
 		{
-			if(invalid[direction][pos] != UNUSED)
+			if(invalid_[nowInvalid_][pos] != UNUSED)
 			{				
-				(*data.startKMer)[invalid[direction][pos]] = it;
-				AddRestricted(*data.restricted, (*data.startKMer)[invalid[direction][pos]], invalid[direction][pos], data.k);
-				(*data.iteratorIndex)[it] = invalid[direction][pos];
+				(*data.startKMer)[invalid_[nowInvalid_][pos]] = it;
+				AddRestricted(*data.restricted, (*data.startKMer)[invalid_[nowInvalid_][pos]], invalid_[nowInvalid_][pos], data.k);
+				(*data.iteratorIndex)[it] = invalid_[nowInvalid_][pos];
 			}
 		}
 
-		invalid[direction].clear();
+		if(++nowInvalid_ == invalid_.size())
+		{
+			invalid_.clear();
+		}
 	}
 
 	size_t BlockFinder::EnumerateBifurcationsSArray(size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif) const

@@ -85,7 +85,8 @@ namespace SyntenyFinder
 		mutable BifurcationPos temp_;
 		std::vector<BifurcationPos> bifurcationPos_;
 		std::vector<PosBifurcation> posBifurcation_;
-		std::vector<BifurcationRecord> invalid[2];
+		size_t nowInvalid_;
+		std::vector<std::vector<BifurcationRecord> > invalid_;
 	};
 }
 

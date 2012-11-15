@@ -108,7 +108,8 @@ namespace SyntenyFinder
 				restricted(restricted), iteratorIndex(iteratorIndex), startKMer(startKMer), bifStorage(bifStorage), k(k) {}
 		};
 		
-		std::vector<size_t> invalid[2];
+		size_t nowInvalid_;
+		std::vector<std::vector<size_t> > invalid_;
 		static const size_t UNUSED;		
 
 		static bool EdgeEmpty(const Edge & a, size_t k);

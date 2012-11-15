@@ -250,7 +250,7 @@ int main(int argc, char * argv[])
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
 			finder.PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
 		}
-		return 0;
+
 		std::vector<SyntenyFinder::BlockInstance> blockList;
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
