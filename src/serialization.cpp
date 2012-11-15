@@ -31,7 +31,8 @@ namespace SyntenyFinder
 			out << "Sequence #" << chr << std::endl;
 			std::string rcomp;
 			StrandIterator it = sequence.PositiveBegin(chr);
-			for(size_t i = 0; it != sequence.PositiveEnd(chr); i++, ++it)
+			StrandIterator end = sequence.PositiveEnd(chr);
+			for(size_t i = 0; it != end; i++, ++it)
 			{
 				out << i % 10;
 			}

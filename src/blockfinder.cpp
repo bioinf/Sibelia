@@ -159,7 +159,8 @@ namespace SyntenyFinder
 	void BlockFinder::NotifyAfter(NotificationData data, StrandIterator begin, StrandIterator end)
 	{
 		size_t pos = 0;
-		size_t direction = begin.GetDirection();					
+		size_t direction = begin.GetDirection();
+		data.bifStorage->NotifyAfter(begin, end);
 		for(StrandIterator it = begin; it != end; ++it, ++pos)
 		{
 			if(invalid[direction][pos] != UNUSED)

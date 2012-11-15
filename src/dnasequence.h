@@ -42,7 +42,7 @@ namespace SyntenyFinder
 			}
 		};
 
-		typedef unrolled_list<DNACharacter, 1000> Sequence;
+		typedef unrolled_list<DNACharacter, 100> Sequence;
 		typedef Sequence::iterator SequencePosIterator;
 		typedef Sequence::reverse_iterator SequenceNegIterator;
 

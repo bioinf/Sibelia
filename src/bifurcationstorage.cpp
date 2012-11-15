@@ -46,7 +46,7 @@ namespace SyntenyFinder
 	}
 
 	void BifurcationStorage::Dump(const DNASequence & sequence, size_t k, std::ostream & out) const
-	{
+	{return;
 		std::string strandName[] = {"Positive", "Negative"};
 		StrandIterator start[] = {sequence.PositiveBegin(0), sequence.NegativeBegin(0)};
 		for(size_t strand = 0; strand < 2; strand++)
