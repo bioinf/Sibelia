@@ -3,7 +3,8 @@
 //* All Rights Reserved
 //* See file LICENSE for details.
 //****************************************************************************
-
+#include <sys/stat.h>
+#include <direct.h>
 #include <tclap/CmdLine.h>
 #include "outputgenerator.h"
 #include "test/unrolledlisttest.h"
@@ -110,8 +111,8 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 const std::string DELIMITER(80, '-');
 
 int main(int argc, char * argv[])
-{	
 
+{	
 #ifdef _RUN_TEST_
 	TestUnrolledList();
 #endif

@@ -210,26 +210,6 @@ namespace SyntenyFinder
 		}
 	}	
 	
-	void BlockFinder::AddRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k)
-	{
-		for(size_t j = 0; j < k; j++, ++it)
-		{
-			restricted.insert(std::make_pair(it.GetElementId(), index));
-		}
-	}
-
-	void BlockFinder::RemoveRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k)
-	{
-		for(size_t j = 0; j < k; j++, ++it)
-		{
-			typedef RestrictionMap::iterator RIterator;
-			std::pair<RIterator, RIterator> range = restricted.equal_range(it.GetElementId());
-			RIterator toErase = std::find_if(range.first, range.second, boost::bind(CmpSizePair, _1, std::make_pair(it.GetElementId(), index)));
-			assert(toErase != restricted.end());
-			restricted.erase(toErase);
-		}
-	}
-
 	void BlockFinder::CollapseBulgeGreedily(DNASequence & sequence,
 		BifurcationStorage & bifStorage,
 		size_t k,
@@ -238,7 +218,6 @@ namespace SyntenyFinder
 		VisitData targetData)
 	{
 		std::vector<StrandIterator> & startKMer = *notification.startKMer;
-		RestrictionMap & restricted = *notification.restricted;
 
 	#ifdef _DEBUG
 		static size_t bulge = 0;
@@ -251,22 +230,6 @@ namespace SyntenyFinder
 		BlockFinder::PrintPath(sequence, startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
 		bifStorage.Dump(sequence, k, std::cerr);
 	#endif
-			
-		StrandIterator it = startKMer[targetData.kmerId];
-		for(size_t step = 0; step < targetData.distance + k; step++, ++it)
-		{
-			typedef RestrictionMap::const_iterator MMIterator;
-			std::pair<MMIterator, MMIterator> kt = restricted.equal_range(it.GetElementId());
-			for(; kt.first != kt.second; ++kt.first)
-			{
-				if(kt.first->second != targetData.kmerId)
-				{
-					startKMer[kt.first->second] = sequence.PositiveEnd(0);
-					notification.iteratorIndex->erase(startKMer[kt.first->second]);
-				}
-			}
-		}
-
 		std::vector<std::pair<size_t, size_t> > lookForward;
 		std::vector<std::pair<size_t, size_t> > lookBack;
 		EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
@@ -276,8 +239,8 @@ namespace SyntenyFinder
 			sourceData.distance,
 			AdvanceForward(targetIt, k),
 			targetData.distance,
-			boost::bind(&BlockFinder::NotifyBefore, boost::ref(*this), notification, _1, _2),
-			boost::bind(&BlockFinder::NotifyAfter, boost::ref(*this), notification, _1, _2));
+			boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(*notification.bifStorage), _1, _2),
+			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(*notification.bifStorage), _1, _2));
 		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
 
 	#ifdef _DEBUG
@@ -298,9 +261,8 @@ namespace SyntenyFinder
 	{	
 		size_t ret = 0;	
 		IteratorVector startKMer;
-		RestrictionMap restricted;
 		IteratorIndexMap iteratorIndex;
-		NotificationData notification(&restricted, &iteratorIndex, &startKMer, &bifStorage, k);
+		NotificationData notification(&iteratorIndex, &startKMer, &bifStorage, k);
 		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
 		{
 			return ret;
@@ -315,7 +277,6 @@ namespace SyntenyFinder
 			}
 
 			iteratorIndex[startKMer[i]] = i;
-			AddRestricted(restricted, startKMer[i], i, k);			
 		}
 		
 		std::vector<BifurcationMark> visit;

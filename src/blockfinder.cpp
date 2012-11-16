@@ -68,33 +68,6 @@ namespace SyntenyFinder
 			return set.Size() > 1 || set.In(BlockFinder::SEPARATION_CHAR);
 		}
 
-		void MatchBifurcationStorage(const DNASequence & sequence, const BifurcationStorage & now, const BifurcationStorage & old)
-		{			
-			const size_t NO_BIF = BifurcationStorage::NO_BIFURCATION;
-			for(size_t strand = 0; strand < 2; strand++)
-			{
-				DNASequence::Direction dir = static_cast<DNASequence::Direction>(strand);
-				for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
-				{
-					for(StrandIterator it = sequence.Begin(dir, chr); it != sequence.End(dir, chr); ++it)
-					{
-						std::vector<StrandIterator> nowPos;
-						std::vector<StrandIterator> oldPos;
-						size_t oldBifId = old.GetBifurcation(it);
-						size_t nowBifId = now.GetBifurcation(it);
-						assert((oldBifId == NO_BIF && nowBifId == NO_BIF) || (oldBifId != NO_BIF && nowBifId != NO_BIF));						
-						now.ListPositions(nowBifId, std::back_inserter(nowPos));
-						old.ListPositions(oldBifId, std::back_inserter(oldPos));
-						assert(nowPos.size() == oldPos.size());
-						for(size_t i = 0; i < nowPos.size(); i++)
-						{
-							assert(std::find(oldPos.begin(), oldPos.end(), nowPos[i]) != oldPos.end());
-						}
-					}
-				}
-			}
-		}
-
 		void Flank(std::string & str, size_t start, size_t end, size_t k, char sepChar)
 		{
 			if(end - start > k)
@@ -133,47 +106,6 @@ namespace SyntenyFinder
 			{
 				originalPos_[i][j] = static_cast<Pos>(j);
 			}
-		}
-	}
-
-	void BlockFinder::NotifyBefore(NotificationData data, StrandIterator begin, StrandIterator end)
-	{
-		nowInvalid_ = 0;
-		invalid_.push_back(std::vector<size_t>());
-		data.bifStorage->NotifyBefore(begin, end);		
-		for(StrandIterator it = begin; it != end; ++it)
-		{			
-			IteratorIndexMap::iterator index = data.iteratorIndex->find(it);
-			if(index != data.iteratorIndex->end())
-			{
-				invalid_.back().push_back(index->second);
-				RemoveRestricted(*data.restricted, it, index->second, data.k);
-				data.iteratorIndex->erase(it);
-			}
-			else
-			{
-				invalid_.back().push_back(UNUSED);
-			}
-		}
-	}
-
-	void BlockFinder::NotifyAfter(NotificationData data, StrandIterator begin, StrandIterator end)
-	{
-		size_t pos = 0;
-		data.bifStorage->NotifyAfter(begin, end);
-		for(StrandIterator it = begin; it != end; ++it, ++pos)
-		{
-			if(invalid_[nowInvalid_][pos] != UNUSED)
-			{				
-				(*data.startKMer)[invalid_[nowInvalid_][pos]] = it;
-				AddRestricted(*data.restricted, (*data.startKMer)[invalid_[nowInvalid_][pos]], invalid_[nowInvalid_][pos], data.k);
-				(*data.iteratorIndex)[it] = invalid_[nowInvalid_][pos];
-			}
-		}
-
-		if(++nowInvalid_ == invalid_.size())
-		{
-			invalid_.clear();
 		}
 	}
 
@@ -317,6 +249,8 @@ namespace SyntenyFinder
 	#ifdef _DEBUG
 		bifStorage.FormDictionary(idMap, k);
 	#endif
+
+		std::cout << "Bif = " << bifStorage.TotalElements();
 
 		SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)

@@ -59,7 +59,6 @@ namespace SyntenyFinder
 		typedef std::vector<StrandIterator> IteratorVector;
 		typedef boost::unordered_map<std::string, size_t> KMerBifMap;
 		typedef boost::unordered_map<StrandIterator, size_t, IteratorHash> IteratorIndexMap;
-		typedef boost::unordered_multimap<size_t, size_t> RestrictionMap;		
 		std::vector<FASTARecord> chrList_;
 		std::vector<PosVector> originalPos_;		
 
@@ -98,14 +97,13 @@ namespace SyntenyFinder
 
 		struct NotificationData
 		{
-			RestrictionMap * restricted;
 			IteratorIndexMap * iteratorIndex;
 			IteratorVector * startKMer;
 			BifurcationStorage * bifStorage;
 			size_t k;
 			NotificationData() {}
-			NotificationData(RestrictionMap * restricted, IteratorIndexMap * iteratorIndex, IteratorVector * startKMer, BifurcationStorage * bifStorage, size_t k):
-				restricted(restricted), iteratorIndex(iteratorIndex), startKMer(startKMer), bifStorage(bifStorage), k(k) {}
+			NotificationData(IteratorIndexMap * iteratorIndex, IteratorVector * startKMer, BifurcationStorage * bifStorage, size_t k):
+				iteratorIndex(iteratorIndex), startKMer(startKMer), bifStorage(bifStorage), k(k) {}
 		};
 		
 		size_t nowInvalid_;
@@ -116,10 +114,6 @@ namespace SyntenyFinder
 		static bool EdgeCompare(const Edge & a, const Edge & b);
 		static std::vector<size_t> EdgeToVector(const Edge & a);	
 		size_t GetMustBeBifurcation(StrandIterator it, size_t k);
-		void AddRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k);
-		void RemoveRestricted(RestrictionMap & restricted, StrandIterator it, size_t index, size_t k);
-		void NotifyBefore(NotificationData notify, StrandIterator begin, StrandIterator end);
-		void NotifyAfter(NotificationData notify, StrandIterator begin, StrandIterator end);		
 		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
 		size_t EnumerateBifurcationsHash(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack f = ProgressCallBack()) const;
