@@ -105,7 +105,7 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 	}
 }
 
-#define _RUN_TEST_
+//#define _RUN_TEST_
 
 const std::string DELIMITER(80, '-');
 
