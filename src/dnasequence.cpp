@@ -337,13 +337,7 @@ namespace SyntenyFinder
 			NotifyFunction before,
 			NotifyFunction after)
 	{	
-		size_t pos = 0;
-		std::vector<size_t> oldPos;
-		for(StrandIterator jt = target; pos < targetDistance; pos++, ++jt)
-		{
-			oldPos.push_back(jt.GetOriginalPosition());
-		}
-
+		size_t oldPos = target.GetOriginalPosition();
 		Sequence::notify_func seqBefore = boost::bind(&DNASequence::NotifyBefore, boost::ref(*this), _1, _2, before);
 		Sequence::notify_func seqAfter = boost::bind(&DNASequence::NotifyAfter, boost::ref(*this), _1, _2, after);		
 		if(target.GetDirection() == positive)
@@ -366,12 +360,10 @@ namespace SyntenyFinder
 			target = StrandIterator(AdvanceForward(begin, sourceDistance - 1), negative);
 		}
 
-		pos = 0;
-		size_t record = 0;
+		size_t pos = 0;
 		for(StrandIterator jt = target; pos < sourceDistance; pos++, ++jt)
 		{
-			size_t nowPos = record < oldPos.size() ? oldPos[record++] : oldPos.back();
-			jt.it_->GetNaked()->pos = static_cast<Pos>(nowPos);
+			jt.it_->GetNaked()->pos = static_cast<Pos>(oldPos);
 		}
 	}
 

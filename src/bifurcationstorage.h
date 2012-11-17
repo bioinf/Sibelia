@@ -21,7 +21,7 @@ namespace SyntenyFinder
 		typedef DNASequence::SequencePosIterator PositiveIterator;
 		typedef DNASequence::SequenceNegIterator NegativeIterator;
 		typedef DNASequence::SequencePosIterator BaseIterator;
-		typedef boost::shared_ptr<BaseIterator> IteratorPtr;
+		typedef BaseIterator* IteratorPtr;
 		typedef BaseIterator* IteratorWeakPtr;
 		typedef std::vector<IteratorPtr> IteratorVector;
 		
@@ -39,7 +39,11 @@ namespace SyntenyFinder
 		void NotifyBefore(StrandIterator begin, StrandIterator end);
 		void NotifyAfter(StrandIterator begin, StrandIterator end);
 		void FormDictionary(boost::unordered_map<std::string, size_t> & dict, size_t k) const;
-		
+		~BifurcationStorage();
+		size_t GetEmpty()
+		{
+			return empty_;
+		}
 		class IteratorProxy
 		{
 		public:
@@ -62,7 +66,7 @@ namespace SyntenyFinder
 				{
 					for(IteratorVector::const_iterator it = bifurcationPos_[strand][inBifId].begin(); it != bifurcationPos_[strand][inBifId].end(); ++it, ++ret)
 					{
-						if(it->get() != 0)
+						if(*it != 0)
 						{
 							*out++ = IteratorProxy(&bifurcationPos_[strand][inBifId], it - bifurcationPos_[strand][inBifId].begin(), static_cast<DNASequence::Direction>(strand));
 						}
@@ -111,6 +115,7 @@ namespace SyntenyFinder
 		IteratorMap posBifurcation_[2];
 
 		size_t nowInvalid_;
+		size_t empty_;
 		std::vector<std::vector<BifurcationRecord> > invalid_;
 	};
 }

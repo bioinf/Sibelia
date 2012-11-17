@@ -250,6 +250,7 @@ namespace SyntenyFinder
 	#endif
 
 		SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
+		std::cout << bifStorage.GetEmpty() << std::endl;
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
 			originalPos_[chr].clear();
