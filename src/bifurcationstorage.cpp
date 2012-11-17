@@ -9,14 +9,23 @@ namespace SyntenyFinder
 {
 	const BifurcationStorage::BifurcationId BifurcationStorage::NO_BIFURCATION = -1;
 	
-	bool BifurcationStorage::IteratorProxy::Valid() const
+	namespace
 	{
-		return ptr_ != 0;
+		template<class T>
+			bool WeakPtrAutoPtrEqual(T * ptr1, const boost::shared_ptr<T> & ptr2)
+			{
+				return ptr2.get() != 0 && *ptr1 == *ptr2;
+			}
 	}
 
-	StrandIterator BifurcationStorage::IteratorProxy::GetIterator() const
+	bool BifurcationStorage::IteratorProxy::Valid() const
 	{
-		return StrandIterator(*ptr_, direction_);
+		return (*adjList_)[index_].get() != 0;
+	}
+
+	StrandIterator BifurcationStorage::IteratorProxy::operator*() const
+	{
+		return StrandIterator(*(*adjList_)[index_], direction_);
 	}
 
 	void BifurcationStorage::Clear()
@@ -64,11 +73,14 @@ namespace SyntenyFinder
 			{
 				for(size_t instance = 0; instance < bifurcationPos_[strand][bifId].size(); instance++)
 				{
-					StrandIterator jt(*bifurcationPos_[strand][bifId][instance], static_cast<DNASequence::Direction>(strand));
-					size_t pos = sequence.GlobalIndex(jt);
-					out << " {" << bifId << ", " << pos << ", ";
-					CopyN(jt, k, std::ostream_iterator<char>(out));
-					out << "}";
+					if(bifurcationPos_[strand][bifId][instance].get() != 0)
+					{
+						StrandIterator jt(*bifurcationPos_[strand][bifId][instance], static_cast<DNASequence::Direction>(strand));
+						size_t pos = sequence.GlobalIndex(jt);
+						out << " {" << bifId << ", " << pos << ", ";
+						CopyN(jt, k, std::ostream_iterator<char>(out));
+						out << "}";
+					}
 				}
 			}
 			
@@ -89,35 +101,59 @@ namespace SyntenyFinder
 	void BifurcationStorage::AddPoint(DNASequence::StrandIterator it, size_t inBifId)
 	{
 		BifurcationId bifId = static_cast<BifurcationId>(inBifId);
-		if(GetBifurcation(it) == NO_BIFURCATION)
+		if(GetBifurcation(it) == NO_BIFURCATION && inBifId != NO_BIFURCATION)
 		{
 			size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
 			BaseIterator kt = it.Base();
 			IteratorPtr newPtr = IteratorPtr(new BaseIterator(kt));
-			bifurcationPos_[strand][bifId].push_back(newPtr);
-			posBifurcation_[strand].insert(std::make_pair(newPtr, bifId));
+			IteratorVector & line = bifurcationPos_[strand][bifId];
+			typedef std::equal_to<IteratorPtr> EqualOp;
+			IteratorVector::iterator jt = std::find_if(line.begin(), line.end(), boost::bind(&EqualOp::operator(), boost::cref(EqualOp()), IteratorPtr(), _1));
+			if(jt == line.end())
+			{
+				bifurcationPos_[strand][bifId].push_back(newPtr);
+			}
+			else
+			{
+				*jt = newPtr;
+			}
+
+			posBifurcation_[strand].insert(std::make_pair(newPtr.get(), bifId));
 			assert(GetBifurcation(it) == bifId);
 		}
 	}
 
 	
-	void BifurcationStorage::ErasePoint(DNASequence::StrandIterator it)
-	{
+	BifurcationStorage::BifurcationId BifurcationStorage::ErasePointInternal(DNASequence::StrandIterator it, IteratorVector::iterator & ret)
+	{		
+		BifurcationId bifId = NO_BIFURCATION;
+		BaseIterator base = it.Base();
+		IteratorWeakPtr lookUp = &base;
 		size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
-		IteratorPtr lookUp(new BaseIterator(it.Base()));
-		IteratorMap::iterator kt = posBifurcation_[strand].find(lookUp);
+		IteratorMap::iterator kt = posBifurcation_[strand].find(lookUp);		
 		if(kt != posBifurcation_[strand].end())
 		{
-			IteratorPtr ptr = kt->first;
+			bifId = kt->second;
+			IteratorVector & line = bifurcationPos_[strand][bifId];
+			ret = std::find_if(line.begin(), line.end(), boost::bind(WeakPtrAutoPtrEqual<BaseIterator>, kt->first, _1));
 			posBifurcation_[strand].erase(kt);
-			ptr.reset();
+			ret->reset();
 		}
+
+		return bifId;
+	}
+
+	void BifurcationStorage::ErasePoint(DNASequence::StrandIterator it)
+	{
+		IteratorVector::iterator buf;
+		ErasePointInternal(it, buf);
 	}
 	
 	size_t BifurcationStorage::GetBifurcation(DNASequence::StrandIterator it) const
 	{
 		size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
-		IteratorPtr lookUp(new BaseIterator(it.Base()));
+		BaseIterator base = it.Base();
+		IteratorWeakPtr lookUp = &base;
 		IteratorMap::const_iterator kt = posBifurcation_[strand].find(lookUp);
 		return kt == posBifurcation_[strand].end() ? NO_BIFURCATION : kt->second;
 	}
@@ -129,14 +165,13 @@ namespace SyntenyFinder
 		invalid_.push_back(std::vector<BifurcationRecord>());
 		for(StrandIterator it = begin; it != end; ++it, ++pos)
 		{			
-			BifurcationId bifId = static_cast<BifurcationId>(GetBifurcation(it));
+			IteratorVector::iterator ret;
+			BifurcationId bifId = ErasePointInternal(it, ret);
 			if(bifId != NO_BIFURCATION)
 			{
-				invalid_.back().push_back(BifurcationRecord(pos, bifId));
-				ErasePoint(it);
+				invalid_.back().push_back(BifurcationRecord(pos, ret, bifId));
 			}
 		}		
-
 	}
 
 	void BifurcationStorage::NotifyAfter(StrandIterator begin, StrandIterator end)
@@ -145,9 +180,15 @@ namespace SyntenyFinder
 		size_t record = 0;
 		for(StrandIterator it = begin; it != end; ++it, ++pos)
 		{
-			if(record < invalid_[nowInvalid_].size() && invalid_[nowInvalid_][record].first == pos)
+			if(record < invalid_[nowInvalid_].size() && invalid_[nowInvalid_][record].pos == pos)
 			{
-				AddPoint(it, invalid_[nowInvalid_][record++].second);
+				BifurcationId bifId = invalid_[nowInvalid_][record].bifId;
+				IteratorVector::iterator jt = invalid_[nowInvalid_][record].ptrIt;
+				size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
+				IteratorPtr ptr(new BaseIterator(it.Base()));
+				*jt = ptr;
+				posBifurcation_[strand].insert(std::make_pair(ptr.get(), bifId));
+				record++;
 			}
 		}
 

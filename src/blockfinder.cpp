@@ -233,7 +233,6 @@ namespace SyntenyFinder
 
 	void BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
 	{
-
 	#ifdef NEW_ENUMERATION		
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);		
 		size_t maxId = EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);

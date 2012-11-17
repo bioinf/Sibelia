@@ -25,10 +25,10 @@
 #include <iomanip>
 #include <iterator>
 #include <algorithm>
+#include <functional>
 #include <boost/bind.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/functional/factory.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 #include <divsufsort.h>

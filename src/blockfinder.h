@@ -25,6 +25,7 @@ namespace SyntenyFinder
 
 	typedef char Bool;	
 	typedef DNASequence::StrandIterator StrandIterator;
+	typedef std::vector<BifurcationStorage::IteratorProxy> IteratorProxyVector;
 	
 	class BlockFinder
 	{
@@ -55,8 +56,7 @@ namespace SyntenyFinder
 			}
 		};
 
-		typedef std::vector<Pos> PosVector;
-		typedef std::vector<StrandIterator> IteratorVector;
+		typedef std::vector<Pos> PosVector;		
 		typedef boost::unordered_map<std::string, size_t> KMerBifMap;
 		typedef boost::unordered_map<StrandIterator, size_t, IteratorHash> IteratorIndexMap;
 		std::vector<FASTARecord> chrList_;
@@ -95,17 +95,6 @@ namespace SyntenyFinder
 			}
 		};
 
-		struct NotificationData
-		{
-			IteratorIndexMap * iteratorIndex;
-			IteratorVector * startKMer;
-			BifurcationStorage * bifStorage;
-			size_t k;
-			NotificationData() {}
-			NotificationData(IteratorIndexMap * iteratorIndex, IteratorVector * startKMer, BifurcationStorage * bifStorage, size_t k):
-				iteratorIndex(iteratorIndex), startKMer(startKMer), bifStorage(bifStorage), k(k) {}
-		};
-		
 		size_t nowInvalid_;
 		std::vector<std::vector<size_t> > invalid_;
 		static const size_t UNUSED;		
@@ -121,8 +110,8 @@ namespace SyntenyFinder
 		void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage) const;
 		void ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t minSize, bool sharedOnly, std::vector<BlockInstance> & chrList) const;
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
-		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, NotificationData notification, VisitData sourceData, VisitData targetData);
-		void UpdateBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const std::vector<StrandIterator> & startKMer, VisitData sourceData, VisitData targetData,
+		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData);
+		void UpdateBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,
 			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBack);
 	};
 }

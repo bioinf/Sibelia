@@ -55,15 +55,15 @@ namespace SyntenyFinder
 		void EraseBifurcations(DNASequence & sequence,
 			BifurcationStorage & bifStorage,
 			size_t k,
-			const std::vector<StrandIterator> & startKMer,
+			const IteratorProxyVector  & startKMer,
 			VisitData targetData,
 			std::vector<std::pair<size_t, size_t> > & lookForward,
 			std::vector<std::pair<size_t, size_t> > & lookBack)
 		{
 			lookBack.clear();
 			lookForward.clear();
-			StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k).Invert();
-			StrandIterator bmer = AdvanceForward(startKMer[targetData.kmerId], targetData.distance);
+			StrandIterator amer = AdvanceForward(*startKMer[targetData.kmerId], k).Invert();
+			StrandIterator bmer = AdvanceForward(*startKMer[targetData.kmerId], targetData.distance);
 			for(size_t i = 0; i < k; i++, ++amer, ++bmer)
 			{
 				size_t bifId = bifStorage.GetBifurcation(amer);
@@ -81,28 +81,32 @@ namespace SyntenyFinder
 				}
 			}
 
-			amer = startKMer[targetData.kmerId];
+			amer = *startKMer[targetData.kmerId];
 			bmer = AdvanceForward(amer, k + targetData.distance).Invert();
 			for(size_t i = 0; i < k + targetData.distance; i++, ++amer, ++bmer)
 			{
-				bifStorage.ErasePoint(amer);
+				if(i > 0)
+				{
+					bifStorage.ErasePoint(amer);
+				}
+
 				bifStorage.ErasePoint(bmer);
 			}
 		}
 
 		bool Overlap(size_t k,
-			const std::vector<StrandIterator> & startKMer,
+			const IteratorProxyVector & startKMer,
 			VisitData sourceData,
 			VisitData targetData)
 		{
 			std::vector<size_t> occur;
-			StrandIterator it = startKMer[sourceData.kmerId];
+			StrandIterator it = *startKMer[sourceData.kmerId];
 			for(size_t i = 0; i < sourceData.distance + k; i++, ++it)
 			{
 				occur.push_back(it.GetElementId());
 			}
 
-			it = startKMer[targetData.kmerId];
+			it = *startKMer[targetData.kmerId];
 			std::sort(occur.begin(), occur.end());
 			for(size_t i = 0; i < targetData.distance + k; i++, ++it)
 			{
@@ -163,7 +167,7 @@ namespace SyntenyFinder
 	void BlockFinder::UpdateBifurcations(DNASequence & sequence,
 			BifurcationStorage & bifStorage,
 			size_t k,
-			const std::vector<StrandIterator> & startKMer,
+			const IteratorProxyVector & startKMer,
 			VisitData sourceData,
 			VisitData targetData,
 			const std::vector<std::pair<size_t, size_t> > & lookForward,
@@ -171,8 +175,8 @@ namespace SyntenyFinder
 	{
 		size_t anear = 0;
 		size_t bnear = 0;
-		StrandIterator amer = AdvanceForward(startKMer[targetData.kmerId], k).Invert();
-		StrandIterator bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance);
+		StrandIterator amer = AdvanceForward(*startKMer[targetData.kmerId], k).Invert();
+		StrandIterator bmer = AdvanceForward(*startKMer[targetData.kmerId], sourceData.distance);
 		for(size_t i = 0; i < k; i++, ++amer, ++bmer)
 		{
 			if(anear < lookBack.size() && i == lookBack[anear].first)
@@ -188,10 +192,10 @@ namespace SyntenyFinder
 			}
 		}
 
-		amer = startKMer[targetData.kmerId];
-		bmer = AdvanceForward(startKMer[targetData.kmerId], sourceData.distance + k).Invert();
-		StrandIterator srcAMer = startKMer[sourceData.kmerId];
-		StrandIterator srcBMer = AdvanceForward(startKMer[sourceData.kmerId], sourceData.distance + k).Invert();
+		amer = *startKMer[targetData.kmerId];
+		bmer = AdvanceForward(*startKMer[targetData.kmerId], sourceData.distance + k).Invert();
+		StrandIterator srcAMer = *startKMer[sourceData.kmerId];
+		StrandIterator srcBMer = AdvanceForward(*startKMer[sourceData.kmerId], sourceData.distance + k).Invert();
 		for(size_t i = 0; i < sourceData.distance + 1; i++, ++amer, ++bmer, ++srcAMer, ++srcBMer)
 		{				
 			size_t bifId = bifStorage.GetBifurcation(srcAMer);
@@ -213,43 +217,41 @@ namespace SyntenyFinder
 	void BlockFinder::CollapseBulgeGreedily(DNASequence & sequence,
 		BifurcationStorage & bifStorage,
 		size_t k,
-		NotificationData notification,
+		IteratorProxyVector & startKMer,
 		VisitData sourceData,
 		VisitData targetData)
-	{
-		std::vector<StrandIterator> & startKMer = *notification.startKMer;
-
+	{		
 	#ifdef _DEBUG
 		static size_t bulge = 0;
 		std::cerr << "Bulge #" << bulge++ << std::endl;
 		std::cerr << "Before: " << std::endl;
 		BlockFinder::PrintRaw(sequence, std::cerr);
 		std::cerr << "Source branch: " << std::endl;			
-		BlockFinder::PrintPath(sequence, startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+		BlockFinder::PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 		std::cerr << "Target branch: " << std::endl;			
-		BlockFinder::PrintPath(sequence, startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
+		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
 		bifStorage.Dump(sequence, k, std::cerr);
 	#endif
 		std::vector<std::pair<size_t, size_t> > lookForward;
 		std::vector<std::pair<size_t, size_t> > lookBack;
 		EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
-		StrandIterator sourceIt = startKMer[sourceData.kmerId];
-		StrandIterator targetIt = startKMer[targetData.kmerId];			
+		StrandIterator sourceIt = *startKMer[sourceData.kmerId];
+		StrandIterator targetIt = *startKMer[targetData.kmerId];			
 		sequence.Replace(AdvanceForward(sourceIt, k),
 			sourceData.distance,
 			AdvanceForward(targetIt, k),
 			targetData.distance,
-			boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(*notification.bifStorage), _1, _2),
-			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(*notification.bifStorage), _1, _2));
+			boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(bifStorage), _1, _2),
+			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
 		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
 
 	#ifdef _DEBUG
 		std::cerr << "After: " << std::endl;
 		BlockFinder::PrintRaw(sequence, std::cerr);
 		std::cerr << "Source branch: " << std::endl;			
-		BlockFinder::PrintPath(sequence, startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+		BlockFinder::PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 		std::cerr << "Target branch: " << std::endl;			
-		BlockFinder::PrintPath(sequence, startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
+		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
 		bifStorage.Dump(sequence, k, std::cerr);
 		std::cerr << DELIMITER << std::endl;
 		Test(sequence, bifStorage, k);
@@ -260,42 +262,38 @@ namespace SyntenyFinder
 		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId)
 	{	
 		size_t ret = 0;	
-		IteratorVector startKMer;
-		IteratorIndexMap iteratorIndex;
-		NotificationData notification(&iteratorIndex, &startKMer, &bifStorage, k);
-	/*	if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
+		IteratorProxyVector startKMer;
+		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
 		{
 			return ret;
-		}*/
+		}
 
 		std::vector<char> endChar(startKMer.size(), ' ');
 		for(size_t i = 0; i < startKMer.size(); i++)
 		{
-			if(ProperKMer(startKMer[i], k + 1))
+			if(ProperKMer(*startKMer[i], k + 1))
 			{                    
-				endChar[i] = *AdvanceForward(startKMer[i], k);
+				endChar[i] = *AdvanceForward(*startKMer[i], k);
 			}
-
-			iteratorIndex[startKMer[i]] = i;
 		}
 		
 		std::vector<BifurcationMark> visit;
 		for(size_t kmerI = 0; kmerI < startKMer.size(); kmerI++)
 		{
-			if(!startKMer[kmerI].AtValidPosition())
+			if(!startKMer[kmerI].Valid())
 			{
 				continue;
 			}
 
-			FillVisit(sequence, bifStorage, startKMer[kmerI], minBranchSize, visit);
+			FillVisit(sequence, bifStorage, *startKMer[kmerI], minBranchSize, visit);
 			for(size_t kmerJ = kmerI + 1; kmerJ < startKMer.size(); kmerJ++)
 			{
-				if(!startKMer[kmerJ].AtValidPosition() || endChar[kmerI] == endChar[kmerJ])
+				if(!startKMer[kmerJ].Valid() || endChar[kmerI] == endChar[kmerJ])
 				{
 					continue;
 				}
 
-				StrandIterator kmer = ++StrandIterator(startKMer[kmerJ]);
+				StrandIterator kmer = ++StrandIterator(*startKMer[kmerJ]);
 				for(size_t step = 1; kmer.AtValidPosition() && step < minBranchSize; ++kmer, step++)
 				{
 					size_t nowBif = bifStorage.GetBifurcation(kmer);
@@ -317,19 +315,19 @@ namespace SyntenyFinder
 							}
 
 							++ret;
-							size_t imlp = MaxBifurcationMultiplicity(bifStorage, startKMer[kmerI], idata.distance);
-							size_t jmlp = MaxBifurcationMultiplicity(bifStorage, startKMer[kmerJ], jdata.distance);
+							size_t imlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerI], idata.distance);
+							size_t jmlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerJ], jdata.distance);
 							bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);						
 							if(iless)
 							{
 								endChar[jdata.kmerId] = endChar[idata.kmerId];
-								CollapseBulgeGreedily(sequence, bifStorage, k, notification, idata, jdata);
+								CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, idata, jdata);
 							}
 							else
 							{
 								endChar[idata.kmerId] = endChar[jdata.kmerId];
-								CollapseBulgeGreedily(sequence, bifStorage, k, notification, jdata, idata);
-								FillVisit(sequence, bifStorage, startKMer[kmerI], minBranchSize, visit);
+								CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, jdata, idata);
+								FillVisit(sequence, bifStorage, *startKMer[kmerI], minBranchSize, visit);
 							}
 
 							break;

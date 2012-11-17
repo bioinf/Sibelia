@@ -22,6 +22,9 @@ namespace SyntenyFinder
 		typedef DNASequence::SequenceNegIterator NegativeIterator;
 		typedef DNASequence::SequencePosIterator BaseIterator;
 		typedef boost::shared_ptr<BaseIterator> IteratorPtr;
+		typedef BaseIterator* IteratorWeakPtr;
+		typedef std::vector<IteratorPtr> IteratorVector;
+		
 		static const BifurcationId NO_BIFURCATION;
 
 		void Clear();
@@ -41,43 +44,67 @@ namespace SyntenyFinder
 		{
 		public:
 			IteratorProxy() {}
-			IteratorProxy(IteratorPtr ptr, DNASequence::Direction direction): ptr_(ptr), direction_(direction) {}
+			IteratorProxy(const IteratorVector * adjList, size_t index, DNASequence::Direction direction): adjList_(adjList), index_(index),
+				direction_(direction) {}
 			bool Valid() const;
-			StrandIterator GetIterator() const;
+			StrandIterator operator * () const;
 		private:
-			IteratorPtr ptr_;
 			DNASequence::Direction direction_;
+			const IteratorVector * adjList_;
+			size_t index_;
 		};
 
 		template<class Iterator>
-			size_t ListPositions(size_t inBifId, Iterator out) const
+			size_t ListPositions(size_t inBifId, Iterator out)
 			{
-				size_t ret = 0;
-				BifurcationId bifId = static_cast<BifurcationId>(inBifId);
+				size_t ret = 0;				
 				for(size_t strand = 0; strand < 2; strand++)
 				{
-					std::transform(bifurcationPos_[strand][bifId].begin(), bifurcationPos_[strand][bifId].end(), out,
-						boost::bind(boost::value_factory<IteratorProxy>(), _1, static_cast<DNASequence::Direction>(pos)));
+					for(IteratorVector::const_iterator it = bifurcationPos_[strand][inBifId].begin(); it != bifurcationPos_[strand][inBifId].end(); ++it, ++ret)
+					{
+						if(it->get() != 0)
+						{
+							*out++ = IteratorProxy(&bifurcationPos_[strand][inBifId], it - bifurcationPos_[strand][inBifId].begin(), static_cast<DNASequence::Direction>(strand));
+						}
+					}
 				}
 
 				return ret;
 			}
 
-	private:
-		typedef std::pair<size_t, BifurcationId> BifurcationRecord;		
-		typedef std::vector<IteratorPtr> IteratorVector;
+	private:			
 		typedef std::vector<IteratorVector> BifurcationStore;
 
-		struct IteratorPtrHash
+		struct WeakIteratorPtrHash
 		{
 		public:
-			size_t operator () (IteratorPtr it) const
+			size_t operator () (IteratorWeakPtr it) const
 			{
 				return reinterpret_cast<size_t>(&(**it));
 			}
 		};
 
-		typedef boost::unordered_map<IteratorPtr, BifurcationId, IteratorPtrHash> IteratorMap;
+		template<class T1, class T2>
+			struct IteratorPtrEqual
+			{
+			public:
+				bool operator () (const T1 & it1, const T2 & it2) const
+				{
+					return *it1 == *it2;
+				}
+			};
+
+		struct BifurcationRecord
+		{
+			size_t pos;
+			IteratorVector::iterator ptrIt;
+			BifurcationId bifId;
+			BifurcationRecord() {}
+			BifurcationRecord(size_t pos, IteratorVector::iterator ptrIt, BifurcationId bifId): pos(pos), ptrIt(ptrIt), bifId(bifId) {}
+		};
+
+		BifurcationId ErasePointInternal(DNASequence::StrandIterator it, IteratorVector::iterator & ret);
+		typedef boost::unordered_map<IteratorWeakPtr, BifurcationId, WeakIteratorPtrHash, IteratorPtrEqual<IteratorWeakPtr, IteratorWeakPtr> > IteratorMap;
 
 		BifurcationId maxId_;
 		BifurcationStore bifurcationPos_[2];
