@@ -28,9 +28,9 @@ namespace SyntenyFinder
 	{
 		block.clear();
 	#ifdef NEW_ENUMERATION
-		BifurcationStorage bifStorage;
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);		
-		EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
+		size_t maxId = EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
+		BifurcationStorage bifStorage(maxId);
 		DNASequence sequence(chrList_, originalPos_);
 		ConstructBifStorage(sequence, bifurcation, bifStorage);
 	#else

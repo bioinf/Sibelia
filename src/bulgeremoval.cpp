@@ -263,10 +263,10 @@ namespace SyntenyFinder
 		IteratorVector startKMer;
 		IteratorIndexMap iteratorIndex;
 		NotificationData notification(&iteratorIndex, &startKMer, &bifStorage, k);
-		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
+	/*	if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
 		{
 			return ret;
-		}
+		}*/
 
 		std::vector<char> endChar(startKMer.size(), ' ');
 		for(size_t i = 0; i < startKMer.size(); i++)

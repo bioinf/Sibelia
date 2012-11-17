@@ -234,10 +234,10 @@ namespace SyntenyFinder
 	void BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
 	{
 
-	#ifdef NEW_ENUMERATION
-		BifurcationStorage bifStorage;
+	#ifdef NEW_ENUMERATION		
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);		
-		EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
+		size_t maxId = EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
+		BifurcationStorage bifStorage(maxId);
 		DNASequence sequence(chrList_, originalPos_);
 		ConstructBifStorage(sequence, bifurcation, bifStorage);
 	#else
@@ -249,8 +249,6 @@ namespace SyntenyFinder
 	#ifdef _DEBUG
 		bifStorage.FormDictionary(idMap, k);
 	#endif
-
-		std::cout << "Bif = " << bifStorage.TotalElements();
 
 		SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
