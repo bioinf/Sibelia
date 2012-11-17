@@ -541,6 +541,18 @@ namespace SyntenyFinder
 		assert(m_ErasedValueSet);
 		assert(source_begin != source_end);
 
+		//look behind
+		if (target != this->begin())
+		{
+			--target;
+			++target.m_ArrayPos;
+			if (target.m_ArrayPos == NODE_SIZE)
+			{
+				++target.m_ListPos;
+				target.m_ArrayPos = 0;
+			}
+		}
+
 		type_iter itList = target.m_ListPos;
 		size_t arrayPos = target.m_ArrayPos;
 		iterator to_return;
@@ -663,8 +675,30 @@ namespace SyntenyFinder
 		assert(m_ErasedValueSet);
 		assert(source_begin != source_end);
 
+		//look behind
+		bool modified = false;
+		if (target != this->rbegin())
+		{
+			--target;
+			modified = true;
+		}
+
 		type_rev_iter itList = --std::reverse_iterator<type_iter> ((--target.base()).m_ListPos);
 		size_t arrayPos = (--target.base()).m_ArrayPos;
+
+		if (modified)
+		{
+			if (arrayPos > 0)
+			{
+				--arrayPos;
+			}
+			else
+			{
+				++itList;
+				arrayPos = NODE_SIZE - 1;
+			}
+		}
+
 		reverse_iterator to_return;
 		iterator inv_after_begin;
 		iterator inv_after_end;
