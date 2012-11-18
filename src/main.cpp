@@ -188,11 +188,13 @@ int main(int argc, char * argv[])
 			cmd,
 			false);
 
-		TCLAP::SwitchArg d3("",
+		TCLAP::ValueArg<std::string> d3("",
 			"d3",
-			"Enable d3 output.",
-			cmd,
-			false);
+			"d3 output file",
+			false,
+			"d3.html",
+			"filename",
+			cmd);
 
 		std::string description = std::string("Parameters set, used for the simplification. ") +
 			std::string("Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).");
@@ -265,7 +267,6 @@ int main(int argc, char * argv[])
 
 	//	const std::string templateCircosConf = "circos.template.conf";
 //		const std::string defaultCircosOutFile = "circos.conf";
-//		const std::string defaultCircosOutFile = "circos.conf";
 
 
 		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circos.isSet(), d3.isSet()};
@@ -276,7 +277,7 @@ int main(int argc, char * argv[])
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), coordsFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), sequencesFile.getValue()),		
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), "circos/circos.conf", "circos"),
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), "d3.json")
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), d3.getValue())
 		};
 
 		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);
