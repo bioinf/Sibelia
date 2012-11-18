@@ -5,6 +5,7 @@
 //****************************************************************************
 
 #include "outputgenerator.h"
+#include "platform.h"
 
 namespace SyntenyFinder
 {
@@ -213,6 +214,8 @@ namespace SyntenyFinder
 
 	void OutputGenerator::GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const
 	{
+		//create output directory (if not exists)
+		CreateDirectory(outDir);
 		//copy template file
 		std::ofstream out;
 		TryOpenFile(outFile, out);

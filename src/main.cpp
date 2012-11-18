@@ -4,7 +4,6 @@
 //* See file LICENSE for details.
 //****************************************************************************
 #include <sys/stat.h>
-#include <direct.h>
 #include <tclap/CmdLine.h>
 #include "outputgenerator.h"
 #include "test/unrolledlisttest.h"
