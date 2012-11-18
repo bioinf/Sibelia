@@ -44,8 +44,9 @@ By default, "Sibelia" produces 3 files:
 There are also optional output files:
 
 1. Sequences file
-2. Files for generating a "Circos" picture
+2. Files for generating a "Circos" picture (--circos)
 3. Dot file for resulting de Bruijn graph
+4. HTML file with D3 circular diagram (--d3).
 
 All these files are described below in details.
 
@@ -139,30 +140,24 @@ is located. Other fields are described in section "Coordinates file".
 
 "Circos" files
 --------------
-Default directory name = not set. To output these files, set cmd parameter
-
-	-d <dir name> or --circosdir <dir name>
-
 You can visualize synteny blocks with a colorful circular diagramm by using
 the "Circos" software [3]. To achieve this, do following:
 
 1. Download and install Circos software
-2. Run "Sibelia" with -d options set
-3. Run Circos
+2. Run "Sibelia" with --circos options set
+3. Run Circos in "circos" directory
 
 For example, to generate Circos diagramm for example "Helicobacter_pylori.fasta"
 perform following:
 
-1. Create directory "circos" in directory with the FASTA file
-2. Run "Sibelia" with following parameters:
+1. Run "Sibelia" with following parameters:
 
-	Sibelia -s loose -d ./circos Helicobacter_pylori.fasta
+	Sibelia -s loose Helicobacter_pylori.fasta --circos
 
-3. Run circos in the "circos" directory
+2. Run circos in the "circos" directory
 
-For example of such diagramms (generated from "Helicobacter_pylori.fastaUSAGE),
-see "examples/Helicobacter_pylori/circos/circos.png". Note that the directory\
-for circos files must exist before running the program. Also note that such
+For example of such diagramms (generated from Helicobacter_pylori.fasta),
+see "examples/Helicobacter_pylori/circos/circos.png". Note that such
 diagrams can become very piled with larger genomes. To overcome this, plot only
 big blocks, see section "Minimum block size".
 

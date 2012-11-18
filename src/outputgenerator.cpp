@@ -11,7 +11,7 @@ namespace SyntenyFinder
 	namespace
 	{
 		const char COVERED = 1;
-		struct FooIt: public std::iterator<std::forward_iterator_tag, char>
+		struct FooIt: public std::iterator<std::forward_iterator_tag, char> // TODO: rename struct, or explain wtf at least
 		{
 			FooIt& operator++()
 			{
@@ -42,6 +42,16 @@ namespace SyntenyFinder
 			std::stringstream out;			
 			out << block.GetChr() + 1 << '\t' << (block.GetSignedBlockId() < 0 ? '-' : '+') << '\t';
 			out << block.GetStart() << '\t' << block.GetEnd() << '\t' << block.GetEnd() - block.GetStart();
+			return out.str();
+		}
+
+		// function to sort blocks in one chromosome by starting position (it's sorted lexicographically by D3)
+		std::string OutputD3BlockID(const BlockInstance & block)
+		{
+			std::stringstream out;
+			out << "chr" << block.GetChr() + 1 << ".";
+			out << std::setfill('0') << std::setw(8) << block.GetStart() << "-";
+			out << std::setfill('0') << std::setw(8) << block.GetEnd();
 			return out.str();
 		}
 
@@ -213,6 +223,8 @@ namespace SyntenyFinder
 
 	void OutputGenerator::GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const
 	{
+		// TODO: create directory outDir
+
 		//copy template file
 		std::ofstream out;
 		TryOpenFile(outFile, out);
@@ -267,6 +279,48 @@ namespace SyntenyFinder
 			karFile << "chr - hs" << i + 1 << " " << i + 1 << " 0 " << chrList_[i].sequence.length();
 			karFile	<< " chr" << i + 1 << std::endl;
 		}
+	}
+
+	void OutputGenerator::GenerateD3Output(const std::string & outFile) const
+	{
+        //open output file
+        std::ofstream out;
+        TryOpenFile(outFile, out);
+        out << "chart_data = [" << std::endl;
+
+        //blocks must be sorted by start
+        BlockList sortedBlocks = blockList_;
+        std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareByStart);
+
+        // write to output file
+        int lastId = 0;
+        bool first_line = true;
+		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock) // O(N^2) by number of blocks, can be optimized
+		{
+            if (!first_line)
+                out << ",";
+            else
+                first_line = false;
+            out << "    {";
+            out << "\"name\":\"" << OutputD3BlockID(*itBlock) << "\",";
+            out << "\"size\":" << itBlock->GetLength() << ",";
+            out << "\"imports\":[";
+            bool first = true;
+            for (BlockList::iterator itPair = sortedBlocks.begin(); itPair != sortedBlocks.end(); ++itPair)
+            {
+                if (itPair->GetBlockId() == itBlock->GetBlockId() && itPair != itBlock)
+                {
+                    if (!first)
+                        out << ",";
+                    else
+                        first = false;
+                    out << "\"" << OutputD3BlockID(*itPair) << "\"";
+                }
+			}
+            out << "]";
+            out << "}" << std::endl;
+		}
+        out << "];" << std::endl;
 	}
 
 	void OutputGenerator::TryOpenFile(const std::string & fileName, std::ofstream & stream) const

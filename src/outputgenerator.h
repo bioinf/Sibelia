@@ -32,6 +32,7 @@ namespace SyntenyFinder
 		OutputGenerator(const ChrList & chrList, const BlockList & blockList): chrList_(chrList), blockList_(blockList) {}
 		void GenerateReport(const std::string & fileName) const;
 		void GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const;
+		void GenerateD3Output(const std::string & outFile) const;
 		void ListBlocksIndices(const std::string & fileName) const;
 		void ListBlocksSequences(const std::string & fileName) const;		
 		void ListChromosomesAsPermutations(const std::string & fileName) const;
