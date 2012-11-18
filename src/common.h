@@ -13,7 +13,6 @@
 #include <vector>
 #include <cctype>
 #include <cstdlib>
-#include <stdint.h>
 #include <set>
 #include <map>
 #include <list>
@@ -27,6 +26,7 @@
 #include <algorithm>
 #include <functional>
 #include <boost/bind.hpp>
+#include <boost/cstdint.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_set.hpp>

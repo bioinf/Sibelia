@@ -135,18 +135,21 @@ namespace SyntenyFinder
 		}
 
 		std::vector<Size> lcp;
-		std::vector<saidx_t> pos(superGenome.size());
 		std::vector<saidx_t> order(superGenome.size());
-		std::vector<BifurcationInstance> * ret[] = {&positiveBif, &negativeBif};
-		divsufsort(reinterpret_cast<const sauchar_t*>(superGenome.c_str()), &order[0], static_cast<saidx_t>(order.size()));
-		for(size_t i = 0; i < order.size(); i++)
 		{
-			pos[order[i]] = static_cast<saidx_t>(i);
+			std::vector<saidx_t> pos(superGenome.size());
+			divsufsort(reinterpret_cast<const sauchar_t*>(superGenome.c_str()), &order[0], static_cast<saidx_t>(order.size()));
+			for(size_t i = 0; i < order.size(); i++)
+			{
+				pos[order[i]] = static_cast<saidx_t>(i);
+			}
+
+			GetHeight(superGenome, order, pos, lcp);	
 		}
 
 		CharSet prev;
 		CharSet next;
-		GetHeight(superGenome, order, pos, lcp);
+		std::vector<BifurcationInstance> * ret[] = {&positiveBif, &negativeBif};
 		std::vector<std::pair<DNASequence::Direction, BifurcationInstance> > candidate;
 		for(size_t start = 0; start < superGenome.size(); )
 		{

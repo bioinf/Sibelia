@@ -39,141 +39,14 @@ namespace SyntenyFinder
 		return complementary_[ch];
 	}
 
-	DNASequence::StrandIterator::StrandIterator()
-	{
-		
-	}
-
-	DNASequence::StrandIterator::StrandIterator(GenericIterator * it): it_(it)
-	{
-		
-	}
-
-	DNASequence::StrandIterator::StrandIterator(SequencePosIterator it, Direction direction)		
-	{
-		GenericIterator * genericIt = 0;
-		if(direction == positive)
-		{
-			genericIt = new ForwardIterator(it);
-		}
-		else
-		{
-			genericIt = new BackwardIterator(it);
-		}
-
-		it_ = std::auto_ptr<GenericIterator>(genericIt);
-	}
-
-	DNASequence::StrandIterator::StrandIterator(const StrandIterator & toCopy): it_(toCopy.it_->Clone())
-	{
-	}
-
-	void DNASequence::StrandIterator::Swap(StrandIterator & toSwap)
-	{
-		GenericIterator * me = it_.release();
-		GenericIterator * he = toSwap.it_.release();
-		it_ = std::auto_ptr<GenericIterator>(he);
-		toSwap.it_ = std::auto_ptr<GenericIterator>(me);
-	}
-
-	DNASequence::StrandIterator& DNASequence::StrandIterator::operator = (const StrandIterator & toCopy)
-	{
-		StrandIterator temp(toCopy);
-		Swap(temp);
-		return *this;
-	}
-
-	size_t DNASequence::StrandIterator::GetElementId() const
-	{
-		return reinterpret_cast<size_t>(it_->GetNaked());
-	}
-
-	bool DNASequence::StrandIterator::AtValidPosition() const
-	{
-		return **this != DNASequence::SEPARATION_CHAR;
-	}
-
-	bool DNASequence::StrandIterator::operator < (const StrandIterator & toCompare) const
-	{
-		if(GetDirection() == toCompare.GetDirection())
-		{
-			return it_->GetNaked() < toCompare.it_->GetNaked();
-		}
-
-		return GetDirection() == positive;
-	}
-
-	bool DNASequence::StrandIterator::operator == (const StrandIterator & toCompare) const
-	{
-		return it_->Equal(*toCompare.it_);
-	}
-
-	bool DNASequence::StrandIterator::operator != (const StrandIterator & toCompare) const
-	{
-		return !(*this == toCompare);
-	}
-
-	DNASequence::StrandIterator& DNASequence::StrandIterator::operator++()
-	{
-		assert(AtValidPosition());
-		it_->MoveForward();
-		return *this;
-	}
-
-	DNASequence::StrandIterator DNASequence::StrandIterator::operator++(int)
-	{
-		assert(AtValidPosition());
-		StrandIterator ret(*this);
-		it_->MoveForward();
-		return ret;
-	}
-
-	size_t DNASequence::StrandIterator::GetOriginalPosition() const
-	{
-		return it_->GetNaked()->pos;
-	}
-
-	DNASequence::StrandIterator& DNASequence::StrandIterator::operator--()
-	{
-		it_->MoveBackward();
-		return *this;
-	}
-
-	DNASequence::StrandIterator DNASequence::StrandIterator::operator--(int)
-	{
-		StrandIterator ret(*this);
-		it_->MoveBackward();
-		return ret;
-	}
-
-	DNASequence::Direction DNASequence::StrandIterator::GetDirection() const
-	{
-		return it_->GetDirection();
-	}
-
-	DNASequence::StrandIterator DNASequence::StrandIterator::Invert() const
-	{
-		return StrandIterator(it_->Invert());
-	}
-
-	char DNASequence::StrandIterator::operator * () const
-	{
-		return it_->Spell();
-	}
-
-	const DNASequence::DNACharacter* DNASequence::StrandIterator::GetNaked() const
-	{
-		return it_->GetNaked();
-	}
-
 	DNASequence::StrandIterator DNASequence::PositiveBegin(size_t chr) const
 	{
-		return StrandIterator(new ForwardIterator(posBegin_[chr]));
+		return StrandIterator(posBegin_[chr], positive);
 	}
 
 	DNASequence::StrandIterator DNASequence::PositiveEnd(size_t chr) const
 	{
-		return StrandIterator(new ForwardIterator(posEnd_[chr]));
+		return StrandIterator(posEnd_[chr], positive);
 	}
 
 	DNASequence::StrandIterator DNASequence::NegativeBegin(size_t chr) const
@@ -194,11 +67,6 @@ namespace SyntenyFinder
 	{
 		return direction == positive ? PositiveEnd(chr) : NegativeEnd(chr);
 	}
-
-	DNASequence::SequencePosIterator DNASequence::StrandIterator::Base() const
-	{
-		return it_->Base();
-	}	
 	
 	DNASequence::DNASequence(const std::vector<FASTARecord> & record): sequence_(DNACharacter(DELETED_CHAR, DELETED_POS))
 	{		
@@ -250,12 +118,7 @@ namespace SyntenyFinder
 	{
 		return posBegin_.size();
 	}
-
-	char DNASequence::StrandIterator::TranslateChar(char ch) const
-	{
-		return it_->TranslateChar(ch);
-	}
-
+	
 	void DNASequence::SubscribeIterator(SequencePosIterator & it)
 	{
 		iteratorStore_.insert(&it);
@@ -363,7 +226,7 @@ namespace SyntenyFinder
 		size_t pos = 0;
 		for(StrandIterator jt = target; pos < sourceDistance; pos++, ++jt)
 		{
-			jt.it_->GetNaked()->pos = static_cast<Pos>(oldPos);
+			jt.it_->pos = static_cast<Pos>(oldPos);
 		}
 	}
 

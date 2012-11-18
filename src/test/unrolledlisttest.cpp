@@ -66,11 +66,11 @@ void EndTest()
 	size_t initialSize = 20;
 	for(size_t i = 0; i < initialSize; i++)
 	{
-		store.push_back(i + 1);
+		store.push_back(static_cast<int>(i + 1));
 	}
 	
 	size_t addSize = 10;
-	std::vector<size_t> buf(addSize, 0);
+	std::vector<int> buf(addSize, 0);
 	size_t mustBeSize = initialSize + addSize;
 	store.insert(++store.begin(),
 		buf.begin(),

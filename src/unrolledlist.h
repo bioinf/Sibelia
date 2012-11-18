@@ -30,6 +30,7 @@ namespace SyntenyFinder
 		};
 
 	public:
+		typedef uint32_t chunk_size;
 
 		class iterator: public std::iterator<std::bidirectional_iterator_tag, T>
 		{
@@ -45,12 +46,14 @@ namespace SyntenyFinder
 			bool operator == (const iterator & comp) const;
 			bool operator != (const iterator & comp) const;
 			iterator& operator = (const iterator & to_copy);
+			chunk_size& get_padding_int();
+			const chunk_size& get_padding_int() const;
 			typename unrolled_list::iterator base() const {return *this;}
 		private:
 			friend class unrolled_list;
-
 			typename std::list<chunk>::iterator m_ListPos;
-			size_t              				m_ArrayPos;
+			chunk_size              			m_ArrayPos;
+			chunk_size							m_PaddingInt;
 		};
 
 		typedef std::reverse_iterator<typename unrolled_list::iterator> reverse_iterator;
@@ -167,7 +170,8 @@ namespace SyntenyFinder
 	template<class T, size_t NODE_SIZE>
 	unrolled_list<T, NODE_SIZE>::iterator::iterator(const iterator & it):
 		m_ListPos(it.m_ListPos),
-		m_ArrayPos(it.m_ArrayPos)
+		m_ArrayPos(it.m_ArrayPos),
+		m_PaddingInt(it.m_PaddingInt)
 	{}
 
 	template<class T, size_t NODE_SIZE>
@@ -224,6 +228,20 @@ namespace SyntenyFinder
 		iterator tmp = *this;
 		++(*this);
 		return tmp;
+	}
+
+	template<class T, size_t NODE_SIZE>
+	typename unrolled_list<T, NODE_SIZE>::chunk_size&
+	unrolled_list<T, NODE_SIZE>::iterator::get_padding_int ()
+	{
+		return m_PaddingInt;
+	}
+	
+	template<class T, size_t NODE_SIZE>
+	const typename unrolled_list<T, NODE_SIZE>::chunk_size&
+	unrolled_list<T, NODE_SIZE>::iterator::get_padding_int () const
+	{
+		return m_PaddingInt;
 	}
 
 	template<class T, size_t NODE_SIZE>
@@ -301,7 +319,7 @@ namespace SyntenyFinder
 	{
 		iterator toReturn;
 		toReturn.m_ListPos = listPos;
-		toReturn.m_ArrayPos = arrayPos;
+		toReturn.m_ArrayPos = static_cast<chunk_size>(arrayPos);
 		return toReturn;
 	}
 
@@ -592,7 +610,7 @@ namespace SyntenyFinder
 						{
 							if (itList->data[index] != m_ErasedValue)
 							{
-								inv_before_end.m_ArrayPos = index;
+								inv_before_end.m_ArrayPos = static_cast<chunk_size>(index);
 								break;
 							}
 						}
@@ -734,7 +752,7 @@ namespace SyntenyFinder
 						{
 							if (itList->data[index] != m_ErasedValue)
 							{
-								inv_before_begin.m_ArrayPos = index;
+								inv_before_begin.m_ArrayPos = static_cast<chunk_size>(index);
 								break;
 							}
 						}

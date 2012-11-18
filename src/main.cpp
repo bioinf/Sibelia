@@ -111,7 +111,6 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 const std::string DELIMITER(80, '-');
 
 int main(int argc, char * argv[])
-
 {	
 #ifdef _RUN_TEST_
 	TestUnrolledList();

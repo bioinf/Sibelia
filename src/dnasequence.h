@@ -42,70 +42,11 @@ namespace SyntenyFinder
 			}
 		};
 
-		typedef unrolled_list<DNACharacter, 100> Sequence;
+		typedef unrolled_list<DNACharacter, 50> Sequence;
 		typedef Sequence::iterator SequencePosIterator;
 		typedef Sequence::reverse_iterator SequenceNegIterator;
+		typedef Sequence::chunk_size PaddingInt;
 
-	private:
-		const static char DELETED_CHAR;
-		const static Pos DELETED_POS;
-
-		class GenericIterator
-		{
-		public:
-			virtual ~GenericIterator();
-			virtual char Spell() const = 0;			
-			virtual void MoveForward() = 0;
-			virtual void MoveBackward() = 0;
-			virtual char TranslateChar(char ch) const = 0;
-			virtual GenericIterator* Clone() const = 0;
-			virtual Direction GetDirection() const = 0;
-			virtual DNACharacter* GetNaked() const = 0;
-			virtual GenericIterator* Invert() const = 0;
-			virtual SequencePosIterator Base() const = 0;
-			virtual bool Equal(const GenericIterator& toCompare) const = 0;
-		};
-
-		class ForwardIterator: public GenericIterator
-		{
-		public:
-			char Spell() const;
-			void MoveForward();
-			void MoveBackward();
-			char TranslateChar(char ch) const;
-			Direction GetDirection() const;
-			GenericIterator* Clone() const;
-			GenericIterator* Invert() const;
-			SequencePosIterator Base() const;
-			DNACharacter* GetNaked() const;			
-			bool Equal(const GenericIterator& toCompare) const;
-			ForwardIterator();
-			ForwardIterator(SequencePosIterator it);
-		private:
-			SequencePosIterator it_;
-		};
-
-		class BackwardIterator: public GenericIterator
-		{
-		public:
-			char Spell() const;
-			void MoveForward();
-			void MoveBackward();
-			char TranslateChar(char ch) const;
-			Direction GetDirection() const;
-			GenericIterator* Clone() const;
-			GenericIterator* Invert() const;
-			SequencePosIterator Base() const;
-			SequencePosIterator Natural() const;
-			DNACharacter* GetNaked() const;
-			bool Equal(const GenericIterator& toCompare) const;
-			BackwardIterator();
-			BackwardIterator(SequencePosIterator it);
-		private:
-			SequencePosIterator it_;
-		};
-
-	public:			
 		class StrandIterator: public std::iterator<std::bidirectional_iterator_tag, char, size_t>
 		{
 		public:
@@ -120,21 +61,22 @@ namespace SyntenyFinder
 			StrandIterator operator -- (int);
 			size_t GetElementId() const;
 			size_t GetOriginalPosition() const;
+			PaddingInt& GetPadding();
+			const PaddingInt& GetPadding() const;
 			SequencePosIterator Base() const;
 			char TranslateChar(char ch) const;
-			const DNACharacter* GetNaked() const;
 			bool AtValidPosition() const;
 			bool operator < (const StrandIterator & comp) const;
 			bool operator == (const StrandIterator & comp) const;
 			bool operator != (const StrandIterator & comp) const;
 			StrandIterator();
-			StrandIterator(GenericIterator * it);
 			StrandIterator(const StrandIterator & toCopy);
 			StrandIterator(SequencePosIterator base, Direction direction);
 			StrandIterator& operator = (const StrandIterator & toCopy);
 		private:
 			friend class DNASequence;
-			std::auto_ptr<GenericIterator> it_;			
+			SequencePosIterator it_;
+			Direction direction_;
 		};
 
 		typedef boost::function<void(StrandIterator, StrandIterator)> NotifyFunction;
@@ -164,6 +106,8 @@ namespace SyntenyFinder
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
 		static const char SEPARATION_CHAR;
+		const static char DELETED_CHAR;
+		const static Pos DELETED_POS;
 		static const std::string complementary_;
 
 		struct IteratorPtrHash
