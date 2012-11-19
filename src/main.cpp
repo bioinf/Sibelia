@@ -188,13 +188,11 @@ int main(int argc, char * argv[])
 			cmd,
 			false);
 
-		TCLAP::ValueArg<std::string> d3("",
+		TCLAP::SwitchArg d3("",
 			"d3",
-			"d3 output file",
-			false,
-			"d3.html",
-			"filename",
-			cmd);
+			"enable d3 output",
+			cmd,
+			false);
 
 		std::string description = std::string("Parameters set, used for the simplification. ") +
 			std::string("Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).");
@@ -265,9 +263,9 @@ int main(int argc, char * argv[])
 		finder.GenerateSyntenyBlocks(lastK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
-	//	const std::string templateCircosConf = "circos.template.conf";
-//		const std::string defaultCircosOutFile = "circos.conf";
-
+		const std::string defaultCircosDir = "circos";
+		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
+		const std::string defaultD3File = "d3.html";
 
 		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circos.isSet(), d3.isSet()};
 		boost::function<void()> outFunction[] = 
@@ -276,8 +274,8 @@ int main(int argc, char * argv[])
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), reportFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), coordsFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), sequencesFile.getValue()),		
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), "circos/circos.conf", "circos"),
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), d3.getValue())
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), defaultCircosFile, defaultCircosDir),
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), defaultD3File)
 		};
 
 		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);

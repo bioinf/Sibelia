@@ -10,7 +10,10 @@ std::vector<std::string> GetResourceDirs()
 {
 	std::vector<std::string> dirs;
 	//relative path to resources
-	dirs.push_back("Resources");
-	//TODO: add system resource path
+	dirs.push_back("resources");
+#ifdef __gnu_linux__
+	//TODO: change with real installation dir
+	dirs.push_back("/usr/share/sibelia");
+#endif
 	return dirs;
 }

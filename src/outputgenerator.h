@@ -39,10 +39,10 @@ namespace SyntenyFinder
 		void OutputBuffer(const std::string & fileName, const std::string & buffer) const;
 	private:
 		ChrList chrList_;
-		static const std::string circosTemplate_;
 		mutable BlockList blockList_;
 		void ListChrs(std::ostream & out) const;
 		void TryOpenFile(const std::string & fileName, std::ofstream & stream) const;
+		void TryOpenResourceFile(const std::string & fileName, std::ifstream & stream) const;
 	};
 }
 

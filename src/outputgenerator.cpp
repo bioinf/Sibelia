@@ -229,7 +229,14 @@ namespace SyntenyFinder
 		//copy template file
 		std::ofstream out;
 		TryOpenFile(outFile, out);
-		out << circosTemplate_;
+		std::ifstream circosTemplate;
+		TryOpenResourceFile("circos.conf", circosTemplate);
+		std::string buffer;
+		while (!circosTemplate.eof())
+		{
+			std::getline(circosTemplate, buffer);
+			out << buffer << std::endl;
+		}
 
 		//blocks must be sorted by id
 		BlockList sortedBlocks = blockList_;
@@ -284,29 +291,17 @@ namespace SyntenyFinder
 
 	void OutputGenerator::GenerateD3Output(const std::string & outFile) const
 	{
-		//lookup in resource dirs for html template
-		std::vector<std::string> dirs = GetResourceDirs();
-		std::ifstream html;
-		for (std::vector<std::string>::iterator itDirs = dirs.begin(); itDirs != dirs.end(); ++itDirs)
-		{
-			html.open((*itDirs + "/d3.html").c_str());
-			if (html) break;
-		}
-		if (!html)
-		{
-			throw std::runtime_error("Cannot find resource file: d3.html");
-		}
+		std::ifstream htmlTemplate;
+		TryOpenResourceFile("d3.html", htmlTemplate);
 
         //open output file
         std::ofstream out;
         TryOpenFile(outFile, out);
 		
-		//open html template
-		//std::ifstream html((RESOURCE_DIR + "/d3.html").c_str());
 		std::string buffer;
 		for(;;)
 		{
-			std::getline(html, buffer);
+			std::getline(htmlTemplate, buffer);
 			if (buffer != "//SIBELIA_MARK_INSERT")
 			{
 				out << buffer << std::endl;
@@ -354,9 +349,9 @@ namespace SyntenyFinder
         out << "];" << std::endl;
 
 		//write rest of html template
-		while (!html.eof())
+		while (!htmlTemplate.eof())
 		{
-			std::getline(html, buffer);
+			std::getline(htmlTemplate, buffer);
 			out << buffer << std::endl;
 		}
 	}
@@ -367,6 +362,20 @@ namespace SyntenyFinder
 		if(!stream)
 		{
 			throw std::runtime_error(("Cannot open file " + fileName).c_str());
+		}
+	}
+
+	void OutputGenerator::TryOpenResourceFile(const std::string & fileName, std::ifstream & stream) const
+	{
+		std::vector<std::string> dirs = GetResourceDirs();
+		for (std::vector<std::string>::iterator itDirs = dirs.begin(); itDirs != dirs.end(); ++itDirs)
+		{
+			stream.open((*itDirs + "/" + fileName).c_str());
+			if (stream) break;
+		}
+		if (!stream)
+		{
+			throw std::runtime_error(("Cannot find resource file: " + fileName).c_str());
 		}
 	}
 
