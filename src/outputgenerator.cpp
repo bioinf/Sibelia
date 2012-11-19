@@ -284,7 +284,7 @@ namespace SyntenyFinder
 		
 		for (size_t i = 0; i < chrList_.size(); ++i)
 		{
-			karFile << "chr - hs" << i + 1 << " " << i + 1 << " 0 " << chrList_[i].sequence.length();
+			karFile << "chr - hs" << i + 1 << " " << chrList_[i].description << " 0 " << chrList_[i].sequence.length();
 			karFile	<< " chr" << i + 1 << std::endl;
 		}
 	}
