@@ -87,11 +87,11 @@ namespace SyntenyFinder
 			out << std::endl << strandName[strand] << ", pos:" ;
 			for(IteratorMap::const_iterator it = posBifurcation_[strand].begin(); it != posBifurcation_[strand].end(); ++it)
 			{
-				StrandIterator jt(*it->first, static_cast<DNASequence::Direction>(strand));
+				StrandIterator jt(**it, static_cast<DNASequence::Direction>(strand));
 				size_t pos = sequence.GlobalIndex(jt);
 				out << " {" << pos << ", ";
 				CopyN(jt, k, std::ostream_iterator<char>(out));
-				out << ", " << it->second << "}";
+				out << ", " << (*it)->get_padding_int() << "}";
 			}			
 
 			out << std::endl;
@@ -105,7 +105,8 @@ namespace SyntenyFinder
 		{
 			size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
 			BaseIterator kt = it.Base();
-			IteratorPtr newPtr = IteratorPtr(new BaseIterator(kt));
+			IteratorPtr newPtr = IteratorPtr(new BaseIterator(kt));		
+			newPtr->get_padding_int() = bifId;
 			IteratorVector & line = bifurcationPos_[strand][bifId];
 			typedef std::equal_to<IteratorPtr> EqualOp;
 			IteratorVector::iterator jt = std::find_if(line.begin(), line.end(), boost::bind(&EqualOp::operator(), boost::cref(EqualOp()), IteratorPtr(0), _1));
@@ -119,7 +120,7 @@ namespace SyntenyFinder
 				*jt = newPtr;
 			}
 
-			posBifurcation_[strand].insert(std::make_pair(newPtr, bifId));
+			posBifurcation_[strand].insert(newPtr);
 			assert(GetBifurcation(it) == bifId);
 		}
 	}
@@ -134,9 +135,9 @@ namespace SyntenyFinder
 		IteratorMap::iterator kt = posBifurcation_[strand].find(lookUp);		
 		if(kt != posBifurcation_[strand].end())
 		{
-			bifId = kt->second;
+			bifId = (*kt)->get_padding_int();
 			IteratorVector & line = bifurcationPos_[strand][bifId];
-			ret = std::find_if(line.begin(), line.end(), boost::bind(PtrEqual<BaseIterator>, kt->first, _1));
+			ret = std::find_if(line.begin(), line.end(), boost::bind(PtrEqual<BaseIterator>, *kt, _1));
 			posBifurcation_[strand].erase(kt);
 			empty_++;
 			delete *ret;
@@ -158,7 +159,7 @@ namespace SyntenyFinder
 		BaseIterator base = it.Base();
 		IteratorWeakPtr lookUp = &base;
 		IteratorMap::const_iterator kt = posBifurcation_[strand].find(lookUp);
-		return kt == posBifurcation_[strand].end() ? NO_BIFURCATION : kt->second;
+		return kt == posBifurcation_[strand].end() ? NO_BIFURCATION : (*kt)->get_padding_int();
 	}
 
 	void BifurcationStorage::NotifyBefore(StrandIterator begin, StrandIterator end)
@@ -189,8 +190,9 @@ namespace SyntenyFinder
 				IteratorVector::iterator jt = invalid_[nowInvalid_][record].ptrIt;
 				size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
 				IteratorPtr ptr(new BaseIterator(it.Base()));
-				*jt = ptr;empty_--;
-				posBifurcation_[strand].insert(std::make_pair(ptr, bifId));
+				ptr->get_padding_int() = bifId;
+				*jt = ptr;
+				posBifurcation_[strand].insert(ptr);
 				record++;
 			}
 		}

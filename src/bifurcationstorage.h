@@ -40,10 +40,7 @@ namespace SyntenyFinder
 		void NotifyAfter(StrandIterator begin, StrandIterator end);
 		void FormDictionary(boost::unordered_map<std::string, size_t> & dict, size_t k) const;
 		~BifurcationStorage();
-		size_t GetEmpty()
-		{
-			return empty_;
-		}
+
 		class IteratorProxy
 		{
 		public:
@@ -108,7 +105,7 @@ namespace SyntenyFinder
 		};
 
 		BifurcationId ErasePointInternal(DNASequence::StrandIterator it, IteratorVector::iterator & ret);
-		typedef boost::unordered_map<IteratorWeakPtr, BifurcationId, WeakIteratorPtrHash, IteratorPtrEqual<IteratorWeakPtr, IteratorWeakPtr> > IteratorMap;
+		typedef boost::unordered_set<IteratorWeakPtr, WeakIteratorPtrHash, IteratorPtrEqual<IteratorWeakPtr, IteratorWeakPtr> > IteratorMap;
 
 		BifurcationId maxId_;
 		BifurcationStore bifurcationPos_[2];

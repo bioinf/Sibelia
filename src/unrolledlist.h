@@ -292,6 +292,7 @@ namespace SyntenyFinder
 	{
 		m_ListPos = toCopy.m_ListPos;
 		m_ArrayPos = toCopy.m_ArrayPos;
+		m_PaddingInt = toCopy.m_PaddingInt;
 		return *this;
 	}
 	//end iterator
