@@ -9,9 +9,9 @@
 void randomTest();
 void memoryTest();
 
-typedef SyntenyFinder::unrolled_list<int, 5> UList5;
-typedef SyntenyFinder::unrolled_list<int, 20> UList20;
-typedef SyntenyFinder::unrolled_list<int, 100> UList100;
+typedef SyntenyFinder::unrolled_list<int, int, 5> UList5;
+typedef SyntenyFinder::unrolled_list<int, int, 20> UList20;
+typedef SyntenyFinder::unrolled_list<int, int, 100> UList100;
 
 void dummy20 (UList20::iterator, UList20::iterator) {}
 void dummy100 (UList100::iterator, UList100::iterator) {}

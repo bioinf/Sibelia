@@ -16,7 +16,7 @@
 
 namespace SyntenyFinder
 {
-	template<class T, size_t NODE_SIZE>
+	template<class T, class A, size_t NODE_SIZE>
 	class unrolled_list
 	{
 	private:
@@ -24,6 +24,7 @@ namespace SyntenyFinder
 		{
 			chunk(const T& erased_value);
 			T data[NODE_SIZE];
+			A meta[NODE_SIZE];
 			T erased_value;
 			size_t 	count;
 			bool	is_end;
@@ -37,6 +38,7 @@ namespace SyntenyFinder
 		public:
 			iterator();
 			iterator(const iterator & it);
+			A& meta() const;
 			T& operator * () const;
 			T* operator -> () const;
 			iterator& operator ++ ();
@@ -47,8 +49,7 @@ namespace SyntenyFinder
 			bool operator != (const iterator & comp) const;
 			iterator& operator = (const iterator & to_copy);
 			chunk_size& get_padding_int();
-			const chunk_size& get_padding_int() const;
-			typename unrolled_list::iterator base() const {return *this;}
+			const chunk_size& get_padding_int() const;			
 		private:
 			friend class unrolled_list;
 			typename std::list<chunk>::iterator m_ListPos;
@@ -152,8 +153,8 @@ namespace SyntenyFinder
 		bool				m_LastChunkSet;
 	};
 
-	template<class T, size_t NODE_SIZE>
-	unrolled_list<T, NODE_SIZE>::chunk::chunk(const T& _erased_value):
+	template<class T, class A, size_t NODE_SIZE>
+	unrolled_list<T, A, NODE_SIZE>::chunk::chunk(const T& _erased_value):
 		erased_value(_erased_value),
 		count(0),
 		is_end(false)
@@ -163,32 +164,32 @@ namespace SyntenyFinder
 
 	////////////////
 	//begin iterator
-	template<class T, size_t NODE_SIZE>
-	unrolled_list<T, NODE_SIZE>::iterator::iterator()
+	template<class T, class A, size_t NODE_SIZE>
+	unrolled_list<T, A, NODE_SIZE>::iterator::iterator()
 	{}
 
-	template<class T, size_t NODE_SIZE>
-	unrolled_list<T, NODE_SIZE>::iterator::iterator(const iterator & it):
+	template<class T, class A, size_t NODE_SIZE>
+	unrolled_list<T, A, NODE_SIZE>::iterator::iterator(const iterator & it):
 		m_ListPos(it.m_ListPos),
 		m_ArrayPos(it.m_ArrayPos),
 		m_PaddingInt(it.m_PaddingInt)
 	{}
 
-	template<class T, size_t NODE_SIZE>
-	T& unrolled_list<T, NODE_SIZE>::iterator::operator * () const
+	template<class T, class A, size_t NODE_SIZE>
+	T& unrolled_list<T, A, NODE_SIZE>::iterator::operator * () const
 	{
 		return m_ListPos->data[m_ArrayPos];
 	}
 
-	template<class T, size_t NODE_SIZE>
-	T* unrolled_list<T, NODE_SIZE>::iterator::operator -> () const
+	template<class T, class A, size_t NODE_SIZE>
+	T* unrolled_list<T, A, NODE_SIZE>::iterator::operator -> () const
 	{
 		return &m_ListPos->data[m_ArrayPos];
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator&
-	unrolled_list<T, NODE_SIZE>::iterator::operator ++ ()
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator&
+	unrolled_list<T, A, NODE_SIZE>::iterator::operator ++ ()
 	{
 		iterator prev = *this;
 		for (;;)
@@ -221,32 +222,38 @@ namespace SyntenyFinder
 		return *this;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator
-	unrolled_list<T, NODE_SIZE>::iterator::operator ++ (int)
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator
+	unrolled_list<T, A, NODE_SIZE>::iterator::operator ++ (int)
 	{
 		iterator tmp = *this;
 		++(*this);
 		return tmp;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::chunk_size&
-	unrolled_list<T, NODE_SIZE>::iterator::get_padding_int ()
-	{
-		return m_PaddingInt;
-	}
-	
-	template<class T, size_t NODE_SIZE>
-	const typename unrolled_list<T, NODE_SIZE>::chunk_size&
-	unrolled_list<T, NODE_SIZE>::iterator::get_padding_int () const
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::chunk_size&
+	unrolled_list<T, A, NODE_SIZE>::iterator::get_padding_int ()
 	{
 		return m_PaddingInt;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator&
-	unrolled_list<T, NODE_SIZE>::iterator::operator -- ()
+	template<class T, class A, size_t NODE_SIZE>
+	A& unrolled_list<T, A, NODE_SIZE>::iterator::meta() const
+	{
+		return m_ListPos->meta[m_ArrayPos];
+	}
+	
+	template<class T, class A, size_t NODE_SIZE>
+	const typename unrolled_list<T, A, NODE_SIZE>::chunk_size&
+	unrolled_list<T, A, NODE_SIZE>::iterator::get_padding_int () const
+	{
+		return m_PaddingInt;
+	}
+
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator&
+	unrolled_list<T, A, NODE_SIZE>::iterator::operator -- ()
 	{
 		for (;;)
 		{
@@ -265,30 +272,30 @@ namespace SyntenyFinder
 		return *this;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator
-	unrolled_list<T, NODE_SIZE>::iterator::operator -- (int)
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator
+	unrolled_list<T, A, NODE_SIZE>::iterator::operator -- (int)
 	{
 		iterator tmp = *this;
 		--(*this);
 		return tmp;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	bool unrolled_list<T, NODE_SIZE>::iterator::operator == (const iterator & comp) const
+	template<class T, class A, size_t NODE_SIZE>
+	bool unrolled_list<T, A, NODE_SIZE>::iterator::operator == (const iterator & comp) const
 	{
 		return (m_ListPos == comp.m_ListPos) && (m_ArrayPos == comp.m_ArrayPos);
 	}
 
-	template<class T, size_t NODE_SIZE>
-	bool unrolled_list<T, NODE_SIZE>::iterator::operator != (const iterator & comp) const
+	template<class T, class A, size_t NODE_SIZE>
+	bool unrolled_list<T, A, NODE_SIZE>::iterator::operator != (const iterator & comp) const
 	{
 		return !(*this == comp);
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator&
-	unrolled_list<T, NODE_SIZE>::iterator::operator = (const iterator & toCopy)
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator&
+	unrolled_list<T, A, NODE_SIZE>::iterator::operator = (const iterator & toCopy)
 	{
 		m_ListPos = toCopy.m_ListPos;
 		m_ArrayPos = toCopy.m_ArrayPos;
@@ -298,8 +305,8 @@ namespace SyntenyFinder
 	//end iterator
 	//////////////
 
-	template<class T, size_t NODE_SIZE>
-	void unrolled_list<T, NODE_SIZE>::debugPrintList()
+	template<class T, class A, size_t NODE_SIZE>
+	void unrolled_list<T, A, NODE_SIZE>::debugPrintList()
 	{
 		for (type_iter itList = m_Data.begin(); itList != m_Data.end(); ++itList)
 		{
@@ -314,9 +321,9 @@ namespace SyntenyFinder
 		std::cout << std::endl;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator
-	unrolled_list<T, NODE_SIZE>::create_iterator(type_iter listPos, size_t arrayPos)
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator
+	unrolled_list<T, A, NODE_SIZE>::create_iterator(type_iter listPos, size_t arrayPos)
 	{
 		iterator toReturn;
 		toReturn.m_ListPos = listPos;
@@ -324,20 +331,20 @@ namespace SyntenyFinder
 		return toReturn;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	size_t unrolled_list<T, NODE_SIZE>::size() const
+	template<class T, class A, size_t NODE_SIZE>
+	size_t unrolled_list<T, A, NODE_SIZE>::size() const
 	{
 		return m_Size;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	bool unrolled_list<T, NODE_SIZE>::empty() const
+	template<class T, class A, size_t NODE_SIZE>
+	bool unrolled_list<T, A, NODE_SIZE>::empty() const
 	{
 		return m_Size == 0;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	unrolled_list<T, NODE_SIZE>::unrolled_list():
+	template<class T, class A, size_t NODE_SIZE>
+	unrolled_list<T, A, NODE_SIZE>::unrolled_list():
 		m_Size(0),
 		m_ErasedValueSet(false),
 		m_BeginEndDirty(false),
@@ -348,8 +355,8 @@ namespace SyntenyFinder
 	}
 
 
-	template<class T, size_t NODE_SIZE>
-	unrolled_list<T, NODE_SIZE>::unrolled_list(const T& erased_value):
+	template<class T, class A, size_t NODE_SIZE>
+	unrolled_list<T, A, NODE_SIZE>::unrolled_list(const T& erased_value):
 		m_Size(0),
 		m_ErasedValue(erased_value),
 		m_ErasedValueSet(true),
@@ -360,8 +367,8 @@ namespace SyntenyFinder
 	{
 	}
 
-	template<class T, size_t NODE_SIZE>
-	unrolled_list<T, NODE_SIZE>::unrolled_list(const unrolled_list& other):
+	template<class T, class A, size_t NODE_SIZE>
+	unrolled_list<T, A, NODE_SIZE>::unrolled_list(const unrolled_list& other):
 		m_Size(other.m_Size),
 		m_Data(other.m_Data),
 		m_ErasedValue(other.m_ErasedValue),
@@ -374,8 +381,8 @@ namespace SyntenyFinder
 	{
 	}
 
-	template<class T, size_t NODE_SIZE>
-	unrolled_list<T, NODE_SIZE>& unrolled_list<T, NODE_SIZE>::operator=(const unrolled_list& other)
+	template<class T, class A, size_t NODE_SIZE>
+	unrolled_list<T, A, NODE_SIZE>& unrolled_list<T, A, NODE_SIZE>::operator=(const unrolled_list& other)
 	{
 		m_Size = other.m_Size;
 		m_Data = other.m_Data;
@@ -388,15 +395,15 @@ namespace SyntenyFinder
 		m_End = other.m_End;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	void unrolled_list<T, NODE_SIZE>::set_erased_value(const T& erased_value)
+	template<class T, class A, size_t NODE_SIZE>
+	void unrolled_list<T, A, NODE_SIZE>::set_erased_value(const T& erased_value)
 	{
 		m_ErasedValue = erased_value;
 		m_ErasedValueSet = true;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	void unrolled_list<T, NODE_SIZE>::lazyUpdateBeginEnd()
+	template<class T, class A, size_t NODE_SIZE>
+	void unrolled_list<T, A, NODE_SIZE>::lazyUpdateBeginEnd()
 	{
 		if (!m_BeginEndDirty) return;
 
@@ -422,8 +429,8 @@ namespace SyntenyFinder
 		m_BeginEndDirty = false;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	void unrolled_list<T, NODE_SIZE>::updateEndMark()
+	template<class T, class A, size_t NODE_SIZE>
+	void unrolled_list<T, A, NODE_SIZE>::updateEndMark()
 	{
 		if (m_LastChunkSet) m_LastChunk->is_end = false;
 		type_iter prevToEnd = --m_Data.end();
@@ -432,39 +439,39 @@ namespace SyntenyFinder
 		m_LastChunkSet = true;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator
-	unrolled_list<T, NODE_SIZE>::begin()
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator
+	unrolled_list<T, A, NODE_SIZE>::begin()
 	{
 		this->lazyUpdateBeginEnd();
 		return m_Begin;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator
-	unrolled_list<T, NODE_SIZE>::end()
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator
+	unrolled_list<T, A, NODE_SIZE>::end()
 	{
 		this->lazyUpdateBeginEnd();
 		return m_End;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::reverse_iterator
-	unrolled_list<T, NODE_SIZE>::rbegin()
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::reverse_iterator
+	unrolled_list<T, A, NODE_SIZE>::rbegin()
 	{
 		return reverse_iterator(this->end());
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::reverse_iterator
-	unrolled_list<T, NODE_SIZE>::rend()
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::reverse_iterator
+	unrolled_list<T, A, NODE_SIZE>::rend()
 	{
 		return reverse_iterator(this->begin());
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator
-	unrolled_list<T, NODE_SIZE>::erase(iterator start, iterator end)
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator
+	unrolled_list<T, A, NODE_SIZE>::erase(iterator start, iterator end)
 	{
 		assert(m_ErasedValueSet);
 
@@ -498,9 +505,9 @@ namespace SyntenyFinder
 		return end;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator
-	unrolled_list<T, NODE_SIZE>::erase(iterator position)
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator
+	unrolled_list<T, A, NODE_SIZE>::erase(iterator position)
 	{
 		iterator next = position;
 		++next;
@@ -508,9 +515,9 @@ namespace SyntenyFinder
 	}
 
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::reverse_iterator
-	unrolled_list<T, NODE_SIZE>::erase(reverse_iterator start, reverse_iterator end)
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::reverse_iterator
+	unrolled_list<T, A, NODE_SIZE>::erase(reverse_iterator start, reverse_iterator end)
 	{
 		assert(m_ErasedValueSet);
 		iterator for_start = (++start).base();
@@ -520,41 +527,41 @@ namespace SyntenyFinder
 		return end;
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::reverse_iterator
-	unrolled_list<T, NODE_SIZE>::erase(reverse_iterator position)
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::reverse_iterator
+	unrolled_list<T, A, NODE_SIZE>::erase(reverse_iterator position)
 	{
 		reverse_iterator next = position;
 		++next;
 		return this->erase(position, next);
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::iterator
-	unrolled_list<T, NODE_SIZE>::insert(iterator pos, const T & value)
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::iterator
+	unrolled_list<T, A, NODE_SIZE>::insert(iterator pos, const T & value)
 	{
 		const T * ptr = &value;
 		return this->insert(pos, ptr, ptr + 1);
 	}
 
-	template<class T, size_t NODE_SIZE>
-	typename unrolled_list<T, NODE_SIZE>::reverse_iterator
-	unrolled_list<T, NODE_SIZE>::insert(reverse_iterator pos, const T & value)
+	template<class T, class A, size_t NODE_SIZE>
+	typename unrolled_list<T, A, NODE_SIZE>::reverse_iterator
+	unrolled_list<T, A, NODE_SIZE>::insert(reverse_iterator pos, const T & value)
 	{
 		const T* ptr = &value;
 		return this->insert(pos, ptr, ptr + 1);
 	}
 
-	template<class T, size_t NODE_SIZE>
-	void unrolled_list<T, NODE_SIZE>::push_back(const T & value)
+	template<class T, class A, size_t NODE_SIZE>
+	void unrolled_list<T, A, NODE_SIZE>::push_back(const T & value)
 	{
 		this->insert(this->end(), value);
 	}
 
-	template<class T, size_t NODE_SIZE>
+	template<class T, class A, size_t NODE_SIZE>
 	template <class out_it>
-	typename unrolled_list<T, NODE_SIZE>::iterator
-	unrolled_list<T, NODE_SIZE>::insert(iterator target, out_it source_begin, out_it source_end,
+	typename unrolled_list<T, A, NODE_SIZE>::iterator
+	unrolled_list<T, A, NODE_SIZE>::insert(iterator target, out_it source_begin, out_it source_end,
 										notify_func notify_before, notify_func notify_after)
 	{
 		assert(m_ErasedValueSet);
@@ -635,6 +642,7 @@ namespace SyntenyFinder
 						if (itList->data[idFrom] != m_ErasedValue)
 						{
 							newChunk->data[idTo] = itList->data[idFrom];
+							newChunk->meta[idTo] = itList->meta[idFrom];
 							++newChunk->count;
 							itList->data[idFrom] = m_ErasedValue;
 							--itList->count;
@@ -685,10 +693,10 @@ namespace SyntenyFinder
 		return to_return;
 	}
 
-	template<class T, size_t NODE_SIZE>
+	template<class T, class A, size_t NODE_SIZE>
 	template <class out_it>
-	typename unrolled_list<T, NODE_SIZE>::reverse_iterator
-	unrolled_list<T, NODE_SIZE>::insert(reverse_iterator target, out_it source_begin, out_it source_end,
+	typename unrolled_list<T, A, NODE_SIZE>::reverse_iterator
+	unrolled_list<T, A, NODE_SIZE>::insert(reverse_iterator target, out_it source_begin, out_it source_end,
 										notify_func notify_before, notify_func notify_after)
 	{
 		assert(m_ErasedValueSet);
@@ -777,6 +785,7 @@ namespace SyntenyFinder
 						if (itList->data[idFrom] != m_ErasedValue)
 						{
 							newChunk->data[idTo] = itList->data[idFrom];
+							newChunk->meta[idTo] = itList->meta[idFrom];
 							++newChunk->count;
 							itList->data[idFrom] = m_ErasedValue;
 							--itList->count;

@@ -27,13 +27,11 @@ namespace SyntenyFinder
 		struct DNACharacter
 		{
 			char actual;
-			Pos pos;
 			DNACharacter() {}
-			DNACharacter(char actual): actual(actual), pos(actual) {}
-			DNACharacter(char actual, Pos pos): actual(actual), pos(pos) {}
+			DNACharacter(char actual): actual(actual) {}
 			bool operator == (const DNACharacter & a) const
 			{
-				return pos == a.pos && actual == a.actual;
+				return actual == a.actual;
 			}
 
 			bool operator != (const DNACharacter & a) const
@@ -42,7 +40,7 @@ namespace SyntenyFinder
 			}
 		};
 
-		typedef unrolled_list<DNACharacter, 50> Sequence;
+		typedef unrolled_list<DNACharacter, Size, 25> Sequence;
 		typedef Sequence::iterator SequencePosIterator;
 		typedef Sequence::reverse_iterator SequenceNegIterator;
 		typedef Sequence::chunk_size PaddingInt;

@@ -110,7 +110,7 @@ namespace SyntenyFinder
 
 	size_t DNASequence::StrandIterator::GetOriginalPosition() const
 	{
-		return it_->pos;
+		return it_.meta();
 	}
 
 	DNASequence::StrandIterator& DNASequence::StrandIterator::operator--()

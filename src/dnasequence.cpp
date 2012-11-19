@@ -68,18 +68,20 @@ namespace SyntenyFinder
 		return direction == positive ? PositiveEnd(chr) : NegativeEnd(chr);
 	}
 	
-	DNASequence::DNASequence(const std::vector<FASTARecord> & record): sequence_(DNACharacter(DELETED_CHAR, DELETED_POS))
+	DNASequence::DNASequence(const std::vector<FASTARecord> & record): sequence_(DNACharacter(DELETED_CHAR))
 	{		
-		sequence_.push_back(DNACharacter(SEPARATION_CHAR, -1));
+		sequence_.push_back(DNACharacter(SEPARATION_CHAR));
 		for(size_t chr = 0; chr < record.size(); chr++)
 		{
 			SequencePosIterator chrPosBegin = --sequence_.end();
 			for(size_t pos = 0; pos < record[chr].sequence.size(); pos++)
 			{
-				sequence_.push_back(DNACharacter(record[chr].sequence[pos], Pos(pos)));
+				sequence_.push_back(DNACharacter(record[chr].sequence[pos]));
+				(--sequence_.end()).meta() = Pos(pos);
 			}
 
-			sequence_.push_back(DNACharacter(SEPARATION_CHAR, Pos(record[chr].sequence.size())));
+			sequence_.push_back(DNACharacter(SEPARATION_CHAR));
+			(--sequence_.end()).meta() = Pos(record[chr].sequence.size());
 			posBegin_.push_back(++chrPosBegin);
 			posEnd_.push_back(--sequence_.end());
 		}
@@ -87,20 +89,22 @@ namespace SyntenyFinder
 		std::for_each(posBegin_.begin(), posBegin_.end(), boost::bind(&DNASequence::SubscribeIterator, boost::ref(*this), _1));
 		std::for_each(posEnd_.begin(), posEnd_.end(), boost::bind(&DNASequence::SubscribeIterator, boost::ref(*this), _1));
 	}
-
+	
 	DNASequence::DNASequence(const std::vector<FASTARecord> & record, const std::vector<std::vector<Pos> > & original):
-		sequence_(DNACharacter(DELETED_CHAR, DELETED_POS))
+		sequence_(DNACharacter(DELETED_CHAR))
 	{
-		sequence_.push_back(DNACharacter(SEPARATION_CHAR, -1));
+		sequence_.push_back(DNACharacter(SEPARATION_CHAR));
 		for(size_t chr = 0; chr < record.size(); chr++)
 		{
 			SequencePosIterator chrPosBegin = --sequence_.end();
 			for(size_t pos = 0; pos < record[chr].sequence.size(); pos++)
 			{
-				sequence_.push_back(DNACharacter(record[chr].sequence[pos], original[chr][pos]));
+				sequence_.push_back(DNACharacter(record[chr].sequence[pos]));
+				(--sequence_.end()).meta() = original[chr][pos];
 			}
 
-			sequence_.push_back(DNACharacter(SEPARATION_CHAR, Pos(record[chr].sequence.size())));
+			sequence_.push_back(DNACharacter(SEPARATION_CHAR));
+			(--sequence_.end()).meta() = Pos(record[chr].sequence.size());
 			posBegin_.push_back(++chrPosBegin);
 			posEnd_.push_back(--sequence_.end());
 		}
@@ -226,7 +230,7 @@ namespace SyntenyFinder
 		size_t pos = 0;
 		for(StrandIterator jt = target; pos < sourceDistance; pos++, ++jt)
 		{
-			jt.it_->pos = static_cast<Pos>(oldPos);
+			jt.it_.meta() = static_cast<Pos>(oldPos);
 		}
 	}
 
