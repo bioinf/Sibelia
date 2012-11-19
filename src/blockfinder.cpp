@@ -239,20 +239,22 @@ namespace SyntenyFinder
 	#ifdef NEW_ENUMERATION		
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);		
 		size_t maxId = EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
-		BifurcationStorage bifStorage(maxId);
-		DNASequence sequence(chrList_, originalPos_);
-		ConstructBifStorage(sequence, bifurcation, bifStorage);
-	#else
-		BifurcationStorage bifStorage;
-		DNASequence sequence(chrList_, originalPos_);
-		EnumerateBifurcationsHash(sequence, bifStorage, k);
-	#endif
+		DNASequence sequence(chrList_, originalPos_, true);
+		{
+			BifurcationStorage bifStorage(maxId);
+			ConstructBifStorage(sequence, bifurcation, bifStorage);
+		#else
+			BifurcationStorage bifStorage;
+			DNASequence sequence(chrList_, originalPos_);
+			EnumerateBifurcationsHash(sequence, bifStorage, k);
+		#endif
 
-	#ifdef _DEBUG
-		bifStorage.FormDictionary(idMap, k);
-	#endif
+		#ifdef _DEBUG
+			bifStorage.FormDictionary(idMap, k);
+		#endif
+			SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
+		}
 
-		SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
 			originalPos_[chr].clear();

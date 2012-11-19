@@ -90,7 +90,7 @@ namespace SyntenyFinder
 		std::for_each(posEnd_.begin(), posEnd_.end(), boost::bind(&DNASequence::SubscribeIterator, boost::ref(*this), _1));
 	}
 	
-	DNASequence::DNASequence(const std::vector<FASTARecord> & record, const std::vector<std::vector<Pos> > & original):
+	DNASequence::DNASequence(const std::vector<FASTARecord> & record, std::vector<std::vector<Pos> > & original, bool clear):
 		sequence_(DNACharacter(DELETED_CHAR))
 	{
 		sequence_.push_back(DNACharacter(SEPARATION_CHAR));
@@ -101,6 +101,13 @@ namespace SyntenyFinder
 			{
 				sequence_.push_back(DNACharacter(record[chr].sequence[pos]));
 				(--sequence_.end()).meta() = original[chr][pos];
+			}
+
+			if(clear)
+			{
+				original[chr].clear();
+				std::vector<Pos> temp;
+				original[chr].swap(temp);
 			}
 
 			sequence_.push_back(DNACharacter(SEPARATION_CHAR));

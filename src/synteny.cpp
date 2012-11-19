@@ -24,7 +24,7 @@ namespace SyntenyFinder
 		return EdgeToVector(a) < EdgeToVector(b);
 	}
 
-	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration) const
+	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration)
 	{
 		block.clear();
 	#ifdef NEW_ENUMERATION
@@ -38,11 +38,6 @@ namespace SyntenyFinder
 		DNASequence sequence(chrList_, originalPos_);
 		EnumerateBifurcationsHash(sequence, bifStorage, k);
 	#endif
-		ConvertEdgesToBlocks(sequence, bifStorage, k, minSize, sharedOnly, block);
-	}
-
-	void BlockFinder::ConvertEdgesToBlocks(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, size_t minSize, bool sharedOnly, std::vector<BlockInstance> & block) const
-	{
 		int blockCount = 1;
 		block.clear();
 		std::vector<Edge> edge;

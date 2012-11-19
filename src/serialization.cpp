@@ -83,7 +83,7 @@ namespace SyntenyFinder
 		}
 	}
 
-	void BlockFinder::SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f) const
+	void BlockFinder::SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f)
 	{
 	#ifdef NEW_ENUMERATION
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);		
@@ -117,7 +117,7 @@ namespace SyntenyFinder
 		out << "}" << std::endl;
 	}
 
-	void BlockFinder::SerializeGraph(size_t k, std::ostream & out) const
+	void BlockFinder::SerializeGraph(size_t k, std::ostream & out)
 	{
 		DNASequence sequence(chrList_, originalPos_);
 		out << "digraph G" << std::endl << "{" << std::endl;

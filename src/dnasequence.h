@@ -96,7 +96,7 @@ namespace SyntenyFinder
 			NotifyFunction before = 0,
 			NotifyFunction after = 0);
 		explicit DNASequence(const std::vector<FASTARecord> & record);
-		DNASequence(const std::vector<FASTARecord> & record, const std::vector<std::vector<Pos> > & original);
+		DNASequence(const std::vector<FASTARecord> & record, std::vector<std::vector<Pos> > & original, bool clear = false);
 		std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2) const;
 		size_t GlobalIndex(StrandIterator it) const;		
 		static const char UNKNOWN_BASE;
