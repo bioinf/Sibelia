@@ -5,5 +5,6 @@
 //****************************************************************************
 
 #include <string>
+#include <vector>
 
-bool CreateDirectory(const std::string & path);
+std::vector<std::string> GetResourceDirs();

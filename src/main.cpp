@@ -3,10 +3,12 @@
 //* All Rights Reserved
 //* See file LICENSE for details.
 //****************************************************************************
-#include <sys/stat.h>
+
 #include <tclap/CmdLine.h>
 #include "outputgenerator.h"
 #include "test/unrolledlisttest.h"
+
+//#define _RUN_TEST
 
 std::string IntToStr(size_t value)
 {
@@ -105,14 +107,14 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 	}
 }
 
-//#define _RUN_TEST_
-
 const std::string DELIMITER(80, '-');
+
 
 int main(int argc, char * argv[])
 {	
-#ifdef _RUN_TEST_
-	TestUnrolledList();
+
+#ifdef _RUN_TEST
+	SyntenyFinder::TestUnrolledList();
 #endif
 
 	std::stringstream parsets;		
@@ -121,6 +123,7 @@ int main(int argc, char * argv[])
 	std::map<std::string, std::vector<std::pair<int, int> > > defaultParameters;
 	defaultParameters["loose"] = LooseStageFile();
 	defaultParameters["fine"] = FineStageFile();
+
 	try
 	{  
 		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "0.7071");
@@ -179,15 +182,19 @@ int main(int argc, char * argv[])
 			"file name",
 			cmd);
 		
-		TCLAP::ValueArg<std::string> circosDir("d",
-			"circosdir",
-			"Directory for circos files, default = not set",
-			false,
-			"",
-			"dir name",
-			cmd);
+		TCLAP::SwitchArg circos("",
+			"circos",
+			"Enable circos output.",
+			cmd,
+			false);
 
-		std::string description = std::string("Parameters set, used for the simplification. ") + 
+		TCLAP::SwitchArg d3("",
+			"d3",
+			"enable d3 output",
+			cmd,
+			false);
+
+		std::string description = std::string("Parameters set, used for the simplification. ") +
 			std::string("Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).");
 		TCLAP::ValuesConstraint<std::string> allowedParametersVals(parameterSetName);
 		TCLAP::ValueArg<std::string> parameters("s",
@@ -249,22 +256,26 @@ int main(int argc, char * argv[])
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
 			finder.PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
 		}
-
+		
 		std::vector<SyntenyFinder::BlockInstance> blockList;
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		finder.GenerateSyntenyBlocks(lastK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
-		const std::string defaultCircosOutFile = "circos.conf";
-		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circosDir.isSet()};
+		const std::string defaultCircosDir = "circos";
+		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
+		const std::string defaultD3File = "d3.html";
+
+		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circos.isSet(), d3.isSet()};
 		boost::function<void()> outFunction[] = 
 		{
 			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), chrFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), reportFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), coordsFile.getValue()),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), sequencesFile.getValue()),		
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), circosDir.getValue() + "/" + defaultCircosOutFile, circosDir.getValue())
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), defaultCircosFile, defaultCircosDir),
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), defaultD3File)
 		};
 
 		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);

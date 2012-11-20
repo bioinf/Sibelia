@@ -6,19 +6,14 @@
 
 #include "platform.h"
 
-#ifdef _WIN32
-#include <direct.h>
-#else
-#include <sys/stat.h>
-#endif
-
-bool CreateDirectory(const std::string & path)
+std::vector<std::string> GetResourceDirs()
 {
-	int result = 0;
-#ifdef _WIN32
-	result = _mkdir(path.c_str());
-#else
-	result = mkdir(path.c_str(), 0755);
+	std::vector<std::string> dirs;
+	//relative path to resources
+	dirs.push_back("resources");
+#ifdef __gnu_linux__
+	//TODO: change with real installation dir
+	dirs.push_back("/usr/share/sibelia");
 #endif
-	return result == 0;
+	return dirs;
 }

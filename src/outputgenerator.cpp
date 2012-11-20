@@ -12,7 +12,7 @@ namespace SyntenyFinder
 	namespace
 	{
 		const char COVERED = 1;
-		struct FooIt: public std::iterator<std::forward_iterator_tag, char>
+		struct FooIt: public std::iterator<std::forward_iterator_tag, char> // TODO: rename struct, or explain wtf at least
 		{
 			FooIt& operator++()
 			{
@@ -43,6 +43,16 @@ namespace SyntenyFinder
 			std::stringstream out;			
 			out << block.GetChr() + 1 << '\t' << (block.GetSignedBlockId() < 0 ? '-' : '+') << '\t';
 			out << block.GetStart() << '\t' << block.GetEnd() << '\t' << block.GetEnd() - block.GetStart();
+			return out.str();
+		}
+
+		// function to sort blocks in one chromosome by starting position (it's sorted lexicographically by D3)
+		std::string OutputD3BlockID(const BlockInstance & block)
+		{
+			std::stringstream out;
+			out << "chr" << block.GetChr() + 1 << ".";
+			out << std::setfill('0') << std::setw(8) << block.GetStart() << "-";
+			out << std::setfill('0') << std::setw(8) << block.GetEnd();
 			return out.str();
 		}
 
@@ -214,12 +224,19 @@ namespace SyntenyFinder
 
 	void OutputGenerator::GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const
 	{
-		//create output directory (if not exists)
-		CreateDirectory(outDir);
+		// TODO: create directory outDir
+
 		//copy template file
 		std::ofstream out;
 		TryOpenFile(outFile, out);
-		out << circosTemplate_;
+		std::ifstream circosTemplate;
+		TryOpenResourceFile("circos.conf", circosTemplate);
+		std::string buffer;
+		while (!circosTemplate.eof())
+		{
+			std::getline(circosTemplate, buffer);
+			out << buffer << std::endl;
+		}
 
 		//blocks must be sorted by id
 		BlockList sortedBlocks = blockList_;
@@ -267,8 +284,75 @@ namespace SyntenyFinder
 		
 		for (size_t i = 0; i < chrList_.size(); ++i)
 		{
-			karFile << "chr - hs" << i + 1 << " " << i + 1 << " 0 " << chrList_[i].sequence.length();
+			karFile << "chr - hs" << i + 1 << " " << chrList_[i].description << " 0 " << chrList_[i].sequence.length();
 			karFile	<< " chr" << i + 1 << std::endl;
+		}
+	}
+
+	void OutputGenerator::GenerateD3Output(const std::string & outFile) const
+	{
+		std::ifstream htmlTemplate;
+		TryOpenResourceFile("d3.html", htmlTemplate);
+
+        //open output file
+        std::ofstream out;
+        TryOpenFile(outFile, out);
+		
+		std::string buffer;
+		for(;;)
+		{
+			std::getline(htmlTemplate, buffer);
+			if (buffer != "//SIBELIA_MARK_INSERT")
+			{
+				out << buffer << std::endl;
+			}
+			else
+			{
+				break;
+			}
+		}
+
+        out << "chart_data = [" << std::endl;
+
+        //blocks must be sorted by start
+        BlockList sortedBlocks = blockList_;
+        std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareByStart);
+
+        // write to output file
+        int lastId = 0;
+        bool first_line = true;
+		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock) // O(N^2) by number of blocks, can be optimized
+		{
+            if (!first_line)
+                out << ",";
+            else
+                first_line = false;
+            out << "    {";
+            out << "\"name\":\"" << OutputD3BlockID(*itBlock) << "\",";
+            out << "\"size\":" << itBlock->GetLength() << ",";
+            out << "\"imports\":[";
+            bool first = true;
+            for (BlockList::iterator itPair = sortedBlocks.begin(); itPair != sortedBlocks.end(); ++itPair)
+            {
+                if (itPair->GetBlockId() == itBlock->GetBlockId() && itPair != itBlock)
+                {
+                    if (!first)
+                        out << ",";
+                    else
+                        first = false;
+                    out << "\"" << OutputD3BlockID(*itPair) << "\"";
+                }
+			}
+            out << "]";
+            out << "}" << std::endl;
+		}
+        out << "];" << std::endl;
+
+		//write rest of html template
+		while (!htmlTemplate.eof())
+		{
+			std::getline(htmlTemplate, buffer);
+			out << buffer << std::endl;
 		}
 	}
 
@@ -278,6 +362,20 @@ namespace SyntenyFinder
 		if(!stream)
 		{
 			throw std::runtime_error(("Cannot open file " + fileName).c_str());
+		}
+	}
+
+	void OutputGenerator::TryOpenResourceFile(const std::string & fileName, std::ifstream & stream) const
+	{
+		std::vector<std::string> dirs = GetResourceDirs();
+		for (std::vector<std::string>::iterator itDirs = dirs.begin(); itDirs != dirs.end(); ++itDirs)
+		{
+			stream.open((*itDirs + "/" + fileName).c_str());
+			if (stream) break;
+		}
+		if (!stream)
+		{
+			throw std::runtime_error(("Cannot find resource file: " + fileName).c_str());
 		}
 	}
 
