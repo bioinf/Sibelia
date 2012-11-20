@@ -4,7 +4,16 @@
 //* See file LICENSE for details.
 //****************************************************************************
 
+#ifndef _PLATFORM_H_
+#define _PLATFORM_H_
+
 #include <string>
 #include <vector>
 
-std::vector<std::string> GetResourceDirs();
+namespace SyntenyFinder
+{
+	std::vector<std::string> GetResourceDirs();
+	bool CreateDirectory(const std::string & path);
+}
+
+#endif

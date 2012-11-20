@@ -224,9 +224,8 @@ namespace SyntenyFinder
 
 	void OutputGenerator::GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const
 	{
-		// TODO: create directory outDir
-
 		//copy template file
+		CreateDirectory(outDir);
 		std::ofstream out;
 		TryOpenFile(outFile, out);
 		std::ifstream circosTemplate;
