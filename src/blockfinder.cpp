@@ -10,29 +10,6 @@ namespace SyntenyFinder
 {
 	namespace
 	{
-		void GetHeight(const std::string & str, const std::vector<saidx_t> & order, const std::vector<saidx_t> & pos, std::vector<Size> & height)
-		{
-			size_t n = pos.size();
-			height.assign(n, 0);
-			for (size_t i = 0, h = 0; i < n; ++i)
-			{
-				if (pos[i] > 0)
-				{
-					size_t j = order[pos[i] - 1];
-					while (i + h < n && j + h < n && str[i + h] == str[j + h])
-					{
-						h++;
-					}
-
-					height[pos[i]] = static_cast<saidx_t>(h);
-					if (h > 0)
-					{
-						h--;
-					}
-				}
-			}
-		}
-
 		class CharSet
 		{
 		public:
@@ -92,6 +69,127 @@ namespace SyntenyFinder
 			for(; suffix1 + ret < str.size() && suffix2 + ret < str.size() && str[suffix1 + ret] == str[suffix2 + ret]; ++ret);
 			return ret;
 		}
+
+		void ShrinkToEmpty(std::vector<saidx_t> & toShrink)
+		{
+			std::vector<saidx_t> empty;
+			toShrink.clear();
+			toShrink.swap(empty);
+		}
+
+		struct Handler
+		{
+		public:			
+			void AddHandle(FILE * handle)
+			{
+				toClose.push_back(handle);
+			}
+
+			~Handler()
+			{
+				std::for_each(toClose.begin(), toClose.end(), fclose);
+			}
+
+			void Clear()
+			{
+				toClose.clear();
+			}
+
+		private:
+			std::vector<FILE*> toClose;
+		};
+
+		FILE * TempFile()
+		{
+			FILE * ret = tmpfile();
+			if(ret == 0)
+			{
+				throw std::runtime_error("Can't create a temporary file");
+			}
+
+			return ret;
+		}
+
+		void Write(const void * ptr, size_t size, size_t count, FILE * handle)
+		{
+			if(fwrite(ptr, size, count, handle) != count)
+			{
+				throw std::runtime_error("Error while writing to a temporary file");
+			}
+
+		}
+
+		void Read(void * ptr, size_t size, size_t count, FILE * handle)
+		{
+			if(fread(ptr, size, count, handle) != count)
+			{
+				throw std::runtime_error("Error while reading from a temporary file");
+			}
+		}
+
+		FILE* CreateFileWithSA(const std::string & superGenome)
+		{
+			FILE * posFile = TempFile();
+			std::vector<saidx_t> pos(superGenome.size());
+			divsufsort(reinterpret_cast<const sauchar_t*>(superGenome.c_str()), &pos[0], static_cast<saidx_t>(pos.size()));
+			Write(&pos[0], sizeof(pos[0]), pos.size(), posFile);
+			rewind(posFile);
+			return posFile;
+		}
+
+		void FindPhi(std::vector<saidx_t> & phi, FILE * posFile)
+		{
+			saidx_t pos[2];
+			Read(pos, sizeof(pos[0]), 1, posFile);
+			for(size_t i = 1; i < phi.size(); i++)
+			{
+				Read(pos + 1, sizeof(pos[0]), 1, posFile);
+				phi[pos[1]] = pos[0];
+				pos[0] = pos[1];
+			}
+
+			rewind(posFile);
+		}
+		
+
+		void CalculateLCP(const std::string & superGenome, std::vector<saidx_t> & lcp, FILE* & posFile)
+		{
+			FILE * lcpFile;
+			Handler handler;
+			handler.AddHandle(lcpFile = TempFile());
+			handler.AddHandle(posFile = CreateFileWithSA(superGenome));
+			{
+				std::vector<saidx_t> phi(superGenome.size(), 0);
+				FindPhi(phi, posFile);
+
+				saidx_t l = 0;
+				for(size_t i = 0; i < superGenome.size(); i++)
+				{
+					while(superGenome[i + l] == superGenome[phi[i] + l])
+					{
+						++l;
+					}
+
+					phi[i] = l;
+					l = std::max(l - 1, 0);
+				}
+
+				saidx_t pos;
+				for(size_t i = 0; i < superGenome.size(); i++)
+				{
+					Read(&pos, sizeof(pos), 1, posFile);
+					saidx_t lcp = phi[pos];
+					Write(&lcp, sizeof(lcp), 1, lcpFile);
+				}
+			}
+			
+			rewind(lcpFile);
+			lcp.assign(superGenome.size(), 0);
+			Read(&lcp[0], sizeof(lcp[0]), lcp.size(), lcpFile);
+			fclose(lcpFile);
+			rewind(posFile);
+			handler.Clear();
+		}		
 	}
 
 	const char BlockFinder::SEPARATION_CHAR = '#';
@@ -133,27 +231,21 @@ namespace SyntenyFinder
 			superGenome += SEPARATION_CHAR;
 			Flank(superGenome, superGenome.size() - 1 - chrList_[chr].sequence.size(), superGenome.size() - 1, k, SEPARATION_CHAR);
 		}
-
-		std::vector<Size> lcp;
-		std::vector<saidx_t> order(superGenome.size());
-		{
-			std::vector<saidx_t> pos(superGenome.size());
-			divsufsort(reinterpret_cast<const sauchar_t*>(superGenome.c_str()), &order[0], static_cast<saidx_t>(order.size()));
-			for(size_t i = 0; i < order.size(); i++)
-			{
-				pos[order[i]] = static_cast<saidx_t>(i);
-			}
-
-			GetHeight(superGenome, order, pos, lcp);	
-		}
-
+		
+		FILE * posFile;
+		std::vector<saidx_t> pos;
+		std::vector<saidx_t> lcp;
+		CalculateLCP(superGenome, lcp, posFile);
+		
 		CharSet prev;
 		CharSet next;
 		std::vector<BifurcationInstance> * ret[] = {&positiveBif, &negativeBif};
 		std::vector<std::pair<DNASequence::Direction, BifurcationInstance> > candidate;
 		for(size_t start = 0; start < superGenome.size(); )
 		{
-			if(superGenome[order[start]] == '$' || superGenome[order[start]] == 'n')
+			pos.assign(1, 0);
+			Read(&pos[0], sizeof(pos[0]), 1, posFile);
+			if(superGenome[pos[0]] == SEPARATION_CHAR || superGenome[pos[0]] == 'n')
 			{
 				start++;
 				continue;
@@ -161,28 +253,35 @@ namespace SyntenyFinder
 
 			prev.Clear();
 			next.Clear();
-			size_t end = start;
+			size_t match = 0;
 			do
-			{
-				if(order[end] > 0)
+			{				
+				if(match > 0)
 				{
-					prev.Add(superGenome[order[end] - 1]);
+					pos.push_back(saidx_t());
+					Read(&pos.back(), sizeof(pos[0]), 1, posFile);
+					assert(lcp[start + match] == StupidLCP(superGenome, pos[match], pos[match - 1]));
 				}
 
-				if(order[end] + k < superGenome.size())
+				if(pos[match] > 0)
 				{
-					next.Add(superGenome[order[end] + k]);
+					prev.Add(superGenome[pos[match] - 1]);
+				}
+
+				if(pos[match] + k < superGenome.size())
+				{
+					next.Add(superGenome[pos[match] + k]);
 				}
 			}
-			while(++end < superGenome.size() && lcp[end] >= k);
+			while(++match + start < superGenome.size() && lcp[match + start] >= k);
 
 			if(Bifurcation(prev) || Bifurcation(next))
 			{
 				candidate.clear();
 				bool terminal = false;
-				for(size_t i = start; i < end; i++)
+				for(size_t i = 0; i < pos.size(); i++)
 				{
-					size_t suffix = order[i];
+					size_t suffix = pos[i];
 					size_t chr = std::upper_bound(cumSize.begin(), cumSize.end(), suffix) - cumSize.begin() - 1;
 					DNASequence::Direction strand = chr < chrList_.size() ? DNASequence::positive : DNASequence::negative;
 					size_t pos = suffix - cumSize[chr];
@@ -204,9 +303,10 @@ namespace SyntenyFinder
 				}
 			}
 			
-			start = end;
+			start += pos.size();
 		}
 		
+		fclose(posFile);
 		std::sort(positiveBif.begin(), positiveBif.end());
 		std::sort(negativeBif.begin(), negativeBif.end());
 		return bifurcationCount;
