@@ -177,6 +177,7 @@ Default file name = not set. To output thes file, set cmd parameter
 With this option set "Sibelia" will generate an interactive html diagram that
 show found synteny blocks. 
 
+"Circos" visualization
 ----------------------
 Default directory name = not set. To output these files, set cmd parameter
 
@@ -267,24 +268,28 @@ actually performed with the genome behind the graph model. Suppose that
 somewhere in the genome exist two pairs of K-mers K1 and K2:
 
 First pair:	... K1 ABCD K2 ...
+
 Second pair:	... K1 FGHE K2 ...
 
 If the distance between K1 and K2 within each pair is less than D, then "Sibelia"
 replaces FGHE with ABCD to obtain longer "synteny block":
 
 First pair:	... K1 ABCD K2 ...
+
 Second pair:	... K1 ABCD K2 ...
 
 More concrete example. Suppose that K = 3, D = 5 and somewhere in the genome we
 find:
 
 First pair:	... act gaga ggc ... 
+
 Second pair:	... act gatg ggc ...
 
 As we see, distance between "act" and "ggc" is less than 5 nucleotides so we
 replace "gatg" by "gaga":
 
 First pair:	... act gaga ggc ... 
+
 Second pair:	... act gaga ggc ...
 
 "Sibelia" keeps track of all changes so it is able to locate original locations
@@ -293,18 +298,18 @@ step by step, we start with small values of K to obatin longer K-mers shared
 between synteny regions and then increase K and D. The "loose" parameters set
 has 4 stages:
 
-	K	D
-	30	150
-	100	1000
-	1000	5000		
-	5000	15000
+K     D
+30    150
+100   1000
+1000  5000		
+5000  15000
 
 The "fine" set consists of 3 stages and it's final values are less:
 
-	K	D
-	30	150
-	100	1000
-        1000	2500
+K     D
+30    150
+100   1000
+1000  2500
 
 As you can see, "loose" set is more agressive -- at it's final stage it glues
 together 5000-mers that are separated from each other by at most 15000 symbols.
@@ -312,19 +317,19 @@ Although this description is very simplified and lacks many important technical
 details, it is enough to infer your own parameter set. Stage file that you may
 use to specify your own parameters has following simple format:
 
-	<M>
-	<K1> <D1>
-	<K2> <D2>
-	...
-	<KM> <KM>
+<M>
+<K1> <D1>
+<K2> <D2>
+...
+<KM> <KM>
 
 Where M is the number of stages. So, running with the stage file:
 
-	4
-	30 150
-	100 1000
-	1000 5000		
-	5000 15000
+4
+30 150
+100 1000
+1000 5000		
+5000 15000
 
 Is equivalent to running with the -s "loose" cmd option. As you may notice, the
 algorithm relies on exact K-mers shared between the genomes. If input genomes
