@@ -1,6 +1,6 @@
-Sibelia 1.0
+Sibelia 1.5
 
-Release date: 16th October 2012
+Release date: 23th November 2012
 
 Authors
 =======
@@ -20,11 +20,8 @@ the synteny blocks in these sequences.
 System Requirements
 ===================
 This version is designed for small-scale genomes. For example, it can find
-synteny blocks in 8 bacterial genomes (50 MB of genomic data) in ~35 minutes
-and using 2.5 GB of RAM on an Intel i5 laptop. Next versions will be faster and
-require less memory.
-
-<Don't forget about HDD free space>
+synteny blocks in 8 bacterial genomes (51 MB of genomic data) in ~15 minutes
+and using 900 MB of RAM and 800 MB HDD space on an Intel i5 laptop. 
 
 Installation
 ============
@@ -55,10 +52,12 @@ https://code.google.com/p/libdivsufsort
 http://tclap.sourceforge.net
 * Boost (Boost Software License)
 http://www.boost.org
+* D3.js (BSD License)
+http://d3js.org
 
 Contacts
 ========
 E-mail your feedback at ilya.minkinen@gmail.com.
 
 You also can report bugs or suggest features using issue tracker at GitHub
-https://github.com/bioinf/Sibelia/issues.
+https://github.com/bioinf/Sibelia/issues

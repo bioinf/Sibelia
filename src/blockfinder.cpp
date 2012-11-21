@@ -179,6 +179,7 @@ namespace SyntenyFinder
 		
 		std::vector<saidx_t> pos;
 		std::vector<saidx_t> lcp;
+		CreateDirectory(tempDir_);
 		FilePtr posFile = CalculateLCP(superGenome, lcp, tempDir_);
 		CharSet prev;
 		CharSet next;

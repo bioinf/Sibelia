@@ -82,6 +82,7 @@ namespace SyntenyFinder
 			Edge() {}
 			Edge(size_t chr, DNASequence::Direction direction, size_t startVertex, size_t endVertex, size_t actualPosition, size_t actualLength, size_t originalPosition, size_t originalLength, char firstChar);
 			bool Coincide(const Edge & edge) const;
+			bool Overlap(const Edge & edge) const;
 		};
 
 		struct BifurcationInstance
