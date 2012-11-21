@@ -40,7 +40,7 @@ namespace SyntenyFinder
 
 		static const char SEPARATION_CHAR;
 		typedef boost::function<void(size_t, State)> ProgressCallBack;
-		BlockFinder(const std::vector<FASTARecord> & chrList);
+		BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir);
 		void SerializeGraph(size_t k, std::ostream & out);
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack());
 		void GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
@@ -61,7 +61,8 @@ namespace SyntenyFinder
 		typedef boost::unordered_map<std::string, size_t> KMerBifMap;
 		typedef boost::unordered_map<StrandIterator, size_t, IteratorHash> IteratorIndexMap;
 		std::vector<FASTARecord> chrList_;
-		std::vector<PosVector> originalPos_;		
+		std::vector<PosVector> originalPos_;
+		std::string tempDir_;
 
 	#ifdef _DEBUG
 		KMerBifMap idMap;

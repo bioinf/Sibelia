@@ -107,11 +107,26 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 	}
 }
 
+
 const std::string DELIMITER(80, '-');
 
 
+void Handler(int sig)
+{
+	int entered = 0;
+	if(entered++ == 0)
+	{
+		SyntenyFinder::TempFile::Cleanup();
+	}
+
+	exit(1);
+}
+
 int main(int argc, char * argv[])
 {	
+	signal(SIGINT, Handler);
+	signal(SIGABRT, Handler);	
+	signal(SIGTERM, Handler);
 
 #ifdef _RUN_TEST
 	SyntenyFinder::TestUnrolledList();
@@ -133,6 +148,14 @@ int main(int argc, char * argv[])
 			false,
 			4,
 			"integer",
+			cmd);
+
+		TCLAP::ValueArg<std::string> tempFileDir("t",
+			"tempdir",
+			"Directory where temporary files are stored",
+			false,
+			".",
+			"dir name",
 			cmd);
 
 		TCLAP::ValueArg<std::string> stageFile("k",
@@ -249,7 +272,7 @@ int main(int argc, char * argv[])
 			reader.GetSequences(chrList);
 		}
 
-		SyntenyFinder::BlockFinder finder(chrList);
+		SyntenyFinder::BlockFinder finder(chrList, tempFileDir.getValue());
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
@@ -305,6 +328,10 @@ int main(int argc, char * argv[])
 	catch (std::runtime_error & e)
 	{
 		std::cerr << "error: " << e.what() << std::endl;
+	}
+	catch(...)
+	{
+
 	}
 
 	return 0;

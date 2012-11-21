@@ -37,6 +37,20 @@ such output use option "-a":
 Synteny blocks are also can be visualized with "Circos" [3]. Genomes from the
 "examples" dir were taken from [4, 5].
 
+Technical parametes
+===================
+
+Directory for temporary files
+-----------------------------
+Default directory = "." You can change this by setting cmd paramter:
+
+	-t <dir name> or --tempdir <dir name>
+
+"Sibelia" creates some temporary files while running. By default these files
+are placed in the current working directory. Altghough the files exist only for
+a very short period of time, they can be quite big -- ~ 20 * N bytes, where N
+is the total size of all input genomes.
+
 Output description
 ==================
 By default, "Sibelia" produces 3 files: 

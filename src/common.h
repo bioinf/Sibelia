@@ -32,6 +32,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
+#include <signal.h>
 #include <divsufsort.h>
 
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \

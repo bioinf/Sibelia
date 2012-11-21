@@ -24,9 +24,11 @@ namespace SyntenyFinder
 		void Rewind();
 		void Write(const void * ptr, size_t size, size_t count);
 		void Read(void * ptr, size_t size, size_t count);
+		static void Cleanup();
 	private:
 		FILE * handle_;
 		std::string path_;
+		static std::map<std::string, FILE*> register_;
 	};
 }
 

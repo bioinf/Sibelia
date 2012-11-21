@@ -24,6 +24,8 @@ synteny blocks in 8 bacterial genomes (50 MB of genomic data) in ~35 minutes
 and using 2.5 GB of RAM on an Intel i5 laptop. Next versions will be faster and
 require less memory.
 
+<Don't forget about HDD free space>
+
 Installation
 ============
 See INSTALL.md file.

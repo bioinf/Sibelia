@@ -138,7 +138,8 @@ namespace SyntenyFinder
 
 	const char BlockFinder::SEPARATION_CHAR = '#';
 
-	BlockFinder::BlockFinder(const std::vector<FASTARecord> & chrList): chrList_(chrList)
+	BlockFinder::BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir):
+		chrList_(chrList), tempDir_(tempDir)
 	{
 		originalPos_.resize(chrList.size());
 		for(size_t i = 0; i < originalPos_.size(); i++)
@@ -178,8 +179,7 @@ namespace SyntenyFinder
 		
 		std::vector<saidx_t> pos;
 		std::vector<saidx_t> lcp;
-		FilePtr posFile = CalculateLCP(superGenome, lcp, ".");
-		
+		FilePtr posFile = CalculateLCP(superGenome, lcp, tempDir_);
 		CharSet prev;
 		CharSet next;
 		std::vector<BifurcationInstance> * ret[] = {&positiveBif, &negativeBif};

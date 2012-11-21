@@ -39,16 +39,17 @@ namespace SyntenyFinder
 		return result == 0;
 	}
 
+	std::map<std::string, FILE*> TempFile::register_;
+
 	TempFile::TempFile()
 	{
 	}
 
 	TempFile::TempFile(const std::string & directory): handle_(0)
 	{
-		srand(static_cast<unsigned int>(time(0)));
 		for(size_t attempt = 0; attempt < 250; attempt++)
 		{
-			std::string fileName = "Sa";
+			std::string fileName = "Sib_";
 			while(fileName.size() < L_tmpnam - 3)
 			{
 				fileName += 'a' + rand() % ('z' - 'a' + 1);
@@ -66,6 +67,7 @@ namespace SyntenyFinder
 			bool notExists = res == -1 && errno == ENOENT;
 			if(notExists && (handle_ = fopen(path_.c_str(), "w+b")) != 0)
 			{
+				register_[path_] = handle_;
 				break;
 			}
 		}
@@ -73,6 +75,18 @@ namespace SyntenyFinder
 		if(handle_ == 0)
 		{
 			throw std::runtime_error("Can't create a temporary file, see USAGE how to resolve this");
+		}
+	}
+
+	void TempFile::Cleanup()
+	{
+		for(std::map<std::string, FILE*>::iterator it = register_.begin(); it != register_.end(); ++it)
+		{
+			if(it->second != 0)
+			{
+				fclose(it->second);
+				remove(it->first.c_str());
+			}
 		}
 	}
 
@@ -86,6 +100,7 @@ namespace SyntenyFinder
 		{
 			fclose(handle_);
 			remove(path_.c_str());
+			register_.erase(path_);
 		}
 	}
 
