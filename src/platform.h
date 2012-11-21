@@ -7,13 +7,27 @@
 #ifndef _PLATFORM_H_
 #define _PLATFORM_H_
 
-#include <string>
-#include <vector>
+#include "common.h"
 
 namespace SyntenyFinder
 {
 	std::vector<std::string> GetResourceDirs();
 	bool CreateDirectory(const std::string & path);
+
+	class TempFile
+	{
+	public:
+		TempFile();
+		TempFile(const std::string & directory);
+		TempFile(const TempFile & toCopy);
+		~TempFile();
+		void Rewind();
+		void Write(const void * ptr, size_t size, size_t count);
+		void Read(void * ptr, size_t size, size_t count);
+	private:
+		FILE * handle_;
+		std::string path_;
+	};
 }
 
 #endif

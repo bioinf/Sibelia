@@ -8,6 +8,7 @@
 #define _BLOCK_FINDER_H_
 
 #include "hashing.h"
+#include "platform.h"
 #include "blockinstance.h"
 #include "bifurcationstorage.h"
 

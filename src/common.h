@@ -17,6 +17,7 @@
 #include <map>
 #include <list>
 #include <memory>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <iterator>
