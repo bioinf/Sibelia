@@ -298,11 +298,13 @@ step by step, we start with small values of K to obatin longer K-mers shared
 between synteny regions and then increase K and D. The "loose" parameters set
 has 4 stages:
 
-K     D
-30    150
-100   1000
-1000  5000		
-5000  15000
+| K        | D         |
+| :------- | --------: |
+| 30       | 150       |
+| 100      | 1000      |
+| 1000     | 5000      |
+| 5000     | 15000     |
+
 
 The "fine" set consists of 3 stages and it's final values are less:
 
