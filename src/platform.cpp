@@ -59,7 +59,7 @@ namespace SyntenyFinder
 			struct __stat64 buf;
 			int res = _stat64(path_.c_str(), &buf);			
 		#else
-			struct stat64 buf;
+			struct stat buf;
 			int res = stat(path_.c_str(), &buf);
 		#endif
 
