@@ -183,6 +183,7 @@ namespace SyntenyFinder
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{
 			size_t length = it->second - it->first;
+			std::sort(blockList_.begin() + it->first, blockList_.begin() + it->second, compareByChr);
 			out << "Block #" << blockList_[it->first].GetBlockId() << std::endl;
 			out << "Chr_id\tStrand\tStart\tEnd\tLength" << std::endl;
 			CopyN(CFancyIterator(blockList_.begin() + it->first, OutputIndex, std::string()), length, std::ostream_iterator<std::string>(out, "\n"));

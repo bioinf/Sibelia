@@ -9,10 +9,15 @@ For example:
 
 	Sibelia -s loose Helicobacter_pylori.fasta
 
-It will run "Sibelia" on the file "Helicobacter_pylori.fasta" with the "loose"
-simplification parameters. There is another simplification parameters set,
-called "fine". To run "Sibelia" on "Helicobacter_pylori.fasta" with "fine"
-parameters set, type:
+Important note -- "Sibelia" requires some free space on HDD to run. If you
+experience any problem and see error messages that mention temporary files,
+try to change directory used for temporary files (see section "Directory for
+temporary files").
+
+Above commands will run "Sibelia" on the file "Helicobacter_pylori.fasta" with
+the "loose" simplification parameters. There is another simplification
+parameters set, called "fine". To run "Sibelia" on "Helicobacter_pylori.fasta"
+with "fine" parameters set, type:
 
 	Sibelia -s fine Helicobacter_pylori.fasta
 
@@ -34,8 +39,15 @@ such output use option "-a":
 
 	Sibelia -s loose -a Helicobacter_pylori.fasta
 
-Synteny blocks are also can be visualized with "Circos" [3]. Genomes from the
-"examples" dir were taken from [4, 5].
+Synteny blocks can be visualized with interactive diagrams. To generate such
+diagram use option "--d3" (see section "d3" visualization"):
+
+	Sibelia -s loose --d3 Helicobacter_pylori.fasta
+
+Synteny blocks are also can be visualized with "Circos" (see section "Circos" 
+visualization"). 
+
+Genomes from the "examples" dir were taken from [5, 6].
 
 Technical parametes
 ===================
@@ -64,6 +76,7 @@ There are also optional output files:
 1. Sequences file
 2. Files for generating a "Circos" picture
 3. Dot file for resulting de Bruijn graph
+4. Interactive html-diagram of synteny blocks
 
 All these files are described below in details.
 
@@ -155,8 +168,17 @@ sequence has header in following format:
 Where <description> is a header of the FASTA sequence where the block instance
 is located. Other fields are described in section "Coordinates file".
 
-"Circos" files
---------------
+"d3" visualization
+------------------
+Default file name = not set. To output thes file, set cmd parameter
+
+	--d3 <file name>
+
+With this option set "Sibelia" will generate an interactive html diagram that
+show found synteny blocks. 
+
+"Circos" visualization
+----------------------
 Default directory name = not set. To output these files, set cmd parameter
 
 	-d <dir name> or --circosdir <dir name>
@@ -171,16 +193,14 @@ the "Circos" software [3]. Do following:
 For example, to generate Circos diagram for example "Helicobacter_pylori.fasta"
 perform following:
 
-1. Create directory "circos" in directory with the FASTA file
-2. Run "Sibelia" with following parameters:
+1. Run "Sibelia" with following parameters:
 
 	Sibelia -s loose -d ./circos Helicobacter_pylori.fasta
 
-3. Run circos in the "circos" directory
+2. Run circos in the "circos" directory
 
 For example of such diagrams (generated from "Helicobacter_pylori.fasta),
-see "examples/Helicobacter_pylori/circos/circos.png". Note that the directory
-for "Circos" files must exist before running the program. Also note that such
+see "examples/Helicobacter_pylori/circos/circos.png". Also note that such
 diagrams can become very piled with larger genomes. To overcome this, plot only
 big blocks, see section "Minimum block size".
 
@@ -229,12 +249,93 @@ please see the next section and [1]. The "loose" option produces longer blocks
 and better coverage, while "fine" can capture small-scale rearrangements, for
 example, inversions of size < 15000 BP. 
 
-Using custom parameters set
----------------------------
-The algorithm consists of several stages of computations. Each stage has two parameters,
-K and D. There are two default parameters set, "loose" and "fine", see section
-"Basic usage". But you can vary these parameters manually.
+Custom parameters set
+---------------------
+Default value = not set. To specify the file that contains custom parameters
+set, use cmd parameter:
 
+	-k <file name> or --stagefile <file name>
+
+The algorithm consists of several stages of computations. Each stage has two 
+parameters, K and D. Let's call K-mer a substring of length K. At each stage
+"Sibelia" constructs so called de Bruijn graph, graph of K-mers that occur
+in the genome, and simplifies it by removing special type of undirected cycles
+called "bulges", see [1] for more details.
+
+Graph is a good model for describing the algorithm, but to understand "physical
+meaning" of the parameters it is useful to consider operations that are 
+actually performed with the genome behind the graph model. Suppose that 
+somewhere in the genome exist two pairs of K-mers K1 and K2:
+
+1st pair: ... K1 ABCD K2 ...  
+2nd pair: ... K1 FGHE K2 ...  
+
+If the distance between K1 and K2 within each pair is less than D, then "Sibelia"
+replaces FGHE with ABCD to obtain longer "synteny block":
+
+1st pair: ... K1 ABCD K2 ...  
+2nd pair: ... K1 ABCD K2 ...  
+
+More concrete example. Suppose that K = 3, D = 5 and somewhere in the genome we
+find:
+
+1st pair: ... act gaga ggc ...  
+2nd pair: ... act gatg ggc ...  
+
+As we see, distance between "act" and "ggc" is less than 5 nucleotides so we
+replace "gatg" by "gaga":
+
+1st pair: ... act gaga ggc ...  
+2nd pair: ... act gaga ggc ...  
+
+"Sibelia" keeps track of all changes so it is able to locate original locations
+of the synteny blocks obtained by the simplification. This process continues 
+step by step, we start with small values of K to obatin longer K-mers shared
+between synteny regions and then increase K and D. The "loose" parameters set
+has 4 stages:
+
+| K        | D         |
+| :------- | --------: |
+| 30       | 150       |
+| 100      | 1000      |
+| 1000     | 5000      |
+| 5000     | 15000     |
+
+The "fine" set consists of 3 stages and it's final values are less:
+
+| K        | D         |
+| :------- | --------: |
+| 30       | 150       |
+| 100      | 1000      |
+| 1000     | 2500      |
+
+As you can see, "loose" set is more agressive -- at it's final stage it glues
+together 5000-mers that are separated from each other by at most 15000 symbols.
+Although this description is very simplified and lacks many important technical
+details, it is enough to infer your own parameter set. Stage file that you may
+use to specify your own parameters has following simple format:
+
+M  
+K1 D1  
+K2 D2  
+...  
+KM KM  
+
+Where M is the number of stages. So, running with the stage file:
+
+4  
+30 150  
+100 1000  
+1000 5000  
+5000 15000  
+
+Is equivalent to running with the -s "loose" cmd option. As you may notice, the
+algorithm relies on exact K-mers shared between the genomes. If input genomes
+doesn't have such shared substrings, then "Sibelia" won't be able to locate the
+synteny blocks.
+
+If you cannot find synteny blocks with the default parameters, try to start
+with smaller values of K (~20), increase D values or vary number of stages.
 
 Maximum number of iterations
 ----------------------------
@@ -253,5 +354,6 @@ http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
 2. Max A. Alekseyev and Pavel A. Pevzner. "Breakpoint graphs and ancestral
 genome reconstructions", Genome Res. 2009. 19: 943-957.
 3. Circos. http://circos.ca
-4. Helicobacter pylori. http://www.ncbi.nlm.nih.gov/genome/169
-5. Staphylococcus aureus. http://www.ncbi.nlm.nih.gov/genome/154
+4. D3. http://d3js.org/
+5. Helicobacter pylori. http://www.ncbi.nlm.nih.gov/genome/169
+6. Staphylococcus aureus. http://www.ncbi.nlm.nih.gov/genome/154
