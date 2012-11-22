@@ -139,7 +139,7 @@ int main(int argc, char * argv[])
 
 	try
 	{  
-		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "0.7071");
+		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "1.5");
 		TCLAP::ValueArg<unsigned int> maxIterations("i",
 			"maxiterations",
 			"Maximum number of iterations during a stage of simplification, default = 4.",
@@ -170,7 +170,7 @@ int main(int argc, char * argv[])
 			false);
 
 		TCLAP::SwitchArg sequencesFile("q",
-			"sequncesfile",
+			"sequencesfile",
 			"Output sequences of synteny blocks (FASTA format), default = not set.",
 			cmd,
 			false);

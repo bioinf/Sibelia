@@ -9,4 +9,4 @@ Sibelia 1.5
 
 Sibilea 1.0
 ===========
-Initial release
+* Initial release

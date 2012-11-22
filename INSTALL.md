@@ -11,8 +11,8 @@ Building Sibelia requires:
 * CMake
 * GCC C++ compiler (version 4.2.0+ works fine)
 
-The code is compatible with MSVS 2010 and MinGW,
-as well as with default Linux and OS X environment.
+The code is compatible with MSVS 2010 and MinGW, as well as with default
+Linux and OS X environment.
 
 To build and install the program, type following:
 
