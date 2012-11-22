@@ -14,8 +14,7 @@ namespace SyntenyFinder
 		//relative path to resources
 		dirs.push_back("resources");
 	#ifdef __gnu_linux__
-		//TODO: change with real installation dir
-		dirs.push_back("/usr/share/sibelia");
+		dirs.push_back("/usr/share/sibelia/resources");
 	#endif
 		return dirs;
 	}
