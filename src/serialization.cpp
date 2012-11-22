@@ -85,9 +85,18 @@ namespace SyntenyFinder
 
 	void BlockFinder::SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f)
 	{
-	#ifdef NEW_ENUMERATION
-		std::vector<std::vector<BifurcationInstance> > bifurcation(2);		
-		size_t maxId = EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
+	#ifdef NEW_ENUMERATION			
+		size_t maxId;
+		std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
+		if(inRAM_)
+		{
+			maxId = EnumerateBifurcationsSArrayInRAM(k, bifurcation[0], bifurcation[1]);
+		}
+		else
+		{
+			maxId = EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
+		}
+
 		BifurcationStorage bifStorage(maxId);
 		DNASequence sequence(chrList_, originalPos_);
 		ConstructBifStorage(sequence, bifurcation, bifStorage);

@@ -199,8 +199,14 @@ int main(int argc, char * argv[])
 			cmd,
 			false);
 
+		TCLAP::SwitchArg inRAM("",
+			"inram",
+			"Perform all computations in RAM, don't create temp files.",
+			cmd,
+			false);
+
 		TCLAP::UnlabeledMultiArg<std::string> fileName("filenames",
-			"FASTA file(s) with nucleotide sequences",
+			"FASTA file(s) with nucleotide sequences.",
 			true,
 			"file name",
 			cmd);
@@ -238,19 +244,21 @@ int main(int argc, char * argv[])
 			reader.GetSequences(chrList);
 		}
 
-		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();
-		SyntenyFinder::BlockFinder finder(chrList, tempDir);
+		
+		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
+		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
+
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
-			finder.PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
+			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
 		}
 		
 		std::vector<SyntenyFinder::BlockInstance> blockList;
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
-		finder.GenerateSyntenyBlocks(lastK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
+		finder->GenerateSyntenyBlocks(lastK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
@@ -287,7 +295,7 @@ int main(int argc, char * argv[])
 		if(graphFile.isSet())
 		{
 			std::stringstream buffer;
-			finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);
+			finder->SerializeCondensedGraph(lastK, buffer, PutProgressChr);
 			generator.OutputBuffer(defaultGraphFile, buffer.str());
 		}
 

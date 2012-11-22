@@ -40,6 +40,7 @@ namespace SyntenyFinder
 
 		static const char SEPARATION_CHAR;
 		typedef boost::function<void(size_t, State)> ProgressCallBack;
+		BlockFinder(const std::vector<FASTARecord> & chrList);
 		BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir);
 		void SerializeGraph(size_t k, std::ostream & out);
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack());
@@ -63,6 +64,7 @@ namespace SyntenyFinder
 		std::vector<FASTARecord> chrList_;
 		std::vector<PosVector> originalPos_;
 		std::string tempDir_;
+		bool inRAM_;
 
 	#ifdef _DEBUG
 		KMerBifMap idMap;
@@ -105,11 +107,16 @@ namespace SyntenyFinder
 		static bool EdgeEmpty(const Edge & a, size_t k);
 		static bool EdgeCompare(const Edge & a, const Edge & b);
 		static std::vector<size_t> EdgeToVector(const Edge & a);	
+		void Init(const std::vector<FASTARecord> & chrList);
 		size_t GetMustBeBifurcation(StrandIterator it, size_t k);
 		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
+
 		size_t EnumerateBifurcationsHash(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack f = ProgressCallBack()) const;
 		size_t EnumerateBifurcationsSArray(size_t k, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation) const;
+		size_t EnumerateBifurcationsSArrayInRAM(size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif) const;
+
+		void ConstructIndex(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k) const;
 		void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage) const;
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData);
