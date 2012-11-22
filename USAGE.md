@@ -21,11 +21,11 @@ with "fine" parameters set, type:
 
 	Sibelia -s fine Helicobacter_pylori.fasta
 
-The differenece between "loose" and "fine" set is that "loose" usually produces
+The difference between "loose" and "fine" set is that "loose" usually produces
 fewer blocks, but longer. And it may lose some small synteny blocks 
 (shorter than 15000 BP), while "fine" option produces more blocks (but shorter)
 and their coverage is worse. Usually "loose" is the best choice, but if you do
-not want to lose information about small-scale rearrangaments, use "fine". 
+not want to lose information about small-scale rearrangements, use "fine".
 
 If you are not satisfied by the results (poor coverage for example), set
 simplification parameters manually (see section "Fine tuning"). 
@@ -55,7 +55,7 @@ Technical parametes
 
 Directory for output files
 --------------------------
-Default directory = "." You can change this by setting cmd paramter:
+Default directory = "." You can change this by setting cmd parameter:
 
 	-o <dir name> or --outdir <dir name>
 
@@ -64,13 +64,13 @@ this parameter will change output directory.
 
 Directory for temporary files
 -----------------------------
-Default directory = "." You can change this by setting cmd paramter:
+Default directory is output directory. You can change this by setting cmd parameter:
 
 	-t <dir name> or --tempdir <dir name>
 
 "Sibelia" creates some temporary files while running. By default these files
 are placed in the output directory. If you want to place temporary files in
-another folder due to some reasons, use this parameter. Altghough the files
+another folder due to some reasons, use this parameter. Although the files
 exist only for a very short period of time, they can be quite big -- ~20*N
 bytes, where N is the total size of all input genomes.
 
@@ -96,7 +96,7 @@ Blocks coordinates
 File name = "block_coords.txt".
 
 descriptions. IDs are just sequence numbers of chromosomes (in the same
-order as they apper in input files).
+order as they appear in input files).
 
 Second part of the file describes synteny blocks in sections separated by 
 dashes. Each section starts with the synteny block ID. Then all instances
@@ -132,7 +132,7 @@ File name = "coverage_report.txt".
 
 The file describes portion of the genomes, that found synteny block cover.
 First part of the file describes input chromosomes (see "Blocks coordinates"
-section). Second part of the file is a table with following collumns:
+section). Second part of the file is a table with following columns:
 
 1. Degree -- multiplicity of the synteny block. For example, if synteny block
 has degree = 3, then the are three instances of this block in the input
@@ -279,7 +279,7 @@ replace "gatg" by "gaga":
 
 "Sibelia" keeps track of all changes so it is able to locate original locations
 of the synteny blocks obtained by the simplification. This process continues 
-step by step, we start with small values of K to obatin longer K-mers shared
+step by step, we start with small values of K to obtain longer K-mers shared
 between synteny regions and then increase K and D. The "loose" parameters set
 has 4 stages:
 
@@ -298,7 +298,7 @@ The "fine" set consists of 3 stages and it's final values are less:
 | 100      | 1000      |
 | 1000     | 2500      |
 
-As you can see, "loose" set is more agressive -- at it's final stage it glues
+As you can see, "loose" set is more aggressive -- at it's final stage it glues
 together 5000-mers that are separated from each other by at most 15000 symbols.
 Although this description is very simplified and lacks many important technical
 details, it is enough to infer your own parameter set. Stage file that you may
