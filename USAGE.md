@@ -60,7 +60,7 @@ Default directory = "." You can change this by setting cmd paramter:
 	-o <dir name> or --outdir <dir name>
 
 By default, "Sibelia" places output files in current working directory. Setting
-this parameter will change output directory to <dir name>.
+this parameter will change output directory.
 
 Directory for temporary files
 -----------------------------
@@ -160,7 +160,7 @@ Sequences file
 File name = "blocks_sequences.fasta". By default this file is not written. To
 output this file, set cmd parameter:
 
-	-q or --sequncesfile
+	-q or --sequencesfile
 
 This FASTA file contains sequences of instances of the synteny block. Each
 sequence has header in following format:
