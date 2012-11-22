@@ -300,7 +300,7 @@ int main(int argc, char * argv[])
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), defaultCircosFile, defaultCircosDir),
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), defaultD3File)
 		};
-
+		
 		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);
 		for(size_t i = 0; i < length; i++)
 		{
@@ -331,7 +331,7 @@ int main(int argc, char * argv[])
 	}
 	catch(...)
 	{
-
+		SyntenyFinder::TempFile::Cleanup();
 	}
 
 	return 0;

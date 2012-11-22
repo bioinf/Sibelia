@@ -182,13 +182,11 @@ namespace SyntenyFinder
 			if(anear < lookBack.size() && i == lookBack[anear].first)
 			{
 				bifStorage.AddPoint(amer, lookBack[anear++].second);
-				assert(bifStorage.GetBifurcation(amer) == GetMustBeBifurcation(amer, k));
 			}
 
 			if(bnear < lookForward.size() && i == lookForward[bnear].first)
 			{
 				bifStorage.AddPoint(bmer, lookForward[bnear++].second);
-				assert(bifStorage.GetBifurcation(bmer) == GetMustBeBifurcation(bmer, k));
 			}
 		}
 
@@ -202,14 +200,12 @@ namespace SyntenyFinder
 			if(bifId != BifurcationStorage::NO_BIFURCATION)
 			{
 				bifStorage.AddPoint(amer, bifId);
-				assert(bifStorage.GetBifurcation(amer) == GetMustBeBifurcation(amer, k));
 			}
 
 			bifId = bifStorage.GetBifurcation(srcBMer);
 			if(bifId != BifurcationStorage::NO_BIFURCATION)
 			{
 				bifStorage.AddPoint(bmer, bifId);
-				assert(bifStorage.GetBifurcation(bmer) == GetMustBeBifurcation(bmer, k));
 			}
 		}
 	}	
