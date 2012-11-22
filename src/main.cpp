@@ -107,9 +107,7 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 	}
 }
 
-
 const std::string DELIMITER(80, '-');
-
 
 void Handler(int sig)
 {
@@ -165,55 +163,15 @@ int main(int argc, char * argv[])
 			"",
 			"file name");
 
-		TCLAP::ValueArg<std::string> graphFile("g",
+		TCLAP::SwitchArg graphFile("g",
 			"graphfile",
-			"File for resulting condensed de Bruijn graph (in dot format), default = not set.",
-			false,
-			"",
-			"file name",
-			cmd);
-
-		TCLAP::ValueArg<std::string> sequencesFile("q",
-			"sequncesfile",
-			"File for sequences of synteny blocks (FASTA format), default = not set.",
-			false,
-			"",
-			"file name",
-			cmd);
-
-		TCLAP::ValueArg<std::string> reportFile("r",
-			"reportfile",
-			"File for coverage report, default = \"coverage_report.txt\".",
-			false,
-			"coverage_report.txt",
-			"file name",
-			cmd);
-
-		TCLAP::ValueArg<std::string> coordsFile("c",
-			"coordsfile",
-			"File for listing coordinates of synteny blocks in simple human-readable format, default = \"block_coords.txt\".",
-			false,
-			"block_coords.txt",
-			"file name",
-			cmd);
-
-		TCLAP::ValueArg<std::string> chrFile("p",
-			"permfile",
-			"File for listing genomes represented as signed permutations of synteny blocks, default = \"genomes_permutations.txt\".",
-			false,
-			"genomes_permutations.txt",
-			"file name",
-			cmd);
-		
-		TCLAP::SwitchArg circos("",
-			"circos",
-			"Enable circos output.",
+			"Output resulting condensed de Bruijn graph (in dot format), default = not set.",
 			cmd,
 			false);
 
-		TCLAP::SwitchArg d3("",
-			"d3",
-			"enable d3 output",
+		TCLAP::SwitchArg sequencesFile("q",
+			"sequncesfile",
+			"Output sequences of synteny blocks (FASTA format), default = not set.",
 			cmd,
 			false);
 
@@ -247,6 +205,14 @@ int main(int argc, char * argv[])
 			"file name",
 			cmd);
 
+		TCLAP::ValueArg<std::string> outFileDir("o",
+			"outdir",
+			"Directory where output files are written",
+			false,
+			".",
+			"dir name",
+			cmd);
+
 		cmd.xorAdd(parameters, stageFile);
 		cmd.parse(argc, argv);
 
@@ -272,7 +238,8 @@ int main(int argc, char * argv[])
 			reader.GetSequences(chrList);
 		}
 
-		SyntenyFinder::BlockFinder finder(chrList, tempFileDir.getValue());
+		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();
+		SyntenyFinder::BlockFinder finder(chrList, tempDir);
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
@@ -286,17 +253,24 @@ int main(int argc, char * argv[])
 		finder.GenerateSyntenyBlocks(lastK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
-		const std::string defaultCircosDir = "circos";
-		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
-		const std::string defaultD3File = "d3.html";
+		SyntenyFinder::CreateDirectory(outFileDir.getValue());
+		const std::string defaultCoordsFile = outFileDir.getValue() + "/block_coords.txt";
+		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
+		const std::string defaultCoverageReportFile = outFileDir.getValue() + "/coverage_report.txt";
+		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";
+		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
 
-		bool doOutput[] = {true, true, true, sequencesFile.isSet(), circos.isSet(), d3.isSet()};
+		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
+		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
+		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
+
+		bool doOutput[] = {true, true, true, sequencesFile.isSet(), true, true};
 		boost::function<void()> outFunction[] = 
 		{
-			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), chrFile.getValue()),
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), reportFile.getValue()),
-			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), coordsFile.getValue()),
-			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), sequencesFile.getValue()),		
+			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), defaultPermutationsFile),
+			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), defaultCoverageReportFile),
+			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), defaultCoordsFile),
+			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), defaultSequencesFile),		
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), defaultCircosFile, defaultCircosDir),
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), defaultD3File)
 		};
@@ -314,7 +288,7 @@ int main(int argc, char * argv[])
 		{
 			std::stringstream buffer;
 			finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);
-			generator.OutputBuffer(graphFile.getValue(), buffer.str());
+			generator.OutputBuffer(defaultGraphFile, buffer.str());
 		}
 
 		std::cout.setf(std::cout.fixed);
