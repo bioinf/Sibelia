@@ -20,7 +20,10 @@ To build and install the program, type following:
 	cmake ../src
 	sudo make install
 
-If you want to install "Sibelia" to a location other than /usr/local/bin,
-run CMake with -DCMAKE_INSTALL_PREFIX option set:
+If you do not have the root access or you want to install "Sibelia" to a
+location other than /usr/local/bin, run CMake with -DCMAKE_INSTALL_PREFIX
+option set:
 
+	cd build
 	cmake ../src -DCMAKE_INSTALL_PREFIX="<install destination>"
+	make install
