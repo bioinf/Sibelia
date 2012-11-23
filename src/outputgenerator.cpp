@@ -33,8 +33,9 @@ namespace SyntenyFinder
 		{
 			std::stringstream out;
 			out << "chr" << block.GetChr() + 1 << ".";
-			out << std::setfill('0') << std::setw(8) << block.GetStart() << "-";
-			out << std::setfill('0') << std::setw(8) << block.GetEnd();
+			out << "chr " << block.GetChr() + 1 << ": ";
+			out << std::setfill(' ') << std::setw(8) << block.GetStart() << " - ";
+			out << std::setfill(' ') << std::setw(8) << block.GetEnd();
 			return out.str();
 		}
 
