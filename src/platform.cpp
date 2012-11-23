@@ -63,7 +63,7 @@ namespace SyntenyFinder
 			int res = stat(path_.c_str(), &buf);
 		#endif
 
-			bool notExists = res == -1 && errno == ENOENT;
+			bool notExists = res == -1 && errno == ENOENT;			
 			std::cerr << "stat: " << res << ", " << "errno: " << errno << std::endl;
 			if(notExists && (handle_ = fopen(path_.c_str(), "w+b")) != 0)
 			{
@@ -72,6 +72,7 @@ namespace SyntenyFinder
 			}
 		}
 
+		std::cerr << "enametoolongcode: " << ENAMETOOLONG << std::endl;
 		if(handle_ == 0)
 		{
 			throw std::runtime_error("Can't create a temporary file, see USAGE how to resolve this");
