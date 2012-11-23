@@ -10,7 +10,7 @@ For example:
 	Sibelia -s loose Helicobacter_pylori.fasta
 
 Important note -- "Sibelia" requires some free space on HDD to run. If you
-experience any problem and see error messages that mention temporary files,
+experience any problems and see error messages that mention temporary files,
 try to change directory used for temporary files (see section "Directory for
 temporary files").
 
@@ -72,7 +72,12 @@ Default directory is output directory. You can change this by setting cmd parame
 are placed in the output directory. If you want to place temporary files in
 another folder due to some reasons, use this parameter. Although the files
 exist only for a very short period of time, they can be quite big -- ~20*N
-bytes, where N is the total size of all input genomes.
+bytes, where N is the total size of all input genomes. You can also use switch
+
+	--inram
+
+that will force "Sibelia" to not create any temporary files and store all
+it's data in RAM.
 
 Output description
 ==================
@@ -81,13 +86,13 @@ By default, "Sibelia" produces 3 files:
 1. Blocks coordinates
 2. Genomes represented as permutations of the synteny blocks
 3. Coverage report
+4. Files for generating a "Circos" picture
+5. Interactive html-diagram of synteny blocks
 
 There are also optional output files:
 
 1. Sequences file
-2. Files for generating a "Circos" picture
-3. Dot file for resulting de Bruijn graph
-4. Interactive html-diagram of synteny blocks
+2. Dot file for resulting de Bruijn graph
 
 All these files are described below in details.
 

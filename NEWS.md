@@ -5,7 +5,7 @@ Sibelia 1.5
 * Added d3 visualization
 * Removed cmd options: -c -p -r -d
 * Changed behaviour of the options: -q -g
-* Added cmd options: -t -o
+* Added cmd options: -t -o --inram
 
 Sibilea 1.0
 ===========
