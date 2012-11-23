@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_BUILD_TYPE Release)
 add_subdirectory(libdivsufsort-2.0.1)
 project(Sibelia CXX)
 include_directories(${Sibelia_SOURCE_DIR}/include ${libdivsufsort_BINARY_DIR}/include)
@@ -8,6 +7,7 @@ add_executable(Sibelia main.cpp outputgenerator.cpp blockfinder.cpp blockinstanc
 target_link_libraries(Sibelia divsufsort)
 file(COPY ${Sibelia_SOURCE_DIR}/resources DESTINATION ${Sibelia_BINARY_DIR})
 
+set(CMAKE_PROJECT_NAME Sibelia)
 set(DEFAULT_INSTALL_PATH "/usr/local")
 set(ROOT_DIR "${CMAKE_SOURCE_DIR}/../")
 if(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
