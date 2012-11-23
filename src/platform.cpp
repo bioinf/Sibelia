@@ -46,10 +46,10 @@ namespace SyntenyFinder
 
 	TempFile::TempFile(const std::string & directory): handle_(0)
 	{
-		for(size_t attempt = 0; attempt < 250; attempt++)
+		for(size_t attempt = 0; attempt < 1000; attempt++)
 		{
 			std::string fileName = "Sib_";
-			for(size_t i = 0; i < L_tmpnam; i++)
+			for(;fileName.size() < 16;)
 			{
 				fileName += 'a' + rand() % ('z' - 'a' + 1);
 			}
@@ -64,8 +64,6 @@ namespace SyntenyFinder
 		#endif
 
 			bool notExists = res == -1 && errno == ENOENT;
-			std::cout << "filename: " << path_ << std::endl;
-			std::cerr << "stat: " << res << ", " << "errno: " << errno << std::endl;
 			if(notExists && (handle_ = fopen(path_.c_str(), "w+b")) != 0)
 			{
 				register_[path_] = handle_;
@@ -73,7 +71,6 @@ namespace SyntenyFinder
 			}
 		}
 
-		std::cerr << "enametoolongcode: " << ENAMETOOLONG << std::endl;
 		if(handle_ == 0)
 		{
 			throw std::runtime_error("Can't create a temporary file, see USAGE how to resolve this");
