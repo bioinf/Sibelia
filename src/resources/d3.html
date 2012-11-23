@@ -111,7 +111,8 @@
             }
 
             .node {
-                font-size: 10px;
+                font-size: 9px;
+                font-weight: bold;
             }
 
             .node:hover {
@@ -6754,6 +6755,10 @@
     </script>
     <script type="text/javascript">
 
+        String.prototype.replaceAll = function(search, replace){
+            return this.split(search).join(replace);
+        }
+
         var w = 1280,
                 h = 800,
                 rx = w / 2,
@@ -6801,14 +6806,14 @@
         var path = svg.selectAll("path.link")
                 .data(links)
                 .enter().append("svg:path")
-                .attr("class", function(d) { return "link source-" + d.source.key + " target-" + d.target.key; })
+                .attr("class", function(d) { return "link source-" + d.source.key.replaceAll(" ", "_") + " target-" + d.target.key.replaceAll(" ", "_"); })
                 .attr("d", function(d, i) { return line(splines[i]); });
 
         svg.selectAll("g.node")
                 .data(nodes.filter(function(n) { return !n.children; }))
                 .enter().append("svg:g")
                 .attr("class", "node")
-                .attr("id", function(d) { return "node-" + d.key; })
+                .attr("id", function(d) { return "node-" + d.key.replaceAll(" ", "_"); })
                 .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
                 .append("svg:text")
                 .attr("dx", function(d) { return d.x < 180 ? 8 : -8; })
@@ -6868,21 +6873,21 @@
         }
 
         function mouseover(d) {
-            svg.selectAll("path.link.target-" + d.key)
+            svg.selectAll("path.link.target-" + d.key.replaceAll(" ", "_"))
                     .classed("target", true)
                     .each(updateNodes("source", true));
 
-            svg.selectAll("path.link.source-" + d.key)
+            svg.selectAll("path.link.source-" + d.key.replaceAll(" ", "_"))
                     .classed("source", true)
                     .each(updateNodes("target", true));
         }
 
         function mouseout(d) {
-            svg.selectAll("path.link.source-" + d.key)
+            svg.selectAll("path.link.source-" + d.key.replaceAll(" ", "_"))
                     .classed("source", false)
                     .each(updateNodes("target", false));
 
-            svg.selectAll("path.link.target-" + d.key)
+            svg.selectAll("path.link.target-" + d.key.replaceAll(" ", "_"))
                     .classed("target", false)
                     .each(updateNodes("source", false));
         }
@@ -6890,7 +6895,7 @@
         function updateNodes(name, value) {
             return function(d) {
                 if (value) this.parentNode.appendChild(this);
-                svg.select("#node-" + d[name].key).classed(name, value);
+                svg.select("#node-" + d[name].key.replaceAll(" ", "_")).classed(name, value);
             };
         }
 
