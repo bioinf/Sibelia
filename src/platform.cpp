@@ -49,7 +49,7 @@ namespace SyntenyFinder
 		for(size_t attempt = 0; attempt < 250; attempt++)
 		{
 			std::string fileName = "Sib_";
-			while(fileName.size() < L_tmpnam - 3)
+			for(size_t i = 0; i < L_tmpnam; i++)
 			{
 				fileName += 'a' + rand() % ('z' - 'a' + 1);
 			}
@@ -64,6 +64,7 @@ namespace SyntenyFinder
 		#endif
 
 			bool notExists = res == -1 && errno == ENOENT;
+			std::cerr << "stat: " << res << ", " << "errno: " << errno << std::endl;
 			if(notExists && (handle_ = fopen(path_.c_str(), "w+b")) != 0)
 			{
 				register_[path_] = handle_;

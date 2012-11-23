@@ -7,6 +7,10 @@ add_executable(Sibelia main.cpp outputgenerator.cpp blockfinder.cpp blockinstanc
 target_link_libraries(Sibelia divsufsort)
 file(COPY ${Sibelia_SOURCE_DIR}/resources DESTINATION ${Sibelia_BINARY_DIR})
 
+if(GCC_STATIC_RUNTIME)
+	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++")
+endif(GCC_STATIC_RUNTIME)
+
 set(CMAKE_PROJECT_NAME Sibelia)
 set(DEFAULT_INSTALL_PATH "/usr/local")
 set(ROOT_DIR "${CMAKE_SOURCE_DIR}/../")
@@ -19,7 +23,7 @@ else(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
 	install(DIRECTORY ${ROOT_DIR}/src/resources/ DESTINATION resources)
 	install(FILES ${ROOT_DIR}/NEWS.md ${ROOT_DIR}/README.md ${ROOT_DIR}/USAGE.md ${ROOT_DIR}/INSTALL.md ${ROOT_DIR}/LICENSE DESTINATION ./)
 endif(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
-set(CPACK_NSIS_MODIFY_PATH ON)
+
 set(CPACK_SOURCE_IGNORE_FILES "\\\\.git.*;/build/.+;${CPACK_SOURCE_IGNORE_FILES}")
 set(CPACK_RESOURCE_FILE_LICENSE "${ROOT_DIR}/LICENSE")
 set(CPACK_PACKAGE_NAME "Sibelia")
