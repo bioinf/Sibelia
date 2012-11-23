@@ -63,7 +63,8 @@ namespace SyntenyFinder
 			int res = stat(path_.c_str(), &buf);
 		#endif
 
-			bool notExists = res == -1 && errno == ENOENT;			
+			bool notExists = res == -1 && errno == ENOENT;
+			std::cout << "filename: " << path_ << std::endl;
 			std::cerr << "stat: " << res << ", " << "errno: " << errno << std::endl;
 			if(notExists && (handle_ = fopen(path_.c_str(), "w+b")) != 0)
 			{

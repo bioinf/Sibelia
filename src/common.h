@@ -13,6 +13,7 @@
 #include <vector>
 #include <cctype>
 #include <cstdlib>
+#include <cerrno>
 #include <set>
 #include <map>
 #include <list>
