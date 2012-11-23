@@ -50,6 +50,8 @@ namespace SyntenyFinder
 		static void PrintPath(const DNASequence & s, StrandIterator e, size_t k, size_t distance, std::ostream & out);
 		void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);
 	private:
+		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
+
 		struct IteratorHash
 		{
 			size_t operator() (const StrandIterator & it) const

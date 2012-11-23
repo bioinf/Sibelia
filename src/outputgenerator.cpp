@@ -12,24 +12,6 @@ namespace SyntenyFinder
 	namespace
 	{
 		const char COVERED = 1;
-		struct FooIt: public std::iterator<std::forward_iterator_tag, char> // TODO: rename struct, or explain wtf at least
-		{
-			FooIt& operator++()
-			{
-				return *this;
-			}
-
-			FooIt operator++(int)
-			{
-				return *this;
-			}
-
-			char operator * ()
-			{
-				return COVERED;
-			}
-		};
-
 		typedef std::pair<size_t, std::vector<BlockInstance> > GroupedBlock;
 		typedef std::vector<GroupedBlock> GroupedBlockList;
 
@@ -85,7 +67,7 @@ namespace SyntenyFinder
 					{
 						if(it->second[i].GetChr() == chr)
 						{
-							CopyN(FooIt(), it->second[i].GetLength(), cover.begin() + it->second[i].GetStart());
+							std::fill(cover.begin() + it->second[i].GetStart(), cover.begin() + it->second[i].GetEnd(), COVERED);
 						}
 					}
 				}

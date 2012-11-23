@@ -38,7 +38,8 @@ namespace SyntenyFinder
 		void ListChromosomesAsPermutations(const std::string & fileName) const;
 		void OutputBuffer(const std::string & fileName, const std::string & buffer) const;
 	private:
-		ChrList chrList_;
+		DISALLOW_COPY_AND_ASSIGN(OutputGenerator);
+		const ChrList & chrList_;
 		mutable BlockList blockList_;
 		void ListChrs(std::ostream & out) const;
 		void TryOpenFile(const std::string & fileName, std::ofstream & stream) const;

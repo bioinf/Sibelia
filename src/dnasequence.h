@@ -102,7 +102,7 @@ namespace SyntenyFinder
 		static const char UNKNOWN_BASE;
 		static const std::string alphabet;			
 	private:
-		DISALLOW_COPY_AND_ASSIGN(DNASequence);	
+		DISALLOW_COPY_AND_ASSIGN(DNASequence);
 		static const char SEPARATION_CHAR;
 		const static char DELETED_CHAR;
 		const static Pos DELETED_POS;
