@@ -32,8 +32,14 @@ namespace SyntenyFinder
 		std::string OutputD3BlockID(const BlockInstance & block)
 		{
 			std::stringstream out;
+			std::string label = block.GetChrInstance().GetDescription();
+			// label should (1) have no dots, and (2) be valid DOM id/class identifier
+			// (exception: it may contains spaces, I'll handle it in javascript later)
+			std::replace(label.begin(), label.end(), '|', ' ');
+			std::replace(label.begin(), label.end(), ':', ' ');
+			std::replace(label.begin(), label.end(), '.', ' ');
 			out << "chr" << block.GetChrId() + 1 << ".";
-			out << "chr " << block.GetChrId() + 1 << ": ";
+			out << label << " - ";
 			out << std::setfill(' ') << std::setw(8) << block.GetStart() << " - ";
 			out << std::setfill(' ') << std::setw(8) << block.GetEnd();
 			return out.str();
