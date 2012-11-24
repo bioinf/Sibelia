@@ -7,6 +7,6 @@ Sibelia 1.5
 * Changed behaviour of the options: -q -g -r
 * Added cmd options: -t -o
 
-Sibilea 1.0
+Sibelia 1.0
 ===========
 * Initial release
