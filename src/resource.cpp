@@ -6789,7 +6789,7 @@ namespace SyntenyFinder
 			std::string(""),
 			std::string("String.prototype.replaceAll = function(search, replace){"),
 			std::string("return this.split(search).join(replace);"),
-			std::string("}"),
+			std::string("};"),
 			std::string(""),
 			std::string("var w = 1280,"),
 			std::string("h = 800,"),
