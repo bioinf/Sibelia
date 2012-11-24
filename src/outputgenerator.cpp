@@ -212,14 +212,7 @@ namespace SyntenyFinder
 		CreateDirectory(outDir);
 		std::ofstream out;
 		TryOpenFile(outFile, out);
-		std::ifstream circosTemplate;
-		TryOpenResourceFile("circos.conf", circosTemplate);
-		std::string buffer;
-		while (!circosTemplate.eof())
-		{
-			std::getline(circosTemplate, buffer);
-			out << buffer << std::endl;
-		}
+		out << circosTemplate;
 
 		//blocks must be sorted by id
 		BlockList sortedBlocks = blockList_;
@@ -274,8 +267,7 @@ namespace SyntenyFinder
 
 	void OutputGenerator::GenerateD3Output(const std::string & outFile) const
 	{
-		std::ifstream htmlTemplate;
-		TryOpenResourceFile("d3.html", htmlTemplate);
+		std::istringstream htmlTemplate(d3Template);		
 
         //open output file
         std::ofstream out;
@@ -367,5 +359,11 @@ namespace SyntenyFinder
 		std::ofstream out;
 		TryOpenFile(fileName, out);
 		out << buffer;
+	}
+
+	void GlueBlock(const std::string block[], size_t blockSize, std::string & buf)
+	{
+		std::stringstream ss;
+		std::copy(block, block + blockSize, std::ostream_iterator<std::string>(ss, "\n"));
 	}
 }
