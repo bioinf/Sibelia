@@ -23,7 +23,7 @@ namespace SyntenyFinder
 		std::string OutputIndex(const BlockInstance & block)
 		{
 			std::stringstream out;			
-			out << block.GetChr() + 1 << '\t' << (block.GetSignedBlockId() < 0 ? '-' : '+') << '\t';
+			out << block.GetChrId() + 1 << '\t' << (block.GetSignedBlockId() < 0 ? '-' : '+') << '\t';
 			out << block.GetStart() << '\t' << block.GetEnd() << '\t' << block.GetEnd() - block.GetStart();
 			return out.str();
 		}
@@ -32,8 +32,8 @@ namespace SyntenyFinder
 		std::string OutputD3BlockID(const BlockInstance & block)
 		{
 			std::stringstream out;
-			out << "chr" << block.GetChr() + 1 << ".";
-			out << "chr " << block.GetChr() + 1 << ": ";
+			out << "chr" << block.GetChrId() + 1 << ".";
+			out << "chr " << block.GetChrId() + 1 << ": ";
 			out << std::setfill(' ') << std::setw(8) << block.GetStart() << " - ";
 			out << std::setfill(' ') << std::setw(8) << block.GetEnd();
 			return out.str();
@@ -60,13 +60,13 @@ namespace SyntenyFinder
 			double totalCoveredBp = 0;
 			for(size_t chr = 0; chr < chrList.size(); chr++)
 			{
-				totalBp += chrList[chr].sequence.size();
-				cover.assign(chrList[chr].sequence.size(), 0);
+				totalBp += chrList[chr].GetSequence().size();
+				cover.assign(chrList[chr].GetSequence().size(), 0);
 				for(GroupedBlockList::const_iterator it = start; it != end; ++it)
 				{
 					for(size_t i = 0; i < it->second.size(); i++)
 					{
-						if(it->second[i].GetChr() == chr)
+						if(it->second[i].GetChrId() == chr)
 						{
 							std::fill(cover.begin() + it->second[i].GetStart(), cover.begin() + it->second[i].GetEnd(), COVERED);
 						}
@@ -88,7 +88,7 @@ namespace SyntenyFinder
 		out << "Chr_id\tSize\tDescription" << std::endl;
 		for(size_t i = 0; i < chrList_.size(); i++)
 		{
-			out << i + 1 << '\t' << chrList_[i].sequence.size() << '\t' << chrList_[i].description << std::endl;
+			out << i + 1 << '\t' << chrList_[i].GetSequence().size() << '\t' << chrList_[i].GetDescription() << std::endl;
 		}
 
 		out << DELIMITER << std::endl;
@@ -143,13 +143,13 @@ namespace SyntenyFinder
 		std::ofstream out;
 		TryOpenFile(fileName, out);
 		std::vector<IndexPair> group;
-		GroupBy(blockList_, compareByChr, std::back_inserter(group));
+		GroupBy(blockList_, compareByChrId, std::back_inserter(group));
  		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{			
 			out.setf(std::ios_base::showpos);	
 			size_t length = it->second - it->first;
-			size_t chr = blockList_[it->first].GetChr();
-			out << '>' << chrList_[chr].description << std::endl;
+			size_t chr = blockList_[it->first].GetChrId();
+			out << '>' << chrList_[chr].GetDescription() << std::endl;
 			std::sort(blockList_.begin() + it->first, blockList_.begin() + it->second);
 			CopyN(CFancyIterator(blockList_.begin() + it->first, boost::bind(&BlockInstance::GetSignedBlockId, _1), 0), length, std::ostream_iterator<int>(out, " "));
 			out << "$" << std::endl;
@@ -166,7 +166,7 @@ namespace SyntenyFinder
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{
 			size_t length = it->second - it->first;
-			std::sort(blockList_.begin() + it->first, blockList_.begin() + it->second, compareByChr);
+			std::sort(blockList_.begin() + it->first, blockList_.begin() + it->second, compareByChrId);
 			out << "Block #" << blockList_[it->first].GetBlockId() << std::endl;
 			out << "Chr_id\tStrand\tStart\tEnd\tLength" << std::endl;
 			CopyN(CFancyIterator(blockList_.begin() + it->first, OutputIndex, std::string()), length, std::ostream_iterator<std::string>(out, "\n"));
@@ -186,18 +186,18 @@ namespace SyntenyFinder
 			{
 				size_t length = blockList_[block].GetLength();
 				char strand = blockList_[block].GetSignedBlockId() > 0 ? '+' : '-';
-				const std::string & chr = chrList_[blockList_[block].GetChr()].sequence;
-				out << ">Seq=\"" << chrList_[blockList_[block].GetChr()].description << "\",Strand='" << strand << "',";
+				const FASTARecord & chr = blockList_[block].GetChrInstance();
+				out << ">Seq=\"" << chr.GetDescription() << "\",Strand='" << strand << "',";
 				out << "Block_id=" << blockList_[block].GetBlockId() << ",Start=" ;
 				out << blockList_[block].GetStart() << ",End=" << blockList_[block].GetEnd() << std::endl;
 
 				if(blockList_[block].GetSignedBlockId() > 0)
 				{
-					OutputLines(chr.begin() + blockList_[block].GetStart(), length, out);
+					OutputLines(chr.GetSequence().begin() + blockList_[block].GetStart(), length, out);
 				}
 				else
 				{
-					std::string::const_reverse_iterator it(chr.begin() + blockList_[block].GetEnd());
+					std::string::const_reverse_iterator it(chr.GetSequence().begin() + blockList_[block].GetEnd());
 					OutputLines(CFancyIterator(it, DNASequence::Translate, ' '), length, out);
 				}
 
@@ -237,7 +237,7 @@ namespace SyntenyFinder
 
 		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock)
 		{
-			highlightFile << "hs" << itBlock->GetChr() + 1 << " ";
+			highlightFile << "hs" << itBlock->GetChrId() + 1 << " ";
 			highlightFile << itBlock->GetStart() << " " << itBlock->GetEnd() << std::endl;
 
 			if (itBlock->GetBlockId() != lastId)
@@ -249,11 +249,11 @@ namespace SyntenyFinder
 			{
 				//link start
 				linksFile << "block_" << std::setw(idLength) << std::setfill('0') << linkCount << " ";
-				linksFile << "hs" << itBlock->GetChr() + 1 << " ";
+				linksFile << "hs" << itBlock->GetChrId() + 1 << " ";
 				linksFile << itBlock->GetStart() << " " << itBlock->GetEnd() << std::endl;
 				//link end
 				linksFile << "block_" << std::setw(idLength) << std::setfill('0') << linkCount << " ";
-				linksFile << "hs" << itPair->GetChr() + 1 << " ";
+				linksFile << "hs" << itPair->GetChrId() + 1 << " ";
 				linksFile << itPair->GetStart() << " " << itPair->GetEnd() << std::endl;
 
 				++linkCount;
@@ -267,7 +267,7 @@ namespace SyntenyFinder
 		
 		for (size_t i = 0; i < chrList_.size(); ++i)
 		{
-			karFile << "chr - hs" << i + 1 << " " << chrList_[i].description << " 0 " << chrList_[i].sequence.length();
+			karFile << "chr - hs" << i + 1 << " " << chrList_[i].GetDescription() << " 0 " << chrList_[i].GetSequence().length();
 			karFile	<< " chr" << i + 1 << std::endl;
 		}
 	}

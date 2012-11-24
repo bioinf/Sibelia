@@ -98,7 +98,7 @@ namespace SyntenyFinder
 		}
 
 		BifurcationStorage bifStorage(maxId);
-		DNASequence sequence(chrList_, originalPos_);
+		DNASequence sequence(rawSeq_, originalPos_);
 		ConstructBifStorage(sequence, bifurcation, bifStorage);
 	#else
 		BifurcationStorage bifStorage;
@@ -128,7 +128,7 @@ namespace SyntenyFinder
 
 	void BlockFinder::SerializeGraph(size_t k, std::ostream & out)
 	{
-		DNASequence sequence(chrList_, originalPos_);
+		DNASequence sequence(rawSeq_, originalPos_);
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)

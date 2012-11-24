@@ -10,23 +10,25 @@ namespace SyntenyFinder
 {	
 	
 	BlockFinder::BlockFinder(const std::vector<FASTARecord> & chrList):
-		chrList_(chrList), inRAM_(true)
+		originalChrList_(&chrList), inRAM_(true)
 	{
 		Init(chrList);
 	}
 
 	BlockFinder::BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir):
-		chrList_(chrList), tempDir_(tempDir), inRAM_(false)
+		originalChrList_(&chrList), tempDir_(tempDir), inRAM_(false)
 	{
 		Init(chrList);
 	}
 
 	void BlockFinder::Init(const std::vector<FASTARecord> & chrList)
 	{
+		rawSeq_.resize(chrList.size());
 		originalPos_.resize(chrList.size());
 		for(size_t i = 0; i < originalPos_.size(); i++)
 		{
-			originalPos_[i].resize(chrList[i].sequence.size());
+			rawSeq_[i] = chrList[i].GetSequence();
+			originalPos_[i].resize(chrList[i].GetSequence().size());
 			for(size_t j = 0; j < originalPos_[i].size(); j++)
 			{
 				originalPos_[i][j] = static_cast<Pos>(j);
@@ -57,7 +59,7 @@ namespace SyntenyFinder
 
 	void BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
 	{
-		DNASequence sequence(chrList_, originalPos_, true);
+		DNASequence sequence(rawSeq_, originalPos_, true);
 		{
 		#ifdef NEW_ENUMERATION		
 			size_t maxId;
@@ -89,11 +91,11 @@ namespace SyntenyFinder
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
 			originalPos_[chr].clear();
-			chrList_[chr].sequence.clear();
+			rawSeq_[chr].clear();
 			StrandIterator end = sequence.PositiveEnd(chr);
 			for(StrandIterator it = sequence.PositiveBegin(chr); it != end; ++it)
 			{
-				chrList_[chr].sequence.push_back(*it);
+				rawSeq_[chr].push_back(*it);
 				originalPos_[chr].push_back(static_cast<Pos>(it.GetOriginalPosition()));
 			}
 		}

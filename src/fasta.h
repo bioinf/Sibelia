@@ -11,20 +11,42 @@
 #include "common.h"
 
 namespace SyntenyFinder
-{
+{	
+	struct FASTARecord
+	{
+	public:
+		FASTARecord() {}
+		FASTARecord(const std::string & sequence, const std::string & description, size_t id):
+			description_(description), id_(id)
+		{
+			sequence_.assign(CFancyIterator(sequence.begin(), tolower, ' '), CFancyIterator(sequence.end(), tolower, ' '));
+		}
+
+		size_t GetId() const
+		{
+			return id_;
+		}
+
+		const std::string& GetSequence() const
+		{
+			return sequence_;
+		}
+
+		const std::string& GetDescription() const
+		{
+			return description_;
+		}
+
+	private:
+		size_t id_;
+		std::string sequence_;
+		std::string description_;		
+	};
+
 	//This class provides functionality for reading FASTA files.
 	//Currently this is an OO wrapper around tiny library kseq.h.
 	//It looks little ugly, maybe later it will be replaced with
 	//some other library or written by myself.
-
-	struct FASTARecord
-	{
-		std::string sequence;
-		std::string description;
-		FASTARecord() {}
-		FASTARecord(const std::string & sequence, const std::string & description):
-			sequence(sequence), description(description) {}
-	};
 
 	class FASTAReader
 	{

@@ -95,8 +95,8 @@ namespace SyntenyFinder
 			size_t targetDistance,
 			NotifyFunction before = 0,
 			NotifyFunction after = 0);
-		explicit DNASequence(const std::vector<FASTARecord> & record);
-		DNASequence(const std::vector<FASTARecord> & record, std::vector<std::vector<Pos> > & original, bool clear = false);
+		explicit DNASequence(const std::vector<std::string> & record);
+		DNASequence(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & original, bool clear = false);
 		std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2) const;
 		size_t GlobalIndex(StrandIterator it) const;		
 		static const char UNKNOWN_BASE;
@@ -104,8 +104,8 @@ namespace SyntenyFinder
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);
 		static const char SEPARATION_CHAR;
-		const static char DELETED_CHAR;
-		const static Pos DELETED_POS;
+		static const char DELETED_CHAR;
+		static const Pos DELETED_POS;
 		static const std::string complementary_;
 
 		struct IteratorPtrHash

@@ -10,6 +10,7 @@
 #include "common.h"
 #include "dnasequence.h"
 
+
 namespace SyntenyFinder
 {
 	inline int Abs(int x)
@@ -21,7 +22,7 @@ namespace SyntenyFinder
 	{
 	public:
 		BlockInstance() {}
-		BlockInstance(int id, size_t chr, size_t start, size_t end): id_(id), chr_(chr), start_(start), end_(end) {}
+		BlockInstance(int id, const FASTARecord * chr, size_t start, size_t end): id_(id), chr_(chr), start_(start), end_(end) {}
 		int GetSignedBlockId() const
 		{
 			return id_;
@@ -37,9 +38,14 @@ namespace SyntenyFinder
 			return Abs(id_);
 		}
 
-		size_t GetChr() const
+		size_t GetChrId() const
 		{
-			return chr_;
+			return chr_->GetId();
+		}
+
+		const FASTARecord& GetChrInstance() const
+		{
+			return *chr_;
 		}
 
 		size_t GetStart() const
@@ -59,14 +65,14 @@ namespace SyntenyFinder
 
 		bool operator < (const BlockInstance & toCompare) const
 		{
-			return std::make_pair(GetChr(), GetStart()) < std::make_pair(toCompare.GetChr(), toCompare.GetStart());
+			return std::make_pair(GetChrId(), GetStart()) < std::make_pair(toCompare.GetChrId(), toCompare.GetStart());
 		}
 
 	private:
-		int id_;
-		size_t chr_;
+		int id_;		
 		size_t start_;
 		size_t end_;
+		const FASTARecord * chr_;
 	};
 
 	template<class F>
@@ -88,7 +94,7 @@ namespace SyntenyFinder
 
 	typedef boost::function<bool(const BlockInstance&, const BlockInstance&)> BlockComparer;
 	extern const BlockComparer compareById;
-	extern const BlockComparer compareByChr;
+	extern const BlockComparer compareByChrId;
 	extern const BlockComparer compareByStart;
 }
 
