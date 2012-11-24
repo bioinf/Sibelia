@@ -1,10 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
-
-
-set(CMAKE_BUILD_TYPE Release)
-add_subdirectory(libdivsufsort-2.0.1)
 project(Sibelia CXX)
-
+add_subdirectory(libdivsufsort-2.0.1)
+set(CMAKE_BUILD_TYPE Release)
 if(CMAKE_COMPILER_IS_GNUCC)
 	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc")
 endif()
@@ -28,6 +25,7 @@ else(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
 	install(FILES ${ROOT_DIR}/NEWS.md ${ROOT_DIR}/README.md ${ROOT_DIR}/USAGE.md ${ROOT_DIR}/INSTALL.md ${ROOT_DIR}/LICENSE DESTINATION .)
 endif(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
 
+set(CPACK_NSIS_MODIFY_PATH "ON")
 set(CPACK_SOURCE_IGNORE_FILES "\\\\.git.*;/build/.+;${CPACK_SOURCE_IGNORE_FILES}")
 set(CPACK_RESOURCE_FILE_LICENSE "${ROOT_DIR}/LICENSE")
 set(CPACK_PACKAGE_NAME "Sibelia")
