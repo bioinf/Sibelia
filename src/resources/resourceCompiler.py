@@ -43,7 +43,7 @@ def compileResource(textFileName, varName):
 	
 	functionName = 'GlueResourceV' + varName
 	print >> resourceCpp, '\t\tstd::string ' + functionName + '()\n\t\t{'
-	print >> resourceCpp,'\t\t\tstd::stringstream buf;'
+	print >> resourceCpp, '\t\t\tstd::stringstream buf;'
 	for i in xrange(len(block)):
 		name = blockName[i]
 		arg = name + ', ' + name + ' + ' + str(len(block[i])) + ', std::ostream_iterator<std::string>(buf, "\\n")'
