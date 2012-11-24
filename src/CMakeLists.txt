@@ -1,27 +1,29 @@
 cmake_minimum_required(VERSION 2.8)
+
+if(CMAKE_COMPILER_IS_GNUCC)
+	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc")
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++")
+endif()
+
 set(CMAKE_BUILD_TYPE Release)
 add_subdirectory(libdivsufsort-2.0.1)
 project(Sibelia CXX)
 include_directories(${Sibelia_SOURCE_DIR}/include ${libdivsufsort_BINARY_DIR}/include)
 add_executable(Sibelia main.cpp outputgenerator.cpp blockfinder.cpp blockinstance.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp edge.cpp fasta.cpp graphalgorithm.cpp serialization.cpp synteny.cpp test/unrolledlisttest.cpp platform.cpp stranditerator.cpp vertexenumeration.cpp resource.cpp)
 target_link_libraries(Sibelia divsufsort)
-file(COPY ${Sibelia_SOURCE_DIR}/resources DESTINATION ${Sibelia_BINARY_DIR})
-
-if(GCC_STATIC_RUNTIME)
-	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++")
-endif(GCC_STATIC_RUNTIME)
 
 set(CMAKE_PROJECT_NAME Sibelia)
 set(DEFAULT_INSTALL_PATH "/usr/local")
 set(ROOT_DIR "${CMAKE_SOURCE_DIR}/../")
 if(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
 	install(TARGETS Sibelia RUNTIME DESTINATION bin)
-	install(DIRECTORY ${ROOT_DIR}/src/resources DESTINATION /usr/share/sibelia)
 else(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
-	install(TARGETS Sibelia RUNTIME DESTINATION .)
+	install(TARGETS Sibelia RUNTIME DESTINATION bin)
 	install(DIRECTORY ${ROOT_DIR}/examples/ DESTINATION examples)
-	install(DIRECTORY ${ROOT_DIR}/src/resources/ DESTINATION resources)
-	install(FILES ${ROOT_DIR}/NEWS.md ${ROOT_DIR}/README.md ${ROOT_DIR}/USAGE.md ${ROOT_DIR}/INSTALL.md ${ROOT_DIR}/LICENSE DESTINATION ./)
+	install(FILES ${ROOT_DIR}/NEWS.md ${ROOT_DIR}/README.md ${ROOT_DIR}/USAGE.md ${ROOT_DIR}/INSTALL.md ${ROOT_DIR}/LICENSE DESTINATION .)
 endif(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
 
 set(CPACK_SOURCE_IGNORE_FILES "\\\\.git.*;/build/.+;${CPACK_SOURCE_IGNORE_FILES}")
