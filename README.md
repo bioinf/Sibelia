@@ -1,6 +1,6 @@
 Sibelia 1.5
 
-Release date: 23th November 2012
+Release date: 26th November 2012
 
 Authors
 =======
