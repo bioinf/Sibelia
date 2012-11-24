@@ -1,4 +1,0 @@
-chr - hs1 1 0 2906507 chr1
-chr - hs2 2 0 2814816 chr2
-chr - hs3 3 0 3043210 chr3
-chr - hs4 4 0 2799802 chr4

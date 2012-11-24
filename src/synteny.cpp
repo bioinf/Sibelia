@@ -40,7 +40,7 @@ namespace SyntenyFinder
 		}
 
 		BifurcationStorage bifStorage(maxId);
-		DNASequence sequence(chrList_, originalPos_);
+		DNASequence sequence(rawSeq_, originalPos_);
 		ConstructBifStorage(sequence, bifurcation, bifStorage);
 	#else
 		BifurcationStorage bifStorage;
@@ -60,7 +60,7 @@ namespace SyntenyFinder
 		{
 			bool hit = false;
 			size_t prev = now;
-			std::vector<size_t> occur(chrList_.size(), 0);
+			std::vector<size_t> occur(rawSeq_.size(), 0);
 			for(; now < edge.size() && edge[prev].Coincide(edge[now]); now++)
 			{
 				occur[edge[now].chr]++;
@@ -69,7 +69,7 @@ namespace SyntenyFinder
 			}
 
 			nowBlock.clear();
-			if(!hit && edge[prev].direction == DNASequence::positive && now - prev > 1 && (!sharedOnly || std::count(occur.begin(), occur.end(), 1) == chrList_.size()))
+			if(!hit && edge[prev].direction == DNASequence::positive && now - prev > 1 && (!sharedOnly || std::count(occur.begin(), occur.end(), 1) == rawSeq_.size()))
 			{
 				for(; prev < now; prev++)
 				{
@@ -85,7 +85,7 @@ namespace SyntenyFinder
 					{
 						int strand = nowBlock[i].direction == DNASequence::positive ? +1 : -1;
 						visit[nowBlock[i].chr].insert(std::make_pair(nowBlock[i].originalPosition, nowBlock[i].originalLength));
-						block.push_back(BlockInstance(blockCount * strand, nowBlock[i].chr, nowBlock[i].originalPosition, nowBlock[i].originalPosition + nowBlock[i].originalLength));
+						block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].chr], nowBlock[i].originalPosition, nowBlock[i].originalPosition + nowBlock[i].originalLength));
 					}
 
 					blockCount++;

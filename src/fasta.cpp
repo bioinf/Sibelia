@@ -18,13 +18,9 @@ namespace SyntenyFinder
 	void FASTAReader::GetSequences(std::vector<FASTARecord> & record)
 	{
 		kseq_t * sequence = kseq_init(fileHandler_);
-		while(kseq_read(sequence) >= 0)
+		for(size_t seqId = 0; kseq_read(sequence) >= 0; seqId++)
 		{
-			record.push_back(FASTARecord(sequence->seq.s, sequence->name.s));
-			for(size_t i = 0; i < record.back().sequence.size(); i++)
-			{
-				record.back().sequence[i] = tolower(record.back().sequence[i]);
-			}	
+			record.push_back(FASTARecord(sequence->seq.s, sequence->name.s, seqId));			
 		}
 
 		kseq_destroy(sequence);

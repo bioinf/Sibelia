@@ -63,8 +63,9 @@ namespace SyntenyFinder
 		typedef std::vector<Pos> PosVector;		
 		typedef boost::unordered_map<std::string, size_t> KMerBifMap;
 		typedef boost::unordered_map<StrandIterator, size_t, IteratorHash> IteratorIndexMap;
-		std::vector<FASTARecord> chrList_;
+		std::vector<std::string> rawSeq_;
 		std::vector<PosVector> originalPos_;
+		const std::vector<FASTARecord> * originalChrList_;
 		std::string tempDir_;
 		bool inRAM_;
 
