@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 
+
+set(CMAKE_BUILD_TYPE Release)
+add_subdirectory(libdivsufsort-2.0.1)
+project(Sibelia CXX)
+
 if(CMAKE_COMPILER_IS_GNUCC)
 	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc")
 endif()
@@ -8,9 +13,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++")
 endif()
 
-set(CMAKE_BUILD_TYPE Release)
-add_subdirectory(libdivsufsort-2.0.1)
-project(Sibelia CXX)
 include_directories(${Sibelia_SOURCE_DIR}/include ${libdivsufsort_BINARY_DIR}/include)
 add_executable(Sibelia main.cpp outputgenerator.cpp blockfinder.cpp blockinstance.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp edge.cpp fasta.cpp graphalgorithm.cpp serialization.cpp synteny.cpp test/unrolledlisttest.cpp platform.cpp stranditerator.cpp vertexenumeration.cpp resource.cpp)
 target_link_libraries(Sibelia divsufsort)
