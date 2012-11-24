@@ -199,7 +199,7 @@ int main(int argc, char * argv[])
 			cmd,
 			false);
 
-		TCLAP::SwitchArg inRAM("",
+		TCLAP::SwitchArg inRAM("r",
 			"inram",
 			"Perform all computations in RAM, don't create temp files.",
 			cmd,
@@ -231,7 +231,8 @@ int main(int argc, char * argv[])
 		{
 			stage = ReadStageFile(stageFile.getValue());
 		}
-
+		
+		size_t totalSize = 0;
 		std::vector<SyntenyFinder::FASTARecord> chrList;
 		for(std::vector<std::string>::const_iterator it = fileName.begin(); it != fileName.end(); it++)
 		{
@@ -241,10 +242,19 @@ int main(int argc, char * argv[])
 				throw std::runtime_error(("Cannot open file " + *it).c_str());
 			}
 
-			reader.GetSequences(chrList);
+			reader.GetSequences(chrList);			
+		}
+		
+		for(size_t i = 0; i < chrList.size(); i++)
+		{
+			totalSize += chrList[i].GetSequence().size();
 		}
 
-		
+		if(totalSize > SyntenyFinder::MAX_INPUT_SIZE)
+		{
+			throw std::runtime_error("Input is larger 1 GB, can't proceed");
+		}
+
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
 

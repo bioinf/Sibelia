@@ -74,7 +74,7 @@ another folder due to some reasons, use this parameter. Although the files
 exist only for a very short period of time, they can be quite big -- ~20*N
 bytes, where N is the total size of all input genomes. You can also use switch
 
-	--inram
+	-r or --inram
 
 that will force "Sibelia" to not create any temporary files and store all
 it's data in RAM.

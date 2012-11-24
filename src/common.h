@@ -21,6 +21,7 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
+#include <numeric>
 #include <iterator>
 #include <iostream>
 #include <iomanip>
@@ -46,6 +47,7 @@ namespace SyntenyFinder
 {
 	typedef uint32_t Pos;
 	typedef uint32_t Size;
+	const size_t MAX_INPUT_SIZE = 1 << 30;
 
 	template<class Iterator1, class Iterator2>
 		void CopyN(Iterator1 it, size_t count, Iterator2 out)

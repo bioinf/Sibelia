@@ -15,7 +15,8 @@ Introduction
 "Sibelia" is a tool for finding synteny blocks (regions of conserved DNA)
 in closely related genomes, like different strains of the same bacterial
 specie. It takes a set of FASTA files with genomes and locates coordinates of
-the synteny blocks in these sequences.
+the synteny blocks in these sequences. For this version total size of the
+input genomes should not exceed 1 GB.
 
 System Requirements
 ===================
