@@ -83,11 +83,14 @@ namespace SyntenyFinder
 			{
 				for(IteratorList::const_iterator it = bifurcationPos_[strand][bifId].begin(); it != bifurcationPos_[strand][bifId].end(); ++it)
 				{
-					StrandIterator jt(*it, static_cast<DNASequence::Direction>(strand));
-					size_t pos = sequence.GlobalIndex(jt);
-					out << " {" << bifId << ", " << pos << ", ";
-					CopyN(jt, k, std::ostream_iterator<char>(out));
-					out << "}";
+					if(it->get_padding_int() != NO_BIFURCATION)
+					{
+						StrandIterator jt(*it, static_cast<DNASequence::Direction>(strand));
+						size_t pos = sequence.GlobalIndex(jt);
+						out << " {" << bifId << ", " << pos << ", ";
+						CopyN(jt, k, std::ostream_iterator<char>(out));
+						out << "}";
+					}
 				}
 			}
 			
@@ -143,6 +146,7 @@ namespace SyntenyFinder
 		size_t bifId = ErasePointInternal(it, buf);
 		if(bifId != NO_BIFURCATION)
 		{
+			buf->get_padding_int() = NO_BIFURCATION;
 			size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
 			toClear_.push_back(std::make_pair(&bifurcationPos_[strand][bifId], buf));
 		}
@@ -184,7 +188,6 @@ namespace SyntenyFinder
 				size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
 				BifurcationId bifId = invalid_[nowInvalid_][record].bifId;
 				IteratorWeakPtr jt = invalid_[nowInvalid_][record].ptrIt;				
-
 				BaseIterator newIt = it.Base();
 				newIt.get_padding_int() = bifId;
 				*jt = newIt;

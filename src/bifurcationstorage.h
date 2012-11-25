@@ -98,7 +98,7 @@ namespace SyntenyFinder
 			IteratorWeakPtr ptrIt;
 			BifurcationId bifId;
 			BifurcationRecord() {}
-			BifurcationRecord(size_t pos, IteratorWeakPtr, BifurcationId bifId): pos(pos), ptrIt(ptrIt), bifId(bifId) {}
+			BifurcationRecord(size_t pos, IteratorWeakPtr ptrIt, BifurcationId bifId): pos(pos), ptrIt(ptrIt), bifId(bifId) {}
 		};
 
 		BifurcationId ErasePointInternal(DNASequence::StrandIterator it, IteratorWeakPtr & ret);
