@@ -19,18 +19,19 @@ namespace SyntenyFinder
 	public:
 		typedef Size BifurcationId;
 		typedef DNASequence::SequencePosIterator PositiveIterator;
-		typedef DNASequence::SequenceNegIterator NegativeIterator;
 		typedef DNASequence::SequencePosIterator BaseIterator;
-		typedef BaseIterator* IteratorPtr;
-		typedef BaseIterator* IteratorWeakPtr;
-		typedef std::vector<IteratorPtr> IteratorVector;
-		
+		typedef boost::container::slist<BaseIterator> IteratorList;
+		typedef std::vector<IteratorList> ListVector;
+		typedef IteratorList::iterator IteratorWeakPtr;
+		typedef std::vector<IteratorWeakPtr> IteratorVector;
 		static const BifurcationId NO_BIFURCATION;
 
 		void Clear();
 		size_t GetMaxId() const;
 		size_t TotalElements() const;
+		size_t GetEmpty() const;
 		BifurcationStorage(size_t maxId);
+		void Cleanup();
 		void Dump(const DNASequence & sequence, size_t k, std::ostream & out) const;
 		void ErasePoint(DNASequence::StrandIterator it);
 		void AddPoint(DNASequence::StrandIterator it, size_t bifId);
@@ -39,20 +40,20 @@ namespace SyntenyFinder
 		void NotifyBefore(StrandIterator begin, StrandIterator end);
 		void NotifyAfter(StrandIterator begin, StrandIterator end);
 		void FormDictionary(boost::unordered_map<std::string, size_t> & dict, size_t k) const;
-		~BifurcationStorage();
 
 		class IteratorProxy
 		{
 		public:
 			IteratorProxy() {}
-			IteratorProxy(const IteratorVector * adjList, size_t index, DNASequence::Direction direction): adjList_(adjList), index_(index),
-				direction_(direction) {}
+			IteratorProxy(IteratorWeakPtr ptr, DNASequence::Direction direction): ptr_(ptr), direction_(direction)
+			{
+			}
+
 			bool Valid() const;
 			StrandIterator operator * () const;
 		private:
 			DNASequence::Direction direction_;
-			const IteratorVector * adjList_;
-			size_t index_;
+			IteratorWeakPtr ptr_;			
 		};
 
 		template<class Iterator>
@@ -61,22 +62,18 @@ namespace SyntenyFinder
 				size_t ret = 0;				
 				for(size_t strand = 0; strand < 2; strand++)
 				{
-					for(IteratorVector::const_iterator it = bifurcationPos_[strand][inBifId].begin(); it != bifurcationPos_[strand][inBifId].end(); ++it, ++ret)
+					for(IteratorList::iterator it = bifurcationPos_[strand][inBifId].begin(); it != bifurcationPos_[strand][inBifId].end(); ++it, ++ret)
 					{
-						if(*it != 0)
-						{
-							*out++ = IteratorProxy(&bifurcationPos_[strand][inBifId], it - bifurcationPos_[strand][inBifId].begin(), static_cast<DNASequence::Direction>(strand));
-						}
+						*out++ = IteratorProxy(it, static_cast<DNASequence::Direction>(strand));
 					}
 				}
 
 				return ret;
 			}
 
-	private:			
-		typedef std::vector<IteratorVector> BifurcationStore;
+	private:					
 
-		struct WeakIteratorPtrHash
+		struct IteratorWeakPtrHash
 		{
 		public:
 			size_t operator () (IteratorWeakPtr it) const
@@ -98,22 +95,23 @@ namespace SyntenyFinder
 		struct BifurcationRecord
 		{
 			size_t pos;
-			IteratorVector::iterator ptrIt;
+			IteratorWeakPtr ptrIt;
 			BifurcationId bifId;
 			BifurcationRecord() {}
-			BifurcationRecord(size_t pos, IteratorVector::iterator ptrIt, BifurcationId bifId): pos(pos), ptrIt(ptrIt), bifId(bifId) {}
+			BifurcationRecord(size_t pos, IteratorWeakPtr, BifurcationId bifId): pos(pos), ptrIt(ptrIt), bifId(bifId) {}
 		};
 
-		BifurcationId ErasePointInternal(DNASequence::StrandIterator it, IteratorVector::iterator & ret);
-		typedef boost::unordered_set<IteratorWeakPtr, WeakIteratorPtrHash, IteratorPtrEqual<IteratorWeakPtr, IteratorWeakPtr> > IteratorMap;
+		BifurcationId ErasePointInternal(DNASequence::StrandIterator it, IteratorWeakPtr & ret);
+		
+		typedef boost::unordered_set<IteratorWeakPtr, IteratorWeakPtrHash, IteratorPtrEqual<IteratorWeakPtr, IteratorWeakPtr> > IteratorMap;
 
 		BifurcationId maxId_;
-		BifurcationStore bifurcationPos_[2];
+		ListVector bifurcationPos_[2];
 		IteratorMap posBifurcation_[2];
 
-		size_t nowInvalid_;
-		size_t empty_;
+		size_t nowInvalid_;		
 		std::vector<std::vector<BifurcationRecord> > invalid_;
+		std::vector<std::pair<IteratorList*, IteratorWeakPtr> > toClear_;
 	};
 }
 
