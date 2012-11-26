@@ -21,9 +21,9 @@ namespace SyntenyFinder
 		typedef DNASequence::SequencePosIterator PositiveIterator;
 		typedef DNASequence::SequencePosIterator BaseIterator;
 		typedef boost::container::slist<BaseIterator> IteratorList;
-		typedef std::vector<IteratorList> ListVector;
-		typedef IteratorList::iterator IteratorWeakPtr;
-		typedef std::vector<IteratorWeakPtr> IteratorVector;
+		typedef IteratorList::iterator IteratorPtr;
+		typedef std::vector<IteratorList> ListVector;		
+		typedef std::vector<IteratorPtr> IteratorVector;
 		static const BifurcationId NO_BIFURCATION;
 
 		void Clear();
@@ -45,7 +45,7 @@ namespace SyntenyFinder
 		{
 		public:
 			IteratorProxy() {}
-			IteratorProxy(IteratorWeakPtr ptr, DNASequence::Direction direction): ptr_(ptr), direction_(direction)
+			IteratorProxy(IteratorPtr ptr, DNASequence::Direction direction): ptr_(ptr), direction_(direction)
 			{
 			}
 
@@ -53,7 +53,7 @@ namespace SyntenyFinder
 			StrandIterator operator * () const;
 		private:
 			DNASequence::Direction direction_;
-			IteratorWeakPtr ptr_;			
+			IteratorPtr ptr_;			
 		};
 
 		template<class Iterator>
@@ -73,10 +73,10 @@ namespace SyntenyFinder
 
 	private:					
 
-		struct IteratorWeakPtrHash
+		struct IteratorPtrHash
 		{
 		public:
-			size_t operator () (IteratorWeakPtr it) const
+			size_t operator () (IteratorPtr it) const
 			{
 				return reinterpret_cast<size_t>(&(**it));
 			}
@@ -95,15 +95,15 @@ namespace SyntenyFinder
 		struct BifurcationRecord
 		{
 			size_t pos;
-			IteratorWeakPtr ptrIt;
+			IteratorPtr ptrIt;
 			BifurcationId bifId;
 			BifurcationRecord() {}
-			BifurcationRecord(size_t pos, IteratorWeakPtr ptrIt, BifurcationId bifId): pos(pos), ptrIt(ptrIt), bifId(bifId) {}
+			BifurcationRecord(size_t pos, IteratorPtr ptrIt, BifurcationId bifId): pos(pos), ptrIt(ptrIt), bifId(bifId) {}
 		};
 
-		BifurcationId ErasePointInternal(DNASequence::StrandIterator it, IteratorWeakPtr & ret);
+		BifurcationId ErasePointInternal(DNASequence::StrandIterator it, IteratorPtr & ret);
 		
-		typedef boost::unordered_set<IteratorWeakPtr, IteratorWeakPtrHash, IteratorPtrEqual<IteratorWeakPtr, IteratorWeakPtr> > IteratorMap;
+		typedef boost::unordered_set<IteratorPtr, IteratorPtrHash, IteratorPtrEqual<IteratorPtr, IteratorPtr> > IteratorMap;
 
 		BifurcationId maxId_;
 		ListVector bifurcationPos_[2];
@@ -111,7 +111,7 @@ namespace SyntenyFinder
 
 		size_t nowInvalid_;		
 		std::vector<std::vector<BifurcationRecord> > invalid_;
-		std::vector<std::pair<IteratorList*, IteratorWeakPtr> > toClear_;
+		std::vector<std::pair<IteratorList*, IteratorPtr> > toClear_;
 	};
 }
 
