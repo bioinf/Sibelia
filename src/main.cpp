@@ -252,7 +252,7 @@ int main(int argc, char * argv[])
 
 		if(totalSize > SyntenyFinder::MAX_INPUT_SIZE)
 		{
-			throw std::runtime_error("Input is larger 1 GB, can't proceed");
+			throw std::runtime_error("Input is larger than 1 GB, can't proceed");
 		}
 
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		

@@ -8,7 +8,46 @@
 
 namespace SyntenyFinder
 {
+	namespace
+	{
+		typedef boost::uint64_t uint64;
+		const uint64 ONE = 1;
+	}
+
+	const Size DNASequence::StrandIterator::INFO_BITS = 2;
 	
+	Size DNASequence::StrandIterator::PositionMask()
+	{
+
+		uint64 numBits = 8 * sizeof(Size) - 1;
+		uint64 allBitsMask = (ONE << numBits) - ONE;
+		uint64 infoBitsMask = (ONE << uint64(INFO_BITS)) - ONE;
+		infoBitsMask <<= numBits - INFO_BITS;
+		uint64 ret = allBitsMask ^ infoBitsMask;
+ 		return static_cast<Size>(ret);
+	}
+
+	bool DNASequence::StrandIterator::GetInfoBit(size_t bit) const
+	{
+		uint64 numBits = 8 * sizeof(Size) - 1;
+		uint64 bitMask = ONE << (numBits - uint64(bit));
+		return (it_.meta() & bitMask) != 0;
+	}
+
+	void DNASequence::StrandIterator::SetInfoBit(size_t bit, bool value) const
+	{
+		uint64 numBits = 8 * sizeof(Size) - 1;
+		uint64 bitMask = ~(ONE << (numBits - uint64(bit)));
+		it_.meta() = it_.meta() & bitMask;
+
+		if(value)
+		{
+			bitMask = ~bitMask;
+			Size res = static_cast<Size>(uint64(it_.meta()) | bitMask);
+			it_.meta() = res;
+		}
+	}
+
 	DNASequence::StrandIterator::StrandIterator(SequencePosIterator it, Direction direction):
 		it_(it), direction_(direction)
 	{
@@ -110,7 +149,12 @@ namespace SyntenyFinder
 
 	size_t DNASequence::StrandIterator::GetOriginalPosition() const
 	{
-		return it_.meta();
+		return it_.meta() & PositionMask();
+	}
+
+	void DNASequence::StrandIterator::SetOriginalPosition(size_t position) const
+	{
+		it_.meta() = static_cast<Size>(position) & PositionMask();
 	}
 
 	DNASequence::StrandIterator& DNASequence::StrandIterator::operator--()

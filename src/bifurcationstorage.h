@@ -72,6 +72,8 @@ namespace SyntenyFinder
 			}
 
 	private:					
+		static const size_t POSITIVE_BIT;
+		static const size_t NEGATIVE_BIT;
 
 		struct IteratorPtrHash
 		{
@@ -112,6 +114,9 @@ namespace SyntenyFinder
 		size_t nowInvalid_;		
 		std::vector<std::vector<BifurcationRecord> > invalid_;
 		std::vector<std::pair<IteratorList*, IteratorPtr> > toClear_;
+
+		IteratorMap::iterator LookUp(StrandIterator it);
+		IteratorMap::const_iterator LookUp(StrandIterator it) const;
 	};
 }
 

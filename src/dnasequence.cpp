@@ -78,7 +78,7 @@ namespace SyntenyFinder
 			for(size_t pos = 0; pos < record[chr].size(); pos++)
 			{
 				sequence_.push_back(DNACharacter(record[chr][pos]));
-				(--sequence_.end()).meta() = original[chr][pos];
+				StrandIterator(--sequence_.end(), positive).SetOriginalPosition(original[chr][pos]);
 			}
 
 			if(clear)
@@ -89,7 +89,7 @@ namespace SyntenyFinder
 			}
 
 			sequence_.push_back(DNACharacter(SEPARATION_CHAR));
-			(--sequence_.end()).meta() = Pos(record[chr].size());
+			StrandIterator(--sequence_.end(), positive).SetOriginalPosition(record[chr].size());			
 			posBegin_.push_back(++chrPosBegin);
 			posEnd_.push_back(--sequence_.end());
 		}
@@ -215,7 +215,7 @@ namespace SyntenyFinder
 		size_t pos = 0;
 		for(StrandIterator jt = target; pos < sourceDistance; pos++, ++jt)
 		{
-			jt.it_.meta() = static_cast<Pos>(oldPos);
+			jt.SetOriginalPosition(oldPos);
 		}
 	}
 

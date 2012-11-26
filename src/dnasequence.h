@@ -48,6 +48,7 @@ namespace SyntenyFinder
 		class StrandIterator: public std::iterator<std::bidirectional_iterator_tag, char, size_t>
 		{
 		public:
+			static const Size INFO_BITS;
 			void MakeInverted();
 			void Swap(StrandIterator & toSwap);
 			char operator * () const;
@@ -59,6 +60,9 @@ namespace SyntenyFinder
 			StrandIterator operator -- (int);
 			size_t GetElementId() const;
 			size_t GetOriginalPosition() const;
+			void SetOriginalPosition(size_t pos) const;
+			bool GetInfoBit(size_t bit) const;
+			void SetInfoBit(size_t bit, bool value) const;
 			PaddingInt& GetPadding();
 			const PaddingInt& GetPadding() const;
 			SequencePosIterator Base() const;
@@ -71,8 +75,8 @@ namespace SyntenyFinder
 			StrandIterator(const StrandIterator & toCopy);
 			StrandIterator(SequencePosIterator base, Direction direction);
 			StrandIterator& operator = (const StrandIterator & toCopy);
-		private:
-			friend class DNASequence;
+		private:			
+			static Size PositionMask();
 			SequencePosIterator it_;
 			Direction direction_;
 		};
