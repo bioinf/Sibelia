@@ -135,7 +135,13 @@ namespace SyntenyFinder
 		void UnsubscribeIterator(SequencePosIterator & it);
 		void NotifyBefore(SequencePosIterator begin, SequencePosIterator end, NotifyFunction before);
 		void NotifyAfter(SequencePosIterator begin, SequencePosIterator end, NotifyFunction after);
-		
+		SequencePosIterator ReplaceDirect(StrandIterator source,
+			size_t sourceDistance, 
+			SequencePosIterator target,
+			size_t targetDistance,
+			NotifyFunction before = 0,
+			NotifyFunction after = 0);
+
 		Sequence sequence_;
 		std::vector<SequencePosIterator> posBegin_;
 		std::vector<SequencePosIterator> posEnd_;

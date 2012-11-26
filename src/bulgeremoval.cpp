@@ -195,7 +195,7 @@ namespace SyntenyFinder
 		StrandIterator srcAMer = *startKMer[sourceData.kmerId];
 		StrandIterator srcBMer = AdvanceForward(*startKMer[sourceData.kmerId], sourceData.distance + k).Invert();
 		for(size_t i = 0; i < sourceData.distance + 1; i++, ++amer, ++bmer, ++srcAMer, ++srcBMer)
-		{				
+		{		
 			size_t bifId = bifStorage.GetBifurcation(srcAMer);
 			if(bifId != BifurcationStorage::NO_BIFURCATION)
 			{
@@ -221,13 +221,13 @@ namespace SyntenyFinder
 		static size_t bulge = 0;
 		std::cerr << "Bulge #" << bulge++ << std::endl;
 		std::cerr << "Before: " << std::endl;
-	//	BlockFinder::PrintRaw(sequence, std::cerr);
+//		BlockFinder::PrintRaw(sequence, std::cerr);
 		std::cerr << "Source branch: " << std::endl;			
 		BlockFinder::PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 		std::cerr << "Target branch: " << std::endl;			
 		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
-	//	bifStorage.Dump(sequence, k, std::cerr);
-		Test(sequence, bifStorage, k);
+//		bifStorage.Dump(sequence, k, std::cerr);
+//		Test(sequence, bifStorage, k);
 	#endif
 		std::vector<std::pair<size_t, size_t> > lookForward;
 		std::vector<std::pair<size_t, size_t> > lookBack;
@@ -242,15 +242,15 @@ namespace SyntenyFinder
 			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
 		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
 
-	#ifdef _DEBUG
-		Test(sequence, bifStorage, k);
+	#ifdef _DEBUG		
 		std::cerr << "After: " << std::endl;
-	//	BlockFinder::PrintRaw(sequence, std::cerr);
+//		BlockFinder::PrintRaw(sequence, std::cerr);
 		std::cerr << "Source branch: " << std::endl;			
 		BlockFinder::PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 		std::cerr << "Target branch: " << std::endl;			
 		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
-	//	bifStorage.Dump(sequence, k, std::cerr);
+//		bifStorage.Dump(sequence, k, std::cerr);
+		Test(sequence, bifStorage, k);		
 		std::cerr << DELIMITER << std::endl;		
 	#endif
 	}		

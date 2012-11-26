@@ -104,6 +104,7 @@ namespace SyntenyFinder
 				{
 					StrandIterator jt = window.GetBegin();
 					size_t pos = sequence.GlobalIndex(jt);
+					std::string buf(std::string(jt, AdvanceForward(jt, k)));
 					size_t actualBifurcation = bifStorage.GetBifurcation(jt);
 					size_t mustBeBifurcation = GetMustBeBifurcation(jt, k);
 					assert(actualBifurcation == mustBeBifurcation);
