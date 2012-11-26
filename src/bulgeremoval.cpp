@@ -162,6 +162,36 @@ namespace SyntenyFinder
 			std::cerr << DELIMITER << std::endl;
 		}
 
+		bool AnyBulges(DNASequence & sequence,
+			BifurcationStorage & bifStorage,
+			size_t k,
+			const IteratorProxyVector & startKMer,
+			size_t minBranchSize)
+		{
+			std::vector<BifurcationMark> total;
+			for(size_t i = 0; i < startKMer.size(); i++)
+			{
+				std::vector<BifurcationMark> now;
+				FillVisit(sequence, bifStorage, *startKMer[i], minBranchSize, now);
+				std::copy(now.begin(), now.end(), std::back_inserter(total));
+			}
+
+			std::sort(total.begin(), total.end());
+			if(total.size() > 0)
+			{
+				for(size_t i = 0; i < total.size() - 1; i++)
+				{
+					if(total[i].bifId == total[i + 1].bifId)
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+
 	}
 
 	void BlockFinder::UpdateBifurcations(DNASequence & sequence,
@@ -255,12 +285,13 @@ namespace SyntenyFinder
 	#endif
 	}		
 
+
 	size_t BlockFinder::RemoveBulges(DNASequence & sequence,
 		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId)
 	{	
 		size_t ret = 0;	
 		IteratorProxyVector startKMer;
-		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
+		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2 || !AnyBulges(sequence, bifStorage, k, startKMer, minBranchSize))
 		{
 			return ret;
 		}
