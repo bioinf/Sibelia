@@ -6826,10 +6826,10 @@
                 .attr("id", function(d) { return "node-" + d.key.replaceAll(" ", "_"); })
                 .attr("transform", function(d) { return "rotate(" + (d.x - 90) + ")translate(" + d.y + ")"; })
                 .append("svg:text")
-                .attr("dx", function(d) { return d.x < 180 ? 8 : -8; })
+                .attr("dx", function(d) { return 8; })
                 .attr("dy", ".31em")
-                .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
-                .attr("transform", function(d) { return d.x < 180 ? null : "rotate(180)"; })
+                .attr("text-anchor", function(d) { return "start"; })
+                .attr("transform", function(d) { return null; })
                 .text(function(d) { return d.key; })
                 .on("mouseover", mouseover)
                 .on("mouseout", mouseout);
@@ -6876,9 +6876,9 @@
                 svg
                         .attr("transform", "translate(" + rx + "," + ry + ")rotate(" + rotate + ")")
                         .selectAll("g.node text")
-                        .attr("dx", function(d) { return (d.x + rotate) % 360 < 180 ? 8 : -8; })
-                        .attr("text-anchor", function(d) { return (d.x + rotate) % 360 < 180 ? "start" : "end"; })
-                        .attr("transform", function(d) { return (d.x + rotate) % 360 < 180 ? null : "rotate(180)"; });
+                        .attr("dx", function(d) { return 8; })
+                        .attr("text-anchor", function(d) { return "start"; })
+                        .attr("transform", function(d) { return null; });
             }
         }
 
