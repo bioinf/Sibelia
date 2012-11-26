@@ -75,6 +75,13 @@ namespace SyntenyFinder
 			std::string("font-size: 18px;"),
 			std::string("}"),
 			std::string(""),
+			std::string("div#legend {"),
+			std::string("right:0;"),
+			std::string("position:absolute;"),
+			std::string("font-size:10pt;"),
+			std::string("top:-40px;"),
+			std::string("}"),
+			std::string(""),
 			std::string(".invert {"),
 			std::string("background: #1f1f1f;"),
 			std::string("color: #dcdccc;"),
@@ -158,6 +165,7 @@ namespace SyntenyFinder
 			std::string("</style>"),
 			std::string("</head>"),
 			std::string("<body>"),
+			std::string("<div id=\"legend\"></div>"),
 			std::string("<h2>"),
 			std::string("made by <a href=\"http://bioinf.spbau.ru/sibelia\">SiBELia</a>"),
 			std::string("</h2>"),
@@ -1022,6 +1030,10 @@ namespace SyntenyFinder
 			std::string(""),
 			std::string("// Remove any numbers in b not found in a."),
 			std::string("while (i < n) {"),
+		};
+
+		const std::string d3TemplateBlockNo1[] = 
+		{
 			std::string("o = q.pop();"),
 			std::string("if (s[o.i + 1] == null) { // This match is followed by another number."),
 			std::string("s[o.i] = o.x;"),
@@ -1030,10 +1042,6 @@ namespace SyntenyFinder
 			std::string("s.splice(o.i + 1, 1);"),
 			std::string("}"),
 			std::string("n--;"),
-		};
-
-		const std::string d3TemplateBlockNo1[] = 
-		{
 			std::string("}"),
 			std::string(""),
 			std::string("// Special optimization for only a single match."),
@@ -2050,6 +2058,10 @@ namespace SyntenyFinder
 			std::string("var subgroups = [],"),
 			std::string("subgroup,"),
 			std::string("subnode,"),
+		};
+
+		const std::string d3TemplateBlockNo2[] = 
+		{
 			std::string("upgroup,"),
 			std::string("group,"),
 			std::string("node;"),
@@ -2058,10 +2070,6 @@ namespace SyntenyFinder
 			std::string("upgroup = (group = this[j]).update;"),
 			std::string("subgroups.push(subgroup = []);"),
 			std::string("subgroup.parentNode = group.parentNode;"),
-		};
-
-		const std::string d3TemplateBlockNo2[] = 
-		{
 			std::string("for (var i = -1, n = group.length; ++i < n;) {"),
 			std::string("if (node = group[i]) {"),
 			std::string("subgroup.push(upgroup[i] = subnode = selector.call(group.parentNode, node.__data__, i));"),
@@ -3078,6 +3086,10 @@ namespace SyntenyFinder
 			std::string("function d3_svg_arcOuterRadius(d) {"),
 			std::string("return d.outerRadius;"),
 			std::string("}"),
+		};
+
+		const std::string d3TemplateBlockNo3[] = 
+		{
 			std::string(""),
 			std::string("function d3_svg_arcStartAngle(d) {"),
 			std::string("return d.startAngle;"),
@@ -3086,10 +3098,6 @@ namespace SyntenyFinder
 			std::string("function d3_svg_arcEndAngle(d) {"),
 			std::string("return d.endAngle;"),
 			std::string("}"),
-		};
-
-		const std::string d3TemplateBlockNo3[] = 
-		{
 			std::string("function d3_svg_line(projection) {"),
 			std::string("var x = d3_svg_lineX,"),
 			std::string("y = d3_svg_lineY,"),
@@ -4106,6 +4114,10 @@ namespace SyntenyFinder
 			std::string("}"),
 			std::string("return subticks;"),
 			std::string("}"),
+		};
+
+		const std::string d3TemplateBlockNo4[] = 
+		{
 			std::string("d3.svg.brush = function() {"),
 			std::string("var event = d3.dispatch(\"brushstart\", \"brush\", \"brushend\"),"),
 			std::string("x, // x-scale, optional"),
@@ -4114,10 +4126,6 @@ namespace SyntenyFinder
 			std::string(""),
 			std::string("function brush(g) {"),
 			std::string("var resizes = x && y ? [\"n\", \"e\", \"s\", \"w\", \"nw\", \"ne\", \"se\", \"sw\"]"),
-		};
-
-		const std::string d3TemplateBlockNo4[] = 
-		{
 			std::string(": x ? [\"e\", \"w\"]"),
 			std::string(": y ? [\"n\", \"s\"]"),
 			std::string(": [];"),
@@ -5134,6 +5142,10 @@ namespace SyntenyFinder
 			std::string("}"),
 			std::string("}"),
 			std::string(""),
+		};
+
+		const std::string d3TemplateBlockNo5[] = 
+		{
 			std::string("// position verlet integration"),
 			std::string("i = -1; while (++i < n) {"),
 			std::string("o = nodes[i];"),
@@ -5142,10 +5154,6 @@ namespace SyntenyFinder
 			std::string("o.y = o.py;"),
 			std::string("} else {"),
 			std::string("o.x -= (o.px - (o.px = o.x)) * friction;"),
-		};
-
-		const std::string d3TemplateBlockNo5[] = 
-		{
 			std::string("o.y -= (o.py - (o.py = o.y)) * friction;"),
 			std::string("}"),
 			std::string("}"),
@@ -6162,6 +6170,10 @@ namespace SyntenyFinder
 			std::string("} else {"),
 			std::string("node.r = Math.sqrt(node.value);"),
 			std::string("}"),
+		};
+
+		const std::string d3TemplateBlockNo6[] = 
+		{
 			std::string("}"),
 			std::string(""),
 			std::string("function d3_layout_packTransform(node, x, y, k) {"),
@@ -6170,10 +6182,6 @@ namespace SyntenyFinder
 			std::string("node.y = (y += k * node.y);"),
 			std::string("node.r *= k;"),
 			std::string("if (children) {"),
-		};
-
-		const std::string d3TemplateBlockNo6[] = 
-		{
 			std::string("var i = -1, n = children.length;"),
 			std::string("while (++i < n) d3_layout_packTransform(children[i], x, y, k);"),
 			std::string("}"),
@@ -6820,6 +6828,8 @@ namespace SyntenyFinder
 			std::string(".style(\"height\", w + \"px\")"),
 			std::string(".style(\"position\", \"absolute\");"),
 			std::string(""),
+			std::string("var legend = d3.select(\"div#legend\").html(chart_legend.join(\"<br>\"));"),
+			std::string(""),
 			std::string("var svg = div.append(\"svg:svg\")"),
 			std::string(".attr(\"width\", w)"),
 			std::string(".attr(\"height\", w)"),
@@ -6953,7 +6963,7 @@ namespace SyntenyFinder
 			std::copy(d3TemplateBlockNo3, d3TemplateBlockNo3 + 1024, std::ostream_iterator<std::string>(buf, "\n"));
 			std::copy(d3TemplateBlockNo4, d3TemplateBlockNo4 + 1024, std::ostream_iterator<std::string>(buf, "\n"));
 			std::copy(d3TemplateBlockNo5, d3TemplateBlockNo5 + 1024, std::ostream_iterator<std::string>(buf, "\n"));
-			std::copy(d3TemplateBlockNo6, d3TemplateBlockNo6 + 768, std::ostream_iterator<std::string>(buf, "\n"));
+			std::copy(d3TemplateBlockNo6, d3TemplateBlockNo6 + 778, std::ostream_iterator<std::string>(buf, "\n"));
 			return buf.str();
 		}
 

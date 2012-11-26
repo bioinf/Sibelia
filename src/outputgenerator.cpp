@@ -32,14 +32,14 @@ namespace SyntenyFinder
 		std::string OutputD3BlockID(const BlockInstance & block)
 		{
 			std::stringstream out;
-			std::string label = block.GetChrInstance().GetDescription();
 			// label should (1) have no dots, and (2) be valid DOM id/class identifier
 			// (exception: it may contains spaces, I'll handle it in javascript later)
-			std::replace(label.begin(), label.end(), '|', ' ');
-			std::replace(label.begin(), label.end(), ':', ' ');
-			std::replace(label.begin(), label.end(), '.', ' ');
+//			std::string label = block.GetChrInstance().GetDescription();
+//			std::replace(label.begin(), label.end(), '|', ' ');
+//			std::replace(label.begin(), label.end(), ':', ' ');
+//			std::replace(label.begin(), label.end(), '.', ' ');
 			out << "chr" << block.GetChrId() + 1 << ".";
-			out << label << " - ";
+			out << "chr " << block.GetChrId() + 1 << " - ";
 			out << std::setfill(' ') << std::setw(8) << block.GetStart() << " - ";
 			out << std::setfill(' ') << std::setw(8) << block.GetEnd();
 			return out.str();
@@ -329,7 +329,20 @@ namespace SyntenyFinder
 		}
         out << "];" << std::endl;
 
-		//write rest of html template
+        // making data for chart legend
+        out << "chart_legend = [" << std::endl;
+        first_line = true;
+        for(size_t i = 0; i < chrList_.size(); i++)
+        {
+            if (!first_line)
+                out << ",";
+            else
+                first_line = false;
+           out << "    \"chr " << chrList_[i].GetId() + 1 << " : " <<  chrList_[i].GetDescription() << "\"" << std::endl;
+        }
+        out << "];" << std::endl;
+
+        //write rest of html template
 		while (!htmlTemplate.eof())
 		{
 			std::getline(htmlTemplate, buffer);
