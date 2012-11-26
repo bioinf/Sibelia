@@ -166,24 +166,37 @@ namespace SyntenyFinder
 			BifurcationStorage & bifStorage,
 			size_t k,
 			const IteratorProxyVector & startKMer,
+			const std::vector<char> & endChar,
 			size_t minBranchSize)
 		{
-			std::vector<BifurcationMark> total;
+			boost::unordered_map<size_t, char> visit;
 			for(size_t i = 0; i < startKMer.size(); i++)
 			{
-				std::vector<BifurcationMark> now;
-				FillVisit(sequence, bifStorage, *startKMer[i], minBranchSize, now);
-				std::copy(now.begin(), now.end(), std::back_inserter(total));
-			}
-
-			std::sort(total.begin(), total.end());
-			if(total.size() > 0)
-			{
-				for(size_t i = 0; i < total.size() - 1; i++)
+				if(endChar[i] != ' ')
 				{
-					if(total[i].bifId == total[i + 1].bifId)
+					StrandIterator kmer = *startKMer[i];
+					size_t start = bifStorage.GetBifurcation(kmer);
+					++kmer;
+					for(size_t step = 1; step < minBranchSize && kmer.AtValidPosition(); ++kmer, step++)
 					{
-						return true;
+						size_t bifId = bifStorage.GetBifurcation(kmer);
+						if(bifId == start)
+						{
+							break;
+						}
+
+						if(bifId != BifurcationStorage::NO_BIFURCATION)
+						{
+							boost::unordered_map<size_t, char>::iterator kt = visit.find(bifId);
+							if(kt == visit.end())
+							{
+								visit[bifId] = endChar[i];
+							}
+							else if(kt->second != endChar[i])
+							{
+								return true;
+							}
+						}
 					}
 				}
 			}
@@ -291,7 +304,7 @@ namespace SyntenyFinder
 	{	
 		size_t ret = 0;	
 		IteratorProxyVector startKMer;
-		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2 || !AnyBulges(sequence, bifStorage, k, startKMer, minBranchSize))
+		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
 		{
 			return ret;
 		}
@@ -303,6 +316,11 @@ namespace SyntenyFinder
 			{                    
 				endChar[i] = *AdvanceForward(*startKMer[i], k);
 			}
+		}
+
+//		if(!AnyBulges(sequence, bifStorage, k, startKMer, endChar, minBranchSize))
+		{
+//			return ret;
 		}
 		
 		std::vector<BifurcationMark> visit;
