@@ -15,7 +15,6 @@ add_executable(Sibelia main.cpp outputgenerator.cpp blockfinder.cpp blockinstanc
 target_link_libraries(Sibelia divsufsort)
 
 set(CMAKE_PROJECT_NAME Sibelia)
-set(DEFAULT_INSTALL_PATH "/usr/local")
 set(ROOT_DIR "${CMAKE_SOURCE_DIR}/../")
 
 if(BINARY_BACKAGE)
@@ -24,11 +23,7 @@ if(BINARY_BACKAGE)
 	install(FILES ${ROOT_DIR}/NEWS.md ${ROOT_DIR}/README.md ${ROOT_DIR}/USAGE.md ${ROOT_DIR}/INSTALL.md ${ROOT_DIR}/LICENSE DESTINATION .)
 
 else()
-	if(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
-		install(TARGETS Sibelia RUNTIME DESTINATION bin)
-	else(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
-		install(TARGETS Sibelia RUNTIME DESTINATION bin)
-	endif(CMAKE_INSTALL_PREFIX STREQUAL DEFAULT_INSTALL_PATH)
+	install(TARGETS Sibelia RUNTIME DESTINATION bin)
 endif()
 
 
