@@ -17,7 +17,7 @@ target_link_libraries(Sibelia divsufsort)
 set(CMAKE_PROJECT_NAME Sibelia)
 set(ROOT_DIR "${CMAKE_SOURCE_DIR}/../")
 
-if(BINARY_BACKAGE)
+if(BINARY_PACKAGE)
 	install(TARGETS Sibelia RUNTIME DESTINATION bin)
 	install(DIRECTORY ${ROOT_DIR}/examples/ DESTINATION examples)
 	install(FILES ${ROOT_DIR}/NEWS.md ${ROOT_DIR}/README.md ${ROOT_DIR}/USAGE.md ${ROOT_DIR}/INSTALL.md ${ROOT_DIR}/LICENSE DESTINATION .)

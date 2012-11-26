@@ -18,6 +18,7 @@ To build and install the program, type following:
 
 	cd build
 	cmake ../src
+	make
 	sudo make install
 
 If you do not have the root access or you want to install "Sibelia" to a
@@ -26,4 +27,5 @@ option set:
 
 	cd build
 	cmake ../src -DCMAKE_INSTALL_PREFIX="<install destination>"
+	make
 	make install
