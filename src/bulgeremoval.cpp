@@ -318,9 +318,9 @@ namespace SyntenyFinder
 			}
 		}
 
-//		if(!AnyBulges(sequence, bifStorage, k, startKMer, endChar, minBranchSize))
+		if(!AnyBulges(sequence, bifStorage, k, startKMer, endChar, minBranchSize))
 		{
-//			return ret;
+			return ret;
 		}
 		
 		std::vector<BifurcationMark> visit;
