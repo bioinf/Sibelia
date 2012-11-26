@@ -67,6 +67,13 @@
                 font-size: 18px;
             }
 
+            div#legend {
+                right:0;
+                position:absolute;
+                font-size:10pt;
+                top:-40px;
+            }
+
             .invert {
                 background: #1f1f1f;
                 color: #dcdccc;
@@ -150,6 +157,7 @@
         </style>
 	</head>
     <body>
+    <div id="legend"></div>
     <h2>
         made by <a href="http://bioinf.spbau.ru/sibelia">SiBELia</a>
     </h2>
@@ -6787,6 +6795,8 @@
                 .style("width", w + "px")
                 .style("height", w + "px")
                 .style("position", "absolute");
+
+        var legend = d3.select("div#legend").html(chart_legend.join("<br>"));
 
         var svg = div.append("svg:svg")
                 .attr("width", w)
