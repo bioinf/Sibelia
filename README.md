@@ -1,6 +1,6 @@
-Sibelia 1.5
+Sibelia 2.0
 
-Release date: 26th November 2012
+Release date: 27th November 2012
 
 Authors
 =======
@@ -21,7 +21,7 @@ input genomes should not exceed 1 GB.
 System Requirements
 ===================
 This version is designed for small-scale genomes. For example, it can find
-synteny blocks in 8 bacterial genomes (51 MB of genomic data) in ~15 minutes
+synteny blocks in 8 bacterial genomes (51 MB of genomic data) in ~10 minutes
 and using 900 MB of RAM and 800 MB HDD space on an Intel i5 laptop. 
 
 Installation

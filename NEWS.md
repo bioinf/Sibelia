@@ -1,4 +1,4 @@
-Sibelia 1.5
+Sibelia 2.0
 ===========
 * Improved performance
 * Completed manual

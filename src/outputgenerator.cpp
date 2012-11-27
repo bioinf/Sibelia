@@ -38,8 +38,8 @@ namespace SyntenyFinder
 //			std::replace(label.begin(), label.end(), '|', ' ');
 //			std::replace(label.begin(), label.end(), ':', ' ');
 //			std::replace(label.begin(), label.end(), '.', ' ');
-			out << "chr" << block.GetChrId() + 1 << ".";
-			out << "chr " << block.GetChrId() + 1 << " - ";
+			out << "seq" << block.GetChrId() + 1 << ".";
+			out << "seq " << block.GetChrId() + 1 << " - ";
 			out << std::setfill(' ') << std::setw(8) << block.GetStart() << " - ";
 			out << std::setfill(' ') << std::setw(8) << block.GetEnd();
 			return out.str();
@@ -338,7 +338,7 @@ namespace SyntenyFinder
                 out << ",";
             else
                 first_line = false;
-           out << "    \"chr " << chrList_[i].GetId() + 1 << " : " <<  chrList_[i].GetDescription() << "\"" << std::endl;
+           out << "    \"seq " << chrList_[i].GetId() + 1 << " : " <<  chrList_[i].GetDescription() << "\"" << std::endl;
         }
         out << "];" << std::endl;
 
