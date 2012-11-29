@@ -22,7 +22,7 @@ def compileResource(textFileName, varName):
 	block = []
 	nowBlock = []
 	for line in open(textFileName):
-		wrapped = wrapLine(line.strip())
+		wrapped = wrapLine(line.rstrip())
 		if len(nowBlock) == maxBlockSize:		
 			block.append(nowBlock)
 			nowBlock = []
