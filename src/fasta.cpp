@@ -20,7 +20,7 @@ namespace SyntenyFinder
 		kseq_t * sequence = kseq_init(fileHandler_);
 		for(size_t seqId = 0; kseq_read(sequence) >= 0; seqId++)
 		{
-			record.push_back(FASTARecord(sequence->seq.s, sequence->name.s, seqId));			
+			record.push_back(FASTARecord(sequence->seq.s, sequence->name.s, record.size()));			
 		}
 
 		kseq_destroy(sequence);
