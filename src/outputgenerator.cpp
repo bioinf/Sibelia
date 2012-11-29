@@ -214,6 +214,7 @@ namespace SyntenyFinder
 
 	void OutputGenerator::GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const
 	{
+		const int MAX_COLOR = 25;
 		//copy template file
 		CreateDirectory(outDir);
 		std::ofstream out;
@@ -234,9 +235,10 @@ namespace SyntenyFinder
 		TryOpenFile(outDir + "/circos.segdup.txt", linksFile);
 		TryOpenFile(outDir + "/circos.highlight.txt", highlightFile);
 
+		int color = 0;
 		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock)
 		{
-			highlightFile << "hs" << itBlock->GetChrId() + 1 << " ";
+			highlightFile << "seq" << itBlock->GetChrId() + 1 << " ";
 			highlightFile << itBlock->GetStart() << " " << itBlock->GetEnd() << std::endl;
 
 			if (itBlock->GetBlockId() != lastId)
@@ -246,14 +248,17 @@ namespace SyntenyFinder
 			}
 			for (BlockList::iterator itPair = blocksToLink.begin(); itPair != blocksToLink.end(); ++itPair)
 			{
+				color = (color + 1) % MAX_COLOR;
 				//link start
 				linksFile << "block_" << std::setw(idLength) << std::setfill('0') << linkCount << " ";
-				linksFile << "hs" << itBlock->GetChrId() + 1 << " ";
-				linksFile << itBlock->GetStart() << " " << itBlock->GetEnd() << std::endl;
+				linksFile << "seq" << itBlock->GetChrId() + 1 << " ";
+				linksFile << itBlock->GetStart() << " " << itBlock->GetEnd();
+				linksFile << " color=chr" << color << "_a2" << std::endl;
 				//link end
 				linksFile << "block_" << std::setw(idLength) << std::setfill('0') << linkCount << " ";
-				linksFile << "hs" << itPair->GetChrId() + 1 << " ";
-				linksFile << itPair->GetStart() << " " << itPair->GetEnd() << std::endl;
+				linksFile << "seq" << itPair->GetChrId() + 1 << " ";
+				linksFile << itPair->GetStart() << " " << itPair->GetEnd();
+				linksFile << " color=chr" << color << "_a2" << std::endl;
 
 				++linkCount;
 			}
@@ -263,11 +268,12 @@ namespace SyntenyFinder
 		//write kariotype file
 		std::ofstream karFile;
 		TryOpenFile(outDir + "/circos.sequences.txt", karFile);		
-		
+
 		for (size_t i = 0; i < chrList_.size(); ++i)
 		{
-			karFile << "chr - hs" << i + 1 << " " << chrList_[i].GetDescription() << " 0 " << chrList_[i].GetSequence().length();
-			karFile	<< " chr" << i + 1 << std::endl;
+			int colorId = (i + 1) % MAX_COLOR;
+			karFile << "chr - seq" << i + 1 << " " << chrList_[i].GetDescription() << " 0 " << chrList_[i].GetSequence().length();
+			karFile	<< " chr" << colorId << std::endl;
 		}
 	}
 
