@@ -81,7 +81,7 @@ it's data in RAM.
 
 Output description
 ==================
-By default, "Sibelia" produces 3 files: 
+By default, "Sibelia" produces 5 files: 
 
 1. Blocks coordinates
 2. Genomes represented as permutations of the synteny blocks
@@ -203,12 +203,14 @@ File name = "de_bruijn_graph.dot". By default this file is not written. To
 output this file, set cmd parameter:
 
 	-g or --graphfile
-
+	
 If you are a curious person, you can also view condensed de Bruijn graph that
 is used for generating synteny blocks. To understand the graph, see [1].
 Condensed means that only bifurcations in the graph are plotted and 
 non-branching paths are collapsed into a single edge. Blue edges are generated
-from positive strand and red edges are from negative strand respectively.
+from positive strand and red edges are from negative strand respectively. Note
+that this graph is generated for K = min(Kn, MinimumBlockSize) where Kn is the
+value of K used for last stage (see section "Fine tuning").
 
 Fine tuning
 ===========

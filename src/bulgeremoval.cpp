@@ -317,12 +317,12 @@ namespace SyntenyFinder
 				endChar[i] = *AdvanceForward(*startKMer[i], k);
 			}
 		}
-
+/*
 		if(!AnyBulges(sequence, bifStorage, k, startKMer, endChar, minBranchSize))
 		{
 			return ret;
 		}
-		
+*/		
 		std::vector<BifurcationMark> visit;
 		for(size_t kmerI = 0; kmerI < startKMer.size(); kmerI++)
 		{
