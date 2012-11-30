@@ -76,10 +76,9 @@ namespace SyntenyFinder
 			std::string("            }"),
 			std::string(""),
 			std::string("            div#legend {"),
-			std::string("                right:0;"),
+			std::string("                font-size:14pt;"),
+			std::string("                bottom:-170;"),
 			std::string("                position:absolute;"),
-			std::string("                font-size:10pt;"),
-			std::string("                top:-40px;"),
 			std::string("            }"),
 			std::string(""),
 			std::string("            .invert {"),
@@ -165,11 +164,11 @@ namespace SyntenyFinder
 			std::string("        </style>"),
 			std::string("	</head>"),
 			std::string("    <body>"),
-			std::string("    <div id=\"legend\"></div>"),
 			std::string("    <h2>"),
 			std::string("        made by <a href=\"http://bioinf.spbau.ru/sibelia\">SiBELia</a>"),
 			std::string("    </h2>"),
 			std::string("    <div style=\"position:absolute;bottom:0;font-size:18px;\">tension: <input style=\"position:relative;top:3px;\" type=\"range\" min=\"0\" max=\"100\" value=\"85\"></div>"),
+			std::string("    <div id=\"legend\"></div>"),
 			std::string("    <script type=\"text/javascript\">"),
 			std::string("    (function(){if (!Date.now) Date.now = function() {"),
 			std::string("        return +new Date;"),
@@ -1030,11 +1029,11 @@ namespace SyntenyFinder
 			std::string(""),
 			std::string("            // Remove any numbers in b not found in a."),
 			std::string("            while (i < n) {"),
+			std::string("                o = q.pop();"),
 		};
 
 		const std::string d3TemplateBlockNo1[] = 
 		{
-			std::string("                o = q.pop();"),
 			std::string("                if (s[o.i + 1] == null) { // This match is followed by another number."),
 			std::string("                    s[o.i] = o.x;"),
 			std::string("                } else { // This match is followed by a string, so coallesce twice."),
@@ -2058,11 +2057,11 @@ namespace SyntenyFinder
 			std::string("            var subgroups = [],"),
 			std::string("                    subgroup,"),
 			std::string("                    subnode,"),
+			std::string("                    upgroup,"),
 		};
 
 		const std::string d3TemplateBlockNo2[] = 
 		{
-			std::string("                    upgroup,"),
 			std::string("                    group,"),
 			std::string("                    node;"),
 			std::string(""),
@@ -3086,11 +3085,11 @@ namespace SyntenyFinder
 			std::string("        function d3_svg_arcOuterRadius(d) {"),
 			std::string("            return d.outerRadius;"),
 			std::string("        }"),
+			std::string(""),
 		};
 
 		const std::string d3TemplateBlockNo3[] = 
 		{
-			std::string(""),
 			std::string("        function d3_svg_arcStartAngle(d) {"),
 			std::string("            return d.startAngle;"),
 			std::string("        }"),
@@ -4114,11 +4113,11 @@ namespace SyntenyFinder
 			std::string("            }"),
 			std::string("            return subticks;"),
 			std::string("        }"),
+			std::string("        d3.svg.brush = function() {"),
 		};
 
 		const std::string d3TemplateBlockNo4[] = 
 		{
-			std::string("        d3.svg.brush = function() {"),
 			std::string("            var event = d3.dispatch(\"brushstart\", \"brush\", \"brushend\"),"),
 			std::string("                    x, // x-scale, optional"),
 			std::string("                    y, // y-scale, optional"),
@@ -5142,11 +5141,11 @@ namespace SyntenyFinder
 			std::string("                    }"),
 			std::string("                }"),
 			std::string(""),
+			std::string("                // position verlet integration"),
 		};
 
 		const std::string d3TemplateBlockNo5[] = 
 		{
-			std::string("                // position verlet integration"),
 			std::string("                i = -1; while (++i < n) {"),
 			std::string("                    o = nodes[i];"),
 			std::string("                    if (o.fixed) {"),
@@ -6170,11 +6169,11 @@ namespace SyntenyFinder
 			std::string("            } else {"),
 			std::string("                node.r = Math.sqrt(node.value);"),
 			std::string("            }"),
+			std::string("        }"),
 		};
 
 		const std::string d3TemplateBlockNo6[] = 
 		{
-			std::string("        }"),
 			std::string(""),
 			std::string("        function d3_layout_packTransform(node, x, y, k) {"),
 			std::string("            var children = node.children;"),
@@ -6828,7 +6827,7 @@ namespace SyntenyFinder
 			std::string("                .style(\"height\", w + \"px\")"),
 			std::string("                .style(\"position\", \"absolute\");"),
 			std::string(""),
-			std::string("        var legend = d3.select(\"div#legend\").html(chart_legend.join(\"<br>\"));"),
+			std::string("        var legend = d3.select(\"div#legend\").html(\"<strong>Legend:</strong><br>\" + chart_legend.join(\"<br>\"));"),
 			std::string(""),
 			std::string("        var svg = div.append(\"svg:svg\")"),
 			std::string("                .attr(\"width\", w)"),
@@ -6963,7 +6962,7 @@ namespace SyntenyFinder
 			std::copy(d3TemplateBlockNo3, d3TemplateBlockNo3 + 1024, std::ostream_iterator<std::string>(buf, "\n"));
 			std::copy(d3TemplateBlockNo4, d3TemplateBlockNo4 + 1024, std::ostream_iterator<std::string>(buf, "\n"));
 			std::copy(d3TemplateBlockNo5, d3TemplateBlockNo5 + 1024, std::ostream_iterator<std::string>(buf, "\n"));
-			std::copy(d3TemplateBlockNo6, d3TemplateBlockNo6 + 778, std::ostream_iterator<std::string>(buf, "\n"));
+			std::copy(d3TemplateBlockNo6, d3TemplateBlockNo6 + 777, std::ostream_iterator<std::string>(buf, "\n"));
 			return buf.str();
 		}
 

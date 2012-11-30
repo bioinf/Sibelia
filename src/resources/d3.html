@@ -68,10 +68,9 @@
             }
 
             div#legend {
-                right:0;
+                font-size:14pt;
+                bottom:-170;
                 position:absolute;
-                font-size:10pt;
-                top:-40px;
             }
 
             .invert {
@@ -157,11 +156,11 @@
         </style>
 	</head>
     <body>
-    <div id="legend"></div>
     <h2>
         made by <a href="http://bioinf.spbau.ru/sibelia">SiBELia</a>
     </h2>
     <div style="position:absolute;bottom:0;font-size:18px;">tension: <input style="position:relative;top:3px;" type="range" min="0" max="100" value="85"></div>
+    <div id="legend"></div>
     <script type="text/javascript">
     (function(){if (!Date.now) Date.now = function() {
         return +new Date;
@@ -6796,7 +6795,7 @@
                 .style("height", w + "px")
                 .style("position", "absolute");
 
-        var legend = d3.select("div#legend").html(chart_legend.join("<br>"));
+        var legend = d3.select("div#legend").html("<strong>Legend:</strong><br>" + chart_legend.join("<br>"));
 
         var svg = div.append("svg:svg")
                 .attr("width", w)
