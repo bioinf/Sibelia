@@ -77,7 +77,7 @@ namespace SyntenyFinder
 			std::string(""),
 			std::string("            div#legend {"),
 			std::string("                font-size:14pt;"),
-			std::string("                bottom:-170;"),
+			std::string("                top:700px;"),
 			std::string("                position:absolute;"),
 			std::string("            }"),
 			std::string(""),
