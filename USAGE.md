@@ -27,7 +27,7 @@ fewer blocks, but longer. And it may lose some small synteny blocks
 and their coverage is worse. Usually "loose" is the best choice, but if you do
 not want to lose information about small-scale rearrangements, use "fine".
 
-If you are not satisfied by the results (poor coverage for example), set
+If you are not satisfied by the results (poor coverage for example), try to set
 simplification parameters manually (see section "Fine tuning"). 
 
 By default, Sibelia filters out synteny blocks shorter than 5000 BP. You can
@@ -39,13 +39,10 @@ such output use option "-a":
 
 	Sibelia -s loose -a Helicobacter_pylori.fasta
 
-Synteny blocks can be visualized with interactive diagrams. To generate such
-diagram use option "--d3" (see section "d3" visualization"):
-
-	Sibelia --d3 -s loose Helicobacter_pylori.fasta
-
-Synteny blocks are also can be visualized with "Circos" (see section "Circos" 
-visualization"). 
+Synteny blocks are visualized with an interactive diagram (see section "d3"
+visualization"). The blocks are also can be visualized with "Circos" (see 
+section "Circos" visualization"). While "Circos" is better for publications,
+"d3" diagram is better for analysis.
 
 Genomes from the "examples" dir were taken from [5, 6]. Not that you can
 specify multiple FASTA files, just separate them with spaces.
@@ -100,8 +97,9 @@ Blocks coordinates
 ------------------
 File name = "block_coords.txt".
 
-descriptions. IDs are just sequence numbers of chromosomes (in the same
-order as they appear in input files).
+First part of this file lists input sequences, their IDs, sizes and 
+descriptions. IDs are just index numbers of sequences (in the same order as
+they apper in the input files).
 
 Second part of the file describes synteny blocks in sections separated by 
 dashes. Each section starts with the synteny block ID. Then all instances
@@ -109,25 +107,27 @@ of this block are listed in tabular format. Each row of a table depicts
 one instance of this synteny block. Columns of the table designate
 following:
 
-1. Chr_id -- ID of the chromosome, that the instance belongs to
+1. Seq_id -- ID of the sequence, that the instance belongs to
 2. Strand -- strand of the synteny block instance, either '+' or '-'. Input
-sequences are treated as positive strands of the chromosomes
-3. Start -- zero based index of the starting base pair of the instance. All
-indices are given relative to POSITIVE strand
-4. End -- zero based index of the base pair following last base pair of the
-instance
+sequences are treated as positive strands
+3. Start -- one-based index of the first base pair of the instance
+4. End -- one-based index of the last base pair of the instance
 5. Length -- length of the instance of the synteny block
+
+Note that all coordinates are give relative to POSITIVE strand. If an
+instance of a synteny block is located on the positive strand, then
+start < end, otherwise start > end.
 
 Genomes permutations
 --------------------
 File name = "genomes_permutations.txt".
 
-This file contains input chromosomes represented as permutations of the synteny
-block. It has two lines for each input chromosome:
+This file contains input sequences represented as permutations of the synteny
+block. It has two lines for each input sequence:
 
 1. Header line -- FASTA header of the sequence (starting with '>')
 2. Genome line -- sequence of synteny blocks instances as they appear on the 
-positive strand of the chromosome. Each instance is represented as a signed
+positive strand of the sequence. Each instance is represented as a signed
 integer, where '+' sign depicts direct version of the block, and '-' depicts
 reversed block
 
@@ -136,27 +136,27 @@ Coverage report
 File name = "coverage_report.txt".
 
 The file describes portion of the genomes, that found synteny block cover.
-First part of the file describes input chromosomes (see "Blocks coordinates"
+First part of the file describes input sequencess (see "Blocks coordinates"
 section). Second part of the file is a table with following columns:
 
 1. Degree -- multiplicity of the synteny block. For example, if synteny block
 has degree = 3, then the are three instances of this block in the input
-chromosomes
+sequence
 2. Count -- number of synteny blocks with a given degree
-3. Total -- portion of all the input chromosomes that cover blocks with a given
+3. Total -- portion of all the input sequencess that cover blocks with a given
 degree
-4. Chr <n> -- portion of the chromosome with id <n> that cover blocks with a 
-given example
+4. Seq <n> -- portion of the sequence with id <n> that cover blocks with a 
+given degree
 
-This table contains one row for each degree and one ("All") row for overall
-coverage. For example (output from "Helicobacter_pylori.fasta"):
+Here is an example of the table from a report file. This table contains one 
+row for degree "2" and one ("All") row for overall coverage. 
 
-	Degree	Count	Total	Chr 1	Chr 2
+	Degree	Count	Total	Seq 1	Seq 2
 	2	23	94.68%	96.40%	93.09%	
 	All	23	94.68%	96.40%	93.09%	
 
 It means that there are 23 blocks with degree = 2, i.e. 23 * 2 instances, and
-they cover 94.68% of both genomes, 96.40% of Chr 1 and 93.09% of Chr2. Note 
+they cover 94.68% of both genomes, 96.40% of Seq 1 and 93.09% of Seq 2. Note 
 that synteny blocks can overlap (by at most 5000 BP for loose parameter set),
 so sum in each column may not equal to value at last row.
 
@@ -180,17 +180,19 @@ is located. Other fields are described in section "Coordinates file".
 File name = "d3_blocks_diagram.html".
 
 "Sibelia" generates an interactive html diagram that shows found synteny blocks.
+Coordinates follow the same convention as described in section "Coordinates 
+file".
 
 "Circos" visualization
 ----------------------
-Directory name = "circos". 
-
 You can visualize synteny blocks with a colorful circular diagram by using
-the "Circos" software [3]. Do following:
+the "Circos" software [3]. Files for generating such diagram are written in
+directory "circos" inside the output directory. To generate "Circos" diagram
+do following:
 
 1. Download and install "Circos" software
 2. Run "Sibelia"
-3. Run "Circos" on files generated by "Sibelia"
+3. Run "Circos" in "circos" directory
 
 For example of such diagrams (generated from "Helicobacter_pylori.fasta),
 see "examples/Helicobacter_pylori/circos/circos.png". Also note that such
@@ -210,7 +212,7 @@ Condensed means that only bifurcations in the graph are plotted and
 non-branching paths are collapsed into a single edge. Blue edges are generated
 from positive strand and red edges are from negative strand respectively. Note
 that this graph is generated for K = min(Kn, MinimumBlockSize) where Kn is the
-value of K used for last stage (see section "Fine tuning").
+value of K used for the last stage (see section "Fine tuning").
 
 Fine tuning
 ===========
@@ -243,7 +245,7 @@ This option is incompatible with "-k", you must specify one of these, not both.
 Approach used in "Sibelia" is parameter dependent. To understand the details,
 please see the next section and [1]. The "loose" option produces longer blocks
 and better coverage, while "fine" can capture small-scale rearrangements, for
-example, inversions of size < 15000 BP. 
+example, inversions of size < 15 000 BP. 
 
 Custom parameters set
 ---------------------
