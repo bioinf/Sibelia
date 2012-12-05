@@ -27,6 +27,11 @@ namespace SyntenyFinder
 			return id_;
 		}
 
+		size_t GetConventionalId() const
+		{
+			return id_ + 1;
+		}
+
 		const std::string& GetSequence() const
 		{
 			return sequence_;

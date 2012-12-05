@@ -23,8 +23,8 @@ namespace SyntenyFinder
 		std::string OutputIndex(const BlockInstance & block)
 		{
 			std::stringstream out;			
-			out << block.GetChrId() + 1 << '\t' << (block.GetSignedBlockId() < 0 ? '-' : '+') << '\t';
-			out << block.GetStart() << '\t' << block.GetEnd() << '\t' << block.GetEnd() - block.GetStart();
+			out << block.GetChrInstance().GetConventionalId() << '\t' << (block.GetSignedBlockId() < 0 ? '-' : '+') << '\t';
+			out << block.GetConventionalStart() << '\t' << block.GetConventionalEnd() << '\t' << block.GetEnd() - block.GetStart();
 			return out.str();
 		}
 
@@ -38,8 +38,8 @@ namespace SyntenyFinder
 //			std::replace(label.begin(), label.end(), '|', ' ');
 //			std::replace(label.begin(), label.end(), ':', ' ');
 //			std::replace(label.begin(), label.end(), '.', ' ');
-			out << "seq" << block.GetChrId() + 1 << ".";
-			out << "seq " << block.GetChrId() + 1 << " - ";
+			out << "seq" << block.GetChrInstance().GetConventionalId() << ".";
+			out << "seq " << block.GetChrInstance().GetConventionalId() << " - ";
 			out << std::setfill(' ') << std::setw(8) << block.GetStart() << " - ";
 			out << std::setfill(' ') << std::setw(8) << block.GetEnd();
 			return out.str();
@@ -72,7 +72,7 @@ namespace SyntenyFinder
 				{
 					for(size_t i = 0; i < it->second.size(); i++)
 					{
-						if(it->second[i].GetChrId() == chr)
+						if(it->second[i].GetChrInstance().GetId() == chr)
 						{
 							std::fill(cover.begin() + it->second[i].GetStart(), cover.begin() + it->second[i].GetEnd(), COVERED);
 						}
@@ -91,7 +91,7 @@ namespace SyntenyFinder
 
 	void OutputGenerator::ListChrs(std::ostream & out) const
 	{
-		out << "Chr_id\tSize\tDescription" << std::endl;
+		out << "Seq_id\tSize\tDescription" << std::endl;
 		for(size_t i = 0; i < chrList_.size(); i++)
 		{
 			out << i + 1 << '\t' << chrList_[i].GetSequence().size() << '\t' << chrList_[i].GetDescription() << std::endl;
@@ -116,7 +116,7 @@ namespace SyntenyFinder
 		out << "Degree\tCount\tTotal";
 		for(size_t i = 0; i < chrList_.size(); i++)
 		{
-			out << "\tChr " << i + 1;
+			out << "\tSeq " << i + 1;
 		}
 
 		out << std::endl;
@@ -154,7 +154,7 @@ namespace SyntenyFinder
 		{			
 			out.setf(std::ios_base::showpos);	
 			size_t length = it->second - it->first;
-			size_t chr = blockList_[it->first].GetChrId();
+			size_t chr = blockList_[it->first].GetChrInstance().GetId();
 			out << '>' << chrList_[chr].GetDescription() << std::endl;
 			std::sort(blockList_.begin() + it->first, blockList_.begin() + it->second);
 			CopyN(CFancyIterator(blockList_.begin() + it->first, boost::bind(&BlockInstance::GetSignedBlockId, _1), 0), length, std::ostream_iterator<int>(out, " "));
@@ -174,7 +174,7 @@ namespace SyntenyFinder
 			size_t length = it->second - it->first;
 			std::sort(blockList_.begin() + it->first, blockList_.begin() + it->second, compareByChrId);
 			out << "Block #" << blockList_[it->first].GetBlockId() << std::endl;
-			out << "Chr_id\tStrand\tStart\tEnd\tLength" << std::endl;
+			out << "Seq_id\tStrand\tStart\tEnd\tLength" << std::endl;
 			CopyN(CFancyIterator(blockList_.begin() + it->first, OutputIndex, std::string()), length, std::ostream_iterator<std::string>(out, "\n"));
 			out << DELIMITER << std::endl;
 		}
@@ -195,7 +195,7 @@ namespace SyntenyFinder
 				const FASTARecord & chr = blockList_[block].GetChrInstance();
 				out << ">Seq=\"" << chr.GetDescription() << "\",Strand='" << strand << "',";
 				out << "Block_id=" << blockList_[block].GetBlockId() << ",Start=" ;
-				out << blockList_[block].GetStart() << ",End=" << blockList_[block].GetEnd() << std::endl;
+				out << blockList_[block].GetConventionalStart() << ",End=" << blockList_[block].GetConventionalEnd() << std::endl;
 
 				if(blockList_[block].GetSignedBlockId() > 0)
 				{
@@ -238,7 +238,7 @@ namespace SyntenyFinder
 		int color = 0;
 		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock)
 		{
-			highlightFile << "seq" << itBlock->GetChrId() + 1 << " ";
+			highlightFile << "seq" << itBlock->GetChrInstance().GetConventionalId() << " ";
 			highlightFile << itBlock->GetStart() << " " << itBlock->GetEnd() << std::endl;
 
 			if (itBlock->GetBlockId() != lastId)
@@ -251,12 +251,12 @@ namespace SyntenyFinder
 				color = (color + 1) % MAX_COLOR;
 				//link start
 				linksFile << "block_" << std::setw(idLength) << std::setfill('0') << linkCount << " ";
-				linksFile << "seq" << itBlock->GetChrId() + 1 << " ";
+				linksFile << "seq" << itBlock->GetChrInstance().GetConventionalId() << " ";
 				linksFile << itBlock->GetStart() << " " << itBlock->GetEnd();
 				linksFile << " color=chr" << color << "_a2" << std::endl;
 				//link end
 				linksFile << "block_" << std::setw(idLength) << std::setfill('0') << linkCount << " ";
-				linksFile << "seq" << itPair->GetChrId() + 1 << " ";
+				linksFile << "seq" << itPair->GetChrInstance().GetConventionalId() << " ";
 				linksFile << itPair->GetStart() << " " << itPair->GetEnd();
 				linksFile << " color=chr" << color << "_a2" << std::endl;
 

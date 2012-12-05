@@ -38,14 +38,14 @@ namespace SyntenyFinder
 			return Abs(id_);
 		}
 
-		size_t GetChrId() const
-		{
-			return chr_->GetId();
-		}
-
 		const FASTARecord& GetChrInstance() const
 		{
 			return *chr_;
+		}
+
+		size_t GetChrId() const
+		{
+			return GetChrInstance().GetId();
 		}
 
 		size_t GetStart() const
@@ -58,6 +58,26 @@ namespace SyntenyFinder
 			return end_;
 		}
 
+		size_t GetConventionalStart() const
+		{
+			if(GetDirection() == DNASequence::positive)
+			{
+				return start_ + 1;
+			}
+
+			return end_;
+		}
+
+		size_t GetConventionalEnd() const
+		{
+			if(GetDirection() == DNASequence::positive)
+			{
+				return end_;
+			}
+
+			return start_;
+		}
+
 		size_t GetLength() const
 		{
 			return end_ - start_;
@@ -65,7 +85,7 @@ namespace SyntenyFinder
 
 		bool operator < (const BlockInstance & toCompare) const
 		{
-			return std::make_pair(GetChrId(), GetStart()) < std::make_pair(toCompare.GetChrId(), toCompare.GetStart());
+			return std::make_pair(GetChrInstance().GetId(), GetStart()) < std::make_pair(toCompare.GetChrInstance().GetId(), toCompare.GetStart());
 		}
 
 	private:
