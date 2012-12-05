@@ -27,7 +27,6 @@ namespace SyntenyFinder
 	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration)
 	{
 		block.clear();
-	#ifdef NEW_ENUMERATION
 		size_t maxId;
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
 		if(inRAM_)
@@ -42,17 +41,13 @@ namespace SyntenyFinder
 		BifurcationStorage bifStorage(maxId);
 		DNASequence sequence(rawSeq_, originalPos_);
 		ConstructBifStorage(sequence, bifurcation, bifStorage);
-	#else
-		BifurcationStorage bifStorage;
-		DNASequence sequence(chrList_, originalPos_);
-		EnumerateBifurcationsHash(sequence, bifStorage, k);
-	#endif
+	
 		int blockCount = 1;
 		block.clear();
 		std::vector<Edge> edge;
 		std::vector<Edge> nowBlock;
 		BlockFinder::ListEdges(sequence, bifStorage, k, edge);
-		std::vector<std::set<std::pair<size_t, size_t> > > visit(sequence.ChrNumber());
+		std::vector<std::set<size_t> > visit(sequence.ChrNumber());
 		edge.erase(std::remove_if(edge.begin(), edge.end(), boost::bind(EdgeEmpty, _1, minSize)), edge.end());
 		std::sort(edge.begin(), edge.end(), EdgeCompare);
 
@@ -65,7 +60,7 @@ namespace SyntenyFinder
 			{
 				occur[edge[now].chr]++;
 				std::pair<size_t, size_t> coord(edge[now].originalPosition, edge[now].originalLength);
-				hit = hit || (visit[edge[now].chr].count(coord) != 0);
+				hit = hit || (visit[edge[now].chr].count(coord.first) != 0);
 			}
 
 			nowBlock.clear();
@@ -84,7 +79,7 @@ namespace SyntenyFinder
 					for(size_t i = 0; i < nowBlock.size(); i++)
 					{
 						int strand = nowBlock[i].direction == DNASequence::positive ? +1 : -1;
-						visit[nowBlock[i].chr].insert(std::make_pair(nowBlock[i].originalPosition, nowBlock[i].originalLength));
+						visit[nowBlock[i].chr].insert(nowBlock[i].originalPosition);						
 						block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].chr], nowBlock[i].originalPosition, nowBlock[i].originalPosition + nowBlock[i].originalLength));
 					}
 
