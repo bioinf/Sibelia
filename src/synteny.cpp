@@ -10,7 +10,7 @@ namespace SyntenyFinder
 {
 	std::vector<size_t> BlockFinder::EdgeToVector(const Edge & a)
 	{
-		size_t feature[] = {a.startVertex, a.endVertex, a.firstChar, a.direction, a.chr};
+		size_t feature[] = {a.startVertex, a.endVertex, a.firstChar};
 		return std::vector<size_t>(feature, feature + sizeof(feature) / sizeof(feature[0]));
 	}
 
@@ -44,50 +44,51 @@ namespace SyntenyFinder
 	
 		int blockCount = 1;
 		block.clear();
-		std::vector<Edge> edge;
-		std::vector<Edge> nowBlock;
+		std::vector<Edge> edge;		
 		BlockFinder::ListEdges(sequence, bifStorage, k, edge);
 		std::vector<std::set<size_t> > visit(sequence.ChrNumber());
 		edge.erase(std::remove_if(edge.begin(), edge.end(), boost::bind(EdgeEmpty, _1, minSize)), edge.end());
-		std::sort(edge.begin(), edge.end(), EdgeCompare);
+		std::vector<std::pair<size_t, size_t> > group;
+		GroupBy(edge, EdgeCompare, std::back_inserter(group));
+		EdgeGroupComparer groupComparer(&edge);
+		std::sort(group.begin(), group.end(), groupComparer);
 
- 		for(size_t now = 0; now < edge.size(); )
+		for(size_t g = 0; g < group.size(); g++)
 		{
-			bool hit = false;
-			size_t prev = now;
-			std::vector<size_t> occur(rawSeq_.size(), 0);
-			for(; now < edge.size() && edge[prev].Coincide(edge[now]); now++)
+			size_t firstEdge = group[g].first;
+			size_t lastEdge = group[g].second;
+			std::sort(edge.begin() + firstEdge, edge.begin() + lastEdge, CompareEdgesByDirection);
+			if(edge[firstEdge].direction != DNASequence::positive || lastEdge - firstEdge < 2)
 			{
-				occur[edge[now].chr]++;
-				std::pair<size_t, size_t> coord(edge[now].originalPosition, edge[now].originalLength);
-				hit = hit || (visit[edge[now].chr].count(coord.first) != 0);
+				continue;
+			}
+			
+			bool hit = false;
+			std::vector<Edge> nowBlock;
+			std::vector<size_t> occur(rawSeq_.size(), 0);
+			for(size_t nowEdge = firstEdge; nowEdge < lastEdge; nowEdge++)
+			{
+				occur[edge[nowEdge].chr]++;				
+				hit = hit || (visit[edge[nowEdge].chr].count(edge[nowEdge].originalPosition) != 0);
+				if(std::find_if(nowBlock.begin(), nowBlock.end(), boost::bind(&Edge::Overlap, boost::cref(edge[nowEdge]), _1)) == nowBlock.end())
+				{
+					nowBlock.push_back(edge[nowEdge]);
+				}
 			}
 
-			nowBlock.clear();
-			if(!hit && edge[prev].direction == DNASequence::positive && now - prev > 1 && (!sharedOnly || std::count(occur.begin(), occur.end(), 1) == rawSeq_.size()))
+			if(nowBlock.size() > 1 && !hit && (!sharedOnly || std::count(occur.begin(), occur.end(), 1) == rawSeq_.size()))
 			{
-				for(; prev < now; prev++)
+				for(size_t i = 0; i < nowBlock.size(); i++)
 				{
-					if(std::find_if(nowBlock.begin(), nowBlock.end(), boost::bind(&Edge::Overlap, boost::cref(edge[prev]), _1)) == nowBlock.end())
-					{
-						nowBlock.push_back(edge[prev]);
-					}
+					int strand = nowBlock[i].direction == DNASequence::positive ? +1 : -1;
+					visit[nowBlock[i].chr].insert(nowBlock[i].originalPosition);
+					block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].chr], nowBlock[i].originalPosition, nowBlock[i].originalPosition + nowBlock[i].originalLength));
 				}
 
-				if(nowBlock.size() > 1)
-				{					
-					for(size_t i = 0; i < nowBlock.size(); i++)
-					{
-						int strand = nowBlock[i].direction == DNASequence::positive ? +1 : -1;
-						visit[nowBlock[i].chr].insert(nowBlock[i].originalPosition);						
-						block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].chr], nowBlock[i].originalPosition, nowBlock[i].originalPosition + nowBlock[i].originalLength));
-					}
-
-					blockCount++;
-				}						
+				blockCount++;
 			}
 		}
-
+		
 		std::sort(block.begin(), block.end(), CompareBlocksNaturally);
 	}
 }

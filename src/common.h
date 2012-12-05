@@ -144,6 +144,19 @@ namespace SyntenyFinder
 		{
 			return FancyIterator<Iterator, F, ReturnType>(it, f);
 		}
+
+	typedef std::pair<size_t, size_t> IndexPair;
+	template<class T, class F, class It>
+		void GroupBy(std::vector<T> & store, F pred, It out)
+		{
+			sort(store.begin(), store.end(), pred);
+			for(size_t now = 0; now < store.size(); )
+			{
+				size_t prev = now;
+				for(; now < store.size() && !pred(store[prev], store[now]); now++);
+				*out++ = std::make_pair(prev, now);
+			}
+		}
 }
 
 #endif

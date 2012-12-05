@@ -87,7 +87,32 @@ namespace SyntenyFinder
 			Edge() {}
 			Edge(size_t chr, DNASequence::Direction direction, size_t startVertex, size_t endVertex, size_t actualPosition, size_t actualLength, size_t originalPosition, size_t originalLength, char firstChar);
 			bool Coincide(const Edge & edge) const;
-			bool Overlap(const Edge & edge) const;
+			bool Overlap(const Edge & edge) const;			
+		};		
+
+		struct EdgeGroupComparer
+		{
+		public:
+			bool operator () (const std::pair<size_t, size_t> & range1, const std::pair<size_t, size_t> & range2) const
+			{
+				return GetTotalSize(range1) > GetTotalSize(range2);
+			}
+
+			EdgeGroupComparer(const std::vector<Edge> * edge): edge_(edge) {}
+		private:
+			const std::vector<Edge> * edge_;
+
+			size_t GetTotalSize(const std::pair<size_t, size_t> & range) const
+			{
+				size_t acc = 0;
+				for(size_t i = range.first; i < range.second; i++)
+				{
+					acc += (*edge_)[i].originalLength;
+				}
+
+				return acc;
+			}
+
 		};
 
 		struct BifurcationInstance
@@ -109,6 +134,7 @@ namespace SyntenyFinder
 
 		static bool EdgeEmpty(const Edge & a, size_t k);
 		static bool EdgeCompare(const Edge & a, const Edge & b);
+		static bool CompareEdgesByDirection(const Edge & a, const Edge & b);
 		static std::vector<size_t> EdgeToVector(const Edge & a);	
 		void Init(const std::vector<FASTARecord> & chrList);
 		size_t GetMustBeBifurcation(StrandIterator it, size_t k);
