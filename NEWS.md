@@ -1,6 +1,9 @@
 Sibelia 2.0.1
 =============
-<to be written>
+* Improved diagram appearance
+* Fixed bug with multiple input files
+* Fixed circos generation in case of many input sequencs
+* Changed format of coordinates of synteny blocks (see USAGE)
 
 Sibelia 2.0.0
 =============

@@ -75,7 +75,7 @@ namespace SyntenyFinder
 				return end_;
 			}
 
-			return start_;
+			return start_ + 1;
 		}
 
 		size_t GetLength() const
