@@ -40,8 +40,8 @@ namespace SyntenyFinder
 //			std::replace(label.begin(), label.end(), '.', ' ');
 			out << "seq" << block.GetChrInstance().GetConventionalId() << ".";
 			out << "seq " << block.GetChrInstance().GetConventionalId() << " - ";
-			out << std::setfill(' ') << std::setw(8) << block.GetStart() << " - ";
-			out << std::setfill(' ') << std::setw(8) << block.GetEnd();
+			out << std::setfill(' ') << std::setw(8) << block.GetConventionalStart() << " - ";
+			out << std::setfill(' ') << std::setw(8) << block.GetConventionalEnd();
 			return out.str();
 		}
 
