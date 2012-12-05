@@ -45,7 +45,7 @@ visualization"). The blocks are also can be visualized with "Circos" (see
 section "Circos" visualization"). While "Circos" is better for publications,
 "d3" diagram is better for analysis.
 
-Genomes from the "examples" dir were taken from [5, 6]. Not that you can
+Genomes from the "examples" dir were taken from [5, 6]. Note that you can
 specify multiple FASTA files, just separate them with spaces.
 
 Technical parametes
@@ -150,11 +150,12 @@ with a given degree
 
 Here is an example of such table from a report file.
 
-	Degree	Count	Total	Seq 1	Seq 2	Seq 3	Seq 4
-	2	11	3.82%	6.59%	2.41%	2.96%	3.30%	
-	3	4	1.68%	2.24%	2.19%	1.44%	0.85%	
-	4	21	91.93%	91.34%	94.71%	87.54%	94.53%	
-	All	36	95.66%	97.44%	97.98%	90.67%	96.89%	
+	|Degree	|Count	|Total	|Seq 1	|Seq 2	|Seq 3	|Seq 4	|
+	| :---- | :---: | :---: | :---:	| :---:	| :---:	| :---:	|
+	|2	|11	|3.82%	|6.59%	|2.41%	|2.96%	|3.30%	|
+	|3	|4	|1.68%	|2.24%	|2.19%	|1.44%	|0.85%	|
+	|4	|21	|91.93%	|91.34%	|94.71%	|87.54%	|94.53%	|
+	|All	|36	|95.66%	|97.44%	|97.98%	|90.67%	|96.89%	|
 
 This table contains one row for each degree (2, 3, 4) and one ("All") row for
 the overall coverage. It means that there are 11 blocks with degree = 2, i.e.
@@ -176,9 +177,9 @@ output this file, set cmd parameter:
 This FASTA file contains sequences of instances of the synteny block. Each
 sequence has header in following format:
 
-	>Seq="<description>",Strand=<sign>,Block_id=<block id>,Start=<x>,End=<y>
+	>Seq="<header>",Strand=<sign>,Block_id=<block id>,Start=<x>,End=<y>
 
-Where <description> is a header of the FASTA sequence where the block instance
+Where "<header>" is a header of the FASTA sequence where the block instance
 is located. Other fields are described in section "Coordinates file".
 
 "d3" visualization
