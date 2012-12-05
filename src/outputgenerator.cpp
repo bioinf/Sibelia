@@ -48,8 +48,8 @@ namespace SyntenyFinder
 		void OutputLink(std::vector<BlockInstance>::iterator block, int color, int fillLength,
 						int linkId, std::ostream& stream)
 		{
-			int start = block->GetConventionalStart();
-			int end = block->GetConventionalEnd();
+			size_t start = block->GetConventionalStart();
+			size_t end = block->GetConventionalEnd();
 			if (start > end) std::swap(start, end);
 
 			stream << "block_" << std::setw(fillLength) << std::setfill('0') << linkId << " ";
@@ -252,8 +252,8 @@ namespace SyntenyFinder
 		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock)
 		{
 			highlightFile << "seq" << itBlock->GetChrInstance().GetConventionalId() << " ";
-			int blockStart = itBlock->GetConventionalStart();
-			int blockEnd = itBlock->GetConventionalEnd();
+			size_t blockStart = itBlock->GetConventionalStart();
+			size_t blockEnd = itBlock->GetConventionalEnd();
 			if (blockStart > blockEnd)
 			{
 				std::swap(blockStart, blockEnd);
