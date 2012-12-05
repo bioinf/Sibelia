@@ -148,17 +148,23 @@ with a given degree
 4. Seq <n> -- portion of the sequence with id <n> that is covered by blocks
 with a given degree
 
-Here is an example of such table from a report file. This table contains one 
-row for degree "2" and one ("All") row for overall coverage. 
+Here is an example of such table from a report file.
 
-	Degree	Count	Total	Seq 1	Seq 2
-	2	23	94.68%	96.40%	93.09%	
-	All	23	94.68%	96.40%	93.09%	
+	Degree	Count	Total	Seq 1	Seq 2	Seq 3	Seq 4
+	2	11	3.82%	6.59%	2.41%	2.96%	3.30%	
+	3	4	1.68%	2.24%	2.19%	1.44%	0.85%	
+	4	21	91.93%	91.34%	94.71%	87.54%	94.53%	
+	All	36	95.66%	97.44%	97.98%	90.67%	96.89%	
 
-It means that there are 23 blocks with degree = 2, i.e. 23 * 2 instances, and
-they cover 94.68% of both genomes, 96.40% of Seq 1 and 93.09% of Seq 2. Note 
-that synteny blocks can overlap (by at most 5000 BP for loose parameter set),
-so sum in each column may not equal to value at last row.
+This table contains one row for each degree (2, 3, 4) and one ("All") row for
+the overall coverage. It means that there are 11 blocks with degree = 2, i.e.
+11 * 2 instances, and they cover 3.82% of all four genomes, 6.59% of Seq 1 and
+2.41% of Seq 2. And also there are 21 synteny blocks with degree = 4, i.e.
+4 * 21 instances and they cover 91.93% of all genomes. All the blocks cover
+95.66% of all the input sequences.
+
+Note that synteny blocks can overlap (by at most 5000 BP for loose parameter
+set), so sum in each column may not equal to value at last row.
 
 Sequences file
 --------------
