@@ -22,7 +22,7 @@ namespace SyntenyFinder
 
 		std::string OutputIndex(const BlockInstance & block)
 		{
-			std::stringstream out;			
+			std::stringstream out;
 			out << block.GetChrInstance().GetConventionalId() << '\t' << (block.GetSignedBlockId() < 0 ? '-' : '+') << '\t';
 			out << block.GetConventionalStart() << '\t' << block.GetConventionalEnd() << '\t' << block.GetEnd() - block.GetStart();
 			return out.str();
@@ -43,6 +43,19 @@ namespace SyntenyFinder
 			out << std::setfill(' ') << std::setw(8) << block.GetConventionalStart() << " - ";
 			out << std::setfill(' ') << std::setw(8) << block.GetConventionalEnd();
 			return out.str();
+		}
+
+		void OutputLink(std::vector<BlockInstance>::iterator block, int color, int fillLength,
+						int linkId, std::ostream& stream)
+		{
+			int start = block->GetConventionalStart();
+			int end = block->GetConventionalEnd();
+			if (start > end) std::swap(start, end);
+
+			stream << "block_" << std::setw(fillLength) << std::setfill('0') << linkId << " ";
+			stream << "seq" << block->GetChrId() + 1 << " ";
+			stream << start << " " << end;
+			stream << " color=chr" << color << "_a2" << std::endl;
 		}
 
 		template<class Iterator>
@@ -83,10 +96,10 @@ namespace SyntenyFinder
 				ret.push_back(nowCoveredBp / cover.size() * 100);
 				totalCoveredBp += nowCoveredBp;
 			}
-			
+
 			ret.insert(ret.begin(), totalCoveredBp / totalBp * 100);
 			return ret;
-		}		
+		}
 	}
 
 	void OutputGenerator::ListChrs(std::ostream & out) const
@@ -124,7 +137,7 @@ namespace SyntenyFinder
 		GroupBy(sepBlock, ByFirstElement, std::back_inserter(group));
 		group.push_back(IndexPair(0, sepBlock.size()));
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
-		{			
+		{
 			if(it != group.end() - 1)
 			{
 				out << sepBlock[it->first].first << '\t' << it->second - it->first << '\t';
@@ -151,8 +164,8 @@ namespace SyntenyFinder
 		std::vector<IndexPair> group;
 		GroupBy(blockList_, compareByChrId, std::back_inserter(group));
  		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
-		{			
-			out.setf(std::ios_base::showpos);	
+		{
+			out.setf(std::ios_base::showpos);
 			size_t length = it->second - it->first;
 			size_t chr = blockList_[it->first].GetChrInstance().GetId();
 			out << '>' << chrList_[chr].GetDescription() << std::endl;
@@ -166,7 +179,7 @@ namespace SyntenyFinder
 	{
 		std::ofstream out;
 		TryOpenFile(fileName, out);
-		ListChrs(out);		
+		ListChrs(out);
 		std::vector<IndexPair> group;
 		GroupBy(blockList_, compareById, std::back_inserter(group));
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
@@ -230,7 +243,7 @@ namespace SyntenyFinder
 		int lastId = 0;
 		int linkCount = 0;
 		BlockList blocksToLink;
-		std::ofstream linksFile;				
+		std::ofstream linksFile;
 		std::ofstream highlightFile;
 		TryOpenFile(outDir + "/circos.segdup.txt", linksFile);
 		TryOpenFile(outDir + "/circos.highlight.txt", highlightFile);
@@ -239,7 +252,13 @@ namespace SyntenyFinder
 		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock)
 		{
 			highlightFile << "seq" << itBlock->GetChrInstance().GetConventionalId() << " ";
-			highlightFile << itBlock->GetStart() << " " << itBlock->GetEnd() << std::endl;
+			int blockStart = itBlock->GetConventionalStart();
+			int blockEnd = itBlock->GetConventionalEnd();
+			if (blockStart > blockEnd)
+			{
+				std::swap(blockStart, blockEnd);
+			}
+			highlightFile << blockStart << " " << blockEnd << std::endl;
 
 			if (itBlock->GetBlockId() != lastId)
 			{
@@ -250,16 +269,9 @@ namespace SyntenyFinder
 			{
 				color = (color + 1) % MAX_COLOR;
 				//link start
-				linksFile << "block_" << std::setw(idLength) << std::setfill('0') << linkCount << " ";
-				linksFile << "seq" << itBlock->GetChrInstance().GetConventionalId() << " ";
-				linksFile << itBlock->GetStart() << " " << itBlock->GetEnd();
-				linksFile << " color=chr" << color << "_a2" << std::endl;
+				OutputLink(itBlock, color, idLength, linkCount, linksFile);
 				//link end
-				linksFile << "block_" << std::setw(idLength) << std::setfill('0') << linkCount << " ";
-				linksFile << "seq" << itPair->GetChrInstance().GetConventionalId() << " ";
-				linksFile << itPair->GetStart() << " " << itPair->GetEnd();
-				linksFile << " color=chr" << color << "_a2" << std::endl;
-
+				OutputLink(itPair, color, idLength, linkCount, linksFile);
 				++linkCount;
 			}
 			blocksToLink.push_back(*itBlock);
@@ -267,7 +279,7 @@ namespace SyntenyFinder
 
 		//write kariotype file
 		std::ofstream karFile;
-		TryOpenFile(outDir + "/circos.sequences.txt", karFile);		
+		TryOpenFile(outDir + "/circos.sequences.txt", karFile);
 
 		for (size_t i = 0; i < chrList_.size(); ++i)
 		{
@@ -279,12 +291,12 @@ namespace SyntenyFinder
 
 	void OutputGenerator::GenerateD3Output(const std::string & outFile) const
 	{
-		std::istringstream htmlTemplate(d3Template);		
+		std::istringstream htmlTemplate(d3Template);
 
         //open output file
         std::ofstream out;
         TryOpenFile(outFile, out);
-		
+
 		std::string buffer;
 		for(;;)
 		{
