@@ -23,14 +23,15 @@ with "fine" parameters set, type:
 
 The difference between "loose" and "fine" set is that "loose" usually produces
 fewer blocks, but longer. And it may lose some small synteny blocks 
-(shorter than 15000 BP), while "fine" option produces more blocks (but shorter)
-and their coverage is worse. Usually "loose" is the best choice, but if you do
-not want to lose information about small-scale rearrangements, use "fine".
+(shorter than 15 000 BP), while "fine" option produces more blocks (but 
+shorter) and their coverage is worse. Usually "loose" is the best choice, but
+if you do not want to lose information about small-scale rearrangements, 
+use "fine".
 
-If you are not satisfied by the results (poor coverage for example), try to set
+If you are not satisfied by the results (poor coverage, for example), try to set
 simplification parameters manually (see section "Fine tuning"). 
 
-By default, Sibelia filters out synteny blocks shorter than 5000 BP. You can
+By default, Sibelia filters out synteny blocks shorter than 5 000 BP. You can
 change this behaviour, see section "Minimum block size".
 
 You also may be interested in blocks that occur exactly once in each input
@@ -72,9 +73,9 @@ exist only for a very short period of time, they can be quite big -- ~20*N
 bytes, where N is the total size of all input genomes. You can also use switch
 
 	-r or --inram
-
-that will force "Sibelia" to not create any temporary files and store all
-it's data in RAM.
+	
+that will force "Sibelia" to not create any temporary files and store all it's
+data in RAM.
 
 Output description
 ==================
@@ -104,8 +105,7 @@ they apper in the input files).
 Second part of the file describes synteny blocks in sections separated by 
 dashes. Each section starts with the synteny block ID. Then all instances
 of this block are listed in tabular format. Each row of a table depicts
-one instance of this synteny block. Columns of the table designate
-following:
+one instance of this synteny block. Columns of the table designate following:
 
 1. Seq_id -- ID of the sequence, that the instance belongs to
 2. Strand -- strand of the synteny block instance, either '+' or '-'. Input
@@ -114,9 +114,9 @@ sequences are treated as positive strands
 4. End -- one-based index of the last base pair of the instance
 5. Length -- length of the instance of the synteny block
 
-Note that all coordinates are give relative to POSITIVE strand. If an
-instance of a synteny block is located on the positive strand, then
-start < end, otherwise start > end.
+Note that all coordinates are given relatively to POSITIVE strand of the
+sequence. If an instance of a synteny block is located on the positive strand,
+then start < end, otherwise start > end. 
 
 Genomes permutations
 --------------------
@@ -137,18 +137,18 @@ File name = "coverage_report.txt".
 
 The file describes portion of the genomes, that found synteny block cover.
 First part of the file describes input sequencess (see "Blocks coordinates"
-section). Second part of the file is a table with following columns:
+section). Second part of the file is a table with the following columns:
 
-1. Degree -- multiplicity of the synteny block. For example, if synteny block
+1. Degree -- multiplicity of a synteny block. For example, if a synteny block
 has degree = 3, then the are three instances of this block in the input
 sequence
 2. Count -- number of synteny blocks with a given degree
-3. Total -- portion of all the input sequencess that cover blocks with a given
-degree
-4. Seq <n> -- portion of the sequence with id <n> that cover blocks with a 
-given degree
+3. Total -- portion of all the input sequences that are covered by the blocks
+with a given degree
+4. Seq <n> -- portion of the sequence with id <n> that is covered by blocks
+with a given degree
 
-Here is an example of the table from a report file. This table contains one 
+Here is an example of such table from a report file. This table contains one 
 row for degree "2" and one ("All") row for overall coverage. 
 
 	Degree	Count	Total	Seq 1	Seq 2
