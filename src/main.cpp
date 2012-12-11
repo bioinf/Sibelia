@@ -139,7 +139,7 @@ int main(int argc, char * argv[])
 
 	try
 	{  
-		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "2.0.1");
+		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "2.1.0");
 		TCLAP::ValueArg<unsigned int> maxIterations("i",
 			"maxiterations",
 			"Maximum number of iterations during a stage of simplification, default = 4.",
