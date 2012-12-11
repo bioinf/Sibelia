@@ -48,7 +48,7 @@ section "Circos" visualization"). While "Circos" is better for publications,
 Genomes from the "examples" dir were taken from [5, 6]. Not that you can
 specify multiple FASTA files, just separate them with spaces.
 
-Technical parametes
+Technical parameters
 ===================
 
 Directory for output files
