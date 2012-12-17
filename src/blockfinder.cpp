@@ -57,7 +57,7 @@ namespace SyntenyFinder
 		}
 	}
 
-	void BlockFinder::ConstructIndex(std::auto_ptr<DNASequence> & sequence, std::auto_ptr<BifurcationStorage> & bifStorage, size_t k)
+	void BlockFinder::ConstructIndex(std::auto_ptr<DNASequence> & sequence, std::auto_ptr<BifurcationStorage> & bifStorage, size_t k, bool clear)
 	{
 		size_t maxId;
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
@@ -71,7 +71,7 @@ namespace SyntenyFinder
 		}
 
 		bifStorage.reset(new BifurcationStorage(maxId));
-		sequence.reset(new DNASequence(rawSeq_, originalPos_, true));
+		sequence.reset(new DNASequence(rawSeq_, originalPos_, clear));
 		ConstructBifStorage(*sequence, bifurcation, *bifStorage);
 
 		#ifdef _DEBUG
@@ -83,7 +83,7 @@ namespace SyntenyFinder
 	{
 		std::auto_ptr<DNASequence> sequence;
 		std::auto_ptr<BifurcationStorage> bifStorage;
-		ConstructIndex(sequence, bifStorage, k);
+		ConstructIndex(sequence, bifStorage, k, true);
 		SimplifyGraph(*sequence, *bifStorage, k, minBranchSize, maxIterations, f);
 		for(size_t chr = 0; chr < sequence->ChrNumber(); chr++)
 		{
