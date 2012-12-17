@@ -21,6 +21,22 @@ namespace SyntenyFinder
 		return startVertex == edge.startVertex && endVertex == edge.endVertex && firstChar == edge.firstChar;
 	}
 
+	std::vector<size_t> BlockFinder::EdgeToVector(const Edge & a)
+	{
+		size_t feature[] = {a.startVertex, a.endVertex, a.firstChar};
+		return std::vector<size_t>(feature, feature + sizeof(feature) / sizeof(feature[0]));
+	}
+
+	bool BlockFinder::EdgeEmpty(const Edge & a, size_t k)
+	{
+		return a.originalLength < k;
+	}
+
+	bool BlockFinder::EdgeCompare(const Edge & a, const Edge & b)
+	{
+		return EdgeToVector(a) < EdgeToVector(b);
+	}
+
 	bool BlockFinder::Edge::Overlap(const Edge & edge) const
 	{
 		size_t a1 = originalPosition;

@@ -8,45 +8,17 @@
 
 namespace SyntenyFinder
 {
-	std::vector<size_t> BlockFinder::EdgeToVector(const Edge & a)
-	{
-		size_t feature[] = {a.startVertex, a.endVertex, a.firstChar};
-		return std::vector<size_t>(feature, feature + sizeof(feature) / sizeof(feature[0]));
-	}
-
-	bool BlockFinder::EdgeEmpty(const Edge & a, size_t k)
-	{
-		return a.originalLength < k;
-	}
-
-	bool BlockFinder::EdgeCompare(const Edge & a, const Edge & b)
-	{
-		return EdgeToVector(a) < EdgeToVector(b);
-	}
-
 	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration)
 	{
-		block.clear();
-		size_t maxId;
-		std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
-		if(inRAM_)
-		{
-			maxId = EnumerateBifurcationsSArrayInRAM(k, bifurcation[0], bifurcation[1]);
-		}
-		else
-		{
-			maxId = EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
-		}
+		std::auto_ptr<DNASequence> sequence;
+		std::auto_ptr<BifurcationStorage> bifStorage;
+		ConstructIndex(sequence, bifStorage, k);
 
-		BifurcationStorage bifStorage(maxId);
-		DNASequence sequence(rawSeq_, originalPos_);
-		ConstructBifStorage(sequence, bifurcation, bifStorage);
-	
 		int blockCount = 1;
 		block.clear();
 		std::vector<Edge> edge;		
-		BlockFinder::ListEdges(sequence, bifStorage, k, edge);
-		std::vector<std::set<size_t> > visit(sequence.ChrNumber());
+		BlockFinder::ListEdges(*sequence, *bifStorage, k, edge);
+		std::vector<std::set<size_t> > visit(sequence->ChrNumber());
 		edge.erase(std::remove_if(edge.begin(), edge.end(), boost::bind(EdgeEmpty, _1, minSize)), edge.end());
 		std::vector<std::pair<size_t, size_t> > group;
 		GroupBy(edge, EdgeCompare, std::back_inserter(group));

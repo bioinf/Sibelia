@@ -128,10 +128,6 @@ namespace SyntenyFinder
 			}
 		};
 
-		size_t nowInvalid_;
-		std::vector<std::vector<size_t> > invalid_;
-		static const size_t UNUSED;		
-
 		static bool EdgeEmpty(const Edge & a, size_t k);
 		static bool EdgeCompare(const Edge & a, const Edge & b);
 		static bool CompareEdgesByDirection(const Edge & a, const Edge & b);
@@ -145,7 +141,7 @@ namespace SyntenyFinder
 		size_t EnumerateBifurcationsSArray(size_t k, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation) const;
 		size_t EnumerateBifurcationsSArrayInRAM(size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif) const;
 
-		void ConstructIndex(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k) const;
+		void ConstructIndex(std::auto_ptr<DNASequence> & sequence, std::auto_ptr<BifurcationStorage> & bifStorage, size_t k);
 		void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage) const;
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData);

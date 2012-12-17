@@ -8,15 +8,8 @@
 
 namespace SyntenyFinder
 {
-	const size_t BlockFinder::UNUSED = -1;
-
 	namespace
 	{
-		bool CmpSizePair(const std::pair<size_t, size_t> & a, const std::pair<size_t, size_t> & b)
-		{
-			return a.first == b.first && a.second == b.second;
-		}
-
 		struct BifurcationMark
 		{
 			size_t bifId;
