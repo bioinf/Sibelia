@@ -30,7 +30,7 @@ namespace SyntenyFinder
 			size_t firstEdge = group[g].first;
 			size_t lastEdge = group[g].second;
 			std::sort(edge.begin() + firstEdge, edge.begin() + lastEdge, CompareEdgesByDirection);
-			if(edge[firstEdge].direction != DNASequence::positive || lastEdge - firstEdge < 2)
+			if(edge[firstEdge].GetDirection() != DNASequence::positive || lastEdge - firstEdge < 2)
 			{
 				continue;
 			}
@@ -40,8 +40,8 @@ namespace SyntenyFinder
 			std::vector<size_t> occur(rawSeq_.size(), 0);
 			for(size_t nowEdge = firstEdge; nowEdge < lastEdge; nowEdge++)
 			{
-				occur[edge[nowEdge].chr]++;				
-				hit = hit || (visit[edge[nowEdge].chr].count(edge[nowEdge].originalPosition) != 0);
+				occur[edge[nowEdge].GetChr()]++;				
+				hit = hit || (visit[edge[nowEdge].GetChr()].count(edge[nowEdge].GetOriginalPosition()) != 0);
 				if(std::find_if(nowBlock.begin(), nowBlock.end(), boost::bind(&Edge::Overlap, boost::cref(edge[nowEdge]), _1)) == nowBlock.end())
 				{
 					nowBlock.push_back(edge[nowEdge]);
@@ -52,9 +52,9 @@ namespace SyntenyFinder
 			{
 				for(size_t i = 0; i < nowBlock.size(); i++)
 				{
-					int strand = nowBlock[i].direction == DNASequence::positive ? +1 : -1;
-					visit[nowBlock[i].chr].insert(nowBlock[i].originalPosition);
-					block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].chr], nowBlock[i].originalPosition, nowBlock[i].originalPosition + nowBlock[i].originalLength));
+					int strand = nowBlock[i].GetDirection() == DNASequence::positive ? +1 : -1;
+					visit[nowBlock[i].GetChr()].insert(nowBlock[i].GetOriginalPosition());
+					block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].GetChr()], nowBlock[i].GetOriginalPosition(), nowBlock[i].GetOriginalPosition() + nowBlock[i].GetOriginalLength()));
 				}
 
 				blockCount++;

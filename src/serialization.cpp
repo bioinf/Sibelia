@@ -74,7 +74,7 @@ namespace SyntenyFinder
 						char firstChar = *AdvanceForward(origin, k);
 						size_t nowVertex = bifStorage.GetBifurcation(start);
 						std::pair<size_t, size_t> coord = sequence.SpellOriginal(origin, AdvanceForward(start, k));
-						edge.push_back(Edge(chr, start.GetDirection(), prevVertex, nowVertex, pos, step + k, coord.first, coord.second - coord.first, firstChar));
+						edge.push_back(Edge(chr, start, prevVertex, nowVertex, pos, step + k, coord.first, coord.second - coord.first, firstChar));
 						prevVertex = nowVertex;
 						pos += step;
 					}
@@ -96,13 +96,13 @@ namespace SyntenyFinder
 		for(size_t i = 0; i < edge.size(); i++)
 		{
 			char buf[1 << 8];
-			std::string color = edge[i].direction == DNASequence::positive ? "blue" : "red";
-			int uchr = static_cast<int>(edge[i].chr);
-			int uorpos = static_cast<int>(edge[i].originalPosition);
-			int upos = static_cast<int>(edge[i].actualPosition);
-			int ulength = static_cast<int>(edge[i].actualLength);
-			out << edge[i].startVertex << " -> " << edge[i].endVertex;
-			sprintf(&buf[0], "[color=\"%s\", label=\"chr=%i pos=%i orpos=%i len=%i ch='%c'\"];", color.c_str(), uchr, upos, uorpos, ulength, edge[i].firstChar);
+			std::string color = edge[i].GetDirection() == DNASequence::positive ? "blue" : "red";
+			int uchr = static_cast<int>(edge[i].GetChr());
+			int uorpos = static_cast<int>(edge[i].GetOriginalPosition());
+			int upos = static_cast<int>(edge[i].GetActualPosition());
+			int ulength = static_cast<int>(edge[i].GetActualLength());
+			out << edge[i].GetStartVertex() << " -> " << edge[i].GetEndVertex();
+			sprintf(&buf[0], "[color=\"%s\", label=\"chr=%i pos=%i orpos=%i len=%i ch='%c'\"];", color.c_str(), uchr, upos, uorpos, ulength, edge[i].GetFirstChar());
 			out << " " << buf << std::endl;
 		}
 

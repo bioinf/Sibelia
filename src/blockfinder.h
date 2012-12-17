@@ -75,8 +75,24 @@ namespace SyntenyFinder
 
 		struct Edge
 		{
+		public:			
+			Edge() {}
+			Edge(size_t chr, StrandIterator origin, size_t startVertex, size_t endVertex, size_t actualPosition, size_t actualLength, size_t originalPosition, size_t originalLength, char firstChar);
+			bool Coincide(const Edge & edge) const;
+			bool Overlap(const Edge & edge) const;
+			size_t GetChr() const;
+			StrandIterator GetOrigin() const;
+			DNASequence::Direction GetDirection() const;
+			size_t GetStartVertex() const;
+			size_t GetEndVertex() const;
+			size_t GetActualPosition() const;
+			size_t GetActualLength() const;
+			size_t GetOriginalPosition() const;
+			size_t GetOriginalLength() const;
+			char GetFirstChar() const;
+		private:
 			size_t chr;
-			DNASequence::Direction direction;
+			StrandIterator origin;
 			size_t startVertex;
 			size_t endVertex;
 			size_t actualPosition;
@@ -84,10 +100,6 @@ namespace SyntenyFinder
 			size_t originalPosition;
 			size_t originalLength;
 			char firstChar;
-			Edge() {}
-			Edge(size_t chr, DNASequence::Direction direction, size_t startVertex, size_t endVertex, size_t actualPosition, size_t actualLength, size_t originalPosition, size_t originalLength, char firstChar);
-			bool Coincide(const Edge & edge) const;
-			bool Overlap(const Edge & edge) const;			
 		};		
 
 		struct EdgeGroupComparer
@@ -107,12 +119,11 @@ namespace SyntenyFinder
 				size_t acc = 0;
 				for(size_t i = range.first; i < range.second; i++)
 				{
-					acc += (*edge_)[i].originalLength;
+					acc += (*edge_)[i].GetOriginalLength();
 				}
 
 				return acc;
 			}
-
 		};
 
 		struct BifurcationInstance
