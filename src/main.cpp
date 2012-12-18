@@ -269,6 +269,7 @@ int main(int argc, char * argv[])
 		std::vector<SyntenyFinder::BlockInstance> blockList;
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
+		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 

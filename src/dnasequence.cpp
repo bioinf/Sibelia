@@ -212,7 +212,10 @@ namespace SyntenyFinder
 			size_t targetDistance,
 			NotifyFunction before,
 			NotifyFunction after)
-	{		
+	{	
+		StrandIterator save = StrandIterator(target, positive);
+		size_t firstPos = save.GetOriginalPosition();
+		size_t lastPos = AdvanceForward(save, targetDistance).GetOriginalPosition();
 		for(size_t i = 0; i < std::min(sourceDistance, targetDistance); i++)
 		{
 			*target = *source;
@@ -235,6 +238,14 @@ namespace SyntenyFinder
 			target = AdvanceForward(target, sourceDistance - targetDistance);
 		}
 
+		double acc = static_cast<double>(firstPos);
+		double ssize = double(targetDistance) / sourceDistance;
+		for(size_t step = 0; step < sourceDistance; step++, ++save, acc += ssize)
+		{
+			size_t pos = std::min(lastPos, size_t(acc));
+			save.SetOriginalPosition(pos);
+		}
+
 		return target;
 	}
 
@@ -245,8 +256,6 @@ namespace SyntenyFinder
 			NotifyFunction before,
 			NotifyFunction after)
 	{	
-		size_t oldPos = target.GetOriginalPosition();
-			
 		if(target.GetDirection() == positive)
 		{
 			SequencePosIterator begin = target.Base();
@@ -259,12 +268,6 @@ namespace SyntenyFinder
 			SequencePosIterator begin = AdvanceForward(target, targetDistance).Invert().Base();
 			begin = ReplaceDirect(source, sourceDistance, begin, targetDistance, before, after);
 			target = StrandIterator(--begin, negative);
-		}
-
-		size_t pos = 0;
-		for(StrandIterator jt = target; pos < sourceDistance; pos++, ++jt)
-		{
-			jt.SetOriginalPosition(oldPos);
 		}
 	}
 

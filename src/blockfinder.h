@@ -146,8 +146,9 @@ namespace SyntenyFinder
 		size_t GetMustBeBifurcation(StrandIterator it, size_t k);
 		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
-		void TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize);
-		
+		bool TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize);
+		void GlueStripes(std::vector<BlockInstance> & block);
+
 		size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation) const;
 		size_t EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif) const;
 
