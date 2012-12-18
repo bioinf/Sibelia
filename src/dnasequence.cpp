@@ -68,6 +68,30 @@ namespace SyntenyFinder
 		return direction == positive ? PositiveEnd(chr) : NegativeEnd(chr);
 	}
 	
+	DNASequence::DNASequence(const std::vector<std::string> & record):
+		sequence_(DNACharacter(DELETED_CHAR))
+	{
+		sequence_.push_back(DNACharacter(SEPARATION_CHAR));
+		for(size_t chr = 0; chr < record.size(); chr++)
+		{
+			SequencePosIterator chrPosBegin = --sequence_.end();
+			for(size_t pos = 0; pos < record[chr].size(); pos++)
+			{
+				sequence_.push_back(DNACharacter(record[chr][pos]));
+				StrandIterator(--sequence_.end(), positive).SetOriginalPosition(pos);
+			}
+
+			sequence_.push_back(DNACharacter(SEPARATION_CHAR));
+			StrandIterator(--sequence_.end(), positive).SetOriginalPosition(record[chr].size());			
+			posBegin_.push_back(++chrPosBegin);
+			posEnd_.push_back(--sequence_.end());
+		}
+
+		std::for_each(posBegin_.begin(), posBegin_.end(), boost::bind(&DNASequence::SubscribeIterator, boost::ref(*this), _1));
+		std::for_each(posEnd_.begin(), posEnd_.end(), boost::bind(&DNASequence::SubscribeIterator, boost::ref(*this), _1));
+	}
+	
+
 	DNASequence::DNASequence(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & original, bool clear):
 		sequence_(DNACharacter(DELETED_CHAR))
 	{

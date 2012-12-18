@@ -255,11 +255,12 @@ int main(int argc, char * argv[])
 			throw std::runtime_error("Input is larger than 1 GB, can't proceed");
 		}
 
+		int trimK = INT_MAX;
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
-		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
-
+		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));		
 		for(size_t i = 0; i < stage.size(); i++)
 		{
+			trimK = std::min(trimK, stage[i].first);
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
 			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
@@ -268,7 +269,7 @@ int main(int argc, char * argv[])
 		std::vector<SyntenyFinder::BlockInstance> blockList;
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
-		finder->GenerateSyntenyBlocks(lastK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
+		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());

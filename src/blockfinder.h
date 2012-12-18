@@ -44,7 +44,7 @@ namespace SyntenyFinder
 		BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir);
 		void SerializeGraph(size_t k, std::ostream & out);
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack());
-		void GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
+		void GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
 		void PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		static void PrintRaw(const DNASequence & s, std::ostream & out);
 		static void PrintPath(const DNASequence & s, StrandIterator e, size_t k, size_t distance, std::ostream & out);
@@ -77,11 +77,10 @@ namespace SyntenyFinder
 		{
 		public:			
 			Edge() {}
-			Edge(size_t chr, StrandIterator origin, size_t startVertex, size_t endVertex, size_t actualPosition, size_t actualLength, size_t originalPosition, size_t originalLength, char firstChar);
+			Edge(size_t chr, DNASequence::Direction direction, size_t startVertex, size_t endVertex, size_t actualPosition, size_t actualLength, size_t originalPosition, size_t originalLength, char firstChar);
 			bool Coincide(const Edge & edge) const;
 			bool Overlap(const Edge & edge) const;
 			size_t GetChr() const;
-			StrandIterator GetOrigin() const;
 			DNASequence::Direction GetDirection() const;
 			size_t GetStartVertex() const;
 			size_t GetEndVertex() const;
@@ -92,7 +91,7 @@ namespace SyntenyFinder
 			char GetFirstChar() const;
 		private:
 			size_t chr;
-			StrandIterator origin;
+			DNASequence::Direction direction;
 			size_t startVertex;
 			size_t endVertex;
 			size_t actualPosition;
@@ -147,10 +146,10 @@ namespace SyntenyFinder
 		size_t GetMustBeBifurcation(StrandIterator it, size_t k);
 		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
-
-		size_t EnumerateBifurcationsHash(const DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, ProgressCallBack f = ProgressCallBack()) const;
-		size_t EnumerateBifurcationsSArray(size_t k, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation) const;
-		size_t EnumerateBifurcationsSArrayInRAM(size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif) const;
+		void TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize);
+		
+		size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation) const;
+		size_t EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif) const;
 
 		void ConstructIndex(std::auto_ptr<DNASequence> & sequence, std::auto_ptr<BifurcationStorage> & bifStorage, size_t k, bool clear = false);
 		void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage) const;

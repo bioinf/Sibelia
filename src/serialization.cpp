@@ -74,7 +74,7 @@ namespace SyntenyFinder
 						char firstChar = *AdvanceForward(origin, k);
 						size_t nowVertex = bifStorage.GetBifurcation(start);
 						std::pair<size_t, size_t> coord = sequence.SpellOriginal(origin, AdvanceForward(start, k));
-						edge.push_back(Edge(chr, start, prevVertex, nowVertex, pos, step + k, coord.first, coord.second - coord.first, firstChar));
+						edge.push_back(Edge(chr, start.GetDirection(), prevVertex, nowVertex, pos, step + k, coord.first, coord.second - coord.first, firstChar));
 						prevVertex = nowVertex;
 						pos += step;
 					}

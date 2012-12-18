@@ -63,20 +63,20 @@ namespace SyntenyFinder
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
 		if(inRAM_)
 		{
-			maxId = EnumerateBifurcationsSArrayInRAM(k, bifurcation[0], bifurcation[1]);
+			maxId = EnumerateBifurcationsSArrayInRAM(rawSeq_, k, bifurcation[0], bifurcation[1]);
 		}
 		else
 		{
-			maxId = EnumerateBifurcationsSArray(k, bifurcation[0], bifurcation[1]);
+			maxId = EnumerateBifurcationsSArray(rawSeq_, k, bifurcation[0], bifurcation[1]);
 		}
 
 		bifStorage.reset(new BifurcationStorage(maxId));
 		sequence.reset(new DNASequence(rawSeq_, originalPos_, clear));
 		ConstructBifStorage(*sequence, bifurcation, *bifStorage);
 
-		#ifdef _DEBUG
-			bifStorage->FormDictionary(idMap, k);
-		#endif
+	#ifdef _DEBUG
+		bifStorage->FormDictionary(idMap, k);
+	#endif
 	}
 
 	void BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)

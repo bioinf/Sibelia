@@ -8,17 +8,100 @@
 
 namespace SyntenyFinder
 {
-	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration)
-	{
+	//To be refactored
+	void BlockFinder::TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize)
+	{		
+		size_t pos = 0;
+		std::vector<size_t> chrStart(block.size());
+		std::vector<std::string> blockSeq(block.size());
+		std::vector<std::vector<Pos> > chrPos(block.size());
+		for(size_t i = 0; i < block.size(); i++)
+		{
+			std::string::const_iterator begin = (*originalChrList_)[block[i].GetChr()].GetSequence().begin();
+			blockSeq[i].assign(begin + block[i].GetOriginalPosition(), begin + block[i].GetOriginalPosition() + block[i].GetOriginalLength());
+			for(size_t j = 0; j < blockSeq[i].size(); j++)
+			{
+				chrPos[i].push_back(static_cast<Pos>(pos++));
+			}
+
+			chrStart[i] = chrPos[i][0];
+		}
+		
+		const size_t oo = UINT_MAX;
+		IteratorProxyVector startKMer;
 		std::auto_ptr<DNASequence> sequence;
 		std::auto_ptr<BifurcationStorage> bifStorage;
-		ConstructIndex(sequence, bifStorage, k);
+		{
+			std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
+			size_t maxId = EnumerateBifurcationsSArrayInRAM(blockSeq, trimK, bifurcation[0], bifurcation[1]);
+			bifStorage.reset(new BifurcationStorage(maxId));
+			sequence.reset(new DNASequence(blockSeq, chrPos, true));
+			ConstructBifStorage(*sequence, bifurcation, *bifStorage);
+		}
 
-		int blockCount = 1;
+		std::vector<Edge> ret;
+		for(size_t chr = 0; chr < block.size(); chr++)
+		{
+			StrandIterator begin = sequence->Begin(block[chr].GetDirection(), chr);
+			StrandIterator end = sequence->End(block[chr].GetDirection(), chr);
+			size_t trimStart = oo;
+			size_t trimEnd = oo;
+			size_t minTrimStartSum = oo;
+			size_t minTrimEndSum = oo;
+			for(size_t step = 0; begin != end; ++begin, ++step)
+			{												
+				size_t bifId = bifStorage->GetBifurcation(begin);
+				if(bifId != BifurcationStorage::NO_BIFURCATION)
+				{
+					startKMer.clear();
+					bifStorage->ListPositions(bifId, std::back_inserter(startKMer));
+					for(size_t pos = 0; pos < startKMer.size(); pos++)
+					{
+						StrandIterator kmer = *startKMer[pos];
+						size_t bifChr = std::upper_bound(chrStart.begin(), chrStart.end(), kmer.GetOriginalPosition()) - chrStart.begin() - 1;
+						if(chr != bifChr)
+						{
+							trimStart = std::min(trimStart, step);
+							trimEnd = std::max(trimEnd, step);
+						}
+					}
+				}
+			}
+
+			trimEnd += trimK - 1;
+			if(trimEnd - trimStart + 1 >= minSize)
+			{
+				if(block[chr].GetDirection() == DNASequence::negative)
+				{
+					size_t oldTrimEnd = trimEnd;
+					trimEnd = blockSeq[chr].size() - 1 - trimStart;
+					trimStart = blockSeq[chr].size() - 1 - oldTrimEnd;
+				}
+
+				size_t start = block[chr].GetOriginalPosition() + trimStart;
+				size_t end = block[chr].GetOriginalPosition() + trimEnd + 1;
+				ret.push_back(Edge(block[chr].GetChr(), block[chr].GetDirection(), block[chr].GetStartVertex(), block[chr].GetEndVertex(),
+					block[chr].GetOriginalPosition(), block[chr].GetOriginalLength(), start, end - start, block[chr].GetFirstChar()));
+			}			
+		}
+
+		block.swap(ret);
+	}
+
+	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration)
+	{
+		std::vector<Edge> edge;
+		std::vector<std::set<size_t> > visit;
+		{
+			std::auto_ptr<DNASequence> sequence;
+			std::auto_ptr<BifurcationStorage> bifStorage;
+			ConstructIndex(sequence, bifStorage, k);
+			BlockFinder::ListEdges(*sequence, *bifStorage, k, edge);
+			visit.resize(sequence->ChrNumber());
+		}
+		
 		block.clear();
-		std::vector<Edge> edge;		
-		BlockFinder::ListEdges(*sequence, *bifStorage, k, edge);
-		std::vector<std::set<size_t> > visit(sequence->ChrNumber());
+		int blockCount = 1;
 		edge.erase(std::remove_if(edge.begin(), edge.end(), boost::bind(EdgeEmpty, _1, minSize)), edge.end());
 		std::vector<std::pair<size_t, size_t> > group;
 		GroupBy(edge, EdgeCompare, std::back_inserter(group));
@@ -48,16 +131,20 @@ namespace SyntenyFinder
 				}
 			}
 
-			if(nowBlock.size() > 1 && !hit && (!sharedOnly || std::count(occur.begin(), occur.end(), 1) == rawSeq_.size()))
+			if(!hit)
 			{
-				for(size_t i = 0; i < nowBlock.size(); i++)
+				TrimBlocks(nowBlock, trimK, minSize);
+				if(nowBlock.size() > 1 && (!sharedOnly || std::count(occur.begin(), occur.end(), 1) == rawSeq_.size()))
 				{
-					int strand = nowBlock[i].GetDirection() == DNASequence::positive ? +1 : -1;
-					visit[nowBlock[i].GetChr()].insert(nowBlock[i].GetOriginalPosition());
-					block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].GetChr()], nowBlock[i].GetOriginalPosition(), nowBlock[i].GetOriginalPosition() + nowBlock[i].GetOriginalLength()));
-				}
+					for(size_t i = 0; i < nowBlock.size(); i++)
+					{
+						int strand = nowBlock[i].GetDirection() == DNASequence::positive ? +1 : -1;
+						visit[nowBlock[i].GetChr()].insert(nowBlock[i].GetOriginalPosition());
+						block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].GetChr()], nowBlock[i].GetOriginalPosition(), nowBlock[i].GetOriginalPosition() + nowBlock[i].GetOriginalLength()));
+					}
 
-				blockCount++;
+					blockCount++;
+				}
 			}
 		}
 		

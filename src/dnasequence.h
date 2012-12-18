@@ -99,6 +99,7 @@ namespace SyntenyFinder
 			size_t targetDistance,
 			NotifyFunction before = 0,
 			NotifyFunction after = 0);
+		DNASequence(const std::vector<std::string> & record);
 		DNASequence(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & original, bool clear = false);
 		std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2) const;
 		size_t GlobalIndex(StrandIterator it) const;		
