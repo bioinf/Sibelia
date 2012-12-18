@@ -143,7 +143,6 @@ namespace SyntenyFinder
 	}
 
 	//To be refactored
-	size_t chop = 0;
 	bool BlockFinder::TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize)
 	{				
 		size_t pos = 0;
@@ -176,6 +175,7 @@ namespace SyntenyFinder
 		}
 
 		std::vector<Edge> ret;
+		static size_t malform = 0;
 		for(size_t chr = 0; chr < block.size(); chr++)
 		{
 			StrandIterator begin = sequence->Begin(block[chr].GetDirection(), chr);
@@ -222,6 +222,20 @@ namespace SyntenyFinder
 				drop = true;
 			}
 		}
+		/*
+		if(drop)
+		{
+			for(size_t chr = 0; chr < sequence->ChrNumber(); chr++)
+			{
+				std::cerr << ">" << chr << '_' << malform << std::endl;
+				StrandIterator begin = sequence->Begin(block[chr].GetDirection(), chr);
+				StrandIterator end = sequence->End(block[chr].GetDirection(), chr);
+				std::copy(begin, end, std::ostream_iterator<char>(std::cerr));
+				std::cerr << std::endl;
+			}
+
+			++malform;
+		}*/
 
 		block.swap(ret);
 		return drop;
@@ -287,21 +301,6 @@ namespace SyntenyFinder
 				blockCount++;
 			}
 		}
-		/*
-		block.clear();
-		int b1[] = {+13, -12, +5, +7, +10, -16, +8, +19, +11, +6, -17, +21, -9, +3, -4, +18, +1, +14, +20, +16, +15, -23, +2};
-		int b2[] = {+13, -14, +5, +7, +4, +11, +6, +9, +21, +17, +3, -19, -8, +22, -10, +1, +12, +20, +16, +15, +23, -18, +22, +2};
-		size_t s1 = sizeof(b1) / sizeof(b1[0]);
-		size_t s2 = sizeof(b2) / sizeof(b2[0]);
-		for(size_t i = 0; i < s1; i++)
-		{
-			block.push_back(BlockInstance(b1[i], &(*originalChrList_)[0], 0, 0));
-		}
-
-		for(size_t i = 0; i < s2; i++)
-		{
-			block.push_back(BlockInstance(b2[i], &(*originalChrList_)[1], 0, 0));
-		}*/
 
 		GlueStripes(block);
 		std::sort(block.begin(), block.end(), CompareBlocksNaturally);
