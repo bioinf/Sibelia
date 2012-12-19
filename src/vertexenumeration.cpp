@@ -2,9 +2,7 @@
 
 namespace SyntenyFinder
 {
-
 	const char BlockFinder::SEPARATION_CHAR = '#';
-
 	namespace
 	{
 		class CharSet
