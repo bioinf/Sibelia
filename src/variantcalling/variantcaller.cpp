@@ -45,12 +45,12 @@ namespace SyntenyFinder
 	void VariantCaller::AlignBulgeBranches(StrandIterator referenceBegin, StrandIterator referenceEnd, StrandIterator assemblyBegin, StrandIterator assemblyEnd, std::vector<Variant> & variantList) const
 	{
 		using namespace seqan;
-		typedef String<char>				TSequence;	// sequence type
-		typedef Align<TSequence, ArrayGaps>	TAlign;		// align type
+		typedef String<char>				TSequence;
+		typedef Align<TSequence, ArrayGaps>	TAlign;
 		typedef Row<TAlign>::Type			TRow;
 		typedef Iterator<TRow>::Type		TIterator;
+		typedef Position<TAlign>::Type		TPosition;
 
-		// FRAGMENT(init)
 		std::string buf1(referenceBegin, referenceEnd);
 		std::string buf2(assemblyBegin, assemblyEnd);
 		TSequence seq1(buf1);
@@ -65,19 +65,13 @@ namespace SyntenyFinder
 		resize(rows(align), 2); 
 		assignSource(row(align,0),seq1);
 		assignSource(row(align,1),seq2);
-		// FRAGMENT(alignment)
-		int score = globalAlignment(align,Score<int>(1,-1,-1,-1), Hirschberg());
-		//std::cout << score << align << std::endl;
-		//FRAGMENT(iterate)
-		
-		std::cerr << "Pos = " << referenceBegin.GetOriginalPosition() << align << std::endl;
-
-		TIterator it1 = begin(row(align,0));
-		TIterator it1End = end(row(align,0));
-		TIterator it2 = begin(row(align,1));
-		TIterator it2End = end(row(align,1));
-
-		while(it1 != it1End && it2 != it2End)
+		int score = globalAlignment(align,Score<int>(1,-1,-1,-1), Hirschberg());		
+		TPosition colBegin = beginPosition(cols(align));
+		TPosition colEnd = endPosition(cols(align));
+		TIterator it1 = iter(row(align, 0), colBegin);
+		TIterator it1End = iter(row(align, 0), colEnd);
+		TIterator it2 = iter(row(align, 1), colBegin);
+		while(it1 != it1End)
 		{
 			if(!isGap(it1) && !isGap(it2))
 			{
@@ -95,16 +89,16 @@ namespace SyntenyFinder
 				std::string variantAllele;
 				std::string referenceAllele;
 				size_t pos = referenceBegin.GetOriginalPosition();
-				while(it1 != it1End && it2 != it2End)
+				for(;it1 != it1End; ++it1, ++it2)
 				{
 					if(isGap(it1))
 					{
-						variantAllele += *it2++;
+						variantAllele += *it2;
 					}
 					else if(isGap(it2))
 					{
 						++referenceBegin;
-						referenceAllele += *it1++;
+						referenceAllele += *it1;
 					}
 					else
 					{

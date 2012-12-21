@@ -151,7 +151,7 @@ int main(int argc, char * argv[])
 
 		std::string buf;
 		std::ofstream variantFile(defaultVariantFile.c_str());
-		variantFile << "POS\tREF\tALT" << std::endl;
+		//variantFile << "POS\tREF\tALT" << std::endl;
 		for(size_t i = 0; i < variant.size(); i++)
 		{
 			variant[i].ToString(buf);
