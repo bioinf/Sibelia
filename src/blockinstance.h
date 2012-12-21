@@ -10,7 +10,6 @@
 #include "common.h"
 #include "dnasequence.h"
 
-
 namespace SyntenyFinder
 {
 	inline int Abs(int x)

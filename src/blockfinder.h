@@ -38,6 +38,19 @@ namespace SyntenyFinder
 			end
 		};
 
+		struct BifurcationInstance
+		{
+			Size bifId;
+			Size chr;
+			Size pos;
+			BifurcationInstance() {}
+			BifurcationInstance(Size bifId, Size chr, Size pos): bifId(bifId), chr(chr), pos(pos) {}
+			bool operator < (const BifurcationInstance & toCompare) const
+			{
+				return std::make_pair(chr, pos) < std::make_pair(toCompare.chr, toCompare.pos);
+			}
+		};
+
 		static const char SEPARATION_CHAR;
 		typedef boost::function<void(size_t, State)> ProgressCallBack;
 		BlockFinder(const std::vector<FASTARecord> & chrList);
@@ -48,6 +61,9 @@ namespace SyntenyFinder
 		void PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		static void PrintRaw(const DNASequence & s, std::ostream & out);
 		static void PrintPath(const DNASequence & s, StrandIterator e, size_t k, size_t distance, std::ostream & out);
+		static void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage);
+		static size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k, const std::string & tempDir, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
+		static size_t EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, size_t k, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
 		void Test(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k);
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
@@ -123,20 +139,7 @@ namespace SyntenyFinder
 
 				return acc;
 			}
-		};
-
-		struct BifurcationInstance
-		{
-			Size bifId;
-			Size chr;
-			Size pos;
-			BifurcationInstance() {}
-			BifurcationInstance(Size bifId, Size chr, Size pos): bifId(bifId), chr(chr), pos(pos) {}
-			bool operator < (const BifurcationInstance & toCompare) const
-			{
-				return std::make_pair(chr, pos) < std::make_pair(toCompare.chr, toCompare.pos);
-			}
-		};
+		};		
 
 		static bool EdgeEmpty(const Edge & a, size_t k);
 		static bool EdgeCompare(const Edge & a, const Edge & b);
@@ -147,13 +150,9 @@ namespace SyntenyFinder
 		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
 		bool TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize);
-		void GlueStripes(std::vector<BlockInstance> & block);
+		void GlueStripes(std::vector<BlockInstance> & block);		
 
-		size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation) const;
-		size_t EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif) const;
-
-		void ConstructIndex(std::auto_ptr<DNASequence> & sequence, std::auto_ptr<BifurcationStorage> & bifStorage, size_t k, bool clear = false);
-		void ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & posBifurcation, BifurcationStorage & bifStorage) const;
+		void ConstructIndex(std::auto_ptr<DNASequence> & sequence, std::auto_ptr<BifurcationStorage> & bifStorage, size_t k, bool clear = false);		
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData);
 		void UpdateBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,

@@ -75,7 +75,7 @@ namespace SyntenyFinder
 			}
 		}
 
-		void GetSequences(std::vector<FASTARecord> & record);
+		size_t GetSequences(std::vector<FASTARecord> & record);
 		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(FASTAReader);

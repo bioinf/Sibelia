@@ -151,7 +151,7 @@ namespace SyntenyFinder
 		}		
 	}
 
-	size_t BlockFinder::EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif) const
+	size_t BlockFinder::EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k, const std::string & tempDir, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif)
 	{
 		positiveBif.clear();
 		negativeBif.clear();
@@ -178,8 +178,8 @@ namespace SyntenyFinder
 		
 		std::vector<saidx_t> pos;
 		std::vector<saidx_t> lcp;
-		CreateDirectory(tempDir_);
-		FilePtr posFile = CalculateLCP(superGenome, lcp, tempDir_);
+		CreateDirectory(tempDir);
+		FilePtr posFile = CalculateLCP(superGenome, lcp, tempDir);
 		CharSet prev;
 		CharSet next;
 		std::vector<BifurcationInstance> * ret[] = {&positiveBif, &negativeBif};
@@ -254,7 +254,7 @@ namespace SyntenyFinder
 		return bifurcationCount;
 	}
 
-	size_t BlockFinder::EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif) const
+	size_t BlockFinder::EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, size_t k, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif)
 	{
 		positiveBif.clear();
 		negativeBif.clear();

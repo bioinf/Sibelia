@@ -163,7 +163,6 @@ void randomTest()
 	const int TEST_SIZE = 1000;
 	const int TEST_UNIT = 50;
 
-
 	UList20 list(-1);
 	std::vector<UList20::iterator> inv;
 	std::vector<UList20::reverse_iterator> rinv;

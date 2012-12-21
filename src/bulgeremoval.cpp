@@ -278,6 +278,8 @@ namespace SyntenyFinder
 			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
 		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
 
+	//	std::cerr << sourceData.distance << ' ' << targetData.distance << std::endl;
+
 	#ifdef _DEBUG		
 		std::cerr << "After: " << std::endl;
 		BlockFinder::PrintRaw(sequence, std::cerr);

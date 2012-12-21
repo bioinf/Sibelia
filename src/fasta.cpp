@@ -15,14 +15,16 @@ namespace SyntenyFinder
 
 	KSEQ_INIT(FILE*, cread)
 
-	void FASTAReader::GetSequences(std::vector<FASTARecord> & record)
+	size_t FASTAReader::GetSequences(std::vector<FASTARecord> & record)
 	{
+		size_t seqId = 0;
 		kseq_t * sequence = kseq_init(fileHandler_);
-		for(size_t seqId = 0; kseq_read(sequence) >= 0; seqId++)
+		for(; kseq_read(sequence) >= 0; seqId++)
 		{
 			record.push_back(FASTARecord(sequence->seq.s, sequence->name.s, record.size()));			
 		}
 
 		kseq_destroy(sequence);
+		return seqId;
 	}
 }

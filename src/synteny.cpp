@@ -222,6 +222,7 @@ namespace SyntenyFinder
 				drop = true;
 			}
 		}
+
 		/*
 		if(drop)
 		{

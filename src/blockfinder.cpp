@@ -36,7 +36,7 @@ namespace SyntenyFinder
 		}
 	}
 
-	void BlockFinder::ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & bifurcation, BifurcationStorage & bifStorage) const
+	void BlockFinder::ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & bifurcation, BifurcationStorage & bifStorage)
 	{
 		for(size_t strand = 0; strand < 2; strand++)
 		{
@@ -67,7 +67,7 @@ namespace SyntenyFinder
 		}
 		else
 		{
-			maxId = EnumerateBifurcationsSArray(rawSeq_, k, bifurcation[0], bifurcation[1]);
+			maxId = EnumerateBifurcationsSArray(rawSeq_, k, tempDir_, bifurcation[0], bifurcation[1]);
 		}
 
 		bifStorage.reset(new BifurcationStorage(maxId));
@@ -84,7 +84,10 @@ namespace SyntenyFinder
 		std::auto_ptr<DNASequence> sequence;
 		std::auto_ptr<BifurcationStorage> bifStorage;
 		ConstructIndex(sequence, bifStorage, k, true);
+	//	std::cerr << "K = " << k << ", MinBranchSize = " << minBranchSize << std::endl;
 		SimplifyGraph(*sequence, *bifStorage, k, minBranchSize, maxIterations, f);
+	//	std::cerr << DELIMITER << std::endl;
+
 		for(size_t chr = 0; chr < sequence->ChrNumber(); chr++)
 		{
 			originalPos_[chr].clear();
@@ -96,5 +99,6 @@ namespace SyntenyFinder
 				originalPos_[chr].push_back(static_cast<Pos>(it.GetOriginalPosition()));
 			}
 		}
+
 	}	
 }

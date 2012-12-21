@@ -9,6 +9,7 @@
 
 #include "resource.h"
 #include "blockfinder.h"
+#include "variantcalling/variant.h"
 
 namespace SyntenyFinder
 {	
@@ -23,7 +24,7 @@ namespace SyntenyFinder
 		void ListBlocksIndices(const std::string & fileName) const;
 		void ListBlocksSequences(const std::string & fileName) const;		
 		void ListChromosomesAsPermutations(const std::string & fileName) const;
-		void OutputBuffer(const std::string & fileName, const std::string & buffer) const;
+		void OutputBuffer(const std::string & fileName, const std::string & buffer) const;		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(OutputGenerator);
 		const ChrList & chrList_;
