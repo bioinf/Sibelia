@@ -85,14 +85,11 @@ namespace SyntenyFinder
 
 	void BlockFinder::SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f)
 	{
-		std::auto_ptr<DNASequence> sequence;
-		std::auto_ptr<BifurcationStorage> bifStorage;
-		ConstructIndex(sequence, bifStorage, k);
-
+		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_);
 		out << "digraph G" << std::endl << "{" << std::endl;
 		out << "rankdir=LR" << std::endl;
 		std::vector<Edge> edge;
-		ListEdges(*sequence, *bifStorage, k, edge);
+		ListEdges(iseq.Sequence(), iseq.BifStorage(), k, edge);
 		for(size_t i = 0; i < edge.size(); i++)
 		{
 			char buf[1 << 8];

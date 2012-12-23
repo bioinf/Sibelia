@@ -137,24 +137,7 @@ namespace SyntenyFinder
 
 			std::sort(visit.begin(), visit.end());
 		}
-
-		void SpellBulges(const DNASequence & sequence, size_t k,
-			size_t bifStart,
-			size_t bifEnd,
-			const std::vector<StrandIterator> & startKMer,
-			const std::vector<VisitData> & visitData)
-		{
-			static size_t bulge = 0;
-			std::cerr << "Bulge #" << bulge++ << ", " << "(" << bifStart << ", " << bifEnd << ")" << std::endl;
-			for(size_t i = 0; i < visitData.size(); i++)
-			{
-				std::cerr << "Branch #" << i << ", size = " << visitData[i].distance + k << ":" << std::endl;			
-				BlockFinder::PrintPath(sequence, startKMer[visitData[i].kmerId], k, visitData[i].distance, std::cerr);
-			}
-
-			std::cerr << DELIMITER << std::endl;
-		}
-
+		
 		bool AnyBulges(DNASequence & sequence,
 			BifurcationStorage & bifStorage,
 			size_t k,
@@ -196,9 +179,24 @@ namespace SyntenyFinder
 
 			return false;
 		}
-
-
 	}
+
+	void BlockFinder::SpellBulges(const DNASequence & sequence, size_t k,
+			size_t bifStart,
+			size_t bifEnd,
+			const std::vector<StrandIterator> & startKMer,
+			const std::vector<VisitData> & visitData)
+		{
+			static size_t bulge = 0;
+			std::cerr << "Bulge #" << bulge++ << ", " << "(" << bifStart << ", " << bifEnd << ")" << std::endl;
+			for(size_t i = 0; i < visitData.size(); i++)
+			{
+				std::cerr << "Branch #" << i << ", size = " << visitData[i].distance + k << ":" << std::endl;			
+				BlockFinder::PrintPath(sequence, startKMer[visitData[i].kmerId], k, visitData[i].distance, std::cerr);
+			}
+
+			std::cerr << DELIMITER << std::endl;
+		}
 
 	void BlockFinder::UpdateBifurcations(DNASequence & sequence,
 			BifurcationStorage & bifStorage,
@@ -263,7 +261,7 @@ namespace SyntenyFinder
 		std::cerr << "Target branch: " << std::endl;			
 		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
 		bifStorage.Dump(sequence, k, std::cerr);
-		Test(sequence, bifStorage, k);
+		iseq_->Test();
 	#endif
 		std::vector<std::pair<size_t, size_t> > lookForward;
 		std::vector<std::pair<size_t, size_t> > lookBack;
@@ -277,9 +275,6 @@ namespace SyntenyFinder
 			boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(bifStorage), _1, _2),
 			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
 		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
-
-	//	std::cerr << sourceData.distance << ' ' << targetData.distance << std::endl;
-
 	#ifdef _DEBUG		
 		std::cerr << "After: " << std::endl;
 		BlockFinder::PrintRaw(sequence, std::cerr);
@@ -288,7 +283,7 @@ namespace SyntenyFinder
 		std::cerr << "Target branch: " << std::endl;			
 		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
 		bifStorage.Dump(sequence, k, std::cerr);
-		Test(sequence, bifStorage, k);		
+		iseq_->Test();	
 		std::cerr << DELIMITER << std::endl;		
 	#endif
 	}		

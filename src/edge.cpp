@@ -32,7 +32,7 @@ namespace SyntenyFinder
 		return a.GetOriginalLength() < k;
 	}
 
-	bool BlockFinder::EdgeCompare(const Edge & a, const Edge & b)
+	bool BlockFinder::CompareEdgesNaturally(const Edge & a, const Edge & b)
 	{
 		return EdgeToVector(a) < EdgeToVector(b);
 	}

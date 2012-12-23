@@ -141,7 +141,7 @@ namespace SyntenyFinder
 			*it = BlockInstance(static_cast<int>(newId) * sign, &it->GetChrInstance(), it->GetStart(), it->GetEnd());
 		}
 	}
-
+	/*
 	//To be refactored
 	bool BlockFinder::TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize)
 	{				
@@ -223,42 +223,25 @@ namespace SyntenyFinder
 			}
 		}
 
-		/*
-		if(drop)
-		{
-			for(size_t chr = 0; chr < sequence->ChrNumber(); chr++)
-			{
-				std::cerr << ">" << chr << '_' << malform << std::endl;
-				StrandIterator begin = sequence->Begin(block[chr].GetDirection(), chr);
-				StrandIterator end = sequence->End(block[chr].GetDirection(), chr);
-				std::copy(begin, end, std::ostream_iterator<char>(std::cerr));
-				std::cerr << std::endl;
-			}
-
-			++malform;
-		}*/
-
 		block.swap(ret);
 		return drop;
-	}
+	}*/
 
 	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration)
 	{
 		std::vector<Edge> edge;
 		std::vector<std::set<size_t> > visit;
 		{
-			std::auto_ptr<DNASequence> sequence;
-			std::auto_ptr<BifurcationStorage> bifStorage;
-			ConstructIndex(sequence, bifStorage, k);
-			BlockFinder::ListEdges(*sequence, *bifStorage, k, edge);
-			visit.resize(sequence->ChrNumber());
+			IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_);
+			ListEdges(iseq.Sequence(), iseq.BifStorage(), k, edge);
+			visit.resize(iseq.Sequence().ChrNumber());
 		}
 		
 		block.clear();
 		int blockCount = 1;
 		edge.erase(std::remove_if(edge.begin(), edge.end(), boost::bind(EdgeEmpty, _1, minSize)), edge.end());
 		std::vector<std::pair<size_t, size_t> > group;
-		GroupBy(edge, EdgeCompare, std::back_inserter(group));
+		GroupBy(edge, CompareEdgesNaturally, std::back_inserter(group));
 		EdgeGroupComparer groupComparer(&edge);
 		std::sort(group.begin(), group.end(), groupComparer);
 
@@ -283,7 +266,7 @@ namespace SyntenyFinder
 				}
 			}
 
-			while(TrimBlocks(nowBlock, trimK, minSize));
+			//while(TrimBlocks(nowBlock, trimK, minSize));
 			for(size_t nowEdge = 0; nowEdge < nowBlock.size(); nowEdge++)
 			{
 				occur[nowBlock[nowEdge].GetChr()]++;				

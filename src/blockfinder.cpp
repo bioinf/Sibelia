@@ -7,16 +7,57 @@
 #include "blockfinder.h"
 
 namespace SyntenyFinder
-{	
+{
+	namespace
+	{
+		const size_t PROGRESS_STRIDE = 50;
+	}
+
+	size_t BlockFinder::SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
+	{
+		size_t count = 0;
+		size_t totalBulges = 0;
+		size_t iterations = 0;
+		size_t totalProgress = 0;
+		bool anyChanges = true;
+		if(!callBack.empty())
+		{
+			callBack(totalProgress, start);
+		}
+
+		size_t threshold = (bifStorage.GetMaxId() * maxIterations) / PROGRESS_STRIDE;
+		do
+		{
+			iterations++;
+			for(size_t id = 0; id < bifStorage.GetMaxId(); id++)
+			{			
+				totalBulges += RemoveBulges(sequence, bifStorage, k, minBranchSize, id);
+				if(++count >= threshold && !callBack.empty())
+				{
+					count = 0;
+					totalProgress = std::min(totalProgress + 1, PROGRESS_STRIDE);
+					callBack(totalProgress, run);
+				}
+			}
+		}
+		while((totalBulges > 0) && iterations < maxIterations);
+
+		if(!callBack.empty())
+		{
+			callBack(PROGRESS_STRIDE, end);
+		}
+		
+		return totalBulges;
+	}
 	
 	BlockFinder::BlockFinder(const std::vector<FASTARecord> & chrList):
-		originalChrList_(&chrList), inRAM_(true)
+		originalChrList_(&chrList)
 	{
 		Init(chrList);
 	}
 
 	BlockFinder::BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir):
-		originalChrList_(&chrList), tempDir_(tempDir), inRAM_(false)
+		originalChrList_(&chrList), tempDir_(tempDir)
 	{
 		Init(chrList);
 	}
@@ -36,64 +77,19 @@ namespace SyntenyFinder
 		}
 	}
 
-	void BlockFinder::ConstructBifStorage(const DNASequence & sequence, const std::vector<std::vector<BifurcationInstance> > & bifurcation, BifurcationStorage & bifStorage)
-	{
-		for(size_t strand = 0; strand < 2; strand++)
-		{
-			size_t nowBif = 0;
-			DNASequence::Direction dir = static_cast<DNASequence::Direction>(strand);
-			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
-			{
-				size_t pos = 0;
-				StrandIterator end = sequence.End(dir, chr);
-				for(DNASequence::StrandIterator it = sequence.Begin(dir, chr); it != end; ++it, ++pos)
-				{
-					if(nowBif < bifurcation[strand].size() && chr == bifurcation[strand][nowBif].chr && pos == bifurcation[strand][nowBif].pos)
-					{
-						bifStorage.AddPoint(it, bifurcation[strand][nowBif++].bifId);
-					}
-				}
-			}
-		}
-	}
-
-	void BlockFinder::ConstructIndex(std::auto_ptr<DNASequence> & sequence, std::auto_ptr<BifurcationStorage> & bifStorage, size_t k, bool clear)
-	{
-		size_t maxId;
-		std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
-		if(inRAM_)
-		{
-			maxId = EnumerateBifurcationsSArrayInRAM(rawSeq_, k, bifurcation[0], bifurcation[1]);
-		}
-		else
-		{
-			maxId = EnumerateBifurcationsSArray(rawSeq_, k, tempDir_, bifurcation[0], bifurcation[1]);
-		}
-
-		bifStorage.reset(new BifurcationStorage(maxId));
-		sequence.reset(new DNASequence(rawSeq_, originalPos_, clear));
-		ConstructBifStorage(*sequence, bifurcation, *bifStorage);
-
-	#ifdef _DEBUG
-		bifStorage->FormDictionary(idMap, k);
-	#endif
-	}
-
 	void BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
 	{
-		std::auto_ptr<DNASequence> sequence;
-		std::auto_ptr<BifurcationStorage> bifStorage;
-		ConstructIndex(sequence, bifStorage, k, true);
-	//	std::cerr << "K = " << k << ", MinBranchSize = " << minBranchSize << std::endl;
-		SimplifyGraph(*sequence, *bifStorage, k, minBranchSize, maxIterations, f);
-	//	std::cerr << DELIMITER << std::endl;
-
-		for(size_t chr = 0; chr < sequence->ChrNumber(); chr++)
+		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_, true);
+		DNASequence & sequence = iseq.Sequence();
+		iseq_ = &iseq;
+		BifurcationStorage & bifStorage = iseq.BifStorage();		
+		SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
+		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
 			originalPos_[chr].clear();
 			rawSeq_[chr].clear();
-			StrandIterator end = sequence->PositiveEnd(chr);
-			for(StrandIterator it = sequence->PositiveBegin(chr); it != end; ++it)
+			StrandIterator end = sequence.PositiveEnd(chr);
+			for(StrandIterator it = sequence.PositiveBegin(chr); it != end; ++it)
 			{
 				rawSeq_[chr].push_back(*it);
 				originalPos_[chr].push_back(static_cast<Pos>(it.GetOriginalPosition()));

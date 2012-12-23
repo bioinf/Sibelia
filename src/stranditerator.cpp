@@ -18,7 +18,6 @@ namespace SyntenyFinder
 	
 	Size DNASequence::StrandIterator::PositionMask()
 	{
-
 		uint64 numBits = 8 * sizeof(Size) - 1;
 		uint64 allBitsMask = (ONE << numBits) - ONE;
 		uint64 infoBitsMask = (ONE << uint64(INFO_BITS)) - ONE;

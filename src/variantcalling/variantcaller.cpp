@@ -10,7 +10,7 @@
 #undef max
 
 namespace SyntenyFinder
-{
+{/*
 	namespace 
 	{
 		bool StrandIteratorGEqual(StrandIterator a, StrandIterator b)
@@ -55,8 +55,18 @@ namespace SyntenyFinder
 		std::string buf2(assemblyBegin, assemblyEnd);
 		TSequence seq1(buf1);
 		TSequence seq2(buf2);
+		std::cerr << buf1 << std::endl << buf2 << std::endl << std::endl;
+		if(buf1.size() == 0 || buf2.size() == 0)
+		{
+			if(buf1.size() + buf2.size() > 0)
+			{
+				variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), buf1, buf2));
+			}
 
-		if(buf1.size() * buf2.size() > 1E5 || buf1.size() == 0 || buf2.size() == 0)
+			return;
+		}
+
+		if(buf1.size() * buf2.size() > 1E5)
 		{
 			return;
 		}		
@@ -137,12 +147,12 @@ namespace SyntenyFinder
 		std::auto_ptr<BifurcationStorage> bifStorage;
 		{
 			std::vector<std::vector<BlockFinder::BifurcationInstance> > bifurcation(2);	
-			size_t maxId = BlockFinder::EnumerateBifurcationsSArrayInRAM(blockSeq, trimK_, bifurcation[0], bifurcation[1]);
+			size_t maxId = BlockFinder::EnumerateBifurcationsSArray(blockSeq, trimK_, ".", bifurcation[0], bifurcation[1]);
 			bifStorage.reset(new BifurcationStorage(maxId));
 			sequence.reset(new DNASequence(blockSeq, chrPos, true));
 			BlockFinder::ConstructBifStorage(*sequence, bifurcation, *bifStorage);
 		}
-
+		bifStorage->Dump(*sequence, trimK_, std::cerr);
 		size_t refChr = 0;
 		IteratorProxyVector startKMer;
 		StrandIterator referenceStart = sequence->Begin(reference.GetDirection(), 0);
@@ -150,11 +160,12 @@ namespace SyntenyFinder
 		StrandIterator assemblyStart = sequence->Begin(reference.GetDirection(), 1);
 		StrandIterator assemblyEnd = sequence->End(reference.GetDirection(), 1);
 		while(referenceStart != referenceEnd)
-		{
+		{		
 			size_t minSum = oo;
 			StrandIterator nextAssemblyStart = assemblyStart;
 			StrandIterator nextReferenceStart = referenceStart;
 			StrandIterator referenceProbe = referenceStart;
+			std::cout << referenceStart.GetOriginalPosition() << std::endl;
 			for(size_t referenceStep = 0; referenceProbe != referenceEnd && referenceStep < minSum; ++referenceProbe, ++referenceStep)
 			{
 				size_t bifId = bifStorage->GetBifurcation(referenceProbe);
@@ -205,7 +216,7 @@ namespace SyntenyFinder
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{
 			size_t inReference = 0;
-			size_t inAssembly = 0;std::cout << it - group.begin() << std::endl;
+			size_t inAssembly = 0;
 			for(size_t i = it->first; i < it->second; i++)
 			{
 				inReference += blockList_[i].GetChrId() == refSeqId_ ? 1 : 0;
@@ -224,5 +235,5 @@ namespace SyntenyFinder
 		}
 
 		std::sort(variantList.begin(), variantList.end());
-	}
+	}*/
 }

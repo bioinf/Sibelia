@@ -9,7 +9,7 @@
 #include "variantcalling/variantcaller.h"
 
 int main(int argc, char * argv[])
-{	
+{	/*
 	signal(SIGINT, SignalHandler);
 	signal(SIGABRT, SignalHandler);	
 	signal(SIGTERM, SignalHandler);
@@ -55,6 +55,14 @@ int main(int argc, char * argv[])
 			false,
 			5000,
 			"integer",
+			cmd);
+
+		TCLAP::ValueArg<std::string> outFileDir("o",
+			"outdir",
+			"Directory where output files are written",
+			false,
+			".",
+			"dir name",
 			cmd);
 		
 		TCLAP::ValueArg<std::string> referenceFile("r",
@@ -130,28 +138,27 @@ int main(int argc, char * argv[])
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		finder.GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), blockList, false, PutProgressChr);
 		size_t refSeqId = chrList[0].GetId();
-
+		
 		std::vector<SyntenyFinder::Variant> variant;
 		SyntenyFinder::VariantCaller caller(refSeqId, blockList, trimK);
-		caller.CallVariants(variant);
+	//	caller.CallVariants(variant);
 
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
-		std::string outFileDir = "output";
-		SyntenyFinder::CreateDirectory(outFileDir);
-		const std::string defaultCoordsFile = outFileDir + "/block_coords.txt";
-		const std::string defaultPermutationsFile = outFileDir + "/genomes_permutations.txt";
-		const std::string defaultCoverageReportFile = outFileDir + "/coverage_report.txt";
-		const std::string defaultSequencesFile = outFileDir + "/blocks_sequences.fasta";
-		const std::string defaultGraphFile = outFileDir + "/de_bruijn_graph.dot";
-		const std::string defaultVariantFile = outFileDir + "/variant.txt";
+		SyntenyFinder::CreateDirectory(outFileDir.getValue());
+		const std::string defaultCoordsFile = outFileDir.getValue() + "/block_coords.txt";
+		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
+		const std::string defaultCoverageReportFile = outFileDir.getValue() + "/coverage_report.txt";
+		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";
+		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
 
-		const std::string defaultCircosDir = outFileDir + "/circos";
+		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
-		const std::string defaultD3File = outFileDir + "/d3_blocks_diagram.html";		
+		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
+		const std::string defaultVariantFile = outFileDir.getValue() + "/variant.txt";
+
 
 		std::string buf;
 		std::ofstream variantFile(defaultVariantFile.c_str());
-		//variantFile << "POS\tREF\tALT" << std::endl;
 		for(size_t i = 0; i < variant.size(); i++)
 		{
 			variant[i].ToString(buf);
@@ -172,7 +179,11 @@ int main(int argc, char * argv[])
 		for(size_t i = 0; i < length; i++)
 		{
 			outFunction[i]();
-		}		
+		}
+
+		std::stringstream buffer;
+		finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);
+		generator.OutputBuffer(defaultGraphFile, buffer.str());
 	} 
 	catch (TCLAP::ArgException &e)
 	{
@@ -186,6 +197,6 @@ int main(int argc, char * argv[])
 	{
 		SyntenyFinder::TempFile::Cleanup();
 	}
-
+	*/
 	return 0;
 }
