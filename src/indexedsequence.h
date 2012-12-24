@@ -24,12 +24,19 @@ namespace SyntenyFinder
 		const DNASequence& Sequence() const;
 		BifurcationStorage& BifStorage();
 		const BifurcationStorage& BifStorage() const;
+		void ConstructChrIndex();
+		size_t GetChr(StrandIterator it) const;
+		IndexedSequence(const std::vector<std::string> & record, size_t k, const std::string & tempDir);
 		IndexedSequence(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & original, size_t k, const std::string & tempDir, bool clear = false);
+		static bool StrandIteratorPosGEqual(StrandIterator a, StrandIterator b);		
+		static size_t StrandIteratorDistance(StrandIterator start, StrandIterator end);		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(IndexedSequence);
+		typedef std::pair<StrandIterator, size_t> IteratorChrPair;
 		size_t k_;
 		std::auto_ptr<DNASequence> sequence_;
 		std::auto_ptr<BifurcationStorage> bifStorage_;
+		std::vector<IteratorChrPair> chrIndex_;		
 
 		struct IteratorHash
 		{
@@ -61,6 +68,7 @@ namespace SyntenyFinder
 		};
 
 		size_t GetMustBeBifurcation(StrandIterator it);
+		void Init(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & original, size_t k, const std::string & tempDir, bool clear);
 		size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, const std::string & tempDir, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
 		size_t EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);				
 	};

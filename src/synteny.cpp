@@ -141,91 +141,97 @@ namespace SyntenyFinder
 			*it = BlockInstance(static_cast<int>(newId) * sign, &it->GetChrInstance(), it->GetStart(), it->GetEnd());
 		}
 	}
-	/*
-	//To be refactored
+	
 	bool BlockFinder::TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize)
 	{				
 		size_t pos = 0;
-		bool drop = false;
-		std::vector<size_t> chrStart(block.size());
-		std::vector<std::string> blockSeq(block.size());
-		std::vector<std::vector<Pos> > chrPos(block.size());
+		bool drop = false;		
+		std::vector<std::string> blockSeq(block.size());		
 		for(size_t i = 0; i < block.size(); i++)
 		{
 			std::string::const_iterator begin = (*originalChrList_)[block[i].GetChr()].GetSequence().begin();
 			blockSeq[i].assign(begin + block[i].GetOriginalPosition(), begin + block[i].GetOriginalPosition() + block[i].GetOriginalLength());
-			for(size_t j = 0; j < blockSeq[i].size(); j++)
-			{
-				chrPos[i].push_back(static_cast<Pos>(pos++));
-			}
-
-			chrStart[i] = chrPos[i][0];
 		}
 		
 		const size_t oo = UINT_MAX;
 		IteratorProxyVector startKMer;
-		std::auto_ptr<DNASequence> sequence;
-		std::auto_ptr<BifurcationStorage> bifStorage;
-		{
-			std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
-			size_t maxId = EnumerateBifurcationsSArrayInRAM(blockSeq, trimK, bifurcation[0], bifurcation[1]);
-			bifStorage.reset(new BifurcationStorage(maxId));
-			sequence.reset(new DNASequence(blockSeq, chrPos, true));
-			ConstructBifStorage(*sequence, bifurcation, *bifStorage);
-		}
+		IndexedSequence iseq(blockSeq, trimK, "");
+		DNASequence & sequence = iseq.Sequence();
+		BifurcationStorage & bifStorage = iseq.BifStorage();		
+		iseq.ConstructChrIndex();
 
 		std::vector<Edge> ret;
-		static size_t malform = 0;
 		for(size_t chr = 0; chr < block.size(); chr++)
 		{
-			StrandIterator begin = sequence->Begin(block[chr].GetDirection(), chr);
-			StrandIterator end = sequence->End(block[chr].GetDirection(), chr);
-			size_t trimStart = oo;
-			size_t trimEnd = 0;
-			for(size_t step = 0; begin != end; ++begin, ++step)
+			StrandIterator begin = sequence.Begin(block[chr].GetDirection(), chr);
+			StrandIterator end = sequence.End(block[chr].GetDirection(), chr);
+			StrandIterator trimStart = end;
+			StrandIterator trimEnd = end;
+			size_t minStartSum = oo;			
+			size_t minEndSum = oo;
+			for(StrandIterator it = begin; it != end; ++it)
 			{												
-				size_t bifId = bifStorage->GetBifurcation(begin);
+				size_t bifId = bifStorage.GetBifurcation(it);
 				if(bifId != BifurcationStorage::NO_BIFURCATION)
 				{
 					startKMer.clear();
-					bifStorage->ListPositions(bifId, std::back_inserter(startKMer));
+					bifStorage.ListPositions(bifId, std::back_inserter(startKMer));
 					for(size_t pos = 0; pos < startKMer.size(); pos++)
-					{
-						StrandIterator kmer = *startKMer[pos];
-						size_t bifChr = std::upper_bound(chrStart.begin(), chrStart.end(), kmer.GetOriginalPosition()) - chrStart.begin() - 1;
-						if(chr != bifChr)
+					{                                                  //0      30
+						StrandIterator kmer = *startKMer[pos];         //A       B   0              30
+						size_t kmerChr = iseq.GetChr(kmer);            //            B               A
+						if(chr != kmerChr)
 						{
-							trimStart = std::min(trimStart, step);
-							trimEnd = std::max(trimEnd, step);
+							StrandIterator kmerChrStart = sequence.Begin(block[kmerChr].GetDirection(), kmerChr);
+							StrandIterator kmerChrEnd = sequence.End(block[kmerChr].GetDirection(), kmerChr);
+							size_t kmerStartDist = IndexedSequence::StrandIteratorDistance(kmer, kmerChrStart);
+							size_t kmerEndDist = IndexedSequence::StrandIteratorDistance(kmer, AdvanceBackward(kmerChrEnd, 1));
+							size_t table = kmerChrEnd.GetOriginalPosition();
+							size_t itStartDist = IndexedSequence::StrandIteratorDistance(it, begin);
+							size_t itEndDist = IndexedSequence::StrandIteratorDistance(it, AdvanceBackward(end, 1));
+							size_t nowStartSum = kmerStartDist + itStartDist;
+							size_t nowEndSum = kmerEndDist + itEndDist;
+							if(nowStartSum < minStartSum)
+							{
+								minStartSum = nowStartSum;
+								trimStart = it;
+							}              
+							
+							if(nowEndSum < minEndSum)
+							{
+								minEndSum = nowEndSum;
+								trimEnd = it;
+							}
 						}
 					}
 				}
 			}
-
-			trimEnd += trimK - 1;
-			if(trimEnd - trimStart + 1 >= minSize && trimEnd != 0 && trimStart != oo)
+			
+			if(minStartSum < oo && minEndSum < oo)
 			{
-				if(block[chr].GetDirection() == DNASequence::negative)
+				size_t size = IndexedSequence::StrandIteratorDistance(trimStart, trimEnd) + trimK;
+				if(size >= minSize)
 				{
-					size_t oldTrimEnd = trimEnd;
-					trimEnd = blockSeq[chr].size() - 1 - trimStart;
-					trimStart = blockSeq[chr].size() - 1 - oldTrimEnd;
+					std::advance(trimEnd, trimK - 1);
+					size_t start = block[chr].GetOriginalPosition() + std::min(trimStart.GetOriginalPosition(), trimEnd.GetOriginalPosition());
+					size_t end = block[chr].GetOriginalPosition() + std::max(trimStart.GetOriginalPosition(), trimEnd.GetOriginalPosition()) + 1;
+					ret.push_back(Edge(block[chr].GetChr(), block[chr].GetDirection(), block[chr].GetStartVertex(), block[chr].GetEndVertex(),
+						block[chr].GetOriginalPosition(), block[chr].GetOriginalLength(), start, end - start, block[chr].GetFirstChar()));
+					if(end - start > block[chr].GetOriginalLength())
+					{
+						std::cout << end - start << std::endl;
+					}
 				}
-
-				size_t start = block[chr].GetOriginalPosition() + trimStart;
-				size_t end = block[chr].GetOriginalPosition() + trimEnd + 1;
-				ret.push_back(Edge(block[chr].GetChr(), block[chr].GetDirection(), block[chr].GetStartVertex(), block[chr].GetEndVertex(),
-					block[chr].GetOriginalPosition(), block[chr].GetOriginalLength(), start, end - start, block[chr].GetFirstChar()));
 			}
 			else
 			{
 				drop = true;
 			}
 		}
-
+		
 		block.swap(ret);
 		return drop;
-	}*/
+	}
 
 	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration)
 	{
@@ -244,7 +250,6 @@ namespace SyntenyFinder
 		GroupBy(edge, CompareEdgesNaturally, std::back_inserter(group));
 		EdgeGroupComparer groupComparer(&edge);
 		std::sort(group.begin(), group.end(), groupComparer);
-
 		for(size_t g = 0; g < group.size(); g++)
 		{
 			size_t firstEdge = group[g].first;
@@ -266,7 +271,7 @@ namespace SyntenyFinder
 				}
 			}
 
-			//while(TrimBlocks(nowBlock, trimK, minSize));
+			while(TrimBlocks(nowBlock, trimK, minSize));
 			for(size_t nowEdge = 0; nowEdge < nowBlock.size(); nowEdge++)
 			{
 				occur[nowBlock[nowEdge].GetChr()]++;				
@@ -286,7 +291,7 @@ namespace SyntenyFinder
 			}
 		}
 
-		GlueStripes(block);
+//		GlueStripes(block);
 		std::sort(block.begin(), block.end(), CompareBlocksNaturally);
 	}
 }

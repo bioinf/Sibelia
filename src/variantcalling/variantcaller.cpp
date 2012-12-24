@@ -10,30 +10,10 @@
 #undef max
 
 namespace SyntenyFinder
-{/*
+{
 	namespace 
 	{
-		bool StrandIteratorGEqual(StrandIterator a, StrandIterator b)
-		{
-			if(a.GetDirection() == DNASequence::positive && b.GetDirection() == DNASequence::positive)
-			{
-				return a.GetOriginalPosition() >= b.GetOriginalPosition();
-			}
-
-			if(a.GetDirection() == DNASequence::negative && b.GetDirection() == DNASequence::negative)
-			{
-				return a.GetOriginalPosition() <= b.GetOriginalPosition();
-			}
-
-			return false;
-		}
-
-		size_t StrandIteratorDistance(StrandIterator start, StrandIterator end)
-		{
-			size_t min = std::min(start.GetOriginalPosition(), end.GetOriginalPosition());
-			size_t max = std::max(start.GetOriginalPosition(), end.GetOriginalPosition());
-			return max - min;
-		}
+	
 	}
 
 	VariantCaller::VariantCaller(size_t refSeqId, const std::vector<BlockInstance> & blockList, size_t trimK):
@@ -122,9 +102,8 @@ namespace SyntenyFinder
 
 	}
 
-	//To be refactored, code duplication with BlockFinder::GenerateSyntenyBlocks
 	void VariantCaller::AlignSyntenyBlocks(const BlockInstance & reference, const BlockInstance & assembly, std::vector<Variant> & variantList) const
-	{
+	{/*
 		size_t pos = reference.GetStart();
 		std::vector<size_t> chrStart(2);
 		std::vector<std::string> blockSeq(2);
@@ -205,7 +184,7 @@ namespace SyntenyFinder
 				++referenceStart;
 				++assemblyStart;
 			}
-		}
+		}*/
 	}
 
 	void VariantCaller::CallVariants(std::vector<Variant> & variantList) const
@@ -235,5 +214,5 @@ namespace SyntenyFinder
 		}
 
 		std::sort(variantList.begin(), variantList.end());
-	}*/
+	}
 }

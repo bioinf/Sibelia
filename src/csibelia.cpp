@@ -9,7 +9,7 @@
 #include "variantcalling/variantcaller.h"
 
 int main(int argc, char * argv[])
-{	/*
+{	
 	signal(SIGINT, SignalHandler);
 	signal(SIGABRT, SignalHandler);	
 	signal(SIGTERM, SignalHandler);
@@ -197,6 +197,6 @@ int main(int argc, char * argv[])
 	{
 		SyntenyFinder::TempFile::Cleanup();
 	}
-	*/
+	
 	return 0;
 }

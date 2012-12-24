@@ -70,18 +70,15 @@ namespace SyntenyFinder
 		{
 			rawSeq_[i] = chrList[i].GetSequence();
 			originalPos_[i].resize(chrList[i].GetSequence().size());
-			for(size_t j = 0; j < originalPos_[i].size(); j++)
-			{
-				originalPos_[i][j] = static_cast<Pos>(j);
-			}
+			std::generate(originalPos_[i].begin(), originalPos_[i].end(), Counter<Pos>());
 		}
 	}
 
 	void BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
 	{
 		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_, true);
-		DNASequence & sequence = iseq.Sequence();
 		iseq_ = &iseq;
+		DNASequence & sequence = iseq.Sequence();
 		BifurcationStorage & bifStorage = iseq.BifStorage();		
 		SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)

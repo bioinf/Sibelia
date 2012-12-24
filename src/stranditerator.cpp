@@ -97,12 +97,7 @@ namespace SyntenyFinder
 
 	bool DNASequence::StrandIterator::operator < (const StrandIterator & toCompare) const
 	{
-		if(GetDirection() == toCompare.GetDirection())
-		{
-			return GetElementId() < toCompare.GetElementId();
-		}
-
-		return GetDirection() == positive;
+		return GetElementId() < toCompare.GetElementId();
 	}
 
 	bool DNASequence::StrandIterator::operator == (const StrandIterator & toCompare) const

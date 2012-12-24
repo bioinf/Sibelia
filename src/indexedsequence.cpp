@@ -10,6 +10,23 @@ namespace SyntenyFinder
 {
 	IndexedSequence::IndexedSequence(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & originalPos, size_t k, const std::string & tempDir, bool clear): k_(k)
 	{
+		Init(record, originalPos, k, tempDir, clear);
+	}
+
+	IndexedSequence::IndexedSequence(const std::vector<std::string> & record, size_t k, const std::string & tempDir): k_(k)
+	{
+		std::vector<std::vector<Pos> > originalPos(record.size());
+		for(size_t i = 0; i < originalPos.size(); i++)
+		{
+			originalPos[i].resize(record[i].size());
+			std::generate(originalPos[i].begin(), originalPos[i].end(), Counter<Pos>());
+		}
+
+		Init(record, originalPos, k, tempDir, false);
+	}
+
+	void IndexedSequence::Init(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & originalPos, size_t k, const std::string & tempDir, bool clear)
+	{
 		size_t maxId;
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
 		if(tempDir.size() == 0)
@@ -95,5 +112,49 @@ namespace SyntenyFinder
 	const BifurcationStorage& IndexedSequence::BifStorage() const
 	{
 		return *bifStorage_;
+	}
+
+	void IndexedSequence::ConstructChrIndex()
+	{
+		chrIndex_.clear();
+		for(size_t chr = 0; chr < sequence_->ChrNumber(); chr++)
+		{
+			StrandIterator end = sequence_->PositiveEnd(chr);
+			for(StrandIterator begin = sequence_->PositiveBegin(chr); begin != end; ++begin)
+			{
+				chrIndex_.push_back(std::make_pair(begin, chr));
+			}
+		}
+
+		std::sort(chrIndex_.begin(), chrIndex_.end());
+	}
+	
+	size_t IndexedSequence::GetChr(StrandIterator it) const
+	{
+		IteratorChrPair look(it, 0);
+		std::vector<IteratorChrPair>::const_iterator jt = std::lower_bound(chrIndex_.begin(), chrIndex_.end(), look);
+		return jt->second;
+	}
+
+	bool IndexedSequence::StrandIteratorPosGEqual(StrandIterator a, StrandIterator b)
+	{
+		if(a.GetDirection() == DNASequence::positive && b.GetDirection() == DNASequence::positive)
+		{
+			return a.GetOriginalPosition() >= b.GetOriginalPosition();
+		}
+
+		if(a.GetDirection() == DNASequence::negative && b.GetDirection() == DNASequence::negative)
+		{
+			return a.GetOriginalPosition() <= b.GetOriginalPosition();
+		}
+
+		return false;
+	}
+
+	size_t IndexedSequence::StrandIteratorDistance(StrandIterator start, StrandIterator end)
+	{
+		size_t min = std::min(start.GetOriginalPosition(), end.GetOriginalPosition());
+		size_t max = std::max(start.GetOriginalPosition(), end.GetOriginalPosition());
+		return max - min;
 	}
 }

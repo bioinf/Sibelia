@@ -157,6 +157,20 @@ namespace SyntenyFinder
 				*out++ = std::make_pair(prev, now);
 			}
 		}
+
+	template<class T>
+		struct Counter
+		{
+		public:
+			Counter(T state = 0): state_(state) {}
+			T operator ()()
+			{
+				return state_++;
+			}
+
+		private:
+			T state_;
+		};
 }
 
 #endif
