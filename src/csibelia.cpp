@@ -141,7 +141,7 @@ int main(int argc, char * argv[])
 		
 		std::vector<SyntenyFinder::Variant> variant;
 		SyntenyFinder::VariantCaller caller(refSeqId, blockList, trimK);
-	//	caller.CallVariants(variant);
+		caller.CallVariants(variant);
 
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());

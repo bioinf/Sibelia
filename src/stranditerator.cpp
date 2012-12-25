@@ -67,6 +67,10 @@ namespace SyntenyFinder
 		return complementary_[ch];
 	}
 
+	DNASequence::StrandIterator::StrandIterator()
+	{
+	}
+
 	DNASequence::StrandIterator::StrandIterator(const StrandIterator & toCopy):
 		it_(toCopy.it_), direction_(toCopy.direction_)
 	{

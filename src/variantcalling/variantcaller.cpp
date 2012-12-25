@@ -13,7 +13,55 @@ namespace SyntenyFinder
 {
 	namespace 
 	{
-	
+		const size_t oo = UINT_MAX;
+		bool NextVertex(IndexedSequence & iseq, StrandIterator & reference, StrandIterator referenceEnd, StrandIterator & assembly, StrandIterator assemblyEnd, bool strict)
+		{
+			size_t minSum = oo;						
+			IteratorProxyVector startKMer;
+			StrandIterator nowReference = reference;
+			StrandIterator nextReference = referenceEnd;
+			StrandIterator nextAssembly = assemblyEnd;	
+			size_t assemblyChr = iseq.GetChr(assembly);
+			for(size_t step = 0; step < minSum && nowReference.AtValidPosition(); ++nowReference)
+			{
+				size_t bifId = iseq.BifStorage().GetBifurcation(nowReference);
+				if(bifId != BifurcationStorage::NO_BIFURCATION)
+				{
+					startKMer.clear();
+					iseq.BifStorage().ListPositions(bifId, std::back_inserter(startKMer));
+					for(size_t i = 0; i < startKMer.size(); i++)
+					{
+						StrandIterator kmer = *startKMer[i];
+						if(iseq.GetChr(kmer) == assemblyChr && IndexedSequence::StrandIteratorPosGEqual(kmer, assembly))
+						{
+							size_t sum = step + IndexedSequence::StrandIteratorDistance(assembly, kmer);
+							if((sum > 0 || !strict) && sum < minSum)
+							{
+								nextReference = nowReference;
+								nextAssembly = kmer;
+								minSum = sum;
+							}
+						}
+					}
+				}				
+			}
+
+			reference = nextReference;
+			assembly = nextAssembly;
+			return minSum != oo;
+		}
+
+		size_t Traverse(StrandIterator reference, StrandIterator assembly)
+		{
+			size_t ret = 0;
+			for(;reference.AtValidPosition() && assembly.AtValidPosition() && *reference == *assembly; ++ret)
+			{
+				++reference;
+				++assembly;
+			}
+
+			return ret;
+		}
 	}
 
 	VariantCaller::VariantCaller(size_t refSeqId, const std::vector<BlockInstance> & blockList, size_t trimK):
@@ -34,8 +82,7 @@ namespace SyntenyFinder
 		std::string buf1(referenceBegin, referenceEnd);
 		std::string buf2(assemblyBegin, assemblyEnd);
 		TSequence seq1(buf1);
-		TSequence seq2(buf2);
-		std::cerr << buf1 << std::endl << buf2 << std::endl << std::endl;
+		TSequence seq2(buf2);		
 		if(buf1.size() == 0 || buf2.size() == 0)
 		{
 			if(buf1.size() + buf2.size() > 0)
@@ -46,7 +93,7 @@ namespace SyntenyFinder
 			return;
 		}
 
-		if(buf1.size() * buf2.size() > 1E5)
+		if(buf1.size() * buf2.size() > 1E6)
 		{
 			return;
 		}		
@@ -87,7 +134,7 @@ namespace SyntenyFinder
 					}
 					else if(isGap(it2))
 					{
-						++referenceBegin;
+						++referenceBegin;						
 						referenceAllele += *it1;
 					}
 					else
@@ -96,95 +143,51 @@ namespace SyntenyFinder
 					}
 				}
 
-				variantList.push_back(Variant(pos, variantAllele, referenceAllele));
+				variantList.push_back(Variant(pos, referenceAllele, variantAllele));
 			}
 		}
 
 	}
 
 	void VariantCaller::AlignSyntenyBlocks(const BlockInstance & reference, const BlockInstance & assembly, std::vector<Variant> & variantList) const
-	{/*
+	{
 		size_t pos = reference.GetStart();
-		std::vector<size_t> chrStart(2);
 		std::vector<std::string> blockSeq(2);
-		std::vector<std::vector<Pos> > chrPos(2);
+		std::vector<std::vector<Pos> > originalPos(2);
 		BlockInstance block[] = {reference, assembly};
 		for(size_t i = 0; i < 2; i++)
 		{
 			std::string::const_iterator begin = block[i].GetChrInstance().GetSequence().begin();
 			blockSeq[i].assign(begin + block[i].GetStart(), begin + block[i].GetEnd());
-			for(size_t j = 0; j < blockSeq[i].size(); j++)
-			{
-				chrPos[i].push_back(static_cast<Pos>(pos++));
-			}
-
-			chrStart[i] = chrPos[i][0];
+			originalPos[i].resize(block[i].GetEnd() - block[i].GetStart());
+			std::generate(originalPos[i].begin(), originalPos[i].end(), Counter<Pos>(static_cast<Pos>(block[i].GetStart())));
 		}
-		
-		const size_t oo = UINT_MAX;
-		std::auto_ptr<DNASequence> sequence;
-		std::auto_ptr<BifurcationStorage> bifStorage;
+
+		IndexedSequence iseq(blockSeq, originalPos, trimK_, "");
+		DNASequence & sequence = iseq.Sequence();
+		BifurcationStorage & bifStorage = iseq.BifStorage();
+		iseq.ConstructChrIndex();
+		StrandIterator referenceIt = sequence.Begin(reference.GetDirection(), 0);
+		StrandIterator referenceEnd = sequence.End(reference.GetDirection(), 0);
+		StrandIterator assemblyIt = sequence.Begin(assembly.GetDirection(), 1);
+		StrandIterator assemblyEnd = sequence.End(assembly.GetDirection(), 1);
+		if(NextVertex(iseq, referenceIt, referenceEnd, assemblyIt, assemblyEnd, false))
 		{
-			std::vector<std::vector<BlockFinder::BifurcationInstance> > bifurcation(2);	
-			size_t maxId = BlockFinder::EnumerateBifurcationsSArray(blockSeq, trimK_, ".", bifurcation[0], bifurcation[1]);
-			bifStorage.reset(new BifurcationStorage(maxId));
-			sequence.reset(new DNASequence(blockSeq, chrPos, true));
-			BlockFinder::ConstructBifStorage(*sequence, bifurcation, *bifStorage);
+			AlignBulgeBranches(sequence.Begin(reference.GetDirection(), 0), referenceIt,
+				sequence.Begin(assembly.GetDirection(), 1), assemblyIt, variantList);
+			while(referenceIt != referenceEnd)
+			{
+				size_t dist = Traverse(referenceIt, assemblyIt) - trimK_;
+				std::advance(referenceIt, dist);
+				std::advance(assemblyIt, dist);
+				StrandIterator nextReferenceIt = referenceIt;
+				StrandIterator nextAssemblyIt = assemblyIt;
+				NextVertex(iseq, nextReferenceIt, referenceEnd, nextAssemblyIt, assemblyEnd, true);
+				AlignBulgeBranches(referenceIt, nextReferenceIt, assemblyIt, nextAssemblyIt, variantList);
+				referenceIt = nextReferenceIt;
+				assemblyIt = nextAssemblyIt;
+			}
 		}
-		bifStorage->Dump(*sequence, trimK_, std::cerr);
-		size_t refChr = 0;
-		IteratorProxyVector startKMer;
-		StrandIterator referenceStart = sequence->Begin(reference.GetDirection(), 0);
-		StrandIterator referenceEnd = sequence->End(reference.GetDirection(), 0);
-		StrandIterator assemblyStart = sequence->Begin(reference.GetDirection(), 1);
-		StrandIterator assemblyEnd = sequence->End(reference.GetDirection(), 1);
-		while(referenceStart != referenceEnd)
-		{		
-			size_t minSum = oo;
-			StrandIterator nextAssemblyStart = assemblyStart;
-			StrandIterator nextReferenceStart = referenceStart;
-			StrandIterator referenceProbe = referenceStart;
-			std::cout << referenceStart.GetOriginalPosition() << std::endl;
-			for(size_t referenceStep = 0; referenceProbe != referenceEnd && referenceStep < minSum; ++referenceProbe, ++referenceStep)
-			{
-				size_t bifId = bifStorage->GetBifurcation(referenceProbe);
-				if(bifId != BifurcationStorage::NO_BIFURCATION)
-				{
-					startKMer.clear();
-					bifStorage->ListPositions(bifId, std::back_inserter(startKMer));
-					for(size_t pos = 0; pos < startKMer.size(); pos++)
-					{
-						StrandIterator kmer = *startKMer[pos];
-						size_t bifChr = std::upper_bound(chrStart.begin(), chrStart.end(), kmer.GetOriginalPosition()) - chrStart.begin() - 1;
-						if(bifChr != refChr)
-						{							
-							size_t assemblyStep = StrandIteratorDistance(kmer, assemblyStart);
-							if(assemblyStep + referenceStep < minSum && StrandIteratorGEqual(kmer, assemblyStart))
-							{								
-								nextAssemblyStart = kmer;
-								nextReferenceStart = referenceProbe;
-								minSum = assemblyStep + referenceStep;
-							}
-						}
-					}
-				}
-			}
-
-			if(minSum == oo)
-			{
-				nextAssemblyStart = assemblyEnd;
-				nextReferenceStart = referenceEnd;
-			}
-
-			AlignBulgeBranches(referenceStart, nextReferenceStart, assemblyStart, nextAssemblyStart, variantList);
-			referenceStart = nextReferenceStart;
-			assemblyStart = nextAssemblyStart;
-			while(referenceStart != referenceEnd && assemblyStart != assemblyEnd && *referenceStart == *assemblyStart)
-			{
-				++referenceStart;
-				++assemblyStart;
-			}
-		}*/
 	}
 
 	void VariantCaller::CallVariants(std::vector<Variant> & variantList) const

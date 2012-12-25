@@ -1,4 +1,4 @@
-//***************************************************************************
+//****************************************************************************
 //* Copyright (c) 2012 Saint-Petersburg Academic University
 //* All Rights Reserved
 //* See file LICENSE for details.
@@ -159,7 +159,6 @@ namespace SyntenyFinder
 		DNASequence & sequence = iseq.Sequence();
 		BifurcationStorage & bifStorage = iseq.BifStorage();		
 		iseq.ConstructChrIndex();
-
 		std::vector<Edge> ret;
 		for(size_t chr = 0; chr < block.size(); chr++)
 		{
@@ -177,16 +176,15 @@ namespace SyntenyFinder
 					startKMer.clear();
 					bifStorage.ListPositions(bifId, std::back_inserter(startKMer));
 					for(size_t pos = 0; pos < startKMer.size(); pos++)
-					{                                                  //0      30
-						StrandIterator kmer = *startKMer[pos];         //A       B   0              30
-						size_t kmerChr = iseq.GetChr(kmer);            //            B               A
+					{                                                  
+						StrandIterator kmer = *startKMer[pos];
+						size_t kmerChr = iseq.GetChr(kmer);
 						if(chr != kmerChr)
 						{
 							StrandIterator kmerChrStart = sequence.Begin(block[kmerChr].GetDirection(), kmerChr);
 							StrandIterator kmerChrEnd = sequence.End(block[kmerChr].GetDirection(), kmerChr);
 							size_t kmerStartDist = IndexedSequence::StrandIteratorDistance(kmer, kmerChrStart);
 							size_t kmerEndDist = IndexedSequence::StrandIteratorDistance(kmer, AdvanceBackward(kmerChrEnd, 1));
-							size_t table = kmerChrEnd.GetOriginalPosition();
 							size_t itStartDist = IndexedSequence::StrandIteratorDistance(it, begin);
 							size_t itEndDist = IndexedSequence::StrandIteratorDistance(it, AdvanceBackward(end, 1));
 							size_t nowStartSum = kmerStartDist + itStartDist;
@@ -291,7 +289,7 @@ namespace SyntenyFinder
 			}
 		}
 
-//		GlueStripes(block);
+		GlueStripes(block);
 		std::sort(block.begin(), block.end(), CompareBlocksNaturally);
 	}
 }
