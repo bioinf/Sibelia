@@ -82,12 +82,13 @@ namespace SyntenyFinder
 		std::string buf1(referenceBegin, referenceEnd);
 		std::string buf2(assemblyBegin, assemblyEnd);
 		TSequence seq1(buf1);
-		TSequence seq2(buf2);		
+		TSequence seq2(buf2);
+		bool collinear = referenceBegin.GetDirection() == assemblyBegin.GetDirection();
 		if(buf1.size() == 0 || buf2.size() == 0)
 		{
 			if(buf1.size() + buf2.size() > 0)
 			{
-				variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, buf1, buf2));
+				variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), collinear, blockId, buf1, buf2));
 			}
 
 			return;
@@ -114,7 +115,7 @@ namespace SyntenyFinder
 			{
 				if(*it1 != *it2)
 				{					
-					variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, std::string(1, *it1), std::string(1, *it2)));
+					variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, std::string(1, *it1), std::string(1, *it2)));
 				}
 
 				++referenceBegin;
@@ -143,7 +144,7 @@ namespace SyntenyFinder
 					}
 				}
 
-				variantList.push_back(Variant(pos, blockId, referenceAllele, variantAllele));
+				variantList.push_back(Variant(pos, blockId, collinear, referenceAllele, variantAllele));
 			}
 		}
 
@@ -184,9 +185,6 @@ namespace SyntenyFinder
 				StrandIterator nextAssemblyIt = assemblyIt;
 				NextVertex(iseq, nextReferenceIt, referenceEnd, nextAssemblyIt, assemblyEnd, true);
 				AlignBulgeBranches(reference.GetBlockId(), referenceIt, nextReferenceIt, assemblyIt, nextAssemblyIt, variantList);
-				std::cerr << referenceIt.GetOriginalPosition() << " - " << nextReferenceIt.GetOriginalPosition() << std::endl;
-				std::cerr << assemblyIt.GetOriginalPosition() << " - " << nextAssemblyIt.GetOriginalPosition() << std::endl;
-				std::cerr << "-------------------------" << std::endl;
 				referenceIt = nextReferenceIt;
 				assemblyIt = nextAssemblyIt;				
 			}

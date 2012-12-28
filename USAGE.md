@@ -96,7 +96,7 @@ All these files are described below in details.
 
 Blocks coordinates
 ------------------
-File name = "block_coords.txt".
+File name = "blocks_coords.txt".
 
 First part of this file lists input sequences, their IDs, sizes and 
 descriptions. IDs are just index numbers of sequences (in the same order as

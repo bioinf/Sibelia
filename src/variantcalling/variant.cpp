@@ -10,8 +10,8 @@ namespace SyntenyFinder
 {
 	const size_t Variant::UNKNOWN_BLOCK = -1;
 
-	Variant::Variant(size_t refPos, size_t blockId, const std::string & refAllele, const std::string & altAllele):
-		refPos_(refPos), blockId_(blockId), refAllele_(refAllele), altAllele_(altAllele)
+	Variant::Variant(size_t refPos, size_t blockId, bool collinear, const std::string & refAllele, const std::string & altAllele):
+		refPos_(refPos), blockId_(blockId), collinear_(collinear), refAllele_(refAllele), altAllele_(altAllele)
 	{
 
 	}
@@ -25,6 +25,11 @@ namespace SyntenyFinder
 	{
 		std::stringstream ss;
 		ss << refPos_ << '\t' << (refAllele_.empty() ? "." : refAllele_) << '\t' << (altAllele_.empty() ? "." : altAllele_) << '\t' << blockId_;
+		if(collinear_)
+		{
+			ss << "\tCollinear!";
+		}
+
 		buf = ss.str();
 	}
 }

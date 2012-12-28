@@ -40,7 +40,7 @@ namespace SyntenyFinder
 			}
 		};
 
-		typedef unrolled_list<DNACharacter, Size, 100> Sequence;
+		typedef unrolled_list<DNACharacter, Size, 25> Sequence;
 		typedef Sequence::iterator SequencePosIterator;
 		typedef Sequence::reverse_iterator SequenceNegIterator;
 		typedef Sequence::chunk_size PaddingInt;

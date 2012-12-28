@@ -10,6 +10,10 @@
 
 int main(int argc, char * argv[])
 {	
+	typedef SyntenyFinder::DNASequence DNASeq;
+	//DNASeq seq(
+	//exit(0);
+
 	signal(SIGINT, SignalHandler);
 	signal(SIGABRT, SignalHandler);	
 	signal(SIGTERM, SignalHandler);
@@ -145,7 +149,7 @@ int main(int argc, char * argv[])
 
 		SyntenyFinder::OutputGenerator generator(chrList, blockList);
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
-		const std::string defaultCoordsFile = outFileDir.getValue() + "/block_coords.txt";
+		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
 		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
 		const std::string defaultCoverageReportFile = outFileDir.getValue() + "/coverage_report.txt";
 		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";
