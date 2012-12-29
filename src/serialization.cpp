@@ -76,19 +76,6 @@ namespace SyntenyFinder
 						size_t nowVertex = bifStorage.GetBifurcation(start);
 						std::pair<size_t, size_t> coord = sequence.SpellOriginal(origin, AdvanceForward(start, k));
 						size_t actualPos = strand == 0 ? pos : length - (pos + step + k);
-				//	#ifdef _DEBUG
-						if(strand == 1)
-						{
-							StrandIterator positiveStart = sequence.Begin(DNASequence::positive, chr);
-							StrandIterator positiveOrigin = AdvanceForward(origin, step + k).Invert();
-							size_t dist = std::distance(positiveStart, positiveOrigin);
-							if(actualPos != dist)
-							{
-								abort();
-							}
-							assert(actualPos == dist);
-						}
-				//	#endif
 						edge.push_back(Edge(chr, start.GetDirection(), prevVertex, nowVertex, actualPos, step + k, coord.first, coord.second - coord.first, firstChar));
 						prevVertex = nowVertex;
 						pos += step;

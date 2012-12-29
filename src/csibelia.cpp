@@ -10,10 +10,6 @@
 
 int main(int argc, char * argv[])
 {	
-	typedef SyntenyFinder::DNASequence DNASeq;
-	//DNASeq seq(
-	//exit(0);
-
 	signal(SIGINT, SignalHandler);
 	signal(SIGABRT, SignalHandler);	
 	signal(SIGTERM, SignalHandler);

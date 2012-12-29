@@ -87,37 +87,28 @@ namespace SyntenyFinder
 			}
 		}
 
-
-		bool Overlap(const DNASequence & sequence,
-			size_t k,		
+		bool Overlap(size_t k,
 			const IteratorProxyVector & startKMer,
 			VisitData sourceData,
 			VisitData targetData)
 		{
 			std::vector<size_t> occur;
-			std::vector<size_t> orpos;
 			StrandIterator it = *startKMer[sourceData.kmerId];
 			for(size_t i = 0; i < sourceData.distance + k; i++, ++it)
-			{				
-				occur.push_back(sequence.GlobalIndex(it));				
-				orpos.push_back(it.GetOriginalPosition());
+			{
+				occur.push_back(it.GetElementId());
 			}
 
 			it = *startKMer[targetData.kmerId];
 			std::sort(occur.begin(), occur.end());
-			std::sort(orpos.begin(), orpos.end());
-			std::copy(occur.begin(), occur.end(), std::ostream_iterator<size_t>(std::cerr, " "));
-			std::cerr << std::endl;
 			for(size_t i = 0; i < targetData.distance + k; i++, ++it)
 			{
-				std::cerr << sequence.GlobalIndex(it) << ' ';
-				if(std::binary_search(occur.begin(), occur.end(), sequence.GlobalIndex(it)))// || std::binary_search(orpos.begin(), orpos.end(), it.GetOriginalPosition()))
+				if(std::binary_search(occur.begin(), occur.end(), it.GetElementId()))
 				{
 					return true;
 				}
 			}
 
-			std::cerr << std::endl;
 			return false;
 		}
 		
@@ -354,12 +345,12 @@ namespace SyntenyFinder
 						{
 							VisitData jdata(kmerJ, step);
 							VisitData idata(kmerI, vt->distance);
-							if(Overlap(sequence, k, startKMer, idata, jdata) || nowBif == bifId)
+							if(Overlap(k, startKMer, idata, jdata) || nowBif == bifId)
 							{
 								break;
 							}
 
-							++ret;std::cerr << bifId << ' ' << nowBif << std::endl;
+							++ret;
 							size_t imlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerI], idata.distance);
 							size_t jmlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerJ], jdata.distance);
 							bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);						
