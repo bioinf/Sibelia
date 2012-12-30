@@ -143,7 +143,7 @@ namespace SyntenyFinder
 	}
 	
 	bool BlockFinder::TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize)
-	{				
+	{	
 		size_t pos = 0;
 		bool drop = false;		
 		std::vector<std::string> blockSeq(block.size());		
@@ -166,7 +166,9 @@ namespace SyntenyFinder
 			StrandIterator end = sequence.End(block[chr].GetDirection(), chr);
 			StrandIterator trimStart = end;
 			StrandIterator trimEnd = end;
-			size_t minStartSum = oo;			
+			size_t minBifStart = oo;
+			size_t minBifEnd = oo;
+			size_t minStartSum = oo;
 			size_t minEndSum = oo;
 			for(StrandIterator it = begin; it != end; ++it)
 			{												
@@ -189,14 +191,16 @@ namespace SyntenyFinder
 							size_t itEndDist = IndexedSequence::StrandIteratorDistance(it, AdvanceBackward(end, 1));
 							size_t nowStartSum = kmerStartDist + itStartDist;
 							size_t nowEndSum = kmerEndDist + itEndDist;
-							if(nowStartSum < minStartSum)
+							if(nowStartSum < minStartSum || (nowStartSum == minStartSum && bifId < minBifStart))
 							{
+								minBifStart = bifId;
 								minStartSum = nowStartSum;
 								trimStart = it;
 							}              
 							
-							if(nowEndSum < minEndSum)
+							if(nowEndSum < minEndSum || (nowEndSum == minEndSum && bifId < minBifEnd))
 							{
+								minBifEnd = bifId;
 								minEndSum = nowEndSum;
 								trimEnd = it;
 							}
@@ -206,7 +210,7 @@ namespace SyntenyFinder
 			}
 			
 			if(minStartSum < oo && minEndSum < oo)
-			{
+			{				
 				size_t size = IndexedSequence::StrandIteratorDistance(trimStart, trimEnd) + trimK;
 				if(size >= minSize)
 				{
@@ -215,10 +219,6 @@ namespace SyntenyFinder
 					size_t end = block[chr].GetOriginalPosition() + std::max(trimStart.GetOriginalPosition(), trimEnd.GetOriginalPosition()) + 1;
 					ret.push_back(Edge(block[chr].GetChr(), block[chr].GetDirection(), block[chr].GetStartVertex(), block[chr].GetEndVertex(),
 						block[chr].GetOriginalPosition(), block[chr].GetOriginalLength(), start, end - start, block[chr].GetFirstChar()));
-					if(end - start > block[chr].GetOriginalLength())
-					{
-						std::cout << end - start << std::endl;
-					}
 				}
 			}
 			else

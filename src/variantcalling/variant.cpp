@@ -45,11 +45,6 @@ namespace SyntenyFinder
 	{
 		std::stringstream ss;
 		ss << refPos_ << '\t' << (refAllele_.empty() ? "." : refAllele_) << '\t' << (altAllele_.empty() ? "." : altAllele_) << '\t' << blockId_;
-		if(collinear_)
-		{
-			ss << "\tCollinear!";
-		}
-
 		buf = ss.str();
 	}
 }
