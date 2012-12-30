@@ -10,8 +10,8 @@ namespace SyntenyFinder
 {
 	const size_t Variant::UNKNOWN_BLOCK = -1;
 
-	Variant::Variant(size_t refPos, size_t blockId, bool collinear, const std::string & refAllele, const std::string & altAllele):
-		refPos_(refPos), blockId_(blockId), collinear_(collinear), refAllele_(refAllele), altAllele_(altAllele)
+	Variant::Variant(size_t refPos, size_t blockId, bool collinear, const std::string & refAllele, const std::string & altAllele, const std::string & alignment):
+		refPos_(refPos), blockId_(blockId), collinear_(collinear), refAllele_(refAllele), altAllele_(altAllele), alignment_(alignment)
 	{
 
 	}
@@ -19,6 +19,26 @@ namespace SyntenyFinder
 	bool Variant::operator < (const Variant & toCompare) const
 	{
 		return refPos_ < toCompare.refPos_;
+	}
+
+	size_t Variant::GetBlockId() const
+	{
+		return blockId_;
+	}
+
+	size_t Variant::GetReferencePos() const
+	{
+		return refPos_;
+	}
+
+	const std::string& Variant::GetAlignment() const
+	{
+		return alignment_;
+	}
+
+	bool Variant::Equal(const Variant & toCompare) const
+	{
+		return toCompare.refPos_ == refPos_ && refAllele_ == toCompare.refAllele_ && altAllele_ == toCompare.altAllele_;
 	}
 
 	void Variant::ToString(std::string & buf) const

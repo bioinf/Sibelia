@@ -22,71 +22,18 @@ namespace SyntenyFinder
 	public:
 		BlockInstance() {}
 		BlockInstance(int id, const FASTARecord * chr, size_t start, size_t end): id_(id), chr_(chr), start_(start), end_(end) {}
-		int GetSignedBlockId() const
-		{
-			return id_;
-		}
-
-		DNASequence::Direction GetDirection() const
-		{
-			return id_ > 0 ? DNASequence::positive : DNASequence::negative;
-		}
-
-		int GetBlockId() const
-		{
-			return Abs(id_);
-		}
-
-		const FASTARecord& GetChrInstance() const
-		{
-			return *chr_;
-		}
-
-		size_t GetChrId() const
-		{
-			return GetChrInstance().GetId();
-		}
-
-		size_t GetStart() const
-		{
-			return start_;
-		}
-
-		size_t GetEnd() const
-		{
-			return end_;
-		}
-
-		size_t GetConventionalStart() const
-		{
-			if(GetDirection() == DNASequence::positive)
-			{
-				return start_ + 1;
-			}
-
-			return end_;
-		}
-
-		size_t GetConventionalEnd() const
-		{
-			if(GetDirection() == DNASequence::positive)
-			{
-				return end_;
-			}
-
-			return start_ + 1;
-		}
-
-		size_t GetLength() const
-		{
-			return end_ - start_;
-		}
-
-		bool operator < (const BlockInstance & toCompare) const
-		{
-			return std::make_pair(GetChrInstance().GetId(), GetStart()) < std::make_pair(toCompare.GetChrInstance().GetId(), toCompare.GetStart());
-		}
-
+		int GetSignedBlockId() const;
+		DNASequence::Direction GetDirection() const;
+		int GetBlockId() const;
+		const FASTARecord& GetChrInstance() const;
+		size_t GetChrId() const;
+		size_t GetStart() const;
+		size_t GetEnd() const;
+		size_t GetLength() const;
+		size_t GetConventionalStart() const;
+		size_t GetConventionalEnd() const;
+		std::pair<size_t, size_t> CalculateOverlap(const BlockInstance & instance) const;		
+		bool operator < (const BlockInstance & toCompare) const;
 	private:
 		int id_;		
 		size_t start_;

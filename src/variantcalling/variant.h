@@ -13,9 +13,13 @@ namespace SyntenyFinder
 {
 	class Variant
 	{
-	public:	
+	public:
+		size_t GetBlockId() const;
+		size_t GetReferencePos() const;		
 		void ToString(std::string & buf) const;
-		Variant(size_t refPos, size_t blockId, bool collinear, const std::string & refAllele, const std::string & altAllele);
+		const std::string & GetAlignment() const;
+		bool Equal(const Variant & toCompare) const;
+		Variant(size_t refPos, size_t blockId, bool collinear, const std::string & refAllele, const std::string & altAllele, const std::string & alignment = "");
 		bool operator < (const Variant & toCompare) const;
 	private:
 		static const size_t UNKNOWN_BLOCK;
@@ -23,6 +27,7 @@ namespace SyntenyFinder
 		size_t blockId_;
 		std::string refAllele_;
 		std::string altAllele_;
+		std::string alignment_;
 		bool collinear_;
 	};
 }

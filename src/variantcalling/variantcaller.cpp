@@ -88,7 +88,7 @@ namespace SyntenyFinder
 		{
 			if(buf1.size() + buf2.size() > 0)
 			{
-				variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), collinear, blockId, buf1, buf2));
+				variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, buf1, buf2));
 			}
 
 			return;
@@ -103,6 +103,7 @@ namespace SyntenyFinder
 		resize(rows(align), 2); 
 		assignSource(row(align,0),seq1);
 		assignSource(row(align,1),seq2);
+		std::stringstream ss;		
 		int score = globalAlignment(align,Score<int>(1,-1,-1,-1), Hirschberg());		
 		TPosition colBegin = beginPosition(cols(align));
 		TPosition colEnd = endPosition(cols(align));
@@ -115,7 +116,7 @@ namespace SyntenyFinder
 			{
 				if(*it1 != *it2)
 				{					
-					variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, std::string(1, *it1), std::string(1, *it2)));
+					variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, std::string(1, *it1), std::string(1, *it2), ss.str()));
 				}
 
 				++referenceBegin;
@@ -144,7 +145,7 @@ namespace SyntenyFinder
 					}
 				}
 
-				variantList.push_back(Variant(pos, blockId, collinear, referenceAllele, variantAllele));
+				variantList.push_back(Variant(pos, blockId, collinear, referenceAllele, variantAllele, ss.str()));
 			}
 		}
 
@@ -218,5 +219,53 @@ namespace SyntenyFinder
 		}
 
 		std::sort(variantList.begin(), variantList.end());
+		std::vector<Variant> filter;
+		for(std::vector<Variant>::iterator it = variantList.begin(); it != variantList.end(); )
+		{
+			std::vector<size_t> belong;
+			std::vector<size_t> seenAt;
+			size_t vpos = it->GetReferencePos();
+			for(std::vector<BlockInstance>::iterator jt = blockList_.begin(); jt != blockList_.end(); ++jt)
+			{
+				if(vpos >= jt->GetStart() && vpos < jt->GetEnd() && jt->GetChrId() == refSeqId_)
+				{
+					belong.push_back(jt->GetBlockId());
+				}
+			}
+
+			std::vector<Variant>::iterator jt = it;
+			for(; it != variantList.end() && it->Equal(*jt); ++it)
+			{
+				seenAt.push_back(it->GetBlockId());					
+			}
+
+			std::sort(belong.begin(), belong.end());
+			std::sort(seenAt.begin(), seenAt.end());
+			if(seenAt == belong)
+			{
+				filter.push_back(*jt);
+			}
+			else
+			{
+			#ifdef _DEBUG
+				std::string buf;
+				std::cerr << "Filtered out variant" << std::endl;
+				for(size_t i = 0; i < seenAt.size(); i++)
+				{
+					(jt + i)->ToString(buf);
+					std::cerr << buf << std::endl;
+				}
+
+				std::cerr << "Belong to blocks:" << std::endl;
+				std::copy(belong.begin(), belong.end(), std::ostream_iterator<size_t>(std::cerr, " "));
+				std::cerr << std::endl;
+				std::cerr << "Seen at blocks:" << std::endl;
+				std::copy(seenAt.begin(), seenAt.end(), std::ostream_iterator<size_t>(std::cerr, " "));
+				std::cerr << std::endl << std::endl;
+		 	#endif
+			}
+		}
+
+		filter.swap(variantList);
 	}
 }
