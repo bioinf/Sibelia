@@ -8,8 +8,6 @@
 
 namespace SyntenyFinder
 {
-	const size_t BlockFinder::UNUSED = -1;
-
 	namespace
 	{
 		bool CmpSizePair(const std::pair<size_t, size_t> & a, const std::pair<size_t, size_t> & b)
@@ -144,24 +142,7 @@ namespace SyntenyFinder
 
 			std::sort(visit.begin(), visit.end());
 		}
-
-		void SpellBulges(const DNASequence & sequence, size_t k,
-			size_t bifStart,
-			size_t bifEnd,
-			const std::vector<StrandIterator> & startKMer,
-			const std::vector<VisitData> & visitData)
-		{
-			static size_t bulge = 0;
-			std::cerr << "Bulge #" << bulge++ << ", " << "(" << bifStart << ", " << bifEnd << ")" << std::endl;
-			for(size_t i = 0; i < visitData.size(); i++)
-			{
-				std::cerr << "Branch #" << i << ", size = " << visitData[i].distance + k << ":" << std::endl;
-				BlockFinder::PrintPath(sequence, startKMer[visitData[i].kmerId], k, visitData[i].distance, std::cerr);
-			}
-
-			std::cerr << DELIMITER << std::endl;
-		}
-
+		
 		struct BranchData
 		{
 			BranchData() {}
@@ -233,8 +214,23 @@ namespace SyntenyFinder
 			//std::cerr << std::endl;
 			return !bulges.empty();
 		}
+	}
 
+	void BlockFinder::SpellBulges(const DNASequence & sequence, size_t k,
+			size_t bifStart,
+			size_t bifEnd,
+			const std::vector<StrandIterator> & startKMer,
+			const std::vector<VisitData> & visitData)
+	{
+		static size_t bulge = 0;
+		std::cerr << "Bulge #" << bulge++ << ", " << "(" << bifStart << ", " << bifEnd << ")" << std::endl;
+		for(size_t i = 0; i < visitData.size(); i++)
+		{
+			std::cerr << "Branch #" << i << ", size = " << visitData[i].distance + k << ":" << std::endl;
+			BlockFinder::PrintPath(sequence, startKMer[visitData[i].kmerId], k, visitData[i].distance, std::cerr);
+		}
 
+		std::cerr << DELIMITER << std::endl;
 	}
 
 	void BlockFinder::UpdateBifurcations(DNASequence & sequence,
