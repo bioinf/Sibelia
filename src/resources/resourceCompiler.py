@@ -61,6 +61,11 @@ print >> resourceHeader, '//****************************************************
 print >> resourceHeader, '#include "common.h"\n'
 
 resList = []
+print >> resourceCpp, '//****************************************************************************'
+print >> resourceCpp, '//* Copyright (c) 2012 Saint-Petersburg Academic University                   '
+print >> resourceCpp, '//* All Rights Reserved                                                       '
+print >> resourceCpp, '//* See file LICENSE for details.                                             '
+print >> resourceCpp, '//****************************************************************************'
 print >> resourceCpp, '#include "resource.h"\n'
 print >> resourceCpp, namespace + '\n{'
 print >> resourceCpp, '\tnamespace\n\t{'
