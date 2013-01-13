@@ -296,7 +296,7 @@ namespace SyntenyFinder
 		std::cerr << "Target branch: " << std::endl;
 		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
 		bifStorage.Dump(sequence, k, std::cerr);
-		Test(sequence, bifStorage, k);
+		iseq_->Test();
 	#endif
 		std::vector<std::pair<size_t, size_t> > lookForward;
 		std::vector<std::pair<size_t, size_t> > lookBack;
@@ -319,7 +319,7 @@ namespace SyntenyFinder
 		std::cerr << "Target branch: " << std::endl;
 		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
 		bifStorage.Dump(sequence, k, std::cerr);
-		Test(sequence, bifStorage, k);
+		iseq_->Test();
 		std::cerr << DELIMITER << std::endl;
 	#endif
 	}

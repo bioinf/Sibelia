@@ -21,6 +21,7 @@ namespace SyntenyFinder
 		mutable std::vector<BlockInstance> blockList_;
 		size_t trimK_;
 		
+		void CallRearrangements(const std::vector<size_t> & sharedBlock) const;
 		void AlignSyntenyBlocks(const BlockInstance & reference, const BlockInstance & assembly, std::vector<Variant> & variantList) const;
 		void AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd, StrandIterator assemblyBegin, StrandIterator assemblyEnd, std::vector<Variant> & variantList) const;
 	};
