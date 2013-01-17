@@ -166,6 +166,8 @@ namespace SyntenyFinder
 			StrandIterator end = sequence.End(block[chr].GetDirection(), chr);
 			StrandIterator trimStart = end;
 			StrandIterator trimEnd = end;
+			StrandIterator otherTrimStart;
+			StrandIterator otherTrimEnd;
 			size_t minBifStart = oo;
 			size_t minBifEnd = oo;
 			size_t minStartSum = oo;
@@ -196,6 +198,7 @@ namespace SyntenyFinder
 								minBifStart = bifId;
 								minStartSum = nowStartSum;
 								trimStart = it;
+								otherTrimStart = kmer;
 							}              
 							
 							if(nowEndSum < minEndSum || (nowEndSum == minEndSum && bifId < minBifEnd))
@@ -203,6 +206,7 @@ namespace SyntenyFinder
 								minBifEnd = bifId;
 								minEndSum = nowEndSum;
 								trimEnd = it;
+								otherTrimEnd = kmer;
 							}
 						}
 					}
@@ -213,12 +217,12 @@ namespace SyntenyFinder
 			{				
 				size_t size = IndexedSequence::StrandIteratorDistance(trimStart, trimEnd) + trimK;
 				if(size >= minSize)
-				{
+				{					
 					std::advance(trimEnd, trimK - 1);
 					size_t start = block[chr].GetOriginalPosition() + std::min(trimStart.GetOriginalPosition(), trimEnd.GetOriginalPosition());
 					size_t end = block[chr].GetOriginalPosition() + std::max(trimStart.GetOriginalPosition(), trimEnd.GetOriginalPosition()) + 1;
 					ret.push_back(Edge(block[chr].GetChr(), block[chr].GetDirection(), block[chr].GetStartVertex(), block[chr].GetEndVertex(),
-						block[chr].GetOriginalPosition(), block[chr].GetOriginalLength(), start, end - start, block[chr].GetFirstChar()));
+						block[chr].GetOriginalPosition(), block[chr].GetOriginalLength(), start, end - start, block[chr].GetFirstChar()));					
 				}
 			}
 			else

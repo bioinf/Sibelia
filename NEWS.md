@@ -1,3 +1,10 @@
+Sibelia 2.1.0
+=============
+* Improved performance in the case of many genomes. Now it is possible to
+compute synteny blocks for 59 E.coli genomes within 70 minutes and 8 GB of RAM
+on a standard desktop
+* Synteny block boundaries now are more precise
+
 Sibelia 2.0.1
 =============
 * Improved diagram appearance

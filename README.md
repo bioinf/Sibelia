@@ -16,6 +16,7 @@ Introduction
 in closely related genomes, like different strains of the same bacterial
 specie. It takes a set of FASTA files with genomes and locates coordinates of
 the synteny blocks in these sequences.
+
 System Requirements
 ===================
 This version is designed for small-scale genomes. For example, it can find
