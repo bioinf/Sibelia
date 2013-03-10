@@ -217,12 +217,12 @@ namespace SyntenyFinder
 			{				
 				size_t size = IndexedSequence::StrandIteratorDistance(trimStart, trimEnd) + trimK;
 				if(size >= minSize)
-				{					
+				{	
 					std::advance(trimEnd, trimK - 1);
 					size_t start = block[chr].GetOriginalPosition() + std::min(trimStart.GetOriginalPosition(), trimEnd.GetOriginalPosition());
-					size_t end = block[chr].GetOriginalPosition() + std::max(trimStart.GetOriginalPosition(), trimEnd.GetOriginalPosition()) + 1;
+					size_t end = block[chr].GetOriginalPosition() + std::max(trimStart.GetOriginalPosition(), trimEnd.GetOriginalPosition()) + 1;				
 					ret.push_back(Edge(block[chr].GetChr(), block[chr].GetDirection(), block[chr].GetStartVertex(), block[chr].GetEndVertex(),
-						block[chr].GetOriginalPosition(), block[chr].GetOriginalLength(), start, end - start, block[chr].GetFirstChar()));					
+						block[chr].GetActualPosition(), block[chr].GetActualLength(), start, end - start, block[chr].GetFirstChar()));					
 				}
 			}
 			else
@@ -230,7 +230,7 @@ namespace SyntenyFinder
 				drop = true;
 			}
 		}
-		
+
 		block.swap(ret);
 		return drop;
 	}
