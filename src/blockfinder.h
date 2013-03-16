@@ -121,6 +121,9 @@ namespace SyntenyFinder
 		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData);
 		void UpdateBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,
 			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBack);
+		typedef std::set<Pos> PosSet;
+		typedef std::vector<Edge>::iterator EdgeIterator;		
+		void ResolveOverlap(EdgeIterator start, EdgeIterator begin, std::vector<PosSet> & overlap, std::vector<Edge> & nowBlock);
 	};
 }
 

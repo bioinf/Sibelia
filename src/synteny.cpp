@@ -235,14 +235,19 @@ namespace SyntenyFinder
 		return drop;
 	}
 
+	void BlockFinder::ResolveOverlap(EdgeIterator start, EdgeIterator begin, std::vector<PosSet> & overlap, std::vector<Edge> & nowBlock)
+	{
+		nowBlock.clear();
+	}
+
 	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration)
 	{
 		std::vector<Edge> edge;
-		std::vector<std::set<size_t> > visit;
+		std::vector<PosSet> overlap;
 		{
 			IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_);
 			ListEdges(iseq.Sequence(), iseq.BifStorage(), k, edge);
-			visit.resize(iseq.Sequence().ChrNumber());
+			overlap.resize(iseq.Sequence().ChrNumber());
 		}
 		
 		block.clear();
@@ -262,30 +267,20 @@ namespace SyntenyFinder
 				continue;
 			}
 			
-			bool hit = false;
 			std::vector<Edge> nowBlock;
 			std::vector<size_t> occur(rawSeq_.size(), 0);
-			for(size_t nowEdge = firstEdge; nowEdge < lastEdge; nowEdge++)
-			{
-				if(std::find_if(nowBlock.begin(), nowBlock.end(), boost::bind(&Edge::Overlap, boost::cref(edge[nowEdge]), _1)) == nowBlock.end())
-				{
-					nowBlock.push_back(edge[nowEdge]);
-				}
-			}
-
+			ResolveOverlap(edge.begin() + firstEdge, edge.end() + lastEdge, overlap, nowBlock);			
 			while(TrimBlocks(nowBlock, trimK, minSize));
 			for(size_t nowEdge = 0; nowEdge < nowBlock.size(); nowEdge++)
 			{
 				occur[nowBlock[nowEdge].GetChr()]++;				
-				hit = hit || (visit[nowBlock[nowEdge].GetChr()].count(nowBlock[nowEdge].GetOriginalPosition()) != 0);
 			}
 
-			if(!hit && nowBlock.size() > 1 && (!sharedOnly || std::count(occur.begin(), occur.end(), 1) == rawSeq_.size()))
+			if(nowBlock.size() > 1 && (!sharedOnly || std::count(occur.begin(), occur.end(), 1) == rawSeq_.size()))
 			{
 				for(size_t i = 0; i < nowBlock.size(); i++)
 				{
-					int strand = nowBlock[i].GetDirection() == DNASequence::positive ? +1 : -1;
-					visit[nowBlock[i].GetChr()].insert(nowBlock[i].GetOriginalPosition());
+					int strand = nowBlock[i].GetDirection() == DNASequence::positive ? +1 : -1;					
 					block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].GetChr()], nowBlock[i].GetOriginalPosition(), nowBlock[i].GetOriginalPosition() + nowBlock[i].GetOriginalLength()));
 				}
 
