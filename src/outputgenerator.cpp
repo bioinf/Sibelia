@@ -113,16 +113,20 @@ namespace SyntenyFinder
 		out << DELIMITER << std::endl;
 	}
 
-	void OutputGenerator::GenerateReport(const std::string & fileName) const
+	const int OutputGenerator::CIRCOS_MAX_COLOR = 25;
+	const double OutputGenerator::CIRCOS_HIGHLIGHT_THICKNESS = 0.05;
+
+	void OutputGenerator::GenerateReport(const BlockList & block, const std::string & fileName) const
 	{
 		std::ofstream out;
 		TryOpenFile(fileName, out);
 		GroupedBlockList sepBlock;
 		std::vector<IndexPair> group;
-		GroupBy(blockList_, compareById, std::back_inserter(group));
+		BlockList blockList = block;
+		GroupBy(blockList, compareById, std::back_inserter(group));
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{
-			sepBlock.push_back(std::make_pair(it->second - it->first, std::vector<BlockInstance>(blockList_.begin() + it->first, blockList_.begin() + it->second)));
+			sepBlock.push_back(std::make_pair(it->second - it->first, std::vector<BlockInstance>(blockList.begin() + it->first, blockList.begin() + it->second)));
 		}
 
 		ListChrs(out);
@@ -157,66 +161,69 @@ namespace SyntenyFinder
 		out << DELIMITER << std::endl;
 	}
 
-	void OutputGenerator::ListChromosomesAsPermutations(const std::string & fileName) const
+	void OutputGenerator::ListChromosomesAsPermutations(const BlockList & block, const std::string & fileName) const
 	{
 		std::ofstream out;
 		TryOpenFile(fileName, out);
 		std::vector<IndexPair> group;
-		GroupBy(blockList_, compareByChrId, std::back_inserter(group));
+		BlockList blockList = block;
+		GroupBy(blockList, compareByChrId, std::back_inserter(group));
  		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{
 			out.setf(std::ios_base::showpos);
 			size_t length = it->second - it->first;
-			size_t chr = blockList_[it->first].GetChrInstance().GetId();
+			size_t chr = blockList[it->first].GetChrInstance().GetId();
 			out << '>' << chrList_[chr].GetDescription() << std::endl;
-			std::sort(blockList_.begin() + it->first, blockList_.begin() + it->second);
-			CopyN(CFancyIterator(blockList_.begin() + it->first, boost::bind(&BlockInstance::GetSignedBlockId, _1), 0), length, std::ostream_iterator<int>(out, " "));
+			std::sort(blockList.begin() + it->first, blockList.begin() + it->second);
+			CopyN(CFancyIterator(blockList.begin() + it->first, boost::bind(&BlockInstance::GetSignedBlockId, _1), 0), length, std::ostream_iterator<int>(out, " "));
 			out << "$" << std::endl;
 		}
 	}
 
-	void OutputGenerator::ListBlocksIndices(const std::string & fileName) const
+	void OutputGenerator::ListBlocksIndices(const BlockList & block, const std::string & fileName) const
 	{
 		std::ofstream out;
 		TryOpenFile(fileName, out);
 		ListChrs(out);
 		std::vector<IndexPair> group;
-		GroupBy(blockList_, compareById, std::back_inserter(group));
+		BlockList blockList = block;
+		GroupBy(blockList, compareById, std::back_inserter(group));
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{
 			size_t length = it->second - it->first;
-			std::sort(blockList_.begin() + it->first, blockList_.begin() + it->second, compareByChrId);
-			out << "Block #" << blockList_[it->first].GetBlockId() << std::endl;
+			std::sort(blockList.begin() + it->first, blockList.begin() + it->second, compareByChrId);
+			out << "Block #" << blockList[it->first].GetBlockId() << std::endl;
 			out << "Seq_id\tStrand\tStart\tEnd\tLength" << std::endl;
-			CopyN(CFancyIterator(blockList_.begin() + it->first, OutputIndex, std::string()), length, std::ostream_iterator<std::string>(out, "\n"));
+			CopyN(CFancyIterator(blockList.begin() + it->first, OutputIndex, std::string()), length, std::ostream_iterator<std::string>(out, "\n"));
 			out << DELIMITER << std::endl;
 		}
 	}
 
-	void OutputGenerator::ListBlocksSequences(const std::string & fileName) const
+	void OutputGenerator::ListBlocksSequences(const BlockList & block, const std::string & fileName) const
 	{
 		std::ofstream out;
 		TryOpenFile(fileName, out);
 		std::vector<IndexPair> group;
-		GroupBy(blockList_, compareById, std::back_inserter(group));
+		BlockList blockList = block;
+		GroupBy(blockList, compareById, std::back_inserter(group));
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{
 			for(size_t block = it->first; block < it->second; block++)
 			{
-				size_t length = blockList_[block].GetLength();
-				char strand = blockList_[block].GetSignedBlockId() > 0 ? '+' : '-';
-				const FASTARecord & chr = blockList_[block].GetChrInstance();
+				size_t length = blockList[block].GetLength();
+				char strand = blockList[block].GetSignedBlockId() > 0 ? '+' : '-';
+				const FASTARecord & chr = blockList[block].GetChrInstance();
 				out << ">Seq=\"" << chr.GetDescription() << "\",Strand='" << strand << "',";
-				out << "Block_id=" << blockList_[block].GetBlockId() << ",Start=" ;
-				out << blockList_[block].GetConventionalStart() << ",End=" << blockList_[block].GetConventionalEnd() << std::endl;
+				out << "Block_id=" << blockList[block].GetBlockId() << ",Start=" ;
+				out << blockList[block].GetConventionalStart() << ",End=" << blockList[block].GetConventionalEnd() << std::endl;
 
-				if(blockList_[block].GetSignedBlockId() > 0)
+				if(blockList[block].GetSignedBlockId() > 0)
 				{
-					OutputLines(chr.GetSequence().begin() + blockList_[block].GetStart(), length, out);
+					OutputLines(chr.GetSequence().begin() + blockList[block].GetStart(), length, out);
 				}
 				else
 				{
-					std::string::const_reverse_iterator it(chr.GetSequence().begin() + blockList_[block].GetEnd());
+					std::string::const_reverse_iterator it(chr.GetSequence().begin() + blockList[block].GetEnd());
 					OutputLines(CFancyIterator(it, DNASequence::Translate, ' '), length, out);
 				}
 
@@ -225,17 +232,46 @@ namespace SyntenyFinder
 		}
 	}
 
-	void OutputGenerator::GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const
+	void OutputGenerator::GenerateHierarchyCircosOutput(const std::vector<BlockList> & history, const std::string & outFile, const std::string & outDir) const
 	{
-		const int MAX_COLOR = 25;
-		//copy template file
+		std::ofstream config;
 		CreateDirectory(outDir);
-		std::ofstream out;
-		TryOpenFile(outFile, out);
-		out << circosTemplate;
+		TryOpenFile(outFile, config);
+		config << circosTemplate;
+		double r = 1.0;
 
+		WriteCircosLinks(outDir, "circos.segdup.txt", history.back());
+		WriteCircosKaryoType(outDir, "circos.sequences.txt");
+		config << "<highlights>\n\tfill_color = green" << std::endl;		
+		WriteCircosHighlight(outDir, "circos.highlight.txt", history.back(), r, true, config);		
+		for(std::vector<BlockList>::const_reverse_iterator it = ++history.rbegin(); it != history.rend(); ++it)
+		{
+			r += CIRCOS_HIGHLIGHT_THICKNESS * 1.5;
+			std::stringstream ss;
+			ss << "circos.highlight" << it - history.rbegin() << ".txt";
+			WriteCircosHighlight(outDir, ss.str(), *it, r, false, config);			
+		}	
+
+		config << "</highlights>" << std::endl;
+	}
+
+	void OutputGenerator::GenerateCircosOutput(const BlockList & blockList, const std::string & outFile, const std::string & outDir) const
+	{		
+		std::ofstream config;
+		CreateDirectory(outDir);
+		TryOpenFile(outFile, config);
+		config << circosTemplate;		
+		WriteCircosLinks(outDir, "circos.segdup.txt", blockList);
+		WriteCircosKaryoType(outDir, "circos.sequences.txt");
+		config << "<highlights>\n\tfill_color = green" << std::endl;		
+		WriteCircosHighlight(outDir, "circos.highlight.txt", blockList, 1.0, true, config);
+		config << "</highlights>" << std::endl;
+	}
+
+	void OutputGenerator::WriteCircosLinks(const std::string & outDir, const std::string & fileName, const BlockList & block) const
+	{
 		//blocks must be sorted by id
-		BlockList sortedBlocks = blockList_;
+		BlockList sortedBlocks = block;
 		std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareById);
 
 		//write link and highlights file
@@ -244,11 +280,39 @@ namespace SyntenyFinder
 		int linkCount = 0;
 		BlockList blocksToLink;
 		std::ofstream linksFile;
-		std::ofstream highlightFile;
-		TryOpenFile(outDir + "/circos.segdup.txt", linksFile);
-		TryOpenFile(outDir + "/circos.highlight.txt", highlightFile);
+		TryOpenFile(outDir + "/" + fileName, linksFile);
 
 		int color = 0;
+		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock)
+		{
+			if (itBlock->GetBlockId() != lastId)
+			{
+				blocksToLink.clear();
+				lastId = itBlock->GetBlockId();
+			}
+
+			for (BlockList::iterator itPair = blocksToLink.begin(); itPair != blocksToLink.end(); ++itPair)
+			{
+				color = (color + 1) % CIRCOS_MAX_COLOR;
+				//link start
+				OutputLink(itBlock, color, idLength, linkCount, linksFile);
+				//link end
+				OutputLink(itPair, color, idLength, linkCount, linksFile);
+				++linkCount;
+			}
+
+			blocksToLink.push_back(*itBlock);
+		}
+	}
+
+	void OutputGenerator::WriteCircosHighlight(const std::string & outDir, const std::string & fileName, const BlockList & block, double r, bool ideogram, std::ofstream & config) const
+	{
+		int color = 0;
+		BlockList sortedBlocks = block;
+		std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareById);
+		BlockList blocksToLink;		
+		std::ofstream highlightFile;		
+		TryOpenFile(outDir + "/" + fileName, highlightFile);
 		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock)
 		{
 			highlightFile << "seq" << itBlock->GetChrInstance().GetConventionalId() << " ";
@@ -258,38 +322,50 @@ namespace SyntenyFinder
 			{
 				std::swap(blockStart, blockEnd);
 			}
-			highlightFile << blockStart << " " << blockEnd << std::endl;
 
-			if (itBlock->GetBlockId() != lastId)
+			if(itBlock != sortedBlocks.begin() && itBlock->GetBlockId() != (itBlock - 1)->GetBlockId())
 			{
-				blocksToLink.clear();
-				lastId = itBlock->GetBlockId();
+				color = (color + 1) % CIRCOS_MAX_COLOR;
 			}
-			for (BlockList::iterator itPair = blocksToLink.begin(); itPair != blocksToLink.end(); ++itPair)
+
+			highlightFile << blockStart << " " << blockEnd;
+			if(!ideogram)
 			{
-				color = (color + 1) % MAX_COLOR;
-				//link start
-				OutputLink(itBlock, color, idLength, linkCount, linksFile);
-				//link end
-				OutputLink(itPair, color, idLength, linkCount, linksFile);
-				++linkCount;
+				highlightFile << " fill_color=chr" << color << "_a2";
 			}
-			blocksToLink.push_back(*itBlock);
+
+			highlightFile << std::endl;
 		}
 
-		//write kariotype file
-		std::ofstream karFile;
-		TryOpenFile(outDir + "/circos.sequences.txt", karFile);
+		std::string prefix = "\t\t";
+		config << "\t<highlight>" << std::endl;
+		config << prefix << "file = " << fileName << std::endl;
+		config << prefix << "ideogram = " << (ideogram ? "yes" : "no") << std::endl;
+		config << prefix << "fill_color = blue_a3" << std::endl;
+		config << prefix << "stroke_color = black" << std::endl;
+		config << prefix << "stroke_thickness = 4" << std::endl;
+		if(!ideogram)
+		{
+			config << prefix << "r0 = " << r << "r" << std::endl;
+			config << prefix << "r1 = " << r + CIRCOS_HIGHLIGHT_THICKNESS << "r" << std::endl;
+		}
 
+		config << "\t</highlight>" << std::endl;
+	}
+
+	void OutputGenerator::WriteCircosKaryoType(const std::string & outDir, const std::string & fileName) const
+	{
+		std::ofstream karFile;
+		TryOpenFile(outDir + "/" + fileName, karFile);
 		for (size_t i = 0; i < chrList_.size(); ++i)
 		{
-			int colorId = (i + 1) % MAX_COLOR;
+			int colorId = (i + 1) % CIRCOS_MAX_COLOR;
 			karFile << "chr - seq" << i + 1 << " " << chrList_[i].GetDescription() << " 0 " << chrList_[i].GetSequence().length();
 			karFile	<< " chr" << colorId << std::endl;
 		}
 	}
 
-	void OutputGenerator::GenerateD3Output(const std::string & outFile) const
+	void OutputGenerator::GenerateD3Output(const BlockList & blockList, const std::string & outFile) const
 	{
 		std::istringstream htmlTemplate(d3Template);
 
@@ -314,7 +390,7 @@ namespace SyntenyFinder
         out << "chart_data = [" << std::endl;
 
         //blocks must be sorted by start
-        BlockList sortedBlocks = blockList_;
+        BlockList sortedBlocks = blockList;
         std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareByStart);
 
         // write to output file

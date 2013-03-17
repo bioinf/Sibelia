@@ -143,19 +143,17 @@ int main(int argc, char * argv[])
 		SyntenyFinder::VariantCaller caller(refSeqId, blockList, trimK);
 		caller.CallVariants(variant);
 
-		SyntenyFinder::OutputGenerator generator(chrList, blockList);
+		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
 		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
 		const std::string defaultCoverageReportFile = outFileDir.getValue() + "/coverage_report.txt";
 		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";
 		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
-
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
 		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
 		const std::string defaultVariantFile = outFileDir.getValue() + "/variant.txt";
-
 
 		std::string buf;
 		std::ofstream variantFile(defaultVariantFile.c_str());
@@ -165,21 +163,10 @@ int main(int argc, char * argv[])
 			variantFile << buf << std::endl;
 		}
 
-		boost::function<void()> outFunction[] = 
-		{
-			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), defaultPermutationsFile),
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), defaultCoverageReportFile),
-			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), defaultCoordsFile),
-			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), defaultSequencesFile),		
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), defaultCircosFile, defaultCircosDir),
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), defaultD3File)
-		};
-		
-		size_t length = sizeof(outFunction) / sizeof(outFunction[0]);
-		for(size_t i = 0; i < length; i++)
-		{
-			outFunction[i]();
-		}
+		generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
+		generator.GenerateReport(blockList, defaultCoverageReportFile);
+		generator.ListBlocksIndices(blockList, defaultCoordsFile);
+		generator.GenerateD3Output(blockList, defaultD3File);
 
 		std::stringstream buffer;
 		finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);

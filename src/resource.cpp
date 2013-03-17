@@ -6977,7 +6977,7 @@ namespace SyntenyFinder
 			std::string(""),
 			std::string("<ideogram>"),
 			std::string("	<spacing>"),
-			std::string("		default = 0.002r"),
+			std::string("		default = 0.010r"),
 			std::string("	</spacing>"),
 			std::string("	radius    = 0.75r"),
 			std::string("	thickness = 50p"),
@@ -7030,17 +7030,6 @@ namespace SyntenyFinder
 			std::string("	</link>"),
 			std::string("</links>"),
 			std::string(""),
-			std::string("<highlights>"),
-			std::string("	fill_color = green"),
-			std::string("	<highlight>"),
-			std::string("		file       = circos.highlight.txt"),
-			std::string("		ideogram	= yes"),
-			std::string("		fill_color = blue_a3"),
-			std::string("		stroke_color = black"),
-			std::string("		stroke_thickness = 4"),
-			std::string("	</highlight>"),
-			std::string("</highlights>"),
-			std::string(""),
 			std::string("################################################################"),
 			std::string("# The remaining content is standard and required. It is imported"),
 			std::string("# from default files in the Circos distribution."),
@@ -7067,7 +7056,7 @@ namespace SyntenyFinder
 		std::string GlueResourceVcircosTemplate()
 		{
 			std::stringstream buf;
-			std::copy(circosTemplateBlockNo0, circosTemplateBlockNo0 + 90, std::ostream_iterator<std::string>(buf, "\n"));
+			std::copy(circosTemplateBlockNo0, circosTemplateBlockNo0 + 79, std::ostream_iterator<std::string>(buf, "\n"));
 			return buf.str();
 		}
 

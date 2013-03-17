@@ -22,7 +22,7 @@ int main(int argc, char * argv[])
 
 	try
 	{  
-		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "2.1.0");
+		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "2.2.0");
 		TCLAP::ValueArg<unsigned int> maxIterations("i",
 			"maxiterations",
 			"Maximum number of iterations during a stage of simplification, default = 4.",
@@ -145,7 +145,7 @@ int main(int argc, char * argv[])
 		}
 
 		int trimK = INT_MAX;
-		bool hierarchy = hierarchyPicture.getValue();
+		bool hierarchy = hierarchyPicture.isSet();
 		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size());
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));		
@@ -165,7 +165,7 @@ int main(int argc, char * argv[])
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
-		SyntenyFinder::OutputGenerator generator(chrList, history.back());
+		SyntenyFinder::OutputGenerator generator(chrList);
 
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
@@ -176,26 +176,22 @@ int main(int argc, char * argv[])
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
 		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		
-		bool doOutput[] = {true, true, true, sequencesFile.isSet(), true, true};
-		boost::function<void()> singleCircos = boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), defaultCircosFile, defaultCircosDir);
-		boost::function<void()> hierarchyCircos = boost::bind(&SyntenyFinder::OutputGenerator::GenerateHierarchyCircosOutput, boost::cref(generator), defaultCircosFile, defaultCircosDir, boost::cref(history));
-		boost::function<void()> outFunction[] = 
+		generator.ListChromosomesAsPermutations(history.back(), defaultPermutationsFile);
+		generator.GenerateReport(history.back(), defaultCoverageReportFile);
+		generator.ListBlocksIndices(history.back(), defaultCoordsFile);
+		generator.GenerateD3Output(history.back(), defaultD3File);
+		if(sequencesFile.isSet())
 		{
-			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), defaultPermutationsFile),
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), defaultCoverageReportFile),
-			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), defaultCoordsFile),
-			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), defaultSequencesFile),
-			hierarchy ? singleCircos : hierarchyCircos,
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), defaultD3File)
-		};
-		
-		size_t length = sizeof(doOutput) / sizeof(doOutput[0]);
-		for(size_t i = 0; i < length; i++)
+			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
+		}
+
+		if(!hierarchy)
 		{
-			if(doOutput[i])
-			{
-				outFunction[i]();
-			}
+			generator.GenerateCircosOutput(history.back(), defaultCircosFile, defaultCircosDir);
+		}
+		else
+		{
+			generator.GenerateHierarchyCircosOutput(history, defaultCircosFile, defaultCircosDir);
 		}
 
 		if(graphFile.isSet())
