@@ -23,6 +23,9 @@ namespace SyntenyFinder
 		};
 	}
 
+	const char BlockFinder::POS_FREE = 0;
+	const char BlockFinder::POS_OCCUPIED = 1;
+
 	void BlockFinder::GlueStripes(std::vector<BlockInstance> & block)
 	{
 		std::vector<std::vector<BlockInstance> > perm(originalChrList_->size());
@@ -235,19 +238,63 @@ namespace SyntenyFinder
 		return drop;
 	}
 
-	void BlockFinder::ResolveOverlap(EdgeIterator start, EdgeIterator begin, std::vector<PosSet> & overlap, std::vector<Edge> & nowBlock)
+	void BlockFinder::ResolveOverlap(EdgeIterator start, EdgeIterator end, size_t minSize, std::vector<Indicator> & overlap, std::vector<Edge> & nowBlock)
 	{
 		nowBlock.clear();
+		typedef std::pair<size_t, size_t> ChrPos;
+		std::set<ChrPos> localOverlap;
+		for(; start != end; ++start)
+		{
+			size_t segEnd = 0;
+			size_t bestStart = 0;
+			size_t bestEnd = 0;			
+			size_t chrNumber = start->GetChr();
+			size_t end = start->GetOriginalPosition() + start->GetOriginalLength();
+			for(size_t segStart = start->GetOriginalPosition(); segStart < end; segStart = segEnd)
+			{
+				for(segEnd = segStart; segEnd < end && overlap[chrNumber][segEnd] == POS_FREE; segEnd++)
+				{
+					ChrPos now(chrNumber, segEnd);
+					if(localOverlap.count(now) > 0)
+					{
+						break;
+					}
+				}
+
+				if(segEnd - segStart > bestEnd - bestStart)
+				{
+					bestStart = segStart;
+					bestEnd = segEnd;
+				}
+
+				segEnd += segEnd == segStart ? 1 : 0;
+			}
+
+			if(bestEnd - bestStart > minSize)
+			{
+				nowBlock.push_back(Edge(start->GetChr(), start->GetDirection(), start->GetStartVertex(), start->GetEndVertex(),
+					start->GetActualPosition(), start->GetActualLength(), bestStart, bestEnd - bestStart, start->GetFirstChar()));
+				for(size_t pos = bestStart; pos < bestEnd; pos++)
+				{
+					ChrPos now(chrNumber, segEnd);
+					localOverlap.insert(now);
+				}
+			}
+		}	
 	}
 
 	void BlockFinder::GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration)
 	{
 		std::vector<Edge> edge;
-		std::vector<PosSet> overlap;
+		std::vector<Indicator> overlap(rawSeq_.size());
+		for(size_t i = 0; i < rawSeq_.size(); i++)
+		{
+			overlap[i].resize(rawSeq_[i].size(), POS_FREE);
+		}
+
 		{
 			IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_);
-			ListEdges(iseq.Sequence(), iseq.BifStorage(), k, edge);
-			overlap.resize(iseq.Sequence().ChrNumber());
+			ListEdges(iseq.Sequence(), iseq.BifStorage(), k, edge);			
 		}
 		
 		block.clear();
@@ -269,18 +316,22 @@ namespace SyntenyFinder
 			
 			std::vector<Edge> nowBlock;
 			std::vector<size_t> occur(rawSeq_.size(), 0);
-			ResolveOverlap(edge.begin() + firstEdge, edge.end() + lastEdge, overlap, nowBlock);			
+			ResolveOverlap(edge.begin() + firstEdge, edge.begin() + lastEdge, minSize, overlap, nowBlock);			
 			while(TrimBlocks(nowBlock, trimK, minSize));
 			for(size_t nowEdge = 0; nowEdge < nowBlock.size(); nowEdge++)
 			{
 				occur[nowBlock[nowEdge].GetChr()]++;				
 			}
-
+			
 			if(nowBlock.size() > 1 && (!sharedOnly || std::count(occur.begin(), occur.end(), 1) == rawSeq_.size()))
 			{
 				for(size_t i = 0; i < nowBlock.size(); i++)
 				{
-					int strand = nowBlock[i].GetDirection() == DNASequence::positive ? +1 : -1;					
+					int strand = nowBlock[i].GetDirection() == DNASequence::positive ? +1 : -1;
+					size_t start = nowBlock[i].GetActualPosition();
+					size_t end = start + nowBlock[i].GetActualLength();
+					Indicator::iterator it = overlap[nowBlock[i].GetChr()].begin();
+					std::fill(it + start, it + end, POS_OCCUPIED);
 					block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].GetChr()], nowBlock[i].GetOriginalPosition(), nowBlock[i].GetOriginalPosition() + nowBlock[i].GetOriginalLength()));
 				}
 

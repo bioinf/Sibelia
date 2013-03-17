@@ -51,6 +51,8 @@ namespace SyntenyFinder
 		std::vector<std::string> rawSeq_;
 		std::vector<PosVector> originalPos_;
 		const std::vector<FASTARecord> * originalChrList_;
+		static const char POS_FREE;
+		static const char POS_OCCUPIED;
 
 		struct Edge
 		{
@@ -85,7 +87,10 @@ namespace SyntenyFinder
 		public:
 			bool operator () (const std::pair<size_t, size_t> & range1, const std::pair<size_t, size_t> & range2) const
 			{
-				return GetTotalSize(range1) > GetTotalSize(range2);
+			//	return GetTotalSize(range1) > GetTotalSize(range2);
+				size_t size1 = range1.second - range1.first;
+				size_t size2 = range2.second - range2.first;
+				return size1 > size2;
 			}
 
 			EdgeGroupComparer(const std::vector<Edge> * edge): edge_(edge) {}
@@ -121,9 +126,9 @@ namespace SyntenyFinder
 		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData);
 		void UpdateBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,
 			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBack);
-		typedef std::set<Pos> PosSet;
+		typedef std::vector<Bool> Indicator;
 		typedef std::vector<Edge>::iterator EdgeIterator;		
-		void ResolveOverlap(EdgeIterator start, EdgeIterator begin, std::vector<PosSet> & overlap, std::vector<Edge> & nowBlock);
+		void ResolveOverlap(EdgeIterator start, EdgeIterator end, size_t minSize, std::vector<Indicator> & overlap, std::vector<Edge> & nowBlock);
 	};
 }
 
