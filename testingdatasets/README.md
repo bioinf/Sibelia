@@ -57,31 +57,38 @@ from tools installation directories. All tools are run with their default parame
 3 Comparison scripts
 ====================
 
-Scripts are located in "scripts" folder. Some of them needs AlignIO branch of Biopython library
+Scripts are located in "scripts" folder. Some of them need AlignIO branch of Biopython library
 (http://biopython.org/wiki/Multiple_Alignment_Format). Folder with cloned git repo is expected to be
 named "alignio-maf". Most of them accept files with synteny blocks description, which can be obtained
 by conversion scripts (see below). All scripts outputs in stdout.
 
 * sibConvet.py sib_file
+
 Converts sibelia output (blocks_coords.txt) to plain format, recognised by other scripts.
 
 * mafConvert.py maf_file min_block_size strains_file
+
 Converts maf file (from mugsy ot mugsy-tba) to plain format. Needs minimum block size of run
 (which can bo found in "blocksize.txt" file in output folder) and file with ordered input genomes names
 ("strains.txt" file in "3_genomes_test" folder).
 
 * mauveConvert.py xmfa_file min_block_size strains_file
+
 Converts mauve output to plain format. Parameters are described ahead.
 
 * highlight.py plain_file
+
 Converts blocks in plain format to circos highlight file (for making circos diagrams).
 
 * coverage.py file
+
 Calculates synteny blocks coverage rate. Script requires fasta files with genomes. Edit path to them,
 if you need.
 
 * f1stat.py file1 file2
+
 Calculates F1-statistic for two pain blocks files.
 
 * boundaryDiscord.py file1 file2
-Calculates boundary discordane for two plain blocks files.
+
+Calculates boundary discordance for two plain blocks files.
