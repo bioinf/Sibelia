@@ -12,12 +12,19 @@ Authors
 
 Introduction
 ============
-"Sibelia" is a tool for finding synteny blocks (regions of conserved DNA)
-in closely related genomes, like different strains of the same bacterial
-specie. It takes a set of FASTA files with genomes and locates coordinates of
-the synteny blocks in these sequences.
+This package contains source code for two executables:
 
-This branch
+* Sibelia -- "Sibelia" is a tool for finding synteny blocks (regions of 
+conserved DNA) in closely related genomes, like different strains of the same
+bacterial species. It takes a set of FASTA files with genomes and locates
+coordinates of the synteny blocks in these sequences.
+* C-Sibelia -- This program is designed for comparison between a reference
+and a genome represented as a set of contigs. It is able to detect indels of
+different scale, mismatches and simple rearrangements (reversals and 
+translocations).
+
+Please note that it is not a release branch, "C-Sibila" is currently unstable
+and is under active developement.
 
 Installation
 ============
