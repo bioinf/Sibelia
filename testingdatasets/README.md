@@ -52,8 +52,7 @@ use scripts described below.
 Scripts are located in "performance_test" folder. First, put any number of genomes in "testgenomes" folder
 (for example, you can get 59 e.coli genomes from http://www.ncbi.nlm.nih.gov/genome/?term=txid562[orgn]).
 Then, run script for corresponding tool. See instructions inside scripts. It`s better to run scripts
-from tools installation directories.
-
+from tools installation directories. All tools are run with their default parameters.
 
 3 Comparison scripts
 ====================
