@@ -28,17 +28,20 @@ Edit installation paths in tbaenv.sh first. To run mugsy in tba mode use --tba o
 ---------
 Download and compile mauve (http://gel.ahabs.wisc.edu/mauve/).
 
+1 Synteny blocks evaluation
+===========================
+Here we describe datasets and scripts related to the synteny blocks finding.
 
-1 Small synthetic test
-======================
+1.0 Small synthetic test
+------------------------
 
 Scripts to to run small syntenic test are located in "synthetic_test" folder. See comments inside.
 Note, that if you want to compare results or make a circos diagram, you should use some scripts, 
 described below.
 
 
-2 Comparison on 3 e.coli genomes
-================================
+1.1 Comparison on 3 e.coli genomes
+----------------------------------
 
 Scripts located in "3_genomes_test" folder. Usage: "./toolRunner.sh parameters_file genomes_file". 
 Files with parameters for corresponding tools and file with genomes are located in same folder.
@@ -46,16 +49,8 @@ It`s better to copy these scripts in installation directories of corresponding t
 folders with tools output will be produced (named as "tool_name_params"). To compare obtained results,
 use scripts described below.
 
-4 Performance comparison
-========================
-
-Scripts are located in "performance_test" folder. First, put any number of genomes in "testgenomes" folder
-(for example, you can get 59 e.coli genomes from http://www.ncbi.nlm.nih.gov/genome/?term=txid562[orgn]).
-Then, run script for corresponding tool. See instructions inside scripts. It`s better to run scripts
-from tools installation directories. All tools are run with their default parameters.
-
-3 Comparison scripts
-====================
+1.2 Comparison scripts
+----------------------
 
 Scripts are located in "scripts" folder. Some of them need AlignIO branch of Biopython library
 (http://biopython.org/wiki/Multiple_Alignment_Format). Folder with cloned git repo is expected to be
@@ -92,3 +87,26 @@ Calculates F1-statistic for two pain blocks files.
 * boundaryDiscord.py file1 file2
 
 Calculates boundary discordance for two plain blocks files.
+
+1.3 Performance comparison
+--------------------------
+
+Scripts are located in "performance_test" folder. First, put any number of genomes in "testgenomes" folder
+(for example, you can get 59 e.coli genomes from http://www.ncbi.nlm.nih.gov/genome/?term=txid562[orgn]).
+Then, run script for corresponding tool. See instructions inside scripts. It`s better to run scripts
+from tools installation directories. All tools are run with their default parameters.
+
+2. Variant calling evaluation
+=============================
+
+Here we describe datasets and scripts related to variant calling features of 
+Sibelia.
+
+0. Installing and using of Sibelia with variang calling capabilities
+--------------------------------------------------------------------
+
+1. Simulated dataset
+--------------------
+
+2. Real dataset
+---------------
