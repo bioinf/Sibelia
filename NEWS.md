@@ -1,3 +1,11 @@
+Sibelia 2.20
+============
+* Got rid of overlap between synteny blocks, overlapping regions are granted to
+the blocks with higher multiplicity
+* Added generation of circos picture that shows blocks at multiple stages
+simultaneously
+* Added cmd option: -v
+
 Sibelia 2.1.0
 =============
 * Improved performance in the case of many genomes. Now it is possible to

@@ -6984,7 +6984,6 @@ namespace SyntenyFinder
 			std::string("	fill      = yes"),
 			std::string("	show_label       = yes"),
 			std::string("	label_font       = default"),
-			std::string("	label_radius     = 1.08r"),
 			std::string("	label_size       = 14"),
 			std::string("	label_parallel   = no"),
 			std::string("</ideogram>"),
@@ -7039,8 +7038,7 @@ namespace SyntenyFinder
 			std::string("# look in etc/ in the Circos distribution."),
 			std::string(""),
 			std::string("<image>"),
-			std::string("# Included from Circos distribution."),
-			std::string("<<include etc/image.conf>>"),
+			std::string("<<include circos.image.conf>>"),
 			std::string("</image>"),
 			std::string(""),
 			std::string("# RGB/HSV color definitions, color lists, location of fonts, fill patterns."),
@@ -7056,7 +7054,32 @@ namespace SyntenyFinder
 		std::string GlueResourceVcircosTemplate()
 		{
 			std::stringstream buf;
-			std::copy(circosTemplateBlockNo0, circosTemplateBlockNo0 + 79, std::ostream_iterator<std::string>(buf, "\n"));
+			std::copy(circosTemplateBlockNo0, circosTemplateBlockNo0 + 77, std::ostream_iterator<std::string>(buf, "\n"));
+			return buf.str();
+		}
+
+		const std::string circosImageConfigBlockNo0[] = 
+		{
+			std::string("background = white"),
+			std::string("dir   = ."),
+			std::string("file  = circos.png"),
+			std::string("png   = yes"),
+			std::string("svg   = yes"),
+			std::string("# radius of inscribed circle in image"),
+			std::string(""),
+			std::string("# by default angle=0 is at 3 o'clock position"),
+			std::string("angle_offset      = -90"),
+			std::string(""),
+			std::string("#angle_orientation = counterclockwise"),
+			std::string(""),
+			std::string("auto_alpha_colors = yes"),
+			std::string("auto_alpha_steps  = 5"),
+		};
+
+		std::string GlueResourceVcircosImageConfig()
+		{
+			std::stringstream buf;
+			std::copy(circosImageConfigBlockNo0, circosImageConfigBlockNo0 + 14, std::ostream_iterator<std::string>(buf, "\n"));
 			return buf.str();
 		}
 
@@ -7064,5 +7087,6 @@ namespace SyntenyFinder
 
 	const std::string d3Template = GlueResourceVd3Template();
 	const std::string circosTemplate = GlueResourceVcircosTemplate();
+	const std::string circosImageConfig = GlueResourceVcircosImageConfig();
 }
 

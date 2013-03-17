@@ -164,9 +164,6 @@ the overall coverage. It means that there are 11 blocks with degree = 2, i.e.
 4 * 21 instances and they cover 91.93% of all genomes. All the blocks cover
 95.66% of all the input sequences.
 
-Note that synteny blocks can overlap (by at most 5000 BP for loose parameter
-set), so sum in each column may not equal to value at last row.
-
 Sequences file
 --------------
 File name = "blocks_sequences.fasta". By default this file is not written. To

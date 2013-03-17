@@ -102,6 +102,11 @@ namespace SyntenyFinder
 		}
 	}
 
+	const int OutputGenerator::CIRCOS_MAX_COLOR = 25;
+	const int OutputGenerator::CIRCOS_DEFAULT_RADIUS = 1500;
+	const int OutputGenerator::CIRCOS_RESERVED_FOR_LABEL = 500;
+	const int OutputGenerator::CIRCOS_HIGHLIGHT_THICKNESS = 50;
+
 	void OutputGenerator::ListChrs(std::ostream & out) const
 	{
 		out << "Seq_id\tSize\tDescription" << std::endl;
@@ -111,10 +116,7 @@ namespace SyntenyFinder
 		}
 
 		out << DELIMITER << std::endl;
-	}
-
-	const int OutputGenerator::CIRCOS_MAX_COLOR = 25;
-	const double OutputGenerator::CIRCOS_HIGHLIGHT_THICKNESS = 0.05;
+	}	
 
 	void OutputGenerator::GenerateReport(const BlockList & block, const std::string & fileName) const
 	{
@@ -232,27 +234,38 @@ namespace SyntenyFinder
 		}
 	}
 
+	void OutputGenerator::WriteCircosImageConfig(const std::string & outDir, const std::string & fileName, int r) const
+	{
+		std::ofstream imageConfig;
+		TryOpenFile(outDir + "/" + fileName, imageConfig);
+		imageConfig << circosImageConfig;
+		imageConfig << "radius = " << r << "p" << std::endl;
+	}
+
 	void OutputGenerator::GenerateHierarchyCircosOutput(const std::vector<BlockList> & history, const std::string & outFile, const std::string & outDir) const
 	{
+		int r = 100;
 		std::ofstream config;
 		CreateDirectory(outDir);
 		TryOpenFile(outFile, config);
-		config << circosTemplate;
-		double r = 1.0;
-
+		config << circosTemplate;		
 		WriteCircosLinks(outDir, "circos.segdup.txt", history.back());
 		WriteCircosKaryoType(outDir, "circos.sequences.txt");
 		config << "<highlights>\n\tfill_color = green" << std::endl;		
-		WriteCircosHighlight(outDir, "circos.highlight.txt", history.back(), r, true, config);		
+		WriteCircosHighlight(outDir, "circos.highlight.txt", history.back(), 0, 0, true, config);		
 		for(std::vector<BlockList>::const_reverse_iterator it = ++history.rbegin(); it != history.rend(); ++it)
-		{
-			r += CIRCOS_HIGHLIGHT_THICKNESS * 1.5;
+		{			
 			std::stringstream ss;
 			ss << "circos.highlight" << it - history.rbegin() << ".txt";
-			WriteCircosHighlight(outDir, ss.str(), *it, r, false, config);			
-		}	
+			WriteCircosHighlight(outDir, ss.str(), *it, r, r + CIRCOS_HIGHLIGHT_THICKNESS, false, config);			
+			r += static_cast<int>(CIRCOS_HIGHLIGHT_THICKNESS * 1.5);
+		}
 
-		config << "</highlights>" << std::endl;
+		config << "</highlights>" << std::endl;	
+		std::stringstream ss;
+		ss << "<ideogram>\n\tlabel_radius = 1r + " << r << "p\n</ideogram>" << std::endl;
+		config << ss.str();
+		WriteCircosImageConfig(outDir, "circos.image.conf", CIRCOS_DEFAULT_RADIUS + CIRCOS_RESERVED_FOR_LABEL + r);
 	}
 
 	void OutputGenerator::GenerateCircosOutput(const BlockList & blockList, const std::string & outFile, const std::string & outDir) const
@@ -264,8 +277,10 @@ namespace SyntenyFinder
 		WriteCircosLinks(outDir, "circos.segdup.txt", blockList);
 		WriteCircosKaryoType(outDir, "circos.sequences.txt");
 		config << "<highlights>\n\tfill_color = green" << std::endl;		
-		WriteCircosHighlight(outDir, "circos.highlight.txt", blockList, 1.0, true, config);
+		WriteCircosHighlight(outDir, "circos.highlight.txt", blockList, 0, 0, true, config);
 		config << "</highlights>" << std::endl;
+		config << "<ideogram>\n\tlabel_radius = 1.08r\n</ideogram>" << std::endl;
+		WriteCircosImageConfig(outDir, "circos.image.conf", CIRCOS_DEFAULT_RADIUS);
 	}
 
 	void OutputGenerator::WriteCircosLinks(const std::string & outDir, const std::string & fileName, const BlockList & block) const
@@ -305,7 +320,7 @@ namespace SyntenyFinder
 		}
 	}
 
-	void OutputGenerator::WriteCircosHighlight(const std::string & outDir, const std::string & fileName, const BlockList & block, double r, bool ideogram, std::ofstream & config) const
+	void OutputGenerator::WriteCircosHighlight(const std::string & outDir, const std::string & fileName, const BlockList & block, int r0, int r1, bool ideogram, std::ofstream & config) const
 	{
 		int color = 0;
 		BlockList sortedBlocks = block;
@@ -331,7 +346,7 @@ namespace SyntenyFinder
 			highlightFile << blockStart << " " << blockEnd;
 			if(!ideogram)
 			{
-				highlightFile << " fill_color=chr" << color << "_a2";
+				highlightFile << " fill_color=chr" << color << "_a0";
 			}
 
 			highlightFile << std::endl;
@@ -346,8 +361,8 @@ namespace SyntenyFinder
 		config << prefix << "stroke_thickness = 4" << std::endl;
 		if(!ideogram)
 		{
-			config << prefix << "r0 = " << r << "r" << std::endl;
-			config << prefix << "r1 = " << r + CIRCOS_HIGHLIGHT_THICKNESS << "r" << std::endl;
+			config << prefix << "r0 = 1r +" << r0 << "p" << std::endl;
+			config << prefix << "r1 = 1r +" << r1 << "p" << std::endl;
 		}
 
 		config << "\t</highlight>" << std::endl;

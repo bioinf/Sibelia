@@ -54,6 +54,8 @@ http://tclap.sourceforge.net
 http://www.boost.org
 * D3.js (BSD License)
 http://d3js.org
+* Seqan (BSD/3-clause)
+http://www.seqan.de
 
 Contacts
 ========
