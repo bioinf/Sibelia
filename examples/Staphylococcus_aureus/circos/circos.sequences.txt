@@ -1,4 +1,0 @@
-chr - seq1 gi|150392480|ref|NC_009632.1| 0 2906507 chr1
-chr - seq2 gi|29165615|ref|NC_002745.2| 0 2814816 chr2
-chr - seq3 gi|387141638|ref|NC_017331.1| 0 3043210 chr3
-chr - seq4 gi|49484912|ref|NC_002953.3| 0 2799802 chr4

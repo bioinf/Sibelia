@@ -1,6 +1,6 @@
-Sibelia 2.2.0
+Sibelia comparative genomics suite, pre-alpha version 0.0.1
 
-Release date: 18th March 2013
+Release date: TBD
 
 Authors
 =======
@@ -17,11 +17,7 @@ in closely related genomes, like different strains of the same bacterial
 specie. It takes a set of FASTA files with genomes and locates coordinates of
 the synteny blocks in these sequences.
 
-System Requirements
-===================
-This version is designed for small-scale genomes. For example, it can find
-synteny blocks in 8 bacterial genomes (51 MB of genomic data) in ~10 minutes
-and using 900 MB of RAM and 800 MB HDD space on an Intel i5 laptop. 
+This branch
 
 Installation
 ============
