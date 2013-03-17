@@ -1,6 +1,6 @@
-Sibelia 2.1.0
+Sibelia 2.2.0
 
-Release date: 17th January 2013
+Release date: 18th March 2013
 
 Authors
 =======

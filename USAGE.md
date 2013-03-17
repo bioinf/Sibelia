@@ -203,6 +203,15 @@ see "examples/Helicobacter_pylori/circos/circos.png". Also note that such
 diagrams can become very piled with larger number of genomes. To overcome
 this, plot only big blocks, see section "Minimum block size".
 
+By default, "Sibelia" plots only blocks obtained after the last stage.
+You can also view blocks at the intermediate stages by using switch:
+
+	-v or --visualize
+
+On the resulting diagram the outermost circle shows blocks obtained at the
+first stage, then the second stage and so on. Please note that this option
+slows down the computation.
+
 Resulting de Bruijn graph
 -------------------------
 File name = "de_bruijn_graph.dot". By default this file is not written. To
