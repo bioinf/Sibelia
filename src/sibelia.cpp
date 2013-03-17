@@ -46,6 +46,12 @@ int main(int argc, char * argv[])
 			"",
 			"file name");
 
+		TCLAP::SwitchArg hierarchyPicture("v",
+			"visualize",
+			"Draw circos diagram with blocks at different stages",
+			cmd,
+			false);
+
 		TCLAP::SwitchArg graphFile("g",
 			"graphfile",
 			"Output resulting condensed de Bruijn graph (in dot format), default = not set.",
@@ -91,7 +97,7 @@ int main(int argc, char * argv[])
 		TCLAP::UnlabeledMultiArg<std::string> fileName("filenames",
 			"FASTA file(s) with nucleotide sequences.",
 			true,
-			"file name",
+			"fasta files with genomes",
 			cmd);
 
 		TCLAP::ValueArg<std::string> outFileDir("o",
@@ -139,6 +145,8 @@ int main(int argc, char * argv[])
 		}
 
 		int trimK = INT_MAX;
+		bool hierarchy = hierarchyPicture.getValue();
+		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size());
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));		
 		for(size_t i = 0; i < stage.size(); i++)
@@ -147,14 +155,17 @@ int main(int argc, char * argv[])
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
 			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
+			if(hierarchy && i < stage.size() - 1)
+			{
+				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
+			}
 		}
 		
-		std::vector<SyntenyFinder::BlockInstance> blockList;
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
-		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), blockList, sharedOnly.getValue(), PutProgressChr);
-		SyntenyFinder::OutputGenerator generator(chrList, blockList);
+		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
+		SyntenyFinder::OutputGenerator generator(chrList, history.back());
 
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
@@ -164,16 +175,17 @@ int main(int argc, char * argv[])
 		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
-		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
-
+		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		
 		bool doOutput[] = {true, true, true, sequencesFile.isSet(), true, true};
+		boost::function<void()> singleCircos = boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), defaultCircosFile, defaultCircosDir);
+		boost::function<void()> hierarchyCircos = boost::bind(&SyntenyFinder::OutputGenerator::GenerateHierarchyCircosOutput, boost::cref(generator), defaultCircosFile, defaultCircosDir, boost::cref(history));
 		boost::function<void()> outFunction[] = 
 		{
 			boost::bind(&SyntenyFinder::OutputGenerator::ListChromosomesAsPermutations, boost::cref(generator), defaultPermutationsFile),
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateReport, boost::cref(generator), defaultCoverageReportFile),
 			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), defaultCoordsFile),
-			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), defaultSequencesFile),		
-			boost::bind(&SyntenyFinder::OutputGenerator::GenerateCircosOutput, boost::cref(generator), defaultCircosFile, defaultCircosDir),
+			boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksSequences, boost::cref(generator), defaultSequencesFile),
+			hierarchy ? singleCircos : hierarchyCircos,
 			boost::bind(&SyntenyFinder::OutputGenerator::GenerateD3Output, boost::cref(generator), defaultD3File)
 		};
 		

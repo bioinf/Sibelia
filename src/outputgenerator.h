@@ -18,8 +18,9 @@ namespace SyntenyFinder
 	public:
 		typedef std::vector<BlockInstance> BlockList;
 		OutputGenerator(const ChrList & chrList, const BlockList & blockList): chrList_(chrList), blockList_(blockList) {}
-		void GenerateReport(const std::string & fileName) const;
+		void GenerateReport(const std::string & fileName) const;		
 		void GenerateCircosOutput(const std::string & outFile, const std::string & outDir) const;
+		void GenerateHierarchyCircosOutput(const std::string & outFile, const std::string & outDir, const std::vector<BlockList> & history) const;
 		void GenerateD3Output(const std::string & outFile) const;
 		void ListBlocksIndices(const std::string & fileName) const;
 		void ListBlocksSequences(const std::string & fileName) const;		
