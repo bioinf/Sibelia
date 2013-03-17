@@ -1,0 +1,995 @@
+#!/usr/bin/perl
+if(! -d $ENV{'MUGSY_INSTALL'}){
+    my $default_install = "/usr/local/projects/angiuoli/developer/sangiuoli/mugsy/trunk/";
+    if( -d $default_install){
+	$ENV{'MUGSY_INSTALL'} = $default_install;
+	print STDERR "MUGSY_INSTALL environment variable not set. Using $default_install\n";
+    }
+    else{
+	print STDERR "ERROR: MUGSY_INSTALL environment variable not set. Set using export MUGSY_INSTALL=/somepath/to/mugsy\n";
+    }    
+}
+
+=head1 NAME
+
+mugsy - a multiple whole genome aligner
+
+=head1 USAGE
+
+mugsy [-p output prefix] multifasta_genome1.fsa multifasta_genome2.fsa ... multifasta_genomeN.fsa
+
+=head1 SYNOPSIS
+
+Mugsy is multiple whole genome aligner. Mugsy uses Nucmer for pairwise
+alignment, a custom graph based segmentation procedure for identifying
+LCBs (synchain-mugsy), and a segment-based progressive multiple
+alignment strategy from Seqan::TCoffee. Mugsy accepts draft genomes in
+the form of multi-FASTA files. Mugsy does not require a reference
+genome and is robust in the presence of large scale genome flux and
+genome rearrangments. Mugsy performs best on closely related genomes
+and has been used to align several dozens bacterial genomes.
+
+Mugsy outputs a series of alignments in MAF format. 
+
+See http://mugsy.sf.net for more information
+
+=head1 INPUT
+
+Input is one or more (multi)FASTA files, one per genome. Each file
+should contain all the sequences for a single organism/species.
+
+Limitations on FASTA input:
+ input FASTA headers must not contain ':' or '-'
+ ambiguity characters are converted to N in output
+
+Common options:
+
+    -p|prefix       prefix for output files
+
+    --directory     directory used to store output and temporary files
+
+    -d|--distance   maximum distance along a single sequence (bp) for
+     chaining anchors into locally colinear blocks (LCBs).  This is
+     used by the segmentation step synchain-mugsy. Default is 1000bp.
+
+    -c|--minlength minimum span of an aligned region in a colinear
+     block (bp). This is used by the segmentation step
+     synchain-mugsy. Default is 30bp.
+
+    -duplications 1 - Detect and report duplications. 0 - Skip. Default is 0.
+
+Other options:
+
+    -nucmeropts options passed through to the Nucmer
+     package. Eg. -nucmeropts "-l 15" sets the minimum MUM length in
+     NUCmer to 15. See the Nucmer documentation at
+     http://mummer.sf.net for more information.  Default is -l 15.
+
+    -allownestedlcbs. Default=false. Places each multi-genome anchor
+     in exactly one LCB; the longest spanning LCB
+
+    -plot output genome dot plots in GNUplot format. Overlays LCBS
+     onto pairwise plots from mummerplot. Display of draft genomes in
+     these plots is not supported.
+
+    -fullsearch Run a complete all pairs Nucmer search with each
+     sequence as a reference and query (n^2-1 total searches). Default
+     is one direction only (n^2-1/2 searches).
+
+    -refine run an second iteration of Mugsy on each LCB to refine the
+     alignment using either Mugsy (--refine mugsy), FSA (--refine
+     fsa), Pecan (--refine pecan), MLAGAN (--refine mlagan)
+
+    -debug           debug level. > 2 verbose
+
+
+=head1 OUTPUT
+
+Primary output is MAF format.
+
+Utilities for parsing MAF are available at the UCSC genome browser and
+in the multiz,TBA toolkit. GMAJ is a popular visualization tool for MAF.
+
+=head1 MORE INFO
+
+This script is a wrapper that invokes an all-against-all Nucmer search
+and the mugsy aligner.  The two primary components of the aligner
+can also be run independently
+
+1) mugsyWGA
+
+Generates a whole genome alignment (WGA) from a library of pairwise
+alignments in XMFA format. Implemented with the refined segment graph
+and progressive consistency-based alignment procedure described in
+Seqan::TCoffee (Rausch et al 2008).  Invokes synchain-mugsy to segment
+the input genomes into alignable regions.
+
+2) synchain-mugsy
+
+Derives a segmentation of genome anchors that fulfill --distance and
+--minlength criteria.  Anchors can be any oriented features that span
+two or more of the input genomes.  The output is a set of locally
+colinear blocks (LCBs)
+
+=head1 Using Mugsy with other aligners 
+
+Mugsy supports realignment of LCBs using FSA,Pecan, MLAGAN. For FSA, make sure FSA is in your PATH and run with --refine fsa
+    
+=head1 For more information
+
+http://www.sf.net/mugsy.
+
+AUTHOR:
+Sam Angiuoli 
+angiuoli@cs.umd.edu
+2009
+
+=cut
+
+use strict;
+use Getopt::Long qw(:config no_ignore_case no_auto_abbrev);
+use File::Basename;
+use Pod::Usage;
+use POSIX;
+
+#Only needed for TBA evaluation
+#eval{
+#    require TreeParse;
+#};
+#if (! $@){
+#    TreeParse->import();
+#} else {
+#    die $@;
+#}
+
+my %options;
+my $results = GetOptions (\%options, 
+    'prefix|p=s',
+    'directory=s',
+    'distance|d=s',
+    'minlength|c=s',
+    'fullsearch',
+    'tree|t=s',
+    'treefile|f=s',
+    'skipsearch',
+    'skiprefine',
+    'allownestedlcbs',
+    'refine',
+    'colinear',
+    'skipunique',
+    'duplications=s',
+    'keeptmpfiles',
+    'keepsearchfiles',
+    'tba|s',
+    'mugsywga|s',
+    'nucmeropts|o=s',
+    'plot',
+    'nofilter|n',
+    'translated|s',
+    'debug=s',
+    'log=s',
+    'help|h',	
+    'fasta_file_list=s'	
+    ) || pod2usage(-verbose => 3);
+
+pod2usage(-verbose=>3) if($options{'help'});
+
+####################################################
+## We need to append the filenames present in the tag
+## so modifying the code so that it would take input
+## fasta files either from the command line or from
+## the tagged dataset.
+## Modified by: Mahesh Vangala
+#####################################################
+my @inputseqfiles = ();
+unless($options{'fasta_file_list'}) {
+        @inputseqfiles = @ARGV;
+} else {
+        getFastaFilesPath($options{'fasta_file_list'}, \@inputseqfiles);
+}
+
+$options{'debug'} = 0 if(!defined $options{'debug'});
+print LOG "Processing FASTA files ",join(',',@inputseqfiles),"\n" if($options{'debug'});
+
+pod2usage(-verbose=>3, -message => "Need to specify valid input fasta file") if(! scalar(@inputseqfiles));
+
+
+###EXTERNAL PROGS####
+my $mugsyinstall = $ENV{'MUGSY_INSTALL'};
+
+##Customized version of Nucmer with maf conversion utilities and
+#delta-filter -b for reporting duplications
+my $nucmerinstall = "$ENV{'MUGSY_INSTALL'}/MUMmer3.20";
+
+##
+#Mugsy aligner
+my $mugsywgacmd = "$mugsyinstall/mugsyWGA";
+
+##
+#Nucmer package
+my $nucmercmd = "$nucmerinstall/nucmer";
+my $promercmd = "$nucmerinstall/promer";
+my $searchcmd = $options{'translated'} ? $promercmd : $nucmercmd;
+my $deltafiltcmd = "$nucmerinstall/delta-filter";
+my $deltadupscmd = "$mugsyinstall/delta-dups.sh";
+#/usr/local/projects/angiuoli/developer/sangiuoli/mugsy/trunk/delta-dups.sh";
+my $mummerplotcmd = "$nucmerinstall/mummerplot";
+my $delta2mafcmd = "$nucmerinstall/delta2maf";
+
+##
+#Mugsy utils
+my $maf2fastacmd = "$mugsyinstall/maf2fasta.pl";
+my $labelblockscmd = "$mugsyinstall/labelblocks.pl";
+my $fixnamescmd = "$mugsyinstall/fixMAFnames.pl";
+
+##
+#MAF utils and TBA 
+#This wrapper includes support to use TBA with Nucmer for evaluation purposes
+my $muscleinstall = "$ENV{'MUSCLE_INSTALL'}";
+my $multizinstall = "$ENV{'TBA_INSTALL'}";
+if(-d $multizinstall){
+    $ENV{'PATH'} = "$ENV{'PATH'}:$multizinstall/";
+}
+my $tbacmd = "$multizinstall/tba";
+my $singlecovcmd = "$multizinstall/single_cov2";
+my $mafsortcmd = "$multizinstall/maf_sort";
+#Customized version MUSCLE v3.7 or later was required to quickly build guide tree
+my $musclecmd = "$muscleinstall/muscle";
+
+#characters like . cannot be included in the output prefix -prefix
+#because of assumptions made by some downstream parsers.
+#Check for problem characters in -prefix and report errors
+my $problemchars = "\.\?\-";
+#FASTA headers must not contain
+my $fastaproblemchars = "\:\-";
+
+if(defined $options{'directory'}){
+    if(! -d "$options{'directory'}"){
+	die "-directory must be a directory";
+    }
+    elsif($options{'directory'} !~ /\/$/){
+	$options{'directory'} .= "/";
+    }
+}
+else{
+    $options{'directory'} = "/tmp/";
+}
+
+my $absprefix =  $options{'directory'};
+if(!defined $options{'prefix'}){
+    $absprefix .= "tmp";
+}
+else{
+    if($options{'prefix'} =~ /([$problemchars])/){
+	die "Character '$1' found in --prefix=$options{'prefix'}.  Please choose another --prefix that excludes '$1'.\n";
+    }
+    $absprefix .= $options{'prefix'};
+}
+
+my $logfh;
+if(lc($options{'log'}) eq 'stderr'){
+    $logfh=*STDERR;
+}
+elsif($options{'log'}){
+    open $logfh,"+>$options{'log'}";
+}else{
+    open $logfh,"+>$options{'prefix'}.mugsy.log";
+}
+#Skipsearch automatically sets keepsearchfiles so
+#that search output is preserved
+if($options{'skipsearch'}){
+    $options{'keepsearchfiles'}=1;
+}
+
+#Set defaults for --distance and --minlength
+$options{'distance'} = (defined $options{'distance'}) ? $options{'distance'} : 1000;
+die "--distance must be an integer. Passed $options{'distance'}" if($options{'distance'} =~ /\D/);
+$options{'minlength'} = (defined $options{'minlength'}) ? $options{'minlength'} : 30;
+
+if(!defined $options{'nucmeropts'}){
+    #Added -l 15 to make defaults comparable with Mauve defaults
+    $options{'nucmeropts'} = $options{'nucmeropts'}." -l 15";
+}
+if(defined $options{'collinear'}){
+    $options{'nucmeropts'} .= $options{'nucmeropts'}." -maxmatch";
+}
+die "Cannot pass both --refine and --skiprefine" if(exists $options{'refine'} && exists $options{'skiprefine'});
+
+if(!exists $options{'refine'} && !exists $options{'skiprefine'}){
+    $options{'skiprefine'}='true';
+}
+die "Cannot pass both --tba and --mugsywga" if(exists $options{'mugsywga'} && $options{'tba'});
+
+#Multiple alignment method
+my $method;
+if(exists $options{'tba'}){
+    $method="tba";
+}
+elsif($options{'mugsywga'}){
+    $method="mugsywga";
+}
+else{
+    $method="mugsywga";
+}
+
+#TODO remove this
+if(defined $options{'plot'}){
+    $options{'keeptmpfiles'}=1;
+}
+
+#Set default options for reporting duplications
+#if(! exists $options{'duplications'}){
+#    $options{'duplications'}=1;
+#}
+
+my $seqfiles = {};
+my $genome2seqslookup = {}; 
+my $seqlengthlookup = {};
+
+my @allfastafiles;
+
+my $cleanregex = '[\-]';
+
+#Aggregate all sequences for a lineage and concatenate together    
+foreach my $seqfile (@inputseqfiles){
+    if(! -e $seqfile){
+	die "Invalid input file. Can't find $seqfile\n";
+    }
+    #default species name will be basename of the file
+    #upto the first dot
+    my $fname = basename($seqfile);
+    $fname =~ s/\.[^.]+//g;
+    $fname =~ s/$cleanregex/_/g;
+    my $speciesname = $fname;
+    unlink "$options{'directory'}/$speciesname" if(-e "$options{'directory'}/$speciesname");
+    my $header;
+    my $seqlen=0;
+    my @seqs;
+    open FILE,"$seqfile" or die "Can't open file $seqfile";
+    while(my $line=<FILE>){
+	if($line =~ /^>/){
+	    if($seqlen>0){
+		&printFASTA("$options{'directory'}/$speciesname","$speciesname:$header:1:+:$seqlen",\@seqs);
+		$genome2seqslookup->{$speciesname} = [] if (!exists $genome2seqslookup->{$speciesname});
+		my $tbaheader;
+		if($speciesname eq $header){
+		    $tbaheader = "$speciesname";
+		}
+		else{
+		    $tbaheader = "$speciesname.$header";
+		}
+		push @{$genome2seqslookup->{$speciesname}},["$speciesname:$header:1:+:$seqlen",$tbaheader,$seqlen,"$options{'directory'}/$speciesname"];
+		$seqfiles->{"$options{'directory'}/$speciesname"}++;
+	    }
+	    $seqlen=0;
+	    @seqs=();
+	    $header='';
+	    chomp $line;
+	    if($line =~ /^>([^:]+):([^:]+):/){
+		#multiz,tba formatted headers
+		#species name specified, override filename
+		$speciesname = $1;
+		$header = $2;
+		print $logfh "Parsing FASTA entry header:$header speciesname:$speciesname\n" if($options{'debug'});
+	    }
+	    elsif($line =~ /gi\|\d+\|\w+\|([^.]+)\S+\|/){
+		#special handling of ncbi formatted headers
+		#just pull accession
+		$header = $1;
+		print $logfh "Parsing FASTA entry header:$header speciesname:$speciesname\n" if($options{'debug'});
+	    }
+	    elsif($line =~ /^>(\S+)/){
+		#plain ole header
+		$header = $1;
+                $header =~ s/$cleanregex/_/g;
+		print $logfh "Parsing FASTA entry header:$header speciesname:$speciesname\n" if($options{'debug'});
+		
+	    }
+	    else{
+		die "Can't parse FASTA header for $seqfile";
+	    }
+	}
+	else{
+	    $line =~ s/\s//g;
+	    $seqlen += length($line);
+	    push @seqs,$line;
+	}
+    }
+    #
+    if($seqlen){
+	$seqlengthlookup->{$speciesname} = $seqlen;
+	&printFASTA("$options{'directory'}/$speciesname","$speciesname:$header:1:+:$seqlen",\@seqs);
+	$genome2seqslookup->{$speciesname} = [] if (!exists $genome2seqslookup->{$speciesname});
+	my $tbaheader;
+	if($speciesname eq $header){
+	    $tbaheader = "$speciesname";
+	}
+	else{
+	    $tbaheader = "$speciesname.$header";
+	}
+	die "Cannot file FASTA file $options{'directory'}/$speciesname" if(! -e "$options{'directory'}/$speciesname");
+	
+	push @{$genome2seqslookup->{$speciesname}},
+	["$speciesname:$header:1:+:$seqlen",$tbaheader,$seqlen,"$options{'directory'}/$speciesname"];
+	
+	$seqfiles->{"$options{'directory'}/$speciesname"}++;
+    }
+    close FILE; 
+    push @allfastafiles,"$options{'directory'}/$speciesname";
+}
+
+my @genomenodes;
+my $treestring;
+
+#This wrapper supports running TBA for evaluation purposes using the same
+#Nucmer input as is passed to Mugsy
+if(exists $options{'tba'}){
+#TODO Muscle is used to build a guide tree from kmer counts.
+#The tree was used to test Nucmer+TBA but is not needed by Mugsy.
+#Removing this tree code will also remove need for muscle
+    if(defined $options{'tree'} || defined $options{'treefile'}){
+	$treestring = $options{'tree'};
+	if(! -e $options{'treefile'}){
+	    print $logfh "Writing tree file $absprefix.tree\n" if($options{'debug'});
+	    open FILE,"+>$absprefix.tree" or die "Can't open file $absprefix.tree";
+	    print FILE "$options{'tree'}\n";
+	close FILE;
+	    $options{'treefile'}  = "$absprefix.tree";
+	}
+	else{
+	    open FILE, "$options{'treefile'}" or die "Can't open treefile $options{'treefile'}";
+	    my @treein=<FILE>;
+	    close FILE;
+	    chomp @treein;
+	    $treestring = join('',@treein);
+	    chomp $treestring;
+	}
+    }
+    else{
+	print $logfh "Estimating phylogenetic tree from sequence using muscle. Shared k-mer distance method and UPGMA\n" if($options{'debug'});
+	print $logfh "Starting tree estimation: ",`date`;
+	my @seqs = keys %$seqfiles;
+	$treestring = &getkmerdisttree(\@seqs,"$absprefix.tree");
+	die "Unable to generate tree using MUSCLE. Check input FASTA files for correctness" if(! -e "$absprefix.tree");
+	unlink "$absprefix.tree" if(! defined $options{'keeptmpfiles'});
+	print $logfh "Ending tree estimation with MUSCLE: ",`date`;
+    }
+    
+    print $logfh "Processing tree $treestring\n" if($options{'debug'});
+    
+    print $logfh "Using guide tree $treestring\n";
+    #my ($treeio) = new TreeParse();
+    #my ($status) = $treeio->parseNHTree($treestring,1);
+    #if($status != 0){
+    #	die "Failed to parse tree \"$treestring\", expecting Newick format\n";
+    #}
+    my $treestringt = $treestring;
+    # replace, with spaces 
+    $treestringt =~ s/,/ /g;
+    #remove paranthesis
+    $treestringt =~ s/\(//g;
+    $treestringt =~ s/\)//g;
+    #my $tree = $treeio->getTree();
+    #my @genomenodest= $tree->leaves_under($tree);
+    #Returns leaves of tree left->right. 
+    #foreach my $i (@genomenodest){
+    #	push @genomenodes,$i->attributes->{'nh_label'};
+    #}
+    @genomenodes = split(/ /,$treestringt);
+}
+else{
+    foreach my $seqfile (sort {$seqlengthlookup->{basename($b)} <=> $seqlengthlookup->{basename($a)}} (keys %$seqfiles)){
+	my $speciesname = basename($seqfile);
+	die "Can't find species $speciesname" if($seqlengthlookup->{$speciesname}<=0);
+	$speciesname =~ s/\.[^.]+//g;
+	$speciesname =~ s/$cleanregex/_/g;
+	push @genomenodes,$speciesname;
+    }
+}
+print $logfh "Processing ",scalar(@genomenodes)," genomes\n" if($options{'debug'});
+
+########################################
+# Pairwise alignment steps
+#
+# Generate pairwise alignments 
+# using the Nucmer packages
+# Input:  FASTA files of input sequences and guide tree
+# Output: Pairwise alignments in MAF format
+my $currdir = `pwd`;
+chomp $currdir;
+print $logfh "Current dir:'$currdir'\n" if($options{'debug'});
+
+print STDERR scalar(@genomenodes), " genomes\n";
+print STDERR "Starting Nucmer: ",`date`;
+
+my @maffiles; 
+my @dupmaffiles; #maf files of duplicated regions
+
+chdir($options{'directory'}) or die;
+
+for(my $i=0;$i<@genomenodes;$i++){
+    my $genomename1 = $genomenodes[$i];#$genomenodes[$i]->attributes->{'nh_label'};
+    print $logfh `date`;
+    unlink "$absprefix.$genomename1.queries.fsa" if(-e "$absprefix.$genomename1.queries.fsa");
+    my @queryfiles;
+    #Searches are performed uni-directional by default
+    my $start = (defined $options{'fullsearch'}) ? 0 : $i+1;
+    #for(my $j=0;$j<@nodes;$j++){
+    for(my $j=$start;$j<@genomenodes;$j++){
+	if($j!=$i){
+	    my $genomename2 = $genomenodes[$j];#$genomenodes[$j]->attributes->{'nh_label'};
+	    die "Unable to find sequences for genome $genomename2. Check FASTA file names or headers" if(! exists $genome2seqslookup->{$genomename2});
+	    #print STDERR "$genome2seqslookup->{$genomename2}->[0]->[3]\n";
+	    push @queryfiles,"$options{'directory'}/$genomename2";
+	}
+    }
+    if(@queryfiles>0){
+	my $catcmd = "cat ".join(' ',@queryfiles)." > $absprefix.$genomename1.queries.fsa";
+	print $logfh "CMD:$catcmd\n" if($options{'debug'});
+	print $logfh `$catcmd`;
+
+	my $deltafile = "$absprefix.$genomename1.filt.delta";
+	my $origdeltafile = "$absprefix.$genomename1.delta";
+	my $clusterfile = "$absprefix.$genomename1.cluster";
+	$deltafile =~ s/\\-/-/g;
+	$clusterfile =~ s/\\-/-/g;
+	#Run NUCMER/PROMER
+	#TODO: consider forking child processes here to provide simple parallelization
+	#print STDERR "Looking for existing delta file $deltafile\n";
+	if(($options{'skipsearch'}) && -e "$deltafile"){
+	    print STDERR "Using existing delta file $deltafile\n";
+	    print $logfh `touch $deltafile`;
+	}
+	else{ 
+	    print STDERR ".";
+	    &runsearch("$options{'directory'}/$genomename1","$absprefix.$genomename1.queries.fsa",$genomename1);
+	}
+	push @maffiles,&generateMAF($deltafile,$genomename1);
+	if($options{'duplications'}){
+	    my $dupscmd = "$deltadupscmd $origdeltafile > $absprefix.$genomename1.dups.maf";
+	    print $logfh "CMD:$dupscmd\n" if($options{'debug'});
+	    print $logfh `$dupscmd`;
+	    push @dupmaffiles,"$absprefix.$genomename1.dups.maf";
+	}
+	unlink "$absprefix.$genomename1.queries.fsa" if(! defined $options{'keeptmpfiles'});
+	#Keep for --plot
+	if(! defined $options{'plot'} && ! defined $options{'keepsearchfiles'}){
+	    unlink "$deltafile" if(! defined $options{'keeptmpfiles'});
+	}
+	unlink "$absprefix.$genomename1.delta" if(! defined $options{'keeptmpfiles'});
+	unlink "$clusterfile" if(! defined $options{'keeptmpfiles'});
+    }
+}
+
+print STDERR "\nFinished Nucmer ",`date`;
+
+
+########################################
+#
+# Progressive alignment steps
+# Produce multiple alignment blocks from pairwise input
+# Input:  Set of MAF files for each pairwise comparison
+# Output: Single MAF file containing all alignment blocks
+#
+my $mafoutput;
+my $pwfasta = "$absprefix.xmfa";
+my $allfsafile = "$absprefix.all.fsa";
+if($method eq "mugsywga"){
+    print STDERR "Starting MUGSYWGA: ",`date`;
+    my $pwdupsfasta = "$absprefix.dups.xmfa";
+    print $logfh `rm -f $allfsafile`;
+    foreach my $fsafile (@allfastafiles){
+	#HACK 
+	#Temp fix for headers 
+	my $perlcmd = q|perl -ne 'if(/^\>([^\s\:]+)\:([^\s\:]+)/){if($1 ne $2){ print ">$1.$2 $1\n";} elsif(defined $1 && defined $2){print ">$1.$2\n";}else {print ">$1\n";}}else{die if(/\>/);print $_}'|;
+	print $logfh "CMD:cat $fsafile | $perlcmd >> $allfsafile\n";
+	print $logfh `cat $fsafile | $perlcmd >> $allfsafile`;
+	unlink $fsafile if(! defined $options{'keeptmpfiles'});
+    }
+    unlink "$pwfasta";
+    foreach my $maf (@maffiles){
+	my $maf2fasta = "$maf2fastacmd < $maf >> $pwfasta";
+	print $logfh "CMD:$maf2fasta\n" if($options{'debug'});
+	print $logfh `$maf2fasta`;
+    }
+if($options{'duplications'}){
+	unlink "$pwdupsfasta";
+	foreach my $maf (@dupmaffiles){
+	    my $maf2fasta = "$maf2fastacmd < $maf >> $pwdupsfasta";
+	    print $logfh "CMD:$maf2fasta\n" if($options{'debug'});
+	    print $logfh `$maf2fasta`;
+	    unlink $maf if(! defined $options{'keeptmpfiles'});
+	}
+    } 
+    if(scalar(@maffiles)==0 || -z "$pwfasta"){
+	open FILE, "+>$absprefix.maf" or die "Can't open $absprefix.maf";
+	print FILE "##maf version=1 scoring=mugsy\n";
+	print FILE "##eof maf\n";
+	close FILE; 
+        $mafoutput="$absprefix.maf";
+    }
+    else{
+	$mafoutput = &runMugsywga($allfsafile,$pwfasta,$pwdupsfasta,$options{'distance'},$options{'minlength'});
+	print STDERR "\nFinished MUGSYWGA: ",`date`;
+	unlink $allfsafile if(! defined $options{'keeptmpfiles'});
+    }
+}
+elsif($method eq "tba"){
+    print STDERR "Starting TBA: ",`date`;
+
+    #Munge tree format so that TBA is happy
+    #convert , to ' '
+    $treestring =~ s/,/ /g;
+    #remove distances
+    $treestring =~ s/\:-*\d+\.\d+e*-*\d*//g;
+    $treestring =~ s/\:-*\d+//g;
+    $treestring =~ s/\:-*\d+//g;
+    #remove ;
+    $treestring =~ s/\;//g;
+
+    die "No MAF files" if(scalar(@maffiles)==0);
+    $mafoutput = &runTBA(join(' ',@maffiles),$treestring);
+
+    print STDERR "Finished TBA: ",`date`;
+}
+else{
+    print STDERR "Unsupported multiple alignment method\n";
+}
+
+foreach my $file (@maffiles){
+    if(! defined $options{'keepsearchfiles'}){
+	unlink $file if(! defined $options{'keeptmpfiles'});
+    }
+}
+chdir($currdir) or die;
+
+if(defined $options{'refine'}){
+    if($method eq "mugsywga"){
+	print `mv $absprefix.maf $absprefix.maf.orig`;
+	print STDERR "Alignment completed. MAF output $absprefix.maf.orig\n";
+	print STDERR "Starting iterative refinement: ",`date`;
+	if($options{'refine'} eq ''){
+	    $options{'refine'} = 'true';
+	}
+	my $refinecmd = "$mugsywgacmd --outfile $absprefix --seq $absprefix.all.fsa --aln $absprefix.xmfa --distance $options{'distance'} --minlength $options{'minlength'} --refine $options{'refine'} --infile $absprefix.maf.orig\n";
+	print $logfh "CMD:$refinecmd\n" if($options{'debug'});
+	my $ret = system($refinecmd);
+	print STDERR "\nFinished refinement: ",`date`;
+	#print `mv $absprefix.maf.refined $absprefix.maf`;
+	#Add mult to MAF file for easy parsing
+	#TODO make mult draft genome aware
+	open FILE, "$absprefix.maf.refined" or die "Can't open refined MAF $absprefix.maf.refined";
+	open OUTFILE, "+>$absprefix.maf" or die "Can't open MAF $absprefix.maf";
+	my $mult=0;
+	my @buffer;
+	while(my $line=<FILE>){
+	    if($line =~ /^a\s+/){
+		if(scalar(@buffer)>0){
+		    if($buffer[0] =~ /^a\s+/){
+			chomp $buffer[0];
+			$buffer[0] .= " mult=$mult\n";
+		    }
+		    print OUTFILE @buffer;
+		}
+		$mult=0;
+		@buffer=();
+		push @buffer, $line;
+	    }
+	    else{
+		if($line =~ /^s\s+/){
+		    $mult++;
+		}
+		push @buffer,$line;
+	    }
+	}
+	if($buffer[0] =~ /^a\s+/){
+	    chomp $buffer[0];
+	    $buffer[0] .= " mult=$mult\n";
+	}
+	print OUTFILE @buffer;
+	close FILE;
+    }
+}
+else{
+
+}
+if(! defined $options{'directory'}){
+    print `cp $absprefix.maf .`;
+print STDERR "Final output (MAF format): ./$options{'prefix'}.maf\n";
+}
+else{
+    print STDERR "Final output (MAF format): $absprefix.maf\n";
+}
+
+#TODO, create separate singletons and core MAF files
+#open MAFFILE, "$absprefix.maf" or die "Can't open maf file $absprefix.maf";
+#open SFILE, "+>$absprefix.singletons.maf" or die "Can't open file $absprefix.maf";
+#my $printsingle=0;
+#my $printcore=0;
+#while(my $line=<MAFFILE>){
+#    if($line =~ /^a/){
+#	if($line =~ /mult=(\d+)/){
+#	    if(defined $1){
+#		if(mult==1){
+#		    $printsingle=1;
+#		}
+#	    }
+#	}
+#    }
+#}
+#close MAFFILE;
+
+
+#Print plot
+if($options{'plot'}){
+    for(my $i=0;$i<@genomenodes-1;$i++){
+	my $genomename = $genomenodes[$i];#->attributes->{'nh_label'};
+	my $mugsyoutput = "$absprefix.mugsy.out";
+	my $mugsyoutputtrimmed = "$absprefix.mugsy.out.brkpts";
+	my $varoutput;# = $detectvariants ? "$mugsyoutput.var.list" : "";
+	my $mugsyresultsfile;
+	my $plotcmd = "cat $mafoutput | $mugsyinstall/plot.pl $absprefix $genomename $mugsyresultsfile $varoutput > $absprefix.$genomename.plot.gp";
+	print $logfh "CMD:$plotcmd\n" if($options{'debug'});
+	print `$plotcmd`;
+	print STDERR "Alignment and synteny plot (gnuplot format): $absprefix.$genomename.plot.gp\n";
+    }
+}
+#if(!exists $options{'refine'}){
+    #print $logfh "Iterative refinement realigns each region by running a second iteration of Mugsy and can sometimes improve the alignment. To run a second iteration and produce an output file $absprefix.refined.maf:\n $mugsywgacmd --outfile $absprefix --seq $allfsafile --aln $pwfasta --distance $options{'distance'} --minlength $options{'minlength'} --refine true --infile $absprefix.maf\n";
+#}
+
+print STDERR "Finished ",`date`;
+
+
+#####################
+#Utility functions
+#
+#Produce guide tree based on kmer distance between sequences
+#in $seqfile.
+#Write output in newick format to $outfile
+sub getkmerdisttree{
+    my($seqfiles,$outfile) = @_;
+
+    my @files;
+    foreach my $seqfile (@$seqfiles){
+	my $speciesname = basename($seqfile);
+	$speciesname =~ s/\.[^.]+//g;
+	print $logfh "Writing $absprefix$speciesname.header\n" if($options{'debug'});
+	print $logfh `echo ">$speciesname" > $absprefix$speciesname.header`;
+	my $fillfsacode = '$ns = "";$line = $_;chomp $line; if(length($line)<60){$ns = \'N\' x (60-length($line));} print $line,$ns,"\n"';
+	print $logfh `grep -h -v "^>" $seqfile | perl -ne '$fillfsacode' > $absprefix$speciesname.sequence`;
+	push @files,"$absprefix$speciesname.header";
+	push @files,"$absprefix$speciesname.sequence";
+    }
+    my $filestr = join(' ',@files);
+    unlink $outfile if(-e $outfile);
+    my $mcmd = "cat $filestr |  $musclecmd -clusteronly -in - -tree1 $outfile 2>&1";
+    print $logfh "CMD:$mcmd\n" if($options{'debug'});
+    print $logfh `$mcmd`;
+
+    my $treestring;
+    open FILE, "$outfile" or die "Can't open treefile $outfile";
+    while(my $line=<FILE>){
+	$line =~ s/(^\S+)\s+.*\:(-*\d+\.\d+)/$1:$2/;
+	$treestring .= $line;
+    }
+    close FILE;
+    $treestring =~ s/\n//g;
+    foreach my $file (@files){
+	unlink $file if(! defined $options{'keeptmpfiles'});
+    }
+    return $treestring;
+}
+
+#
+#Run pairwise Nucmer on sequences in $reffile vs. $queryfile
+#Write output to $prefix
+sub runsearch{
+    my($reffile,$queryfile,$prefix) = @_;
+    #
+    #Run NUCMER
+    my $nucmercmd = "$searchcmd $reffile $queryfile -p $absprefix.$prefix $options{'nucmeropts'} 2>&1";
+    print $logfh "CMD:$nucmercmd\n" if($options{'debug'});
+    print $logfh `$nucmercmd`;
+    #
+    #Run delta-filter to chain hits and exclude spurious matches
+    #-1 specifies intersection of LIS chaining of hits wrt ref and query; includes rearrangements but ignores duplications
+    #-m specifies union of LIS chaining of hits wrt ref and query; includes rearrangments and duplications
+    if(! defined $options{'nofilter'}){
+	#-1 Filter for one-to-one alignments only
+	my $chainingopt = "-1";# -o 0";#"-m"; 
+	if($options{'colinear'}){
+	$chainingopt = '-m';
+	}
+	my $deltacmd = "$deltafiltcmd $chainingopt $absprefix.$prefix.delta > $absprefix.$prefix.filt.delta";
+	print $logfh "CMD:$deltacmd\n" if($options{'debug'});
+	print $logfh `$deltacmd`;
+    }
+    else{
+	my $deltacmd = "cp $absprefix.$prefix.delta $absprefix.$prefix.filt.delta";
+	print $logfh "CMD:$deltacmd\n" if($options{'debug'});
+	print $logfh `$deltacmd`;
+    }
+   
+}
+
+#
+#
+#Convert delta to MAF
+sub generateMAF{
+    my($deltafile,$prefix) = @_;
+    die "Nucmer search failed. Can't find delta file $deltafile" if(! -e $deltafile);
+    #Convert delta to MAF using $delta2mafcmd
+    #TODO: Reduce IO bottlenecks in this step. A lot of wasted time here.
+    #1)Write MAF files directly as part of nucmer to limit IO bottlenecks reading and writing files
+    #2)Also merge $fixnamescmd and $mafsortcmd into code that directly dumps MAF
+    #3)Support direct output of pairwise MAF from a multi-way comparison to make TBA happy
+    #if($options{'skipsearch'} && -e "$absprefix.$prefix.orig.maf" && -e "$absprefix.$prefix.maf"){
+    if($options{'skipsearch'} && -e "$absprefix.$prefix.maf"){
+	print STDERR "Using existing MAF file $absprefix.$prefix.maf\n";
+	print $logfh `touch $absprefix.$prefix.maf`;
+    }
+    else{
+	my $mafcmd;
+	if($method eq "tba"){
+	    $mafcmd = "$delta2mafcmd $absprefix.$prefix.filt.delta | $fixnamescmd | $mafsortcmd /dev/stdin $prefix 1> $absprefix.$prefix.maf ";
+	}
+	else{
+	    $mafcmd = "$delta2mafcmd $absprefix.$prefix.filt.delta | $fixnamescmd 1> $absprefix.$prefix.maf ";
+	    #Sort is not necessary?
+	    #$mafcmd = "$delta2mafcmd $absprefix.$prefix.filt.delta | $fixnamescmd | $mafsortcmd /dev/stdin $prefix 1> $absprefix.$prefix.maf ";
+	}
+	print $logfh "CMD:$mafcmd\n" if($options{'debug'});
+	print $logfh `$mafcmd`;
+    }
+    
+    my @mafprocessed;
+
+    #This wrapper supports TBA for evaluation purposes
+    #TBA requires splitting the MAF
+    if($method eq "tba"){
+	#Create species specific MAF files for TBA
+	#Make sure absprefix ends in a '_' This is used for parsing
+	my $splitmafcmd = "cat $absprefix.$prefix.maf | $mugsyinstall/splitmaf.pl $absprefix"."_";
+	print $logfh "CMD:$splitmafcmd\n" if($options{'debug'});
+	my @maffiles = `$splitmafcmd`;
+
+	foreach my $file (@maffiles){
+	    print $logfh "Processing MAF file $file\n";
+	    chomp $file;
+	    my($genomename1,$genomename2) = ($file =~ /_([^\.\/]+)\.([^\.\/]+)\.maf/);
+	    die "Can't parse names from $file" if(!defined $genomename1 || !defined $genomename2);
+	    #Note: TBA is picky about the input file names
+	    #MUST be of the form "$genomename1.$genomename2.sing.maf"
+	    #Can't use $absprefix for now
+	    #I've only been able to get singlecov to work with alignments
+	    #that map one-to-one for some reason. It appears that
+	    #singlecov does not handle multiple sequences per
+	    #genome and will lead to removal of all regions that
+	    #match multiple sequences. Besides, if delta-filter -1 is used then I think
+	    #is singlecov redundant?
+	    my $singcmd;
+	    if(defined $options{'nofilter'}){
+		print STDERR "WARNING:singlecov removes regions that match multiple sequences and may trim aligned regions. Run without -nofilter to keep all best alignments between pairs of sequences\n";
+		$singcmd = "$singlecovcmd $file > $genomename1.$genomename2.sing.maf";
+	    }
+	    else{
+		$singcmd = "mv $file $genomename1.$genomename2.sing.maf";
+	    }
+	    $singcmd =~ s/\|/\\|/g;
+	    print $logfh "CMD:$singcmd\n" if($options{'debug'});
+	    if($options{'skipsearch'} && -e "$genomename1.$genomename2.sing.maf"){
+		print $logfh `touch $genomename1.$genomename2.sing.maf`;
+	    }
+	    else{
+		print $logfh `$singcmd`;
+	    }
+	    push @mafprocessed,"$genomename1.$genomename2.sing.maf ";
+	}
+	if(! defined $options{'keepsearchfiles'}){
+	    unlink "$absprefix.$prefix.maf" if(! defined $options{'keeptmpfiles'});
+	}
+    }
+    else{#For mugsywga and others, pass through
+	push @mafprocessed,"$absprefix.$prefix.maf";
+    }
+    return @mafprocessed;
+}
+
+#
+# Run Mugsy whole genome aligner on a set of MAF files
+sub runMugsywga{
+    my($fsafile,$pwfasta,$pwdupsfasta,$distance,$minlength) = @_;
+    my $outputfile = "$absprefix.maf";
+    #
+    #Run MUGSYWGA
+    my $colinearopt = (exists $options{'colinear'}) ? "--refine colinear" : "";
+    my $uniqueopt = (defined $options{'skipunique'}) ? "" : "--unique true";
+    my $dupsopt = ($options{'duplications'}) ? ",$pwdupsfasta --duplications true " : "";
+    my $nestedlcbs = (exists $options{'allownestedlcbs'}) ?"--allownestedlcbs true" : "";
+    my $runmugsywgacmd = "$mugsywgacmd --outfile $absprefix --seq $fsafile --aln $pwfasta$dupsopt --distance $distance --minlength $minlength $colinearopt $uniqueopt $nestedlcbs > $absprefix.mugsywga.out 2> $absprefix.mugsywga.stderr";
+    print $logfh "CMD:$runmugsywgacmd\n";# if($options{'debug'});
+    my $ret = system($runmugsywgacmd);
+    #Cleanup and return
+    if($ret !=0){
+	die "system $runmugsywgacmd failed: $?:$!";
+    }
+    else{
+	if(!$options{'debug'}){
+	    unlink "$absprefix.mugsywga.out" if(! defined $options{'keeptmpfiles'});
+	    unlink "$absprefix.mugsywga.stderr" if(! defined $options{'keeptmpfiles'});
+	}
+    }
+    unlink "$pwfasta" if(! defined $options{'keeptmpfiles'});
+    unlink "$pwdupsfasta" if(defined $options{'duplications'} && ! defined $options{'keeptmpfiles'});
+    return "$outputfile";
+}
+#
+# Run TBA on a set of MAF files using the provided guidetree, $treestring
+sub runTBA{
+    my($maffiles,$treestring) = @_;
+    
+    my $outputfile = "$absprefix.maf";
+    #
+    #Run TBA straight up
+    my $runtbacmd = "$tbacmd \"$treestring\" $maffiles $outputfile 1> $absprefix.tba.out 2> $absprefix.tba.stderr";
+    print $logfh "CMD:$runtbacmd\n" if($options{'debug'});
+    my $ret = system($runtbacmd);
+    if($ret !=0){
+	die "system $runtbacmd failed: $?:$!";
+    }
+    chdir($currdir) or die;
+    #
+    #Add block labels to MAF output in the form label=# These are
+    #used in post-processing as a unique identifier to keep track of
+    #blocks
+    my $runlabelcmd = "cat $absprefix.maf | $labelblockscmd > $outputfile.labelled";
+    print $logfh "CMD:$runlabelcmd\n" if($options{'debug'});
+    print $logfh `$runlabelcmd`;
+    
+    return "$outputfile.labelled";
+}
+
+sub printFASTA{
+    my($fname,$header,$seqs) = @_;
+
+    print $logfh "Writing file $fname\n" if($options{'debug'});
+
+    open FFILE,">>$fname" or die "Can't open file\n";
+    if($header =~ /([$fastaproblemchars])/){
+	#print STDERR "Invalid FASTA header $header with characters $fastaproblemchars\n";
+	#$header =~ s/([$fastaproblemchars])/_/g;
+    }
+    print FFILE ">$header\n";
+    foreach my $s (@$seqs){
+	print FFILE $s,"\n";
+    }
+    close FFILE;
+}
+
+##################################
+# takes the tag and a reference to a list
+# go through the tag and tests whether the
+# file listed exists and is readable.
+# If so, then appends the file into the reference
+# @author - Mahesh Vangala
+#################################
+sub getFastaFilesPath {
+        my ($tag,$refArray) = @_;
+        open(FH, "<$tag") or die "Error in opening the file, $tag, $!\n";
+        while(my $file = <FH>) {
+                $file =~ s/^\s+//;
+                $file =~ s/\s+$//;
+                if(-e $file && -r $file) {
+                        push @$refArray, $file;
+                }
+        }
+        close FH;
+}
+
+__END__
+
+
+
+
+

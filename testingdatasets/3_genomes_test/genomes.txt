@@ -1,0 +1,3 @@
+genomes/Xuzhou21.fasta
+genomes/UTI89.fasta
+genomes/W.fasta
