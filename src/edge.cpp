@@ -16,9 +16,9 @@ namespace SyntenyFinder
 		return a.GetDirection() < b.GetDirection();
 	}
 
-	bool BlockFinder::Edge::Coincide(const Edge & edge) const
+	bool BlockFinder::Edge::PositiveEdge(const Edge & edge)
 	{
-		return startVertex == edge.startVertex && endVertex == edge.endVertex && firstChar == edge.firstChar;
+		return edge.direction == DNASequence::positive;
 	}
 
 	std::vector<size_t> BlockFinder::EdgeToVector(const Edge & a)
@@ -37,25 +37,6 @@ namespace SyntenyFinder
 		return EdgeToVector(a) < EdgeToVector(b);
 	}
 
-	bool BlockFinder::Edge::Overlap(const Edge & edge) const
-	{
-		size_t a1 = this->GetOriginalPosition();
-		size_t b1 = this->GetOriginalPosition() + this->GetOriginalLength();
-		size_t a2 = edge.GetOriginalPosition();
-		size_t b2 = edge.GetOriginalPosition() + edge.GetOriginalLength();
-		size_t overlap = 0;
-		if(a1 >= a2 && a1 <= b2)
-		{
-			overlap = std::min(b1, b2) - a1;
-		}
-
-		if(a2 >= a1 && a2 <= b1)
-		{
-			overlap = std::min(b1, b2) - a2;
-		}
-
-		return edge.chr == chr && overlap > 0;
-	}
 
 	size_t BlockFinder::Edge::GetChr() const
 	{

@@ -59,8 +59,6 @@ namespace SyntenyFinder
 		public:			
 			Edge() {}
 			Edge(size_t chr, DNASequence::Direction direction, size_t startVertex, size_t endVertex, size_t actualPosition, size_t actualLength, size_t originalPosition, size_t originalLength, char firstChar);
-			bool Coincide(const Edge & edge) const;
-			bool Overlap(const Edge & edge) const;
 			size_t GetChr() const;
 			DNASequence::Direction GetDirection() const;
 			size_t GetStartVertex() const;
@@ -70,6 +68,7 @@ namespace SyntenyFinder
 			size_t GetOriginalPosition() const;
 			size_t GetOriginalLength() const;
 			char GetFirstChar() const;
+			static bool PositiveEdge(const Edge & e);
 		private:
 			size_t chr;
 			DNASequence::Direction direction;
@@ -87,7 +86,6 @@ namespace SyntenyFinder
 		public:
 			bool operator () (const std::pair<size_t, size_t> & range1, const std::pair<size_t, size_t> & range2) const
 			{
-			//	return GetTotalSize(range1) > GetTotalSize(range2);
 				size_t size1 = range1.second - range1.first;
 				size_t size2 = range2.second - range2.first;
 				return size1 > size2;
@@ -95,18 +93,7 @@ namespace SyntenyFinder
 
 			EdgeGroupComparer(const std::vector<Edge> * edge): edge_(edge) {}
 		private:
-			const std::vector<Edge> * edge_;
-
-			size_t GetTotalSize(const std::pair<size_t, size_t> & range) const
-			{
-				size_t acc = 0;
-				for(size_t i = range.first; i < range.second; i++)
-				{
-					acc += (*edge_)[i].GetOriginalLength();
-				}
-
-				return acc;
-			}
+			const std::vector<Edge> * edge_;			
 		};		
 
 		static bool EdgeEmpty(const Edge & a, size_t k);				
