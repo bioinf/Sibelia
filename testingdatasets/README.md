@@ -30,7 +30,7 @@ Download and compile mauve (http://gel.ahabs.wisc.edu/mauve/).
 1 Synteny blocks evaluation
 ===========================
 Here we describe datasets and scripts related to the synteny blocks finding.
-All paths in this section are given relatively to "synteny_blocks" folder.
+All paths in this section are given relatively to the "synteny_blocks" folder.
 
 1.0 Small synthetic test
 ------------------------
