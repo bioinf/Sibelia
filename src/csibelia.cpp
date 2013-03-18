@@ -153,20 +153,13 @@ int main(int argc, char * argv[])
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
 		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
-		const std::string defaultVariantFile = outFileDir.getValue() + "/variant.txt";
-
-		std::string buf;
-		std::ofstream variantFile(defaultVariantFile.c_str());
-		for(size_t i = 0; i < variant.size(); i++)
-		{
-			variant[i].ToString(buf);
-			variantFile << buf << std::endl;
-		}
+		const std::string defaultVariantFile = outFileDir.getValue() + "/variant.vcf";
 
 		generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
 		generator.GenerateReport(blockList, defaultCoverageReportFile);
 		generator.ListBlocksIndices(blockList, defaultCoordsFile);
 		generator.GenerateD3Output(blockList, defaultD3File);
+        generator.GenerateVariantOutput(variant, defaultVariantFile);
 
 		std::stringstream buffer;
 		finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);

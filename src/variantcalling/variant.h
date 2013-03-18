@@ -18,6 +18,8 @@ namespace SyntenyFinder
 		size_t GetReferencePos() const;		
 		void ToString(std::string & buf) const;
 		const std::string & GetAlignment() const;
+        const std::string & GetReferenceAllele() const;
+        const std::string & GetAlternativeAllele() const;
 		bool Equal(const Variant & toCompare) const;
 		Variant(size_t refPos, size_t blockId, bool collinear, const std::string & refAllele, const std::string & altAllele, const std::string & alignment = "");
 		bool operator < (const Variant & toCompare) const;
