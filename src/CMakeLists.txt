@@ -26,6 +26,7 @@ if(BINARY_PACKAGE)
 
 else()
 	install(TARGETS Sibelia RUNTIME DESTINATION bin)
+	install(TARGETS C-Sibelia RUNTIME DESTINATION bin)
 endif()
 
 
