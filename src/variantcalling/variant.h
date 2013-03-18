@@ -16,7 +16,6 @@ namespace SyntenyFinder
 	public:
 		size_t GetBlockId() const;
 		size_t GetReferencePos() const;		
-		void ToString(std::string & buf) const;
 		const std::string & GetAlignment() const;
         const std::string & GetReferenceAllele() const;
         const std::string & GetAlternativeAllele() const;
@@ -31,6 +30,7 @@ namespace SyntenyFinder
 		std::string altAllele_;
 		std::string alignment_;
 		bool collinear_;
+		friend std::ostream& operator << (std::ostream & out, const Variant & variant);
 	};
 }
 

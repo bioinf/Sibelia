@@ -276,7 +276,7 @@ namespace SyntenyFinder
 					start->GetActualPosition(), start->GetActualLength(), bestStart, bestEnd - bestStart, start->GetFirstChar()));
 				for(size_t pos = bestStart; pos < bestEnd; pos++)
 				{
-					ChrPos now(chrNumber, segEnd);
+					ChrPos now(chrNumber, pos);
 					localOverlap.insert(now);
 				}
 			}

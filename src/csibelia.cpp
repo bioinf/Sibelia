@@ -138,10 +138,18 @@ int main(int argc, char * argv[])
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		finder.GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), blockList, false, PutProgressChr);
 		size_t refSeqId = chrList[0].GetId();
-		
+				
 		std::vector<SyntenyFinder::Variant> variant;
+		std::vector<SyntenyFinder::Reversal> reversal;
+		std::vector<SyntenyFinder::Translocation> translocation;		
 		SyntenyFinder::VariantCaller caller(refSeqId, blockList, trimK);
 		caller.CallVariants(variant);
+	//	caller.CallRearrangements(reversal, translocation);
+		std::ofstream plainVariantStream("variant.txt");
+		std::ofstream rearrangementStream("rearr.txt");
+		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
+		std::copy(reversal.begin(), reversal.end(), std::ostream_iterator<SyntenyFinder::Reversal>(rearrangementStream, "\n"));
+		std::copy(translocation.begin(), translocation.end(), std::ostream_iterator<SyntenyFinder::Translocation>(rearrangementStream, "\n"));
 
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());

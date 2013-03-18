@@ -11,6 +11,8 @@
 
 namespace SyntenyFinder
 {
+	typedef std::vector<BlockInstance>::const_iterator BLCIterator;
+
 	namespace 
 	{
 		const size_t oo = UINT_MAX;
@@ -61,6 +63,33 @@ namespace SyntenyFinder
 			}
 
 			return ret;
+		}
+
+		typedef std::vector<BlockInstance>::iterator BLIterator;
+		bool SignedBlocksIdEquals(const BlockInstance & a, const BlockInstance & b)
+		{
+			return a.GetSignedBlockId() == b.GetSignedBlockId();
+		}
+
+		void Reverse(BLCIterator begin, BLCIterator end, BLIterator out)
+		{
+			std::copy(begin, end, out);
+			std::for_each(out, out + (end - begin), boost::bind(&BlockInstance::Reverse, _1));
+			std::reverse(out, out + (end - begin));
+		}
+		
+		BLCIterator Apply(BLCIterator begin, BLCIterator end, BLCIterator patternBegin, BLCIterator patternEnd)
+		{
+			size_t size = patternEnd - patternBegin;
+			for(BLCIterator it = begin; it < end - size + 1; ++it)
+			{
+				if(std::equal(patternBegin, patternEnd, it, SignedBlocksIdEquals))
+				{
+					return it;
+				}
+			}
+
+			return end;
 		}
 	}
 
@@ -253,9 +282,8 @@ namespace SyntenyFinder
 				std::string buf;
 				std::cerr << "Filtered out variant" << std::endl;
 				for(size_t i = 0; i < seenAt.size(); i++)
-				{
-					(jt + i)->ToString(buf);
-					std::cerr << buf << std::endl;
+				{									
+					std::cerr << *(jt + i) << std::endl;
 				}
 
 				std::cerr << "Belong to blocks:" << std::endl;
@@ -273,6 +301,64 @@ namespace SyntenyFinder
 
 	void VariantCaller::CallRearrangements(std::vector<Reversal> & reversal, std::vector<Translocation> & translocation) const
 	{
+		std::vector<IndexPair> group;
+		std::vector<BlockInstance> reversed;
+		std::vector<BlockInstance>::iterator listBegin = blockList_.begin();
+		GroupBy(blockList_, compareByChrId, std::back_inserter(group));
+		std::sort(listBegin + group[0].first, listBegin + group[0].second, CompareBlocksNaturally);
+		BLCIterator referenceBegin = listBegin + group[0].first;
+		BLCIterator referenceEnd = listBegin + group[0].second;
+		for(size_t i = 1; i < group.size(); i++)
+		{
+			std::vector<BlockInstance>::iterator begin = listBegin + group[i].first;
+			std::vector<BlockInstance>::iterator end = listBegin + group[i].second;
+			if(begin == end)
+			{
+				continue;
+			}
 
+			std::sort(begin, end, CompareBlocksNaturally);
+			size_t size = end - begin; 
+			reversed.resize(size);			
+			Reverse(begin, end, reversed.begin());
+			if(Apply(referenceBegin, referenceEnd, begin, end) == referenceEnd && Apply(referenceBegin, referenceEnd, reversed.begin(), reversed.end()) == referenceEnd)
+			{
+				size_t fragmentSize = size;
+				bool detected = false;
+				do
+				{
+					for(size_t pos = 0; pos < size - fragmentSize + 1 && !detected; ++pos)
+					{
+						std::pair<BLCIterator, BLCIterator> range[] = 
+						{
+							std::make_pair(begin + pos, begin + pos + fragmentSize),
+							std::make_pair(reversed.begin() + pos, reversed.begin() + pos + fragmentSize)
+						};
+
+						for(size_t p = 0; p < 2 && !detected; p++)
+						{
+							BLCIterator place = Apply(referenceBegin, referenceEnd, range[p].first, range[p].second);
+							if(place != referenceEnd)
+							{
+								detected = true;
+								int prevReferenceId = place == referenceBegin ? 0 : (place - 1)->GetSignedBlockId();
+								int prevAssemblyId = range[p].first == begin ? 0 : (range[p].first - 1)->GetSignedBlockId();
+								int nextReferenceId = place + fragmentSize >= referenceEnd ? 0 : (place + fragmentSize)->GetSignedBlockId();
+								int nextAssemblyId = range[p].first + fragmentSize >= end ? 0 : (range[p].first + fragmentSize)->GetSignedBlockId(); 
+								if(prevReferenceId == prevAssemblyId && nextReferenceId == nextAssemblyId)
+								{
+									reversal.push_back(Reversal(place->GetStart(), (place + fragmentSize)->GetEnd()));
+								}
+								else
+								{
+									translocation.push_back(Translocation(place->GetStart(), (place + fragmentSize)->GetEnd(), 0));
+								}
+							}
+						}
+					}
+				}
+				while(--fragmentSize > 0 && !detected);
+			}
+		}
 	}
 }

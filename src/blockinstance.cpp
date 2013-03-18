@@ -90,6 +90,11 @@ namespace SyntenyFinder
 		return std::pair<size_t, size_t>(0, 0);
 	}
 
+	void BlockInstance::Reverse()
+	{
+		id_ = -id_;
+	}
+
 	size_t BlockInstance::GetLength() const
 	{
 		return end_ - start_;

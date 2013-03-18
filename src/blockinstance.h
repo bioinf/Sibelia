@@ -22,6 +22,7 @@ namespace SyntenyFinder
 	public:
 		BlockInstance() {}
 		BlockInstance(int id, const FASTARecord * chr, size_t start, size_t end): id_(id), chr_(chr), start_(start), end_(end) {}
+		void Reverse();
 		int GetSignedBlockId() const;
 		DNASequence::Direction GetDirection() const;
 		int GetBlockId() const;

@@ -51,10 +51,9 @@ namespace SyntenyFinder
 		return toCompare.refPos_ == refPos_ && refAllele_ == toCompare.refAllele_ && altAllele_ == toCompare.altAllele_;
 	}
 
-	void Variant::ToString(std::string & buf) const
+	std::ostream& operator << (std::ostream & out, const Variant & variant)
 	{
-		std::stringstream ss;
-		ss << refPos_ << '\t' << (refAllele_.empty() ? "." : refAllele_) << '\t' << (altAllele_.empty() ? "." : altAllele_) << '\t' << blockId_;
-		buf = ss.str();
+		out << variant.refPos_ << '\t' << (variant.refAllele_.empty() ? "." : variant.refAllele_) << '\t';
+		return out << (variant.altAllele_.empty() ? "." : variant.altAllele_) << '\t' << variant.blockId_;
 	}
 }
