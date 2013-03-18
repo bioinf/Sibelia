@@ -31,6 +31,7 @@ Download and compile mauve (http://gel.ahabs.wisc.edu/mauve/).
 1 Synteny blocks evaluation
 ===========================
 Here we describe datasets and scripts related to the synteny blocks finding.
+All paths in this section are given relatively to "synteny_blocks" folder.
 
 1.0 Small synthetic test
 ------------------------
@@ -100,7 +101,8 @@ from tools installation directories. All tools are run with their default parame
 =============================
 
 Here we describe datasets and scripts related to variant calling features of 
-Sibelia.
+Sibelia. All paths in this section are given relatively to "varian_calling"
+folder.
 
 2.0 Installing and using of Sibelia with variang calling capabilities
 --------------------------------------------------------------------
@@ -115,7 +117,7 @@ it manually. See INSTALL.md for details.
 -------------------
 We evaluated performance of C-Sibelia (comparative Sibelia) on a simulated
 dataset. The experiment design is described in the paper. The folder
-"variant_calling_synthetic_dataset" contains two genomes from the dataset,
+"synthetic_dataset" contains two genomes from the dataset,
 a reference and an assembly. The script that generated them is located in
 the subfolder "variant_calling_synthetic_dataset/generator". The folder
 "variant_calling_synthetic_dataset/out" contains true variants ("truediff.txt")
@@ -129,7 +131,7 @@ to compare them. Output of C-Sibelia was obtained by running command:
 We benchmarked C-Sibelia on the dataset described in:
 http://jb.asm.org/content/193/9/2332.abstract.
 Folder "variant_calling_real_dataset" contains both genomes. Subfolder 
-"variant_calling_real_dataset/out" contains SNVs described in the paper
+"real_dataset/out" contains SNVs described in the paper
 ("gdvariant.txt") and found by Sibelia ("variant.txt"). Script "compare.py"
 compares these two lists of variants. Output of C-Sibelia was obtained by
 running command:
