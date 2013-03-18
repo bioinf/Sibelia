@@ -123,9 +123,11 @@ dataset. The experiment design is described in the paper. The folder
 "synthetic_dataset" contains two genomes from the dataset, a reference and an
 assembly. The script that generated them is located in the subfolder
 "synthetic_dataset/generator". The folder "synthetic_dataset/out" contains true
-variants, reported by the generator ("truevariant.txt") and variants found by
-Sibelia ("variant.txt"). Script "synthetic_dataset_/out/compare.py" can be use
-to compare these files. Output of C-Sibelia was obtained by running command:
+variants and rearrangements, reported by the generator ("truevariant.txt" and 
+"truerearr.txt"), variants and rearrangements found by Sibelia ("variant.txt"
+and "rearr.txt"). Script "synthetic_dataset/out/compare.py" can be used to
+compare files with variants. Output of C-Sibelia was obtained by running
+command:
 
 	C-Sibelia.exe -s fine -r nctc8325.fasta -a assembly.fasta -m 1000 -o out
 
