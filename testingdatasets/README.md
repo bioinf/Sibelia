@@ -125,9 +125,10 @@ assembly. The script that generated them is located in the subfolder
 "synthetic_dataset/generator". The folder "synthetic_dataset/out" contains true
 variants and rearrangements, reported by the generator ("truevariant.txt" and 
 "truerearr.txt"), variants and rearrangements found by Sibelia ("variant.txt"
-and "rearr.txt"). Script "synthetic_dataset/out/compare.py" can be used to
-compare files with variants. Output of C-Sibelia was obtained by running
-command:
+and "rearr.txt"). Please note that translocations are reported as a pair of
+events, this will be fixed in the release. 
+Script  "synthetic_dataset/out/compare.py" can be used to compare files with
+variants. Output of C-Sibelia was obtained by running command:
 
 	C-Sibelia.exe -s fine -r nctc8325.fasta -a assembly.fasta -m 1000 -o out
 
