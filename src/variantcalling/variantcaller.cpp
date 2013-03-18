@@ -198,7 +198,6 @@ namespace SyntenyFinder
 	{
 		variantList.clear();
 		std::vector<IndexPair> group;
-		std::vector<size_t> sharedBlock;
 		GroupBy(blockList_, compareById, std::back_inserter(group));
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{
@@ -212,7 +211,6 @@ namespace SyntenyFinder
 
 			if(inReference == 1 && inAssembly == 1)
 			{
-				sharedBlock.push_back(blockList_[it->first].GetBlockId());
 				if(blockList_[it->first].GetChrId() != refSeqId_)
 				{
 					std::swap(blockList_[it->first], blockList_[it->first + 1]);
@@ -270,37 +268,11 @@ namespace SyntenyFinder
 			}
 		}
 
-		filter.swap(variantList);
-		std::sort(sharedBlock.begin(), sharedBlock.end());
-		CallRearrangements(sharedBlock);		
+		filter.swap(variantList);		
 	}
 
-	void VariantCaller::CallRearrangements(const std::vector<size_t> & sharedBlock) const
-	{/*
-		std::sort(blockList_.begin(), blockList_.end());
-		typedef std::pair<BlockInstance, BlockInstance> Strip;
-		std::vector<Strip> assembly;
-		std::vector<Strip> reference;
+	void VariantCaller::CallRearrangements(std::vector<Reversal> & reversal, std::vector<Translocation> & translocation) const
+	{
 
-		for(size_t i = 0; !blockList_.empty() && i < blockList_.size() - 1; i++)
-		{
-			bool firstShared = std::binary_search(sharedBlock.begin(), sharedBlock.end(), blockList_[i].GetBlockId());
-			bool secondShared = std::binary_search(sharedBlock.begin(), sharedBlock.end(), blockList_[i + 1].GetBlockId());
-			if(blockList_[i + 1].GetChrId() == blockList_[i].GetChrId() && firstShared && secondShared)
-			{
-				std::vector<Strip> & strip = blockList_[i].GetChrId() == refSeqId_ ? reference : assembly;
-				strip.push_back(std::make_pair(blockList_[i], blockList_[i + 1]));
-			}
-		}
-
-		for(size_t i = 0; i < reference.size(); i++)
-		{
-			for(size_t j = 0; j < assembly.size(); j++)
-			{
-				Strip & rstrip = reference[i];
-				Strip & astrip = assembly[j];
-				if(rstrip.first.GetSignedBlockId() == 
-			}
-		}*/
 	}
 }

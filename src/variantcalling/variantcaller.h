@@ -8,22 +8,24 @@
 #define _VARIANT_CALLER_
 
 #include "variant.h"
+#include "rearrangement.h"
 
 namespace SyntenyFinder
 {
 	class VariantCaller
 	{
-	public:
-		void CallVariants(std::vector<Variant> & variantList) const;
+	public:		
 		VariantCaller(size_t refSeqId, const std::vector<BlockInstance> & blockList, size_t trimK);
+		void CallVariants(std::vector<Variant> & variantList) const;
+		void CallRearrangements(std::vector<Reversal> & reversal, std::vector<Translocation> & translocation) const;
 	private:
 		size_t refSeqId_;
 		mutable std::vector<BlockInstance> blockList_;
 		size_t trimK_;
-		
-		void CallRearrangements(const std::vector<size_t> & sharedBlock) const;
+				
 		void AlignSyntenyBlocks(const BlockInstance & reference, const BlockInstance & assembly, std::vector<Variant> & variantList) const;
-		void AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd, StrandIterator assemblyBegin, StrandIterator assemblyEnd, std::vector<Variant> & variantList) const;
+		void AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd,
+			StrandIterator assemblyBegin, StrandIterator assemblyEnd, std::vector<Variant> & variantList) const;
 	};
 }
 
