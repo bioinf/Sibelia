@@ -383,7 +383,6 @@ namespace SyntenyFinder
 								if(place != referenceEnd)
 								{
 									detected = true;
-									std::cerr << place->GetBlockId() << std::endl;
 									translocation.push_back(Translocation(place->GetStart(), (place + fragmentSize - 1)->GetEnd(), 0));
 								}
 							}
