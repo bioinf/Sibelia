@@ -306,8 +306,8 @@ namespace SyntenyFinder
 		std::vector<BlockInstance>::iterator listBegin = blockList_.begin();
 		GroupBy(blockList_, compareByChrId, std::back_inserter(group));
 		std::sort(listBegin + group[0].first, listBegin + group[0].second, CompareBlocksNaturally);
-		BLCIterator referenceBegin = listBegin + group[0].first;
-		BLCIterator referenceEnd = listBegin + group[0].second;
+		const BLCIterator referenceBegin = listBegin + group[0].first;
+		const BLCIterator referenceEnd = listBegin + group[0].second;
 		for(size_t i = 1; i < group.size(); i++)
 		{
 			std::vector<BlockInstance>::iterator begin = listBegin + group[i].first;
@@ -327,6 +327,7 @@ namespace SyntenyFinder
 				bool detected = false;
 				do
 				{
+					std::vector<BlockInstance> reversedFragment(fragmentSize);
 					for(size_t pos = 0; pos < size - fragmentSize + 1 && !detected; ++pos)
 					{
 						std::pair<BLCIterator, BLCIterator> range[] = 
@@ -335,29 +336,61 @@ namespace SyntenyFinder
 							std::make_pair(reversed.begin() + pos, reversed.begin() + pos + fragmentSize)
 						};
 
+						std::pair<BLCIterator, BLCIterator> bound[] = 
+						{
+							std::make_pair(begin, end),
+							std::make_pair(reversed.begin(), reversed.end())
+						};
+
 						for(size_t p = 0; p < 2 && !detected; p++)
 						{
-							BLCIterator place = Apply(referenceBegin, referenceEnd, range[p].first, range[p].second);
-							if(place != referenceEnd)
+							Reverse(range[p].first, range[p].second, reversedFragment.begin());
+							BLCIterator place = Apply(referenceBegin, referenceEnd, reversedFragment.begin(), reversedFragment.end());
+ 							if(place != referenceEnd)
 							{
-								detected = true;
 								int prevReferenceId = place == referenceBegin ? 0 : (place - 1)->GetSignedBlockId();
-								int prevAssemblyId = range[p].first == begin ? 0 : (range[p].first - 1)->GetSignedBlockId();
+								int prevAssemblyId = range[p].first == bound[p].first ? 0 : (range[p].first - 1)->GetSignedBlockId();
 								int nextReferenceId = place + fragmentSize >= referenceEnd ? 0 : (place + fragmentSize)->GetSignedBlockId();
-								int nextAssemblyId = range[p].first + fragmentSize >= end ? 0 : (range[p].first + fragmentSize)->GetSignedBlockId(); 
-								if(prevReferenceId == prevAssemblyId && nextReferenceId == nextAssemblyId)
-								{
-									reversal.push_back(Reversal(place->GetStart(), (place + fragmentSize)->GetEnd()));
-								}
-								else
-								{
-									translocation.push_back(Translocation(place->GetStart(), (place + fragmentSize)->GetEnd(), 0));
+								int nextAssemblyId = range[p].first + fragmentSize >= bound[p].second ? 0 : (range[p].first + fragmentSize)->GetSignedBlockId(); 
+								if((prevReferenceId == prevAssemblyId || prevAssemblyId == 0) && (nextReferenceId == nextAssemblyId || nextAssemblyId == 0))
+								{									
+									reversal.push_back(Reversal(place->GetStart(), (place + fragmentSize - 1)->GetEnd()));
+									detected = true;
 								}
 							}
 						}
 					}
 				}
 				while(--fragmentSize > 0 && !detected);
+
+				if(!detected)
+				{
+					size_t fragmentSize = size;
+					do
+					{
+						std::vector<BlockInstance> reversedFragment(fragmentSize);
+						for(size_t pos = 0; pos < size - fragmentSize + 1 && !detected; ++pos)
+						{
+							std::pair<BLCIterator, BLCIterator> range[] = 
+							{
+								std::make_pair(begin + pos, begin + pos + fragmentSize),
+								std::make_pair(reversed.begin() + pos, reversed.begin() + pos + fragmentSize)
+							};
+
+							for(size_t p = 0; p < 2 && !detected; p++)
+							{
+								BLCIterator place = Apply(referenceBegin, referenceEnd, range[p].first, range[p].second);
+								if(place != referenceEnd)
+								{
+									detected = true;
+									std::cerr << place->GetBlockId() << std::endl;
+									translocation.push_back(Translocation(place->GetStart(), (place + fragmentSize - 1)->GetEnd(), 0));
+								}
+							}
+						}
+					}
+					while(--fragmentSize > 0 && !detected);
+				}
 			}
 		}
 	}

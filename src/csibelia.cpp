@@ -169,6 +169,7 @@ int main(int argc, char * argv[])
 		generator.ListBlocksIndices(blockList, defaultCoordsFile);
 		generator.GenerateD3Output(blockList, defaultD3File);
         generator.GenerateVariantOutput(variant, defaultVariantFile);
+		generator.GenerateCircosOutput(blockList, defaultCircosFile, defaultCircosDir);
 
 		std::stringstream buffer;
 		finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);

@@ -9,7 +9,7 @@ namespace SyntenyFinder
 {
 	std::ostream& operator << (std::ostream & out, const Reversal & reversal)
 	{
-		return out << "Reversal" << reversal.start_ << '\t' << reversal.end_;
+		return out << "Reversal\t" << reversal.start_ << '\t' << reversal.end_;
 	}
 
 	std::ostream& operator << (std::ostream & out, const Translocation & translocation)
