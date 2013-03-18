@@ -96,17 +96,42 @@ Scripts are located in "performance_test" folder. First, put any number of genom
 Then, run script for corresponding tool. See instructions inside scripts. It`s better to run scripts
 from tools installation directories. All tools are run with their default parameters.
 
-2. Variant calling evaluation
+2 Variant calling evaluation
 =============================
 
 Here we describe datasets and scripts related to variant calling features of 
 Sibelia.
 
-0. Installing and using of Sibelia with variang calling capabilities
+2.0 Installing and using of Sibelia with variang calling capabilities
 --------------------------------------------------------------------
+Part of Sibelia that is capable of variant detection is under active 
+developement and has not released yet. To obtain the source code, please
+check-out the C-Sibelia branch: 
+https://github.com/bioinf/Sibelia/tree/c_sibelia_unstable
+It is not available as a binary package, you will need to compile and install
+it manually. See INSTALL.md for details.
 
-1. Simulated dataset
---------------------
+2.1 Simulated dataset
+-------------------
+We evaluated performance of C-Sibelia (comparative Sibelia) on a simulated
+dataset. The experiment design is described in the paper. The folder
+"variant_calling_synthetic_dataset" contains two genomes from the dataset,
+a reference and an assembly. The script that generated them is located in
+the subfolder "variant_calling_synthetic_dataset/generator". The folder
+"variant_calling_synthetic_dataset/out" contains true variants ("truediff.txt")
+and variants found by Sibelia ("variant.txt"). Script "compare.py" can be used
+to compare them. Output of C-Sibelia was obtained by running command:
 
-2. Real dataset
+	C-Sibelia.exe -s fine -r nctc8325.fasta -a assembly.fasta -m 1000 -o out
+
+2.2 Real dataset
 ---------------
+We benchmarked C-Sibelia on the dataset described in:
+http://jb.asm.org/content/193/9/2332.abstract.
+Folder "variant_calling_real_dataset" contains both genomes. Subfolder 
+"variant_calling_real_dataset/out" contains SNVs described in the paper
+("gdvariant.txt") and found by Sibelia ("variant.txt"). Script "compare.py"
+compares these two lists of variants. Output of C-Sibelia was obtained by
+running command:
+
+	C-Sibelia.exe -s fine -r nctc8325.fasta -a RN4220S.fasta -m 1000 -o out
