@@ -157,9 +157,11 @@ int main(int argc, char * argv[])
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
 		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
 		const std::string defaultVariantFile = outFileDir.getValue() + "/variant.vcf";
+		const std::string defaultRearrangementsFile = outFileDir.getValue() + "/rearr.txt";
+		const std::string defaultPlainVariantFile = outFileDir.getValue() + "/variant.txt";
 
-		std::ofstream plainVariantStream(outFileDir.getValue() + "/variant.txt");
-		std::ofstream rearrangementStream(outFileDir.getValue() + "/rearr.txt");
+		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
+		std::ofstream rearrangementStream(defaultRearrangementsFile.c_str());
 		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
 		std::copy(reversal.begin(), reversal.end(), std::ostream_iterator<SyntenyFinder::Reversal>(rearrangementStream, "\n"));
 		std::copy(translocation.begin(), translocation.end(), std::ostream_iterator<SyntenyFinder::Translocation>(rearrangementStream, "\n"));
