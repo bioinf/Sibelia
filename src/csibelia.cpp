@@ -144,13 +144,8 @@ int main(int argc, char * argv[])
 		std::vector<SyntenyFinder::Translocation> translocation;		
 		SyntenyFinder::VariantCaller caller(refSeqId, blockList, trimK);
 		caller.CallVariants(variant);
-	//	caller.CallRearrangements(reversal, translocation);
-		std::ofstream plainVariantStream("variant.txt");
-		std::ofstream rearrangementStream("rearr.txt");
-		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
-		std::copy(reversal.begin(), reversal.end(), std::ostream_iterator<SyntenyFinder::Reversal>(rearrangementStream, "\n"));
-		std::copy(translocation.begin(), translocation.end(), std::ostream_iterator<SyntenyFinder::Translocation>(rearrangementStream, "\n"));
-
+		caller.CallRearrangements(reversal, translocation);
+		
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
@@ -162,6 +157,12 @@ int main(int argc, char * argv[])
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
 		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
 		const std::string defaultVariantFile = outFileDir.getValue() + "/variant.vcf";
+
+		std::ofstream plainVariantStream(outFileDir.getValue() + "/variant.txt");
+		std::ofstream rearrangementStream(outFileDir.getValue() + "/rearr.txt");
+		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
+		std::copy(reversal.begin(), reversal.end(), std::ostream_iterator<SyntenyFinder::Reversal>(rearrangementStream, "\n"));
+		std::copy(translocation.begin(), translocation.end(), std::ostream_iterator<SyntenyFinder::Translocation>(rearrangementStream, "\n"));
 
 		generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
 		generator.GenerateReport(blockList, defaultCoverageReportFile);
