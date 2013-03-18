@@ -1,4 +1,4 @@
-gdline = [line for line in open('truediff.txt')]
+gdline = [line for line in open('truevariant.txt')]
 gdvar = [int(line.strip().split()[0]) for line in gdline]
 sibvar = [int(line.strip().split()[0]) + 1 for line in open('variant.txt')]
 varlen = dict()

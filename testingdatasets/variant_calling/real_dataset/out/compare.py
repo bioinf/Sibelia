@@ -1,4 +1,4 @@
-gdvar = [int(line.strip().split()[0]) for line in open('gdvariant.txt')]
+gdvar = [int(line.strip().split()[0]) for line in open('truevariant.txt')]
 sibvar = [int(line.strip().split()[0]) + 1 for line in open('variant.txt')]
 
 gdhit = []

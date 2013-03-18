@@ -3,7 +3,6 @@ Supplementary materials for paper "Sibelia: A fast synteny block generation tool
 Here you can find datasets and command-lines/scripts, which were used to obtain results,
 described in paper.
 
-
 0 Tools preparation
 ===================
 
@@ -106,34 +105,40 @@ folder.
 
 2.0 Installing and using of Sibelia with variang calling capabilities
 --------------------------------------------------------------------
+
 Part of Sibelia that is capable of variant detection is under active 
 developement and has not released yet. To obtain the source code, please
 check-out the C-Sibelia branch: 
-https://github.com/bioinf/Sibelia/tree/c_sibelia_unstable
+
+	https://github.com/bioinf/Sibelia/tree/c_sibelia_unstable
+
 It is not available as a binary package, you will need to compile and install
 it manually. See INSTALL.md for details.
 
 2.1 Simulated dataset
--------------------
+---------------------
+
 We evaluated performance of C-Sibelia (comparative Sibelia) on a simulated
 dataset. The experiment design is described in the paper. The folder
-"synthetic_dataset" contains two genomes from the dataset,
-a reference and an assembly. The script that generated them is located in
-the subfolder "variant_calling_synthetic_dataset/generator". The folder
-"variant_calling_synthetic_dataset/out" contains true variants ("truediff.txt")
-and variants found by Sibelia ("variant.txt"). Script "compare.py" can be used
-to compare them. Output of C-Sibelia was obtained by running command:
+"synthetic_dataset" contains two genomes from the dataset, a reference and an
+assembly. The script that generated them is located in the subfolder
+"synthetic_dataset/generator". The folder "synthetic_dataset/out" contains true
+variants, reported by the generator ("truevariant.txt") and variants found by
+Sibelia ("variant.txt"). Script "synthetic_dataset_/out/compare.py" can be use
+to compare these files. Output of C-Sibelia was obtained by running command:
 
 	C-Sibelia.exe -s fine -r nctc8325.fasta -a assembly.fasta -m 1000 -o out
 
 2.2 Real dataset
----------------
+----------------
+
 We benchmarked C-Sibelia on the dataset described in:
-http://jb.asm.org/content/193/9/2332.abstract.
-Folder "variant_calling_real_dataset" contains both genomes. Subfolder 
-"real_dataset/out" contains SNVs described in the paper
-("gdvariant.txt") and found by Sibelia ("variant.txt"). Script "compare.py"
-compares these two lists of variants. Output of C-Sibelia was obtained by
-running command:
+
+	http://jb.asm.org/content/193/9/2332.abstract.
+
+Folder "real_dataset" contains both genomes. Subfolder "real_dataset/out"
+contains SNVs described in the paper ("truevariant.txt") and found by Sibelia
+("variant.txt"). Script "real_dataset/out/compare.py" compares these two lists
+of variants. Output of C-Sibelia was obtained by running command:
 
 	C-Sibelia.exe -s fine -r nctc8325.fasta -a RN4220S.fasta -m 1000 -o out
