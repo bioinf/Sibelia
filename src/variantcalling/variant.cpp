@@ -36,6 +36,16 @@ namespace SyntenyFinder
 		return alignment_;
 	}
 
+    const std::string & Variant::GetReferenceAllele() const
+    {
+        return refAllele_;
+    }
+
+    const std::string & Variant::GetAlternativeAllele() const
+    {
+        return altAllele_;
+    }
+
 	bool Variant::Equal(const Variant & toCompare) const
 	{
 		return toCompare.refPos_ == refPos_ && refAllele_ == toCompare.refAllele_ && altAllele_ == toCompare.altAllele_;

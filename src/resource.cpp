@@ -7083,10 +7083,25 @@ namespace SyntenyFinder
 			return buf.str();
 		}
 
+		const std::string vcfTemplateBlockNo0[] = 
+        {
+            std::string("##fileformat=VCFv4.1"),
+            std::string("##source=Sibelia"),
+            std::string("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO")
+        };
+
+		std::string GlueResourceVvcfTemplate()
+		{
+			std::stringstream buf;
+			std::copy(vcfTemplateBlockNo0, vcfTemplateBlockNo0 + 3, std::ostream_iterator<std::string>(buf, "\n"));
+			return buf.str();
+		}
+
 	}
 
 	const std::string d3Template = GlueResourceVd3Template();
 	const std::string circosTemplate = GlueResourceVcircosTemplate();
 	const std::string circosImageConfig = GlueResourceVcircosImageConfig();
+    const std::string vcfTemplate = GlueResourceVvcfTemplate();
 }
 

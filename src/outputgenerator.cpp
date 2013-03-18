@@ -6,6 +6,7 @@
 
 #include "outputgenerator.h"
 #include "platform.h"
+#include "variantcalling/variant.h"
 
 namespace SyntenyFinder
 {
@@ -457,6 +458,24 @@ namespace SyntenyFinder
 			std::getline(htmlTemplate, buffer);
 			out << buffer << std::endl;
 		}
+	}
+
+	void OutputGenerator::GenerateVariantOutput(const std::vector <Variant> & variants, const std::string & outFile) const 
+    {
+        std::ofstream out;
+        TryOpenFile(outFile, out);
+
+        out << vcfTemplate;
+
+        for (size_t i = 0; i < variants.size(); ++i)
+        {
+            out << ".\t"
+                << variants[i].GetReferencePos() << "\t"
+                << ".\t"
+                << (variants[i].GetReferenceAllele().empty() ? "." : variants[i].GetReferenceAllele()) << "\t"
+                << (variants[i].GetAlternativeAllele().empty() ? "." : variants[i].GetAlternativeAllele()) << "\t"
+                << ".\t.\t." << std::endl;
+        }
 	}
 
 	void OutputGenerator::TryOpenFile(const std::string & fileName, std::ofstream & stream) const
