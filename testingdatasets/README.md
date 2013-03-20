@@ -130,7 +130,7 @@ events, this will be fixed in the release.
 Script  "synthetic_dataset/out/compare.py" can be used to compare files with
 variants. Output of C-Sibelia was obtained by running command:
 
-	C-Sibelia.exe -s fine -r nctc8325.fasta -a assembly.fasta -m 1000 -o out
+	C-Sibelia -s fine -r nctc8325.fasta -a assembly.fasta -m 1000 -o out
 
 2.2 Real dataset
 ----------------
@@ -144,4 +144,4 @@ contains SNVs described in the paper ("truevariant.txt") and found by Sibelia
 ("variant.txt"). Script "real_dataset/out/compare.py" compares these two lists
 of variants. Output of C-Sibelia was obtained by running command:
 
-	C-Sibelia.exe -s fine -r nctc8325.fasta -a RN4220S.fasta -m 1000 -o out
+	C-Sibelia -s fine -r nctc8325.fasta -a RN4220S.fasta -m 1000 -o out
