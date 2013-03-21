@@ -1,5 +1,5 @@
-Sibelia 2.20
-============
+Sibelia 2.1.1
+=============
 * Got rid of overlap between synteny blocks, overlapping regions are granted to
 the blocks with higher multiplicity
 * Added generation of circos picture that shows blocks at multiple stages
