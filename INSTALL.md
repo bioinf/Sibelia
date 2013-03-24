@@ -1,8 +1,8 @@
 Installation
 ============
 
-Sibelia is distributed both as binaries (Windows, Linux and OS X)
-and as source codes. 
+Sibelia is distributed both as binaries (Windows, Linux and OS X) and as source
+codes. 
 
 Building from the Source Code
 -----------------------------
@@ -14,7 +14,7 @@ Building Sibelia requires:
 The code is compatible with MSVS 2010 and MinGW, as well as with default
 Linux and OS X environment.
 
-To build and install the program, type following:
+To build and install the program under Linux, type following:
 
 	cd build
 	cmake ../src
@@ -29,3 +29,6 @@ option set:
 	cmake ../src -DCMAKE_INSTALL_PREFIX="<install destination>"
 	make
 	make install
+
+To build "Sibelia" under Windows or other systems, see documentation for CMake
+and your particular build system.

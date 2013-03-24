@@ -35,8 +35,8 @@ By default, Sibelia filters out synteny blocks shorter than 5 000 BP. You can
 change this behaviour, see section "Minimum block size".
 
 You also may be interested in blocks that occur exactly once in each input
-sequence, such blocks are used as input for MGRA algorithm, for example. To get
-such output use option "-a":
+sequence, such blocks are used as input for MGRA algorithm [2], for example.
+To get such output use option "-a":
 
 	Sibelia -s loose -a Helicobacter_pylori.fasta
 
@@ -278,17 +278,17 @@ meaning" of the parameters it is useful to consider operations that are
 actually performed with the genome behind the graph model. Suppose that 
 somewhere in the genome exist two pairs of K-mers K1 and K2:
 
-1st pair: ... K1 ABCD K2 ...  
-2nd pair: ... K1 FGHE K2 ...  
+1st pair: ... K1 ABC K2 ...  
+2nd pair: ... K1 FGH K2 ...  
 
 If the distance between K1 and K2 within each pair is less than D, then "Sibelia"
-replaces FGHE with ABCD to obtain longer "synteny block":
+replaces FGH with ABC to obtain longer "synteny block":
 
-1st pair: ... K1 ABCD K2 ...  
-2nd pair: ... K1 ABCD K2 ...  
+1st pair: ... K1 ABC K2 ...  
+2nd pair: ... K1 ABC K2 ...  
 
-More concrete example. Suppose that K = 3, D = 5 and somewhere in the genome we
-find:
+Let's consider a more concrete example. Suppose that K = 3, D = 5 and somewhere
+in the genome we find:
 
 1st pair: ... act gaga ggc ...  
 2nd pair: ... act gatg ggc ...  
