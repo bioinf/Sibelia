@@ -464,12 +464,47 @@ namespace SyntenyFinder
     {
         std::ofstream out;
         TryOpenFile(outFile, out);
+        
+		std::istringstream vcfTemplate(varTemplate);
+        std::string buffer;
+        std::getline(vcfTemplate, buffer);
+        while (!buffer.empty())
+        {
+            if (buffer == "##reference=") 
+            {
+                out << buffer << chrList_[0].GetDescription() << std::endl;
+            }
+            else if (buffer == "##assembly=") 
+            {
+                out << buffer << chrList_[1].GetDescription() << std::endl;
+            }
+            else 
+            {
+                out << buffer << std::endl;
+            }
+            std::getline(vcfTemplate, buffer);
+        }
 
-        out << vcfTemplate;
+        std::string chr_name = ".";
+        size_t chr_name_start = chrList_[1].GetDescription().find_last_of("|", chrList_[1].GetDescription().size() - 2);
+        if (chr_name_start == std::string::npos) 
+        {
+            chr_name = chrList_[1].GetDescription();
+        }
+        else 
+        {
+            chr_name = chrList_[1].GetDescription().substr(chr_name_start + 1);
+            size_t chr_name_end = chr_name.find_last_of(".");
+            if (chr_name_end == std::string::npos) 
+            {
+                chr_name_end = chr_name.size() - 1; 
+            }
+            chr_name.erase(chr_name_end, chr_name.size() - chr_name_end);
+        }
 
         for (size_t i = 0; i < variants.size(); ++i)
         {
-            out << ".\t"
+            out << chr_name << "\t"
                 << variants[i].GetReferencePos() << "\t"
                 << ".\t"
                 << (variants[i].GetReferenceAllele().empty() ? "." : variants[i].GetReferenceAllele()) << "\t"

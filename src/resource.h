@@ -10,6 +10,6 @@ namespace SyntenyFinder
 	extern const std::string d3Template;
 	extern const std::string circosTemplate;
 	extern const std::string circosImageConfig;
-    extern const std::string vcfTemplate;
+    extern const std::string varTemplate;
 }
 
