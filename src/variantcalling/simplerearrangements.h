@@ -1,10 +1,10 @@
 #ifndef SIMPLEREARRANGEMENTS_H
 #define SIMPLEREARRANGEMENTS_H
 
-#include "../common.h"
 #include <tclap/CmdLine.h>
-#include "util.h"
-#include "variantcalling/variantcaller.h"
+#include "../common.h"
+#include "../util.h"
+#include "variantcaller.h"
 
 namespace SyntenyFinder
 {

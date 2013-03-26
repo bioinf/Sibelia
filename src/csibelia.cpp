@@ -161,7 +161,6 @@ int main(int argc, char * argv[])
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
 		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
 		const std::string defaultVariantFile = outFileDir.getValue() + "/variant.vcf";
-		const std::string defaultRearrangementsFile = outFileDir.getValue() + "/rearr.txt";
 		const std::string defaultPlainVariantFile = outFileDir.getValue() + "/variant.txt";
 
 		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
