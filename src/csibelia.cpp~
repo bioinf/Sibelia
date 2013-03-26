@@ -7,7 +7,6 @@
 #include <tclap/CmdLine.h>
 #include "util.h"
 #include "variantcalling/variantcaller.h"
-#include "variantcalling/simplerearrangements.h"
 
 int main(int argc, char * argv[])
 {	
