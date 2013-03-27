@@ -475,7 +475,7 @@ namespace SyntenyFinder
 		std::ofstream out;
 		TryOpenFile(outFile, out);
 		
-		std::istringstream vcfTemplate(varTemplate);
+		std::istringstream vcfTemplate(variantTemplate);
 		std::string buffer;
 		std::getline(vcfTemplate, buffer);
 		while (!buffer.empty())
