@@ -184,14 +184,14 @@ namespace SyntenyFinder
 	}
 
    	void OutputGenerator::RearrangementScenario(const std::vector<std::string> & steps, const std::string & fileName) const
-    	{
-        	std::ofstream out;
-        	TryOpenFile(fileName, out);
-        	for(size_t i = 0; i < steps.size(); ++i)
-        	{
-        	    out << steps[i] << std::endl;
-        	}
-    	}
+	{
+		std::ofstream out;
+		TryOpenFile(fileName, out);
+		for(size_t i = 0; i < steps.size(); ++i)
+		{
+			out << steps[i] << std::endl;
+		}
+	}
 
 	void OutputGenerator::ListBlocksIndices(const BlockList & block, const std::string & fileName) const
 	{
@@ -395,9 +395,9 @@ namespace SyntenyFinder
 	{
 		std::istringstream htmlTemplate(d3Template);
 
-        //open output file
-        std::ofstream out;
-        TryOpenFile(outFile, out);
+		//open output file
+		std::ofstream out;
+		TryOpenFile(outFile, out);
 
 		std::string buffer;
 		for(;;)
@@ -413,56 +413,56 @@ namespace SyntenyFinder
 			}
 		}
 
-        out << "chart_data = [" << std::endl;
+		out << "chart_data = [" << std::endl;
 
-        //blocks must be sorted by start
-        BlockList sortedBlocks = blockList;
-        std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareByStart);
+		//blocks must be sorted by start
+		BlockList sortedBlocks = blockList;
+		std::sort(sortedBlocks.begin(), sortedBlocks.end(), compareByStart);
 
-        // write to output file
-        int lastId = 0;
-        bool first_line = true;
+		// write to output file
+		int lastId = 0;
+		bool first_line = true;
 		for(BlockList::iterator itBlock = sortedBlocks.begin(); itBlock != sortedBlocks.end(); ++itBlock) // O(N^2) by number of blocks, can be optimized
 		{
-            if (!first_line)
-                out << ",";
-            else
-                first_line = false;
-            out << "    {";
-            out << "\"name\":\"" << OutputD3BlockID(*itBlock) << "\",";
-            out << "\"size\":" << itBlock->GetLength() << ",";
-            out << "\"imports\":[";
-            bool first = true;
-            for (BlockList::iterator itPair = sortedBlocks.begin(); itPair != sortedBlocks.end(); ++itPair)
-            {
-                if (itPair->GetBlockId() == itBlock->GetBlockId() && itPair != itBlock)
-                {
-                    if (!first)
-                        out << ",";
-                    else
-                        first = false;
-                    out << "\"" << OutputD3BlockID(*itPair) << "\"";
-                }
+			if (!first_line)
+				out << ",";
+			else
+				first_line = false;
+			out << "    {";
+			out << "\"name\":\"" << OutputD3BlockID(*itBlock) << "\",";
+			out << "\"size\":" << itBlock->GetLength() << ",";
+			out << "\"imports\":[";
+			bool first = true;
+			for (BlockList::iterator itPair = sortedBlocks.begin(); itPair != sortedBlocks.end(); ++itPair)
+			{
+				if (itPair->GetBlockId() == itBlock->GetBlockId() && itPair != itBlock)
+				{
+					if (!first)
+						out << ",";
+					else
+						first = false;
+					out << "\"" << OutputD3BlockID(*itPair) << "\"";
+				}
 			}
-            out << "]";
-            out << "}" << std::endl;
+			out << "]";
+			out << "}" << std::endl;
 		}
-        out << "];" << std::endl;
+		out << "];" << std::endl;
 
-        // making data for chart legend
-        out << "chart_legend = [" << std::endl;
-        first_line = true;
-        for(size_t i = 0; i < chrList_.size(); i++)
-        {
-            if (!first_line)
-                out << ",";
-            else
-                first_line = false;
-           out << "    \"seq " << chrList_[i].GetId() + 1 << " : " <<  chrList_[i].GetDescription() << "\"" << std::endl;
-        }
-        out << "];" << std::endl;
+		// making data for chart legend
+		out << "chart_legend = [" << std::endl;
+		first_line = true;
+		for(size_t i = 0; i < chrList_.size(); i++)
+		{
+			if (!first_line)
+				out << ",";
+			else
+				first_line = false;
+			out << "    \"seq " << chrList_[i].GetId() + 1 << " : " <<  chrList_[i].GetDescription() << "\"" << std::endl;
+		}
+		out << "];" << std::endl;
 
-        //write rest of html template
+		//write rest of html template
 		while (!htmlTemplate.eof())
 		{
 			std::getline(htmlTemplate, buffer);
@@ -471,56 +471,56 @@ namespace SyntenyFinder
 	}
 
 	void OutputGenerator::GenerateVariantOutput(const std::vector <Variant> & variants, const std::string & outFile) const 
-    {
-        std::ofstream out;
-        TryOpenFile(outFile, out);
-        
+	{
+		std::ofstream out;
+		TryOpenFile(outFile, out);
+		
 		std::istringstream vcfTemplate(varTemplate);
-        std::string buffer;
-        std::getline(vcfTemplate, buffer);
-        while (!buffer.empty())
-        {
-            if (buffer == "##reference=") 
-            {
-                out << buffer << chrList_[0].GetDescription() << std::endl;
-            }
-            else if (buffer == "##assembly=") 
-            {
-                out << buffer << chrList_[1].GetDescription() << std::endl;
-            }
-            else 
-            {
-                out << buffer << std::endl;
-            }
-            std::getline(vcfTemplate, buffer);
-        }
+		std::string buffer;
+		std::getline(vcfTemplate, buffer);
+		while (!buffer.empty())
+		{
+			if (buffer == "##reference=") 
+			{
+				out << buffer << chrList_[0].GetDescription() << std::endl;
+			}
+			else if (buffer == "##assembly=") 
+			{
+				out << buffer << chrList_[1].GetDescription() << std::endl;
+			}
+			else 
+			{
+				out << buffer << std::endl;
+			}
+			std::getline(vcfTemplate, buffer);
+		}
 
-        std::string chr_name = ".";
-        size_t chr_name_start = chrList_[1].GetDescription().find_last_of("|", chrList_[1].GetDescription().size() - 2);
-        if (chr_name_start == std::string::npos) 
-        {
-            chr_name = chrList_[1].GetDescription();
-        }
-        else 
-        {
-            chr_name = chrList_[1].GetDescription().substr(chr_name_start + 1);
-            size_t chr_name_end = chr_name.find_last_of(".");
-            if (chr_name_end == std::string::npos) 
-            {
-                chr_name_end = chr_name.size() - 1; 
-            }
-            chr_name.erase(chr_name_end, chr_name.size() - chr_name_end);
-        }
+		std::string chrName = ".";
+		size_t chrNameStart = chrList_[1].GetDescription().find_last_of("|", chrList_[1].GetDescription().size() - 2);
+		if (chrNameStart == std::string::npos) 
+		{
+			chrName = chrList_[1].GetDescription();
+		}
+		else 
+		{
+			chrName = chrList_[1].GetDescription().substr(chrNameStart + 1);
+			size_t chrNameEnd = chrName.find_last_of(".");
+			if (chrNameEnd == std::string::npos) 
+			{
+				chrNameEnd = chrName.size() - 1; 
+			}
+			chrName.erase(chrNameEnd, chrName.size() - chrNameEnd);
+		}
 
-        for (size_t i = 0; i < variants.size(); ++i)
-        {
-            out << chr_name << "\t"
-                << variants[i].GetReferencePos() << "\t"
-                << ".\t"
-                << (variants[i].GetReferenceAllele().empty() ? "." : variants[i].GetReferenceAllele()) << "\t"
-                << (variants[i].GetAlternativeAllele().empty() ? "." : variants[i].GetAlternativeAllele()) << "\t"
-                << ".\t.\t." << std::endl;
-        }
+		for (size_t i = 0; i < variants.size(); ++i)
+		{
+			out << chrName << "\t"
+				<< variants[i].GetReferencePos() << "\t"
+				<< ".\t"
+				<< (variants[i].GetReferenceAllele().empty() ? "." : variants[i].GetReferenceAllele()) << "\t"
+				<< (variants[i].GetAlternativeAllele().empty() ? "." : variants[i].GetAlternativeAllele()) << "\t"
+				<< ".\t.\t." << std::endl;
+		}
 	}
 
 	void OutputGenerator::TryOpenFile(const std::string & fileName, std::ofstream & stream) const
