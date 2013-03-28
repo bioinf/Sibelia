@@ -10,10 +10,10 @@
 
 namespace SyntenyFinder
 {
-    Genome::Genome(int n_, const std::vector<int> &permutation) : n(n_)
+    Genome::Genome(int n_, int maxId, const std::vector<int> &permutation) : n(n_)
     {
       //synteny = std::vector<std::vector<int>(2) >(n);
-      for (size_t i = 0; i < n + 1; i++) synteny.push_back(std::vector<int>(2));
+      for (size_t i = 0; i < maxId + 1; i++) synteny.push_back(std::vector<int>(2));
       int prev = -1;
       for (size_t i = 0; i < n; ++i) {
           vertices.push_back(std::vector<int>(2));                            //
@@ -78,19 +78,25 @@ namespace SyntenyFinder
                     }
                     visited[vAddr] = true;
                 }
-                ss << (next/2 + 1 * (next%2 != 0)) << " ";
+                if (vertices[i][0]%2 != 0)
+                {
+                    ss << "+" << (next/2 + 1) << " $ ";
+                } else {
+                    ss << -next/2 << " $ ";
+                }
             }
         }
         return ss.str();
     }
 
-std::vector<std::string> GetRearrangements(const std::vector<int> &pa, const std::vector<int> &pb)
+std::vector<std::string> GetRearrangements(const std::vector<int> &pa, const std::vector<int> &pb, int maxId)
 {
     std::vector<std::string> result;
     assert(pa.size() == pb.size());
     int n = pa.size();
-    Genome a = Genome(n, pa);
-    Genome b = Genome(n, pb);
+    Genome a = Genome(n, maxId, pa);
+    Genome b = Genome(n, maxId, pb);
+    result.push_back(a.ShowArrangement());
     int p, q, s, t, uAddr, vAddr;
     std::vector<int> u(2), v(2);
     for (size_t i = 0; i < n + 1; ++i)
@@ -148,31 +154,50 @@ std::vector<std::string> GetRearrangements(const std::vector<int> &pa, const std
 
     std::vector<std::string> GetRearrangements(const std::vector<BlockInstance> &blocks)
     {
-        std::set<BlockInstance> ReferenceSet;
-        std::set<BlockInstance> ContigsSet;
+        std::set<int> referenceAbsSet;
+        std::set<int> contigAbsSet;
+        std::set<BlockInstance> referenceSet;
+        std::set<BlockInstance> contigSet;
+        int chrId;
 
-        for (size_t i; i < blocks.size(); ++i)
+        for (size_t i = 0; i < blocks.size(); ++i)
         {
             BlockInstance block = blocks[i];
-            if (block.GetChrId() == 1) {
-                ReferenceSet.insert(block);
+            chrId = block.GetChrId();
+            if (block.GetChrId() == 0) {
+                if (referenceAbsSet.count(block.GetBlockId()) == 0)
+                {
+                    referenceSet.insert(block);
+                    referenceAbsSet.insert(block.GetBlockId());
+                }
             } else {
-                ContigsSet.insert(block);
+                if (contigAbsSet.count(block.GetBlockId()) == 0)
+                {
+                    contigSet.insert(block);
+                    contigAbsSet.insert(block.GetBlockId());
+                }
             }
         }
+
         std::vector<int> pa;
         std::vector<int> pb;
+        int maxId = 0;
 
-        for(std::set<BlockInstance>::iterator it = ReferenceSet.begin(); it != ReferenceSet.end(); it++)
+        for(std::set<BlockInstance>::iterator it = referenceSet.begin(); it != referenceSet.end(); it++)
         {
            BlockInstance block = *it;
-           if (ContigsSet.count(block) != 0) pa.push_back(block.GetSignedBlockId());
+           if (contigAbsSet.count(block.GetBlockId()) != 0)
+           {
+               pa.push_back(block.GetSignedBlockId());
+               if (block.GetBlockId() > maxId) maxId = block.GetBlockId();
+           }
         }
-        for(std::set<BlockInstance>::iterator it = ContigsSet.begin(); it != ContigsSet.end(); it++)
+
+        for(std::set<BlockInstance>::iterator it = contigSet.begin(); it != contigSet.end(); it++)
         {
             BlockInstance block = *it;
-            if (ReferenceSet.count(block) == 0) pb.push_back(block.GetSignedBlockId());
+            if (referenceAbsSet.count(block.GetBlockId()) != 0) pb.push_back(block.GetSignedBlockId());
         }
-        return GetRearrangements(pa, pb);
+        return GetRearrangements(pa, pb, maxId);
     }
 }

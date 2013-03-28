@@ -14,11 +14,11 @@ namespace SyntenyFinder
         std::vector<std::vector<int> > vertices;
         std::vector<std::vector<int> > synteny;
 
-        Genome(int n_, const std::vector<int>&);
+        Genome(int n_, int maxId, const std::vector<int>&);
         std::string ShowArrangement();
     };
 
-    std::vector<std::string> GetRearrangements(const std::vector<int>&, const std::vector<int>&);
+    std::vector<std::string> GetRearrangements(const std::vector<int>& pa, const std::vector<int>& pb, int maxId);
     std::vector<std::string> GetRearrangements(const std::vector<BlockInstance>& blocks);
 }
 #endif // SIMPLEREARRANGEMENTS_H
