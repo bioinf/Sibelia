@@ -28,6 +28,24 @@ namespace SyntenyFinder
 			return out.str();
 		}
 
+		void OutputBlocks(const std::vector<BlockInstance>& block, std::ofstream& out)
+		{
+			std::vector<IndexPair> group;
+			std::vector<BlockInstance> blockList = block;
+			GroupBy(blockList, compareById, std::back_inserter(group));
+			for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
+			{
+				size_t length = it->second - it->first;
+				std::sort(blockList.begin() + it->first, blockList.begin() + it->second, compareByChrId);
+				out << "Block #" << blockList[it->first].GetBlockId() << std::endl;
+				out << "Seq_id\tStrand\tStart\tEnd\tLength" << std::endl;
+				CopyN(CFancyIterator(blockList.begin() + it->first, OutputIndex, std::string()),
+						length, std::ostream_iterator<std::string>(out, "\n"));
+				out << DELIMITER << std::endl;
+			}
+		}
+
+
 		// function to sort blocks in one chromosome by starting position (it's sorted lexicographically by D3)
 		std::string OutputD3BlockID(const BlockInstance & block)
 		{
@@ -187,17 +205,49 @@ namespace SyntenyFinder
 		std::ofstream out;
 		TryOpenFile(fileName, out);
 		ListChrs(out);
-		std::vector<IndexPair> group;
-		BlockList blockList = block;
-		GroupBy(blockList, compareById, std::back_inserter(group));
-		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
+		OutputBlocks(block, out);
+	}
+
+	
+	void OutputGenerator::OutputTree(const std::vector<BlockList> & history, const std::string & fileName) const
+	{
+		std::ofstream out;
+		TryOpenFile(fileName, out);
+		for (size_t i = history.size() - 1; i > 0; --i)
 		{
-			size_t length = it->second - it->first;
-			std::sort(blockList.begin() + it->first, blockList.begin() + it->second, compareByChrId);
-			out << "Block #" << blockList[it->first].GetBlockId() << std::endl;
-			out << "Seq_id\tStrand\tStart\tEnd\tLength" << std::endl;
-			CopyN(CFancyIterator(blockList.begin() + it->first, OutputIndex, std::string()), length, std::ostream_iterator<std::string>(out, "\n"));
-			out << DELIMITER << std::endl;
+			out << "\n================== ITERATION " << i + 1 << "===================\nBlk\tChr\tChld\n";
+
+			std::vector<IndexPair> group;
+			std::vector<BlockInstance> blockList = history[i];
+			GroupBy(blockList, compareById, std::back_inserter(group));
+			for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
+			{
+				std::vector<BlockInstance> childBlocks = history[i - 1];
+				std::sort(childBlocks.begin(), childBlocks.end(), compareByStart);
+				for (size_t blockId = it->first; blockId != it->second; ++blockId)
+				{
+					out << blockList[blockId].GetBlockId() << "\t" << blockList[blockId].GetChrId() + 1 << "\t(";
+					for (size_t j = 0; j < childBlocks.size(); ++j)
+					{
+						if (childBlocks[j].GetEnd() < blockList[blockId].GetStart()) continue;
+						if (childBlocks[j].GetStart() > blockList[blockId].GetEnd()) break;
+						out << j << ",";
+					}
+					out << ")\n";
+				}
+			}
+		}
+	}
+
+	void OutputGenerator::ListBlocksIndicesHeirarchy(const std::vector<BlockList> & history, const std::string & fileName) const
+	{
+		std::ofstream out;
+		TryOpenFile(fileName, out);
+		ListChrs(out);
+		for (size_t i = 0; i < history.size(); ++i)
+		{
+			out << "\n================== ITERATION " << i + 1 << "===================\nBlk\tChr\tChld\n";
+			OutputBlocks(history[i], out);
 		}
 	}
 
