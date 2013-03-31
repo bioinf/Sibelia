@@ -7,9 +7,10 @@ if(CMAKE_COMPILER_IS_GNUCC)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++")
+	list(APPEND CMAKE_CXX_FLAGS "-std=c++0x -static-libgcc -static-libstdc++")
 endif()
 
+link_directories(${CMAKE_SOURCE_DIR}/libStatGen_1.0.8)
 include_directories(${Sibelia_SOURCE_DIR}/include ${libdivsufsort_BINARY_DIR}/include)
 add_executable(Sibelia sibelia.cpp indexedsequence.cpp util.cpp outputgenerator.cpp blockfinder.cpp blockinstance.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp edge.cpp fasta.cpp serialization.cpp synteny.cpp test/unrolledlisttest.cpp platform.cpp stranditerator.cpp vertexenumeration.cpp resource.cpp)
 #add_executable(C-Sibelia csibelia.cpp indexedsequence.cpp variantcalling/variant.cpp variantcalling/variantcaller.cpp util.cpp outputgenerator.cpp blockfinder.cpp blockinstance.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp edge.cpp fasta.cpp serialization.cpp synteny.cpp test/unrolledlisttest.cpp platform.cpp stranditerator.cpp vertexenumeration.cpp resource.cpp)
