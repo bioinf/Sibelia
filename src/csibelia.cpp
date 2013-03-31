@@ -143,11 +143,11 @@ int main(int argc, char * argv[])
 		std::vector<SyntenyFinder::Variant> variant;
 		std::vector<SyntenyFinder::Reversal> reversal;
 		std::vector<SyntenyFinder::Translocation> translocation;		
-		SyntenyFinder::VariantCaller caller(refSeqId, blockList, trimK);
+		SyntenyFinder::VariantCaller caller(chrList[0], blockList, trimK);
 		caller.CallVariants(variant);
-		caller.CallRearrangements(reversal, translocation);
+//		caller.CallRearrangements(reversal, translocation);
 
-		std::vector<std::string> rearrSteps = GetRearrangements(blockList);
+//		std::vector<std::string> rearrSteps = GetRearrangements(blockList);
 		
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
@@ -164,15 +164,16 @@ int main(int argc, char * argv[])
 		const std::string defaultPlainVariantFile = outFileDir.getValue() + "/variant.txt";
 
 		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
-		std::ofstream rearrangementStream(defaultRearrangementsFile.c_str());
+//		std::ofstream rearrangementStream(defaultRearrangementsFile.c_str());
 		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
-		std::copy(reversal.begin(), reversal.end(), std::ostream_iterator<SyntenyFinder::Reversal>(rearrangementStream, "\n"));
-		std::copy(translocation.begin(), translocation.end(), std::ostream_iterator<SyntenyFinder::Translocation>(rearrangementStream, "\n"));
+//		std::copy(reversal.begin(), reversal.end(), std::ostream_iterator<SyntenyFinder::Reversal>(rearrangementStream, "\n"));
+//		std::copy(translocation.begin(), translocation.end(), std::ostream_iterator<SyntenyFinder::Translocation>(rearrangementStream, "\n"));
 
 		generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
-		generator.RearrangementScenario(rearrSteps, defaultRearrangementsFile);
+//		generator.RearrangementScenario(rearrSteps, defaultRearrangementsFile);
 		generator.GenerateReport(blockList, defaultCoverageReportFile);
 		generator.ListBlocksIndices(blockList, defaultCoordsFile);
+		generator.ListBlocksSequences(blockList, defaultSequencesFile);
 		generator.GenerateD3Output(blockList, defaultD3File);
 		generator.GenerateVariantOutput(variant, defaultVariantFile);
 		generator.GenerateCircosOutput(blockList, defaultCircosFile, defaultCircosDir);
