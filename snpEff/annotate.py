@@ -34,7 +34,7 @@ if (not args.db):
 	chrom_name = ""
 	source_file = open(args.source)
 	for line in source_file:
-		if (line[:10] == "##assembly"):
+		if (line[:11] == "##reference"):
 			assembly_name = line.strip().split("=")[1]
 			chrom_match = re.search("\|(\w+)(\.\d+)?\|$", assembly_name)
 			chrom_name = assembly_name if (not chrom_match) else chrom_match.group(1)
