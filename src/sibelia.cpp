@@ -178,12 +178,14 @@ int main(int argc, char * argv[])
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
 		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		
+        const std::string defaultBlocksAligmentFile = outFileDir.getValue() + "blocks_aligment.sam";
 		generator.ListChromosomesAsPermutations(history.back(), defaultPermutationsFile);
 		generator.GenerateReport(history.back(), defaultCoverageReportFile);
 		generator.GenerateD3Output(history.back(), defaultD3File);
 		if(sequencesFile.isSet())
 		{
 			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
+            generator.BlocksAligment(history.back(), defaultBlocksAligmentFile);
 		}
 
 		if(!hierarchy)

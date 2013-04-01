@@ -544,4 +544,50 @@ namespace SyntenyFinder
 		std::stringstream ss;
 		std::copy(block, block + blockSize, std::ostream_iterator<std::string>(ss, "\n"));
 	}
+
+    void OutputGenerator::BlocksAligment(const BlockList & block, const std::string & fileName) const
+        {
+            std::ofstream out;
+            TryOpenFile(fileName, out);
+
+            out << "@HD" << '\t' << "VN:1.4" << '\n';
+            for (size_t i = 0; i < chrList_.size(); i++)
+            {
+                std::string SQTag = "@SQ" + '\t';
+                SQTag += ("SN:" + chrList_[i].GetDescription() + '\t');
+                std::stringstream ss;
+                ss << chrList_[i].GetSequence().size();
+                std::string s = ss.str();
+                SQTag += ("LN:" + s);
+                out << SQTag << '\n';
+            }
+
+            BlockList blockList = block;
+            std::vector<IndexPair> group;
+            GroupBy(blockList, compareById, std::back_inserter(group));
+            for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
+            {
+                std::sort(blockList.begin() + it->first, blockList.begin() + it->second, compareByChrId);
+
+                std::stringstream ss;
+                ss << blockList[it->first].GetBlockId();
+                std::string s = ss.str();
+                for (auto i = blockList.begin() + it->first; i < blockList.begin() + it->second; i++)
+                {
+                    out << "Block #" << s << '\t'; // QNAME
+                    out << 0 << '\t'; // FLAG
+                    out << chrList_[i -> GetChrId()].GetDescription() << '\t'; // RNAME
+                    out << i -> GetConventionalStart() << '\t'; // POS
+                    out << 255 << '\t'; // MAPQ
+                    out << '*' << '\t'; // SIGAR
+                    out << '*' << '\t'; // RNEXT
+                    out << '*' << '\t'; // PNEXT
+                    out << 0 << '\t'; // TLEN
+                    size_t start = i -> GetStart();
+                    size_t len = i -> GetLength();
+                    out << i -> GetChrInstance().GetSequence().substr(start, len) << '\t'; //SEQ
+                    out << '*' << '\n'; // QUAL
+                }
+            }
+        }
 }

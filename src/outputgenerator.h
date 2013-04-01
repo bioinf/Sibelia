@@ -28,6 +28,7 @@ namespace SyntenyFinder
 		void ListBlocksSequences(const BlockList & blockList, const std::string & fileName) const;		
 		void ListChromosomesAsPermutations(const BlockList & blockList, const std::string & fileName) const;
 		void OutputBuffer(const std::string & fileName, const std::string & buffer) const;		
+        void BlocksAligment(const BlockList & block, const std::string & fileName) const;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(OutputGenerator);
 		static const int CIRCOS_MAX_COLOR;
