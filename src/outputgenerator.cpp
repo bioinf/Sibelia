@@ -496,14 +496,14 @@ namespace SyntenyFinder
 		}
 
 		std::string chrName = ".";
-		size_t chrNameStart = chrList_[1].GetDescription().find_last_of("|", chrList_[1].GetDescription().size() - 2);
+		size_t chrNameStart = chrList_[0].GetDescription().find_last_of("|", chrList_[0].GetDescription().size() - 2);
 		if (chrNameStart == std::string::npos) 
 		{
-			chrName = chrList_[1].GetDescription();
+			chrName = chrList_[0].GetDescription();
 		}
 		else 
 		{
-			chrName = chrList_[1].GetDescription().substr(chrNameStart + 1);
+			chrName = chrList_[0].GetDescription().substr(chrNameStart + 1);
 			size_t chrNameEnd = chrName.find_last_of(".");
 			if (chrNameEnd == std::string::npos) 
 			{
