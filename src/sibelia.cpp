@@ -169,6 +169,8 @@ int main(int argc, char * argv[])
 
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
+		const std::string defaultTreeFile = outFileDir.getValue() + "/tree_decomposition.txt";
+		//const std::string defaultCoordsHierarchyFile = outFileDir.getValue() + "/blocks_hierarchy.txt";
 		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
 		const std::string defaultCoverageReportFile = outFileDir.getValue() + "/coverage_report.txt";
 		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";
@@ -176,22 +178,26 @@ int main(int argc, char * argv[])
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
 		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		
+        const std::string defaultBlocksAligmentFile = outFileDir.getValue() + "blocks_aligment.sam";
 		generator.ListChromosomesAsPermutations(history.back(), defaultPermutationsFile);
 		generator.GenerateReport(history.back(), defaultCoverageReportFile);
-		generator.ListBlocksIndices(history.back(), defaultCoordsFile);
 		generator.GenerateD3Output(history.back(), defaultD3File);
 		if(sequencesFile.isSet())
 		{
 			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
+            generator.BlocksAligment(history.back(), defaultBlocksAligmentFile);
 		}
 
 		if(!hierarchy)
 		{
 			generator.GenerateCircosOutput(history.back(), defaultCircosFile, defaultCircosDir);
+			generator.ListBlocksIndices(history.back(), defaultCoordsFile);
 		}
 		else
 		{
 			generator.GenerateHierarchyCircosOutput(history, defaultCircosFile, defaultCircosDir);
+			generator.ListBlocksIndicesHeirarchy(history, defaultCoordsFile);
+			generator.OutputTree(history, defaultTreeFile);
 		}
 
 		if(graphFile.isSet())
