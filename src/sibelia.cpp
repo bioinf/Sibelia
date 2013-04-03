@@ -176,17 +176,16 @@ int main(int argc, char * argv[])
 		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";
 		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
-		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
-		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		
-        const std::string defaultBlocksAligmentFile = outFileDir.getValue() + "/blocks_aligment.sam";
+		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf"; const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		
+        const std::string defaultBlocksAlignmentFile = outFileDir.getValue() + "/blocks_alignment.sam";
 		generator.ListChromosomesAsPermutations(history.back(), defaultPermutationsFile);
 		generator.GenerateReport(history.back(), defaultCoverageReportFile);
 		generator.GenerateD3Output(history.back(), defaultD3File);
 		if(sequencesFile.isSet())
 		{
 			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
-            generator.BlocksAligment(history.back(), defaultBlocksAligmentFile);
-			std::cout << defaultBlocksAligmentFile << std::endl;
+            generator.BlocksAlignment(history.back(), defaultBlocksAlignmentFile);
+			std::cout << defaultBlocksAlignmentFile << std::endl;
 		}
 
 		if(!hierarchy)
