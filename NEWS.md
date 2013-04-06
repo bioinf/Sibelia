@@ -1,3 +1,7 @@
+Sibelia 2.1.2
+=============
+* Fixed crashes on some input genomes
+
 Sibelia 2.1.1
 =============
 * Got rid of overlap between synteny blocks, overlapping regions are granted to

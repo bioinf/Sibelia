@@ -289,7 +289,7 @@ namespace SyntenyFinder
 		std::vector<Indicator> overlap(rawSeq_.size());
 		for(size_t i = 0; i < rawSeq_.size(); i++)
 		{
-			overlap[i].resize(rawSeq_[i].size(), POS_FREE);
+			overlap[i].resize(originalSize_[i], POS_FREE);
 		}
 
 		{

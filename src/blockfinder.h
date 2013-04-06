@@ -47,9 +47,10 @@ namespace SyntenyFinder
 		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
 		typedef std::vector<Pos> PosVector;
 		std::string tempDir_;
-		IndexedSequence * iseq_;
-		std::vector<std::string> rawSeq_;
-		std::vector<PosVector> originalPos_;
+		IndexedSequence * iseq_;		
+		std::vector<std::string> rawSeq_;	
+		std::vector<size_t> originalSize_;
+		std::vector<PosVector> originalPos_;		
 		const std::vector<FASTARecord> * originalChrList_;
 		static const char POS_FREE;
 		static const char POS_OCCUPIED;
