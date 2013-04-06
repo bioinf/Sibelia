@@ -118,11 +118,6 @@ namespace SyntenyFinder
 			}
 		}
 
-	//	std::copy(referenceStart, referenceEnd, std::ostream_iterator<char>(std::cout));
-	//	std::cout << std::endl;
-	//	std::copy(assemblyStart, assemblyEnd, std::ostream_iterator<char>(std::cout));
-	//	std::cout << std::endl;
-
 		if(referenceStart.GetDirection() == DNASequence::negative)
 		{
 			assemblyStart = assemblyStart.Invert();
@@ -145,7 +140,7 @@ namespace SyntenyFinder
 		divsufsort(reinterpret_cast<const sauchar_t*>(sequence.c_str()), &suffixArray_[0], static_cast<saidx_t>(sequence.size()));
 	}
 
-	void VariantCaller::AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd, StrandIterator assemblyBegin, StrandIterator assemblyEnd, std::vector<Variant> & variantList) const
+	void VariantCaller::AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd, StrandIterator assemblyBegin, StrandIterator assemblyEnd, const FASTARecord & assemblySequence, std::vector<Variant> & variantList) const
 	{
 		using namespace seqan;
 		typedef String<char> TSequence;
@@ -153,43 +148,45 @@ namespace SyntenyFinder
 		typedef Row<TAlign>::Type TRow;
 		typedef Iterator<TRow>::Type TIterator;
 		typedef Position<TAlign>::Type TPosition;
-		
-		std::string buf1(referenceBegin, referenceEnd);
-		std::string buf2(assemblyBegin, assemblyEnd);
-		TSequence seq1(buf1);
-		TSequence seq2(buf2);
-		bool collinear = referenceBegin.GetDirection() == assemblyBegin.GetDirection();		
-		if(buf1 == buf2 || !ConfirmVariant(referenceBegin, referenceEnd, assemblyBegin, assemblyEnd))
+				
+		while(referenceBegin != referenceEnd && assemblyBegin != assemblyEnd && *referenceBegin == *assemblyBegin)
+		{
+			++referenceBegin;
+			++assemblyBegin;
+		}
+
+		std::string referenceBuf(referenceBegin, referenceEnd);
+		std::string assemblyBuf(assemblyBegin, assemblyEnd);
+		TSequence referenceSeq(referenceBuf);
+		TSequence assemblySeq(assemblyBuf);
+		StrandIterator saveReferenceBegin = referenceBegin;
+		bool collinear = referenceBegin.GetDirection() == assemblyBegin.GetDirection();
+		if(referenceBuf == assemblyBuf || !ConfirmVariant(referenceBegin, referenceEnd, assemblyBegin, assemblyEnd))
 		{
 			return;
 		}		
 
-		if(buf1.size() == 0 || buf2.size() == 0)
+		if(referenceBuf.size() == 0 || assemblyBuf.size() == 0)
 		{
-			if(buf1.size() + buf2.size() > 0)
+			if(referenceBuf.size() + assemblyBuf.size() > 0)
 			{
-				variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, buf1, buf2));
+				variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, referenceBuf, assemblyBuf, assemblySequence));
 			}
 
 			return;
 		}
 		
-		size_t common = 0;
-		for(; common < buf1.size() && common < buf2.size() && buf1[common] == buf2[common]; common++);
-		StrandIterator saveReferenceBegin = referenceBegin;
-		if(buf1.size() * buf2.size() > (1 << 20))
+		if(referenceBuf.size() * assemblyBuf.size() > (1 << 20))
 		{
-			std::advance(referenceBegin, common);
-			variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, buf1, buf2));
+			variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, referenceBuf, assemblyBuf, assemblySequence));
 			return;
 		}		
 
 		std::vector<Variant> tempList;
 		TAlign align;
 		resize(rows(align), 2); 
-		assignSource(row(align,0), seq1);
-		assignSource(row(align,1), seq2);
-		std::stringstream ss;		
+		assignSource(row(align,0), referenceSeq);
+		assignSource(row(align,1), assemblySeq);
 		int score = globalAlignment(align, Score<int>(1,-1,-1,-1), Hirschberg());		
 		TPosition colBegin = beginPosition(cols(align));
 		TPosition colEnd = endPosition(cols(align));
@@ -202,7 +199,7 @@ namespace SyntenyFinder
 			{
 				if(*it1 != *it2)
 				{					
-					tempList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, std::string(1, *it1), std::string(1, *it2), ss.str()));
+					tempList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, std::string(1, *it1), std::string(1, *it2), assemblySequence));
 				}
 
 				++referenceBegin;
@@ -231,15 +228,13 @@ namespace SyntenyFinder
 					}
 				}
 
-				tempList.push_back(Variant(pos, blockId, collinear, referenceAllele, variantAllele, ss.str()));
+				tempList.push_back(Variant(pos, blockId, collinear, referenceAllele, variantAllele, assemblySequence));
 			}
 		}
-
-		referenceBegin = saveReferenceBegin;
-		if(tempList.size() >= 5)
-		{
-			std::advance(referenceBegin, common);
-			variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, buf1, buf2));
+		
+		if(tempList.size() > 1)
+		{			
+			variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, referenceBuf, assemblyBuf, assemblySequence));
 		}
 		else
 		{
@@ -272,7 +267,7 @@ namespace SyntenyFinder
 		if(NextVertex(iseq, referenceIt, referenceEnd, assemblyIt, assemblyEnd, false))
 		{			
 			AlignBulgeBranches(reference.GetBlockId(), sequence.Begin(reference.GetDirection(), 0), referenceIt,
-				sequence.Begin(assembly.GetDirection(), 1), assemblyIt, variantList);
+				sequence.Begin(assembly.GetDirection(), 1), assemblyIt, assembly.GetChrInstance(), variantList);
 			while(referenceIt != referenceEnd)
 			{
 				size_t dist = Traverse(referenceIt, assemblyIt) - trimK_;
@@ -281,7 +276,7 @@ namespace SyntenyFinder
 				StrandIterator nextReferenceIt = referenceIt;
 				StrandIterator nextAssemblyIt = assemblyIt;
 				NextVertex(iseq, nextReferenceIt, referenceEnd, nextAssemblyIt, assemblyEnd, true);
-				AlignBulgeBranches(reference.GetBlockId(), referenceIt, nextReferenceIt, assemblyIt, nextAssemblyIt, variantList);
+				AlignBulgeBranches(reference.GetBlockId(), referenceIt, nextReferenceIt, assemblyIt, nextAssemblyIt, assembly.GetChrInstance(), variantList);
 				referenceIt = nextReferenceIt;
 				assemblyIt = nextAssemblyIt;				
 			}
@@ -309,6 +304,12 @@ namespace SyntenyFinder
 				if(blockList_[it->first].GetChrId() != refSeqId)
 				{
 					std::swap(blockList_[it->first], blockList_[it->first + 1]);
+				}
+
+				if(blockList_[it->first].GetDirection() != DNASequence::positive)
+				{					
+					blockList_[it->first].Reverse();
+					blockList_[it->first + 1].Reverse();
 				}
 
 				AlignSyntenyBlocks(blockList_[it->first], blockList_[it->first + 1], variantList);
@@ -411,5 +412,10 @@ namespace SyntenyFinder
 				}
 			}
 		}
+	}
+
+	void VariantCaller::GetBlockList(std::vector<BlockInstance> & blockList) const
+	{
+		blockList = blockList_;
 	}
 }

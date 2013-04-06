@@ -10,8 +10,8 @@ namespace SyntenyFinder
 {
 	const size_t Variant::UNKNOWN_BLOCK = -1;
 
-	Variant::Variant(size_t refPos, size_t blockId, bool collinear, const std::string & refAllele, const std::string & altAllele, const std::string & alignment):
-		refPos_(refPos), blockId_(blockId), collinear_(collinear), refAllele_(refAllele), altAllele_(altAllele), alignment_(alignment)
+	Variant::Variant(size_t refPos, size_t blockId, bool collinear, const std::string & refAllele, const std::string & altAllele, const FASTARecord & sequence, const std::string & alignment):
+		refPos_(refPos), blockId_(blockId), collinear_(collinear), refAllele_(refAllele), altAllele_(altAllele), sequence_(&sequence), alignment_(alignment)
 	{
 
 	}
@@ -51,9 +51,14 @@ namespace SyntenyFinder
 		return toCompare.refPos_ == refPos_ && refAllele_ == toCompare.refAllele_ && altAllele_ == toCompare.altAllele_;
 	}
 
+	const FASTARecord & Variant::GetSequence() const
+	{
+		return *sequence_;
+	}
+
 	std::ostream& operator << (std::ostream & out, const Variant & variant)
 	{
 		out << variant.refPos_ << '\t' << (variant.refAllele_.empty() ? "." : variant.refAllele_) << '\t';
-		return out << (variant.altAllele_.empty() ? "." : variant.altAllele_) << '\t' << variant.blockId_;
+		return out << (variant.altAllele_.empty() ? "." : variant.altAllele_) << '\t' << variant.blockId_ << '\t' << variant.GetSequence().GetDescription();
 	}
 }

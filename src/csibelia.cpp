@@ -138,13 +138,13 @@ int main(int argc, char * argv[])
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		finder.GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), blockList, false, PutProgressChr);
-		size_t refSeqId = chrList[0].GetId();
-				
+		size_t refSeqId = chrList[0].GetId();				
 		std::vector<SyntenyFinder::Variant> variant;
 		std::vector<SyntenyFinder::Reversal> reversal;
 		std::vector<SyntenyFinder::Translocation> translocation;		
 		SyntenyFinder::VariantCaller caller(chrList[0], blockList, trimK);
 		caller.CallVariants(variant);
+		caller.GetBlockList(blockList);
 //		caller.CallRearrangements(reversal, translocation);
 
 //		std::vector<std::string> rearrSteps = GetRearrangements(blockList);
