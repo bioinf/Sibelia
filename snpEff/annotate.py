@@ -38,6 +38,7 @@ if (not args.db):
 			assembly_name = line.strip().split("=")[1]
 			chrom_match = re.search("\|(\w+)(\.\d+)?\|$", assembly_name)
 			chrom_name = assembly_name if (not chrom_match) else chrom_match.group(1)
+			break
 	source_file.close()
 
 # find snpEff database name
@@ -46,6 +47,9 @@ if (not args.db):
 		fields = line.strip().split("/")
 		if (fields[-1] == chrom_name + ".val"):
 			args.db = fields[1]
+	if (not args.db):
+		print "Couldn't get database name from vcf, please provide it manually"
+		sys.exit(-1)
 
 print args
 
