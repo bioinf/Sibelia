@@ -10,15 +10,17 @@ namespace SyntenyFinder
 {
 	const size_t Variant::UNKNOWN_BLOCK = -1;
 
-	Variant::Variant(size_t refPos, size_t blockId, bool collinear, const std::string & refAllele, const std::string & altAllele, const FASTARecord & sequence, const std::string & alignment):
-		refPos_(refPos), blockId_(blockId), collinear_(collinear), refAllele_(refAllele), altAllele_(altAllele), sequence_(&sequence), alignment_(alignment)
+	Variant::Variant(size_t referencePos, size_t blockId, bool collinear, const std::string & referenceAllele, const std::string & alternativeAllele,
+		const FASTARecord & sequence, const std::string & referenceContext, const std::string alternativeContext):
+		referencePos_(referencePos), blockId_(blockId), collinear_(collinear), referenceAllele_(referenceAllele), alternativeAllele_(alternativeAllele),
+			sequence_(&sequence), referenceContext_(referenceContext), alternativeContext_(alternativeContext)
 	{
 
 	}
 
 	bool Variant::operator < (const Variant & toCompare) const
 	{
-		return refPos_ < toCompare.refPos_;
+		return referencePos_ < toCompare.referencePos_;
 	}
 
 	size_t Variant::GetBlockId() const
@@ -28,27 +30,22 @@ namespace SyntenyFinder
 
 	size_t Variant::GetReferencePos() const
 	{
-		return refPos_;
-	}
-
-	const std::string& Variant::GetAlignment() const
-	{
-		return alignment_;
+		return referencePos_;
 	}
 
     const std::string & Variant::GetReferenceAllele() const
     {
-        return refAllele_;
+        return referenceAllele_;
     }
 
     const std::string & Variant::GetAlternativeAllele() const
     {
-        return altAllele_;
+        return alternativeAllele_;
     }
 
 	bool Variant::Equal(const Variant & toCompare) const
 	{
-		return toCompare.refPos_ == refPos_ && refAllele_ == toCompare.refAllele_ && altAllele_ == toCompare.altAllele_;
+		return toCompare.referencePos_ == referencePos_ && referenceAllele_ == toCompare.referenceAllele_ && alternativeAllele_ == toCompare.alternativeAllele_;
 	}
 
 	const FASTARecord & Variant::GetSequence() const
@@ -56,9 +53,20 @@ namespace SyntenyFinder
 		return *sequence_;
 	}
 
+	const std::string & Variant::GetReferenceContext() const
+	{
+		return referenceContext_;
+	}
+	
+	const std::string & Variant::GetAlternativeContext() const
+	{
+		return alternativeContext_;
+	}
+
 	std::ostream& operator << (std::ostream & out, const Variant & variant)
 	{
-		out << variant.refPos_ << '\t' << (variant.refAllele_.empty() ? "." : variant.refAllele_) << '\t';
-		return out << (variant.altAllele_.empty() ? "." : variant.altAllele_) << '\t' << variant.blockId_ << '\t' << variant.GetSequence().GetDescription();
+		out << variant.referencePos_ << '\t' << (variant.referenceAllele_.empty() ? "." : variant.referenceAllele_) << '\t';
+		out << (variant.alternativeAllele_.empty() ? "." : variant.alternativeAllele_) << '\t' << variant.blockId_ << '\t' << variant.GetSequence().GetDescription();
+		return out << '\t' << variant.GetReferenceContext() << '\t' << variant.GetAlternativeContext();
 	}
 }

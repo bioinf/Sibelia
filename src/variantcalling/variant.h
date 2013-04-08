@@ -17,21 +17,25 @@ namespace SyntenyFinder
 		size_t GetBlockId() const;
 		size_t GetReferencePos() const;
 		const FASTARecord & GetSequence() const;
-		const std::string & GetAlignment() const;		
         const std::string & GetReferenceAllele() const;
         const std::string & GetAlternativeAllele() const;		
+		const std::string & GetReferenceContext() const;
+		const std::string & GetAlternativeContext() const;
 		bool Equal(const Variant & toCompare) const;
-		Variant(size_t refPos, size_t blockId, bool collinear, const std::string & refAllele, const std::string & altAllele, const FASTARecord & sequence, const std::string & alignment = "");
+		Variant(size_t referencePos, size_t blockId, bool collinear, const std::string & referenceAllele, const std::string & alternativeAllele,
+			const FASTARecord & sequence, const std::string & referenceContext, const std::string alternativeContext);
 		bool operator < (const Variant & toCompare) const;
 	private:
 		static const size_t UNKNOWN_BLOCK;
-		size_t refPos_;
+		size_t referencePos_;
 		size_t blockId_;
 		bool collinear_;
-		std::string refAllele_;
-		std::string altAllele_;
+		std::string referenceAllele_;
+		std::string alternativeAllele_;
+		std::string referenceContext_;
+		std::string alternativeContext_;
 		const FASTARecord * sequence_;
-		std::string alignment_;				
+		std::string alignment_;
 		friend std::ostream& operator << (std::ostream & out, const Variant & variant);
 	};
 }

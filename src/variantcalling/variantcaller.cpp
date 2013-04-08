@@ -53,10 +53,10 @@ namespace SyntenyFinder
 			return minSum != oo;
 		}
 
-		size_t Traverse(StrandIterator reference, StrandIterator assembly)
+		size_t Traverse(StrandIterator reference, StrandIterator assembly, size_t bound = UINT_MAX)
 		{
 			size_t ret = 0;
-			for(;reference.AtValidPosition() && assembly.AtValidPosition() && *reference == *assembly; ++ret)
+			for(;ret < bound && reference.AtValidPosition() && assembly.AtValidPosition() && *reference == *assembly; ++ret)
 			{
 				++reference;
 				++assembly;
@@ -95,7 +95,7 @@ namespace SyntenyFinder
 
 	bool VariantCaller::ConfirmVariant(StrandIterator referenceStart, StrandIterator referenceEnd, StrandIterator assemblyStart, StrandIterator assemblyEnd) const
 	{
-		size_t confirmDist = trimK_ * 5;
+		size_t confirmDist = trimK_ * 2;
 		for(size_t i = 0; i < confirmDist; i++)
 		{
 			--referenceStart;
@@ -106,25 +106,13 @@ namespace SyntenyFinder
 				++assemblyStart;
 			}
 		}
-
-		for(size_t i = 0; i < confirmDist; i++)
-		{
-			++referenceEnd;
-			++assemblyEnd;
-			if(!referenceEnd.AtValidPosition() || !assemblyEnd.AtValidPosition() || *referenceEnd != *assemblyEnd)
-			{
-				--referenceEnd;
-				--assemblyEnd;
-			}
-		}
-
-		if(referenceStart.GetDirection() == DNASequence::negative)
-		{
-			assemblyStart = assemblyStart.Invert();
-			assemblyEnd = assemblyEnd.Invert();
-			std::swap(assemblyStart, assemblyEnd);
-		}
-
+		
+		size_t forward = Traverse(referenceEnd, assemblyEnd, confirmDist);
+		std::advance(referenceEnd, forward);
+		std::advance(assemblyEnd, forward);
+		std::cerr << referenceStart.GetOriginalPosition() << " ";
+		std::copy(assemblyStart, assemblyEnd, std::ostream_iterator<char>(std::cerr));
+		std::cerr << std::endl;
 		const std::string & sequence = refSeq_.GetSequence();		
 		std::vector<sauchar_t> pattern(assemblyStart, assemblyEnd);
 		saidx_t count = sa_search(reinterpret_cast<const sauchar_t*>(sequence.c_str()), sequence.size(), &pattern[0], pattern.size(), &suffixArray_[0], suffixArray_.size(), &indexOut_[0]);
@@ -148,19 +136,19 @@ namespace SyntenyFinder
 		typedef Row<TAlign>::Type TRow;
 		typedef Iterator<TRow>::Type TIterator;
 		typedef Position<TAlign>::Type TPosition;
-				
-		while(referenceBegin != referenceEnd && assemblyBegin != assemblyEnd && *referenceBegin == *assemblyBegin)
-		{
-			++referenceBegin;
-			++assemblyBegin;
-		}
-
+		
+		size_t contextEnd = Traverse(referenceEnd, assemblyEnd, trimK_);
+		std::advance(referenceEnd, contextEnd);
+		std::advance(assemblyEnd, contextEnd);
+		std::string referenceContext(referenceBegin, referenceEnd);
+		std::string assemblyContext(assemblyBegin, assemblyEnd);
 		std::string referenceBuf(referenceBegin, referenceEnd);
 		std::string assemblyBuf(assemblyBegin, assemblyEnd);
 		TSequence referenceSeq(referenceBuf);
 		TSequence assemblySeq(assemblyBuf);
-		StrandIterator saveReferenceBegin = referenceBegin;
+		StrandIterator saveReferenceBegin = referenceBegin;		
 		bool collinear = referenceBegin.GetDirection() == assemblyBegin.GetDirection();
+		Variant wholeVariant(referenceBegin.GetOriginalPosition(), blockId, collinear, referenceBuf, assemblyBuf, assemblySequence, referenceContext, assemblyContext);
 		if(referenceBuf == assemblyBuf || !ConfirmVariant(referenceBegin, referenceEnd, assemblyBegin, assemblyEnd))
 		{
 			return;
@@ -170,7 +158,7 @@ namespace SyntenyFinder
 		{
 			if(referenceBuf.size() + assemblyBuf.size() > 0)
 			{
-				variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, referenceBuf, assemblyBuf, assemblySequence));
+				variantList.push_back(wholeVariant);
 			}
 
 			return;
@@ -178,7 +166,7 @@ namespace SyntenyFinder
 		
 		if(referenceBuf.size() * assemblyBuf.size() > (1 << 20))
 		{
-			variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, referenceBuf, assemblyBuf, assemblySequence));
+			variantList.push_back(wholeVariant);
 			return;
 		}		
 
@@ -199,7 +187,7 @@ namespace SyntenyFinder
 			{
 				if(*it1 != *it2)
 				{					
-					tempList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, std::string(1, *it1), std::string(1, *it2), assemblySequence));
+					tempList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, std::string(1, *it1), std::string(1, *it2), assemblySequence, referenceContext, assemblyContext));
 				}
 
 				++referenceBegin;
@@ -228,13 +216,13 @@ namespace SyntenyFinder
 					}
 				}
 
-				tempList.push_back(Variant(pos, blockId, collinear, referenceAllele, variantAllele, assemblySequence));
+				tempList.push_back(Variant(pos, blockId, collinear, referenceAllele, variantAllele, assemblySequence, referenceContext, assemblyContext));
 			}
 		}
 		
 		if(tempList.size() > 1)
-		{			
-			variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, referenceBuf, assemblyBuf, assemblySequence));
+		{
+			variantList.push_back(wholeVariant);
 		}
 		else
 		{
