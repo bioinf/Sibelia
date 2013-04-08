@@ -514,11 +514,14 @@ namespace SyntenyFinder
 
 		for (size_t i = 0; i < variants.size(); ++i)
 		{
+			std::string prev = "";
+			if (variants[i].GetReferenceAllele().empty() || variants[i].GetAlternativeAllele().empty()) 
+				prev = chrList_[0].GetSequence()[variants[i].GetReferencePos() - 1];
 			out << chrName << "\t"
 				<< variants[i].GetReferencePos() << "\t"
 				<< ".\t"
-				<< (variants[i].GetReferenceAllele().empty() ? "." : variants[i].GetReferenceAllele()) << "\t"
-				<< (variants[i].GetAlternativeAllele().empty() ? "." : variants[i].GetAlternativeAllele()) << "\t"
+				<< (prev + variants[i].GetReferenceAllele()) << "\t"
+				<< (prev + variants[i].GetAlternativeAllele()) << "\t"
 				<< ".\t.\t." << std::endl;
 		}
 	}
