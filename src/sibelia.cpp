@@ -193,9 +193,10 @@ int main(int argc, char * argv[])
 		}
 		else
 		{
+			generator.ListBlocksIndices(history.back(), defaultCoordsFile);
 			generator.GenerateHierarchyCircosOutput(history, defaultCircosFile, defaultCircosDir);
-			generator.ListBlocksIndicesHeirarchy(history, defaultCoordsFile);
-			generator.OutputTree(history, defaultTreeFile);
+		//	generator.ListBlocksIndicesHeirarchy(history, defaultCoordsFile);
+		//	generator.OutputTree(history, defaultTreeFile);
 		}
 
 		if(graphFile.isSet())
