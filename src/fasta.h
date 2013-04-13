@@ -19,7 +19,7 @@ namespace SyntenyFinder
 		FASTARecord(const std::string & sequence, const std::string & description, size_t id):
 			description_(description), id_(id)
 		{
-			sequence_.assign(CFancyIterator(sequence.begin(), tolower, ' '), CFancyIterator(sequence.end(), tolower, ' '));
+			sequence_.assign(CFancyIterator(sequence.begin(), toupper, ' '), CFancyIterator(sequence.end(), toupper, ' '));
 		}
 
 		size_t GetId() const

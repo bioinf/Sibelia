@@ -27,11 +27,10 @@ namespace SyntenyFinder
 		return ret;
 	}
 	
-	const char DNASequence::UNKNOWN_BASE = 'n';
+	const char DNASequence::UNKNOWN_BASE = 'N';
 	const char DNASequence::SEPARATION_CHAR = '$';
 	const char DNASequence::DELETED_CHAR = -1;
 	const Pos DNASequence::DELETED_POS = -1;
-	const std::string DNASequence::alphabet("agctn$");
 	const std::string DNASequence::complementary_(ConstructComplementarityTable());
 
 	char DNASequence::Translate(char ch)

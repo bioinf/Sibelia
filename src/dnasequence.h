@@ -103,7 +103,6 @@ namespace SyntenyFinder
 		std::pair<size_t, size_t> SpellOriginal(StrandIterator it1, StrandIterator it2) const;
 		size_t GlobalIndex(StrandIterator it) const;		
 		static const char UNKNOWN_BASE;
-		static const std::string alphabet;			
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DNASequence);
 		static const char SEPARATION_CHAR;
