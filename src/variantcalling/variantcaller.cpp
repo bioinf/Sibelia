@@ -110,9 +110,6 @@ namespace SyntenyFinder
 		size_t forward = Traverse(referenceEnd, assemblyEnd, confirmDist);
 		std::advance(referenceEnd, forward);
 		std::advance(assemblyEnd, forward);
-		std::cerr << referenceStart.GetOriginalPosition() << " ";
-		std::copy(assemblyStart, assemblyEnd, std::ostream_iterator<char>(std::cerr));
-		std::cerr << std::endl;
 		const std::string & sequence = refSeq_.GetSequence();		
 		std::vector<sauchar_t> pattern(assemblyStart, assemblyEnd);
 		saidx_t count = sa_search(reinterpret_cast<const sauchar_t*>(sequence.c_str()), sequence.size(), &pattern[0], pattern.size(), &suffixArray_[0], suffixArray_.size(), &indexOut_[0]);
