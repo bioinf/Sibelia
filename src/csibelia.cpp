@@ -142,7 +142,7 @@ int main(int argc, char * argv[])
 		std::vector<SyntenyFinder::Variant> variant;
 		std::vector<SyntenyFinder::Reversal> reversal;
 		std::vector<SyntenyFinder::Translocation> translocation;		
-		SyntenyFinder::VariantCaller caller(chrList[0], blockList, trimK);
+		SyntenyFinder::VariantCaller caller(chrList, 0, blockList, trimK, minBlockSize.getValue());
 		caller.CallVariants(variant);
 		caller.GetBlockList(blockList);
 //		caller.CallRearrangements(reversal, translocation);

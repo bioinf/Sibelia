@@ -22,14 +22,13 @@ namespace SyntenyFinder
 		const std::string & GetReferenceContext() const;
 		const std::string & GetAlternativeContext() const;
 		bool Equal(const Variant & toCompare) const;
-		Variant(size_t referencePos, size_t blockId, bool collinear, const std::string & referenceAllele, const std::string & alternativeAllele,
+		Variant(size_t referencePos, size_t blockId, const std::string & referenceAllele, const std::string & alternativeAllele,
 			const FASTARecord & sequence, const std::string & referenceContext, const std::string alternativeContext);
-		bool operator < (const Variant & toCompare) const;
-	private:
+		bool operator < (const Variant & toCompare) const;		
 		static const size_t UNKNOWN_BLOCK;
+	private:		
 		size_t referencePos_;
 		size_t blockId_;
-		bool collinear_;
 		std::string referenceAllele_;
 		std::string alternativeAllele_;
 		std::string referenceContext_;
