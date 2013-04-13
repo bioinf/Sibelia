@@ -1,6 +1,0 @@
-Reversal	29453	44451
-Reversal	1733125	1748226
-Translocation	1116883	1118594	0
-Translocation	1909609	1974178	0
-Translocation	1894508	1907677	0
-Translocation	2548548	2666694	0
