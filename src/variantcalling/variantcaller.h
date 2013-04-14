@@ -15,7 +15,8 @@ namespace SyntenyFinder
 	class VariantCaller
 	{
 	public:		
-		VariantCaller(const std::vector<FASTARecord> & chr, size_t refSeqId, const std::vector<BlockInstance> & blockList, size_t trimK, size_t minBlockSize);
+		VariantCaller(const std::vector<FASTARecord> & chr, size_t refSeqId, const std::vector<BlockInstance> & blockList,
+			const std::vector<BlockInstance> & smallBlockList, size_t trimK, size_t minBlockSize);
 		void CallVariants(std::vector<Variant> & variantList) const;
 		void GetBlockList(std::vector<BlockInstance> & blockList) const;
 		void CallRearrangements(std::vector<Reversal> & reversal, std::vector<Translocation> & translocation) const;
@@ -27,7 +28,11 @@ namespace SyntenyFinder
 		size_t trimK_;
 		size_t minBlockSize_;
 		mutable std::vector<saidx_t> indexOut_;
-		std::vector<saidx_t> suffixArray_;
+		std::vector<saidx_t> referenceSuffixArray_;
+		std::vector<saidx_t> assemblySuffixArray_;
+		std::string assemblySequence_;
+		bool SearchInAssembly(const std::string & pattern) const;
+		bool SearchInReference(const std::string & pattern) const;		
 		bool ConfirmVariant(StrandIterator refenceStart, StrandIterator referenceEnd, StrandIterator assemblyStart, StrandIterator assemblyEnd) const;
 		void AlignSyntenyBlocks(const BlockInstance & reference, const BlockInstance & assembly, std::vector<Variant> & variantList) const;
 		void AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd,

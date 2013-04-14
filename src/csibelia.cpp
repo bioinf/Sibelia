@@ -145,9 +145,6 @@ int main(int argc, char * argv[])
 		SyntenyFinder::VariantCaller caller(chrList, 0, blockList, trimK, minBlockSize.getValue());
 		caller.CallVariants(variant);
 		caller.GetBlockList(blockList);
-//		caller.CallRearrangements(reversal, translocation);
-
-//		std::vector<std::string> rearrSteps = GetRearrangements(blockList);
 		
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
@@ -164,13 +161,8 @@ int main(int argc, char * argv[])
 		const std::string defaultPlainVariantFile = outFileDir.getValue() + "/variant.txt";
 
 		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
-//		std::ofstream rearrangementStream(defaultRearrangementsFile.c_str());
-		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
-//		std::copy(reversal.begin(), reversal.end(), std::ostream_iterator<SyntenyFinder::Reversal>(rearrangementStream, "\n"));
-//		std::copy(translocation.begin(), translocation.end(), std::ostream_iterator<SyntenyFinder::Translocation>(rearrangementStream, "\n"));
 
 		generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
-//		generator.RearrangementScenario(rearrSteps, defaultRearrangementsFile);
 		generator.GenerateReport(blockList, defaultCoverageReportFile);
 		generator.ListBlocksIndices(blockList, defaultCoordsFile);
 		generator.ListBlocksSequences(blockList, defaultSequencesFile);

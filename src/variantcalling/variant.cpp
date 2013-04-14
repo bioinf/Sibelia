@@ -76,6 +76,8 @@ namespace SyntenyFinder
 			out << variant.blockId_;
 		}
 		
-		return out << '\t' << variant.GetSequence().GetDescription() << '\t' << variant.GetReferenceContext() << '\t' << variant.GetAlternativeContext();
+		out << '\t' << variant.GetSequence().GetDescription();
+		out << '\t' << (variant.referenceContext_.empty() ? "." : variant.referenceContext_);
+		return out << '\t' << (variant.alternativeContext_.empty() ? "." : variant.alternativeContext_);
 	}
 }
