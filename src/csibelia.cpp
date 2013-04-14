@@ -95,7 +95,7 @@ int main(int argc, char * argv[])
 			stage = ReadStageFile(stageFile.getValue());
 		}
 		
-		size_t totalSize = 0;
+		size_t totalSize = 0;		
 		std::vector<SyntenyFinder::FASTARecord> chrList;
 		std::string fileName[] = {referenceFile.getValue(), assemblyFile.getValue()};		
 		for(size_t file = 0; file < 2; file++)
@@ -125,15 +125,20 @@ int main(int argc, char * argv[])
 
 		int trimK = INT_MAX;
 		SyntenyFinder::BlockFinder finder(chrList);
+		std::vector<SyntenyFinder::BlockInstance> blockList;
+		std::vector<SyntenyFinder::BlockInstance> smallBlockList;
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			trimK = std::min(trimK, stage[i].first);
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
 			finder.PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
+			if(i == 0)
+			{
+				finder.GenerateSyntenyBlocks(stage[0].first, trimK, trimK, smallBlockList, false, PutProgressChr);
+			}
 		}
-		
-		std::vector<SyntenyFinder::BlockInstance> blockList;
+				
 		std::cout << "Finding variants and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
@@ -142,7 +147,7 @@ int main(int argc, char * argv[])
 		std::vector<SyntenyFinder::Variant> variant;
 		std::vector<SyntenyFinder::Reversal> reversal;
 		std::vector<SyntenyFinder::Translocation> translocation;		
-		SyntenyFinder::VariantCaller caller(chrList, 0, blockList, trimK, minBlockSize.getValue());
+		SyntenyFinder::VariantCaller caller(chrList, 0, blockList, smallBlockList, trimK, minBlockSize.getValue());
 		caller.CallVariants(variant);
 		caller.GetBlockList(blockList);
 		
@@ -161,7 +166,7 @@ int main(int argc, char * argv[])
 		const std::string defaultPlainVariantFile = outFileDir.getValue() + "/variant.txt";
 
 		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
-
+		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
 		generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
 		generator.GenerateReport(blockList, defaultCoverageReportFile);
 		generator.ListBlocksIndices(blockList, defaultCoordsFile);

@@ -136,10 +136,9 @@ namespace SyntenyFinder
 
 	VariantCaller::VariantCaller(const std::vector<FASTARecord> & chr, size_t refSeqId, const std::vector<BlockInstance> & blockList,
 		const std::vector<BlockInstance> & smallBlockList, size_t trimK, size_t minBlockSize):
-		chr_(&chr), refSeqId_(refSeqId), blockList_(blockList), trimK_(trimK), minBlockSize_(minBlockSize)
+		chr_(&chr), refSeqId_(refSeqId), blockList_(blockList), smallBlockList_(smallBlockList), trimK_(trimK), minBlockSize_(minBlockSize)
 	{		
-		const std::string & reference = (*chr_)[refSeqId_].GetSequence();		
-		referenceSuffixArray_.resize(reference.size());				
+		const std::string & reference = (*chr_)[refSeqId_].GetSequence();							
 		std::stringstream ss;
 		for(size_t i = 0; i < chr_->size(); i++)
 		{
@@ -147,6 +146,8 @@ namespace SyntenyFinder
 		}
 		
 		assemblySequence_ = ss.str();
+		assemblySuffixArray_.resize(assemblySequence_.size());	
+		referenceSuffixArray_.resize(reference.size());	
 		divsufsort(reinterpret_cast<const sauchar_t*>(assemblySequence_.c_str()), &assemblySuffixArray_[0], static_cast<saidx_t>(assemblySequence_.size()));
 		divsufsort(reinterpret_cast<const sauchar_t*>(reference.c_str()), &referenceSuffixArray_[0], static_cast<saidx_t>(reference.size()));
 		indexOut_.resize(reference.size() + assemblySequence_.size());
@@ -296,16 +297,55 @@ namespace SyntenyFinder
 	void VariantCaller::CallVariants(std::vector<Variant> & variantList) const
 	{
 		variantList.clear();
-		std::vector<IndexPair> group;
-		std::vector<int> sharedBlock;
+		std::vector<IndexPair> group;	
+		GroupBy(blockList_, compareById, std::back_inserter(group));
 		std::vector<std::vector<int> > cover(chr_->size());
 		for(size_t chr = 0; chr < cover.size(); chr++)
 		{
 			cover[chr].assign((*chr_)[chr].GetSequence().size(), 0);
 		}
 
-		std::map<int, size_t> inReferenceStart;
-		GroupBy(blockList_, compareById, std::back_inserter(group));
+		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
+		{
+			size_t inReference = 0;
+			size_t inAssembly = 0;			
+			for(size_t i = it->first; i < it->second; i++)
+			{
+				inReference += blockList_[i].GetChrId() == refSeqId_ ? 1 : 0;
+				inAssembly += blockList_[i].GetChrId() != refSeqId_ ? 1 : 0;
+			}
+
+			if(inReference >= 1 && inAssembly >= 1)
+			{
+				for(size_t i = it->first; i < it->second; i++)
+				{
+					size_t start = blockList_[i].GetStart();
+					size_t end = blockList_[i].GetEnd();
+					std::vector<int>::iterator jt = cover[blockList_[i].GetChrId()].begin();
+					std::fill(jt + start, jt + end, INT_MAX);
+				}
+			}
+
+			if(inReference == 1 && inAssembly == 1)
+			{				
+				if(blockList_[it->first].GetChrId() != refSeqId_)
+				{
+					std::swap(blockList_[it->first], blockList_[it->first + 1]);
+				}
+
+				if(blockList_[it->first].GetDirection() != DNASequence::positive)
+				{					
+					blockList_[it->first].Reverse();
+					blockList_[it->first + 1].Reverse();
+				}
+
+				AlignSyntenyBlocks(blockList_[it->first], blockList_[it->first + 1], variantList);
+			}
+		}
+
+		group.clear();
+		std::map<int, size_t> inReferenceStart;		
+		GroupBy(smallBlockList_, compareById, std::back_inserter(group));
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{
 			size_t referenceStart = 0;
@@ -334,24 +374,10 @@ namespace SyntenyFinder
 
 			if(inReference == 1 && inAssembly == 1)
 			{				
-				if(blockList_[it->first].GetChrId() != refSeqId_)
-				{
-					std::swap(blockList_[it->first], blockList_[it->first + 1]);
-				}
-
-				if(blockList_[it->first].GetDirection() != DNASequence::positive)
-				{					
-					blockList_[it->first].Reverse();
-					blockList_[it->first + 1].Reverse();
-				}
-
 				inReferenceStart[blockList_[it->first].GetBlockId()] = referenceStart;
-				AlignSyntenyBlocks(blockList_[it->first], blockList_[it->first + 1], variantList);
 			}
 		}
 
-		std::sort(sharedBlock.begin(), sharedBlock.end());
-		std::sort(blockList_.begin(), blockList_.end(), CompareBlocksNaturally);
 		for(size_t chr = 0; chr < cover.size(); chr++)
 		{
 			for(size_t pos = 0; pos < cover[chr].size(); )
@@ -372,14 +398,14 @@ namespace SyntenyFinder
 								variantList.push_back(Variant(pos, Variant::UNKNOWN_BLOCK, referenceAllele, "", (*chr_)[chr], "", ""));
 							}
 						}
-						else if(inReferenceStart.count(prevBlock) > 0)
+				/*		else if(inReferenceStart.count(prevBlock) > 0)
 						{
 							std::string assemblyAllele(sequence.begin() + pos, sequence.begin() + end);
 							if(!SearchInReference(assemblyAllele))
 							{
 								variantList.push_back(Variant(inReferenceStart[prevBlock], Variant::UNKNOWN_BLOCK, "", assemblyAllele, (*chr_)[chr], "", ""));
 							}
-						}
+						}*/
 					}
 
 					pos = end;

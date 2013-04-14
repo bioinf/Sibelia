@@ -25,6 +25,7 @@ namespace SyntenyFinder
 		const std::vector<FASTARecord> * chr_;
 		size_t refSeqId_;
 		mutable std::vector<BlockInstance> blockList_;
+		mutable std::vector<BlockInstance> smallBlockList_;
 		size_t trimK_;
 		size_t minBlockSize_;
 		mutable std::vector<saidx_t> indexOut_;
