@@ -518,7 +518,7 @@ namespace SyntenyFinder
 			if (variants[i].GetReferenceAllele().size() != variants[i].GetAlternativeAllele().size()) 
 				prev = chrList_[0].GetSequence()[variants[i].GetReferencePos() - 1];
 			out << chrName << "\t"
-				<< variants[i].GetReferencePos() << "\t"
+				<< variants[i].GetReferencePos() + 1 << "\t"
 				<< ".\t"
 				<< (prev + variants[i].GetReferenceAllele()) << "\t"
 				<< (prev + variants[i].GetAlternativeAllele()) << "\t"
