@@ -124,33 +124,34 @@ int main(int argc, char * argv[])
 		}
 
 		int trimK = INT_MAX;
-		SyntenyFinder::BlockFinder finder(chrList);
-		std::vector<SyntenyFinder::BlockInstance> blockList;
-		std::vector<SyntenyFinder::BlockInstance> smallBlockList;
+		SyntenyFinder::BlockFinder finder(chrList);				
+		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size() + 1);
+		finder.GenerateSyntenyBlocks(stage[0].first, trimK, stage[0].first, history[0], false, PutProgressChr);
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			trimK = std::min(trimK, stage[i].first);
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
 			finder.PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
-			if(i == 0)
+			if(i < stage.size() - 1)
 			{
-				finder.GenerateSyntenyBlocks(stage[0].first, trimK, trimK, smallBlockList, false, PutProgressChr);
+				finder.GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i + 1], false, PutProgressChr);
 			}
 		}
 				
 		std::cout << "Finding variants and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
-		finder.GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), blockList, false, PutProgressChr);
+		finder.GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), false, PutProgressChr);
 		size_t refSeqId = chrList[0].GetId();				
 		std::vector<SyntenyFinder::Variant> variant;
 		std::vector<SyntenyFinder::Reversal> reversal;
 		std::vector<SyntenyFinder::Translocation> translocation;		
-		SyntenyFinder::VariantCaller caller(chrList, 0, blockList, smallBlockList, trimK, minBlockSize.getValue());
+		SyntenyFinder::VariantCaller caller(chrList, 0, history, trimK, minBlockSize.getValue());
 		caller.CallVariants(variant);
-		caller.GetBlockList(blockList);
-		
+		caller.GetHistory(history);
+		std::vector<SyntenyFinder::BlockInstance> blockList = history.back();
+
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";

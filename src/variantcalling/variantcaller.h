@@ -15,17 +15,15 @@ namespace SyntenyFinder
 	class VariantCaller
 	{
 	public:		
-		VariantCaller(const std::vector<FASTARecord> & chr, size_t refSeqId, const std::vector<BlockInstance> & blockList,
-			const std::vector<BlockInstance> & smallBlockList, size_t trimK, size_t minBlockSize);
+		VariantCaller(const std::vector<FASTARecord> & chr, size_t refSeqId, const std::vector<std::vector<BlockInstance> > & history, size_t trimK, size_t minBlockSize);
 		void CallVariants(std::vector<Variant> & variantList) const;
-		void GetBlockList(std::vector<BlockInstance> & blockList) const;
+		void GetHistory(std::vector<std::vector<BlockInstance> > & history) const;
 		void CallRearrangements(std::vector<Reversal> & reversal, std::vector<Translocation> & translocation) const;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(VariantCaller);
 		const std::vector<FASTARecord> * chr_;
 		size_t refSeqId_;
-		mutable std::vector<BlockInstance> blockList_;
-		mutable std::vector<BlockInstance> smallBlockList_;
+		mutable std::vector<std::vector<BlockInstance> > history_;
 		size_t trimK_;
 		size_t minBlockSize_;
 		mutable std::vector<saidx_t> indexOut_;

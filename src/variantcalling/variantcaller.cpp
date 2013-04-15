@@ -134,9 +134,8 @@ namespace SyntenyFinder
 		return SearchInReference(pattern);
 	}
 
-	VariantCaller::VariantCaller(const std::vector<FASTARecord> & chr, size_t refSeqId, const std::vector<BlockInstance> & blockList,
-		const std::vector<BlockInstance> & smallBlockList, size_t trimK, size_t minBlockSize):
-		chr_(&chr), refSeqId_(refSeqId), blockList_(blockList), smallBlockList_(smallBlockList), trimK_(trimK), minBlockSize_(minBlockSize)
+	VariantCaller::VariantCaller(const std::vector<FASTARecord> & chr, size_t refSeqId, const std::vector<std::vector<BlockInstance> > & history, size_t trimK, size_t minBlockSize):
+		chr_(&chr), refSeqId_(refSeqId), history_(history), trimK_(trimK), minBlockSize_(minBlockSize)
 	{		
 		const std::string & reference = (*chr_)[refSeqId_].GetSequence();							
 		std::stringstream ss;
@@ -297,98 +296,86 @@ namespace SyntenyFinder
 	void VariantCaller::CallVariants(std::vector<Variant> & variantList) const
 	{
 		variantList.clear();
-		std::vector<IndexPair> group;	
-		GroupBy(blockList_, compareById, std::back_inserter(group));
-		std::vector<std::vector<int> > cover(chr_->size());
+		const int NO_BLOCK = 0;
+		const size_t NO_STAGE = -1;
+		typedef std::pair<size_t, int> CoverUnit;
+		std::map<CoverUnit, size_t> posInReference;
+		std::vector<std::vector<CoverUnit> > cover(chr_->size());
 		for(size_t chr = 0; chr < cover.size(); chr++)
 		{
-			cover[chr].assign((*chr_)[chr].GetSequence().size(), 0);
+			cover[chr].assign((*chr_)[chr].GetSequence().size(), CoverUnit(NO_STAGE, NO_BLOCK));
 		}
-
-		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
+		
+		for(size_t stage = 0; stage < history_.size(); stage++)
 		{
-			size_t inReference = 0;
-			size_t inAssembly = 0;			
-			for(size_t i = it->first; i < it->second; i++)
+			std::vector<IndexPair> group;
+			std::vector<BlockInstance> & blockList = history_[stage];
+			GroupBy(blockList, compareById, std::back_inserter(group));
+			for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 			{
-				inReference += blockList_[i].GetChrId() == refSeqId_ ? 1 : 0;
-				inAssembly += blockList_[i].GetChrId() != refSeqId_ ? 1 : 0;
-			}
-
-			if(inReference >= 1 && inAssembly >= 1)
-			{
-				for(size_t i = it->first; i < it->second; i++)
+				size_t referenceStart = 0;
+				size_t inReference = 0;
+				size_t inAssembly = 0;
+				for(size_t i = it->first; i < it->second; i++) 
 				{
-					size_t start = blockList_[i].GetStart();
-					size_t end = blockList_[i].GetEnd();
-					std::vector<int>::iterator jt = cover[blockList_[i].GetChrId()].begin();
-					std::fill(jt + start, jt + end, INT_MAX);
+					inReference += blockList[i].GetChrId() == refSeqId_ ? 1 : 0;
+					inAssembly += blockList[i].GetChrId() != refSeqId_ ? 1 : 0;
 				}
-			}
 
-			if(inReference == 1 && inAssembly == 1)
-			{				
-				if(blockList_[it->first].GetChrId() != refSeqId_)
+				CoverUnit unit(stage, blockList[it->first].GetBlockId());
+				if(inReference >= 1 && inAssembly >= 1)
 				{
-					std::swap(blockList_[it->first], blockList_[it->first + 1]);
+					size_t refPos;
+					for(size_t i = it->first; i < it->second; i++)
+					{
+						size_t start = blockList[i].GetStart();
+						size_t end = blockList[i].GetEnd();
+						if(blockList[i].GetChrId() == refSeqId_)
+						{
+							refPos = blockList[i].GetEnd();
+						}
+
+						std::vector<CoverUnit>::iterator jt = cover[blockList[i].GetChrId()].begin();
+						std::fill(jt + start, jt + end, unit);
+						posInReference[unit] = refPos;
+					}
+
+					if(inReference == 1)
+					{
+					}
 				}
-
-				if(blockList_[it->first].GetDirection() != DNASequence::positive)
-				{					
-					blockList_[it->first].Reverse();
-					blockList_[it->first + 1].Reverse();
-				}
-
-				AlignSyntenyBlocks(blockList_[it->first], blockList_[it->first + 1], variantList);
-			}
-		}
-
-		group.clear();
-		std::map<int, size_t> inReferenceStart;		
-		GroupBy(smallBlockList_, compareById, std::back_inserter(group));
-		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
-		{
-			size_t referenceStart = 0;
-			size_t inReference = 0;
-			size_t inAssembly = 0;			
-			for(size_t i = it->first; i < it->second; i++)
-			{
-				inReference += blockList_[i].GetChrId() == refSeqId_ ? 1 : 0;
-				inAssembly += blockList_[i].GetChrId() != refSeqId_ ? 1 : 0;
-				if(blockList_[i].GetChrId() == refSeqId_)
+			
+				if(inReference == 1 && inAssembly == 1)
 				{
-					referenceStart = blockList_[i].GetStart();
+					if(stage == history_.size() - 1)
+					{
+						if(blockList[it->first].GetChrId() != refSeqId_)
+						{
+							std::swap(blockList[it->first], blockList[it->first + 1]);
+						}
+
+						if(blockList[it->first].GetDirection() != DNASequence::positive)
+						{					
+							blockList[it->first].Reverse();
+							blockList[it->first + 1].Reverse();
+						}
+
+						AlignSyntenyBlocks(blockList[it->first], blockList[it->first + 1], variantList);
+					}
 				}
 			}
-
-			if(inReference >= 1 && inAssembly >= 1)
-			{
-				for(size_t i = it->first; i < it->second; i++)
-				{
-					size_t start = blockList_[i].GetStart();
-					size_t end = blockList_[i].GetEnd();
-					std::vector<int>::iterator jt = cover[blockList_[i].GetChrId()].begin();
-					std::fill(jt + start, jt + end, blockList_[i].GetBlockId());
-				}
-			}
-
-			if(inReference == 1 && inAssembly == 1)
-			{				
-				inReferenceStart[blockList_[it->first].GetBlockId()] = referenceStart;
-			}
-		}
+		}		
 
 		for(size_t chr = 0; chr < cover.size(); chr++)
 		{
 			for(size_t pos = 0; pos < cover[chr].size(); )
 			{
-				if(cover[chr][pos] == 0)
+				if(cover[chr][pos].first == NO_STAGE)
 				{
 					size_t end = pos;
-					for(; end < cover[chr].size() && cover[chr][end] == 0; end++);
+					for(; end < cover[chr].size() && cover[chr][end].first == NO_STAGE; end++);
 					if(end - pos > minBlockSize_)
-					{
-						int prevBlock = pos > 0 ? cover[chr][pos - 1] : INT_MAX;
+					{						
 						const std::string & sequence = (*chr_)[chr].GetSequence();
 						if(chr == refSeqId_)
 						{					
@@ -398,14 +385,15 @@ namespace SyntenyFinder
 								variantList.push_back(Variant(pos, Variant::UNKNOWN_BLOCK, referenceAllele, "", (*chr_)[chr], "", ""));
 							}
 						}
-				/*		else if(inReferenceStart.count(prevBlock) > 0)
+						else if(pos > 0 && posInReference.count(cover[chr][pos - 1]) > 0)
 						{
-							std::string assemblyAllele(sequence.begin() + pos, sequence.begin() + end);
+							std::string::const_iterator jt = (*chr_)[chr].GetSequence().begin();
+							std::string assemblyAllele(jt + pos, jt + end);
 							if(!SearchInReference(assemblyAllele))
 							{
-								variantList.push_back(Variant(inReferenceStart[prevBlock], Variant::UNKNOWN_BLOCK, "", assemblyAllele, (*chr_)[chr], "", ""));
+								variantList.push_back(Variant(posInReference[cover[chr][pos - 1]], Variant::UNKNOWN_BLOCK, assemblyAllele, "", (*chr_)[chr], "", ""));
 							}
-						}*/
+						}
 					}
 
 					pos = end;
@@ -420,103 +408,8 @@ namespace SyntenyFinder
 		std::sort(variantList.begin(), variantList.end());
 	}
 
-	void VariantCaller::CallRearrangements(std::vector<Reversal> & reversal, std::vector<Translocation> & translocation) const
+	void VariantCaller::GetHistory(std::vector<std::vector<BlockInstance> > & history) const
 	{
-		std::vector<IndexPair> group;
-		std::vector<BlockInstance> reversed;
-		std::vector<BlockInstance>::iterator listBegin = blockList_.begin();
-		GroupBy(blockList_, compareByChrId, std::back_inserter(group));
-		std::sort(listBegin + group[0].first, listBegin + group[0].second, CompareBlocksNaturally);
-		const BLCIterator referenceBegin = listBegin + group[0].first;
-		const BLCIterator referenceEnd = listBegin + group[0].second;
-		for(size_t i = 1; i < group.size(); i++)
-		{
-			std::vector<BlockInstance>::iterator begin = listBegin + group[i].first;
-			std::vector<BlockInstance>::iterator end = listBegin + group[i].second;
-			if(begin == end)
-			{
-				continue;
-			}
-
-			std::sort(begin, end, CompareBlocksNaturally);
-			size_t size = end - begin; 
-			reversed.resize(size);			
-			Reverse(begin, end, reversed.begin());
-			if(Apply(referenceBegin, referenceEnd, begin, end) == referenceEnd && Apply(referenceBegin, referenceEnd, reversed.begin(), reversed.end()) == referenceEnd)
-			{
-				size_t fragmentSize = size;
-				bool detected = false;
-				do
-				{
-					std::vector<BlockInstance> reversedFragment(fragmentSize);
-					for(size_t pos = 0; pos < size - fragmentSize + 1 && !detected; ++pos)
-					{
-						std::pair<BLCIterator, BLCIterator> range[] = 
-						{
-							std::make_pair(begin + pos, begin + pos + fragmentSize),
-							std::make_pair(reversed.begin() + pos, reversed.begin() + pos + fragmentSize)
-						};
-
-						std::pair<BLCIterator, BLCIterator> bound[] = 
-						{
-							std::make_pair(begin, end),
-							std::make_pair(reversed.begin(), reversed.end())
-						};
-
-						for(size_t p = 0; p < 2 && !detected; p++)
-						{
-							Reverse(range[p].first, range[p].second, reversedFragment.begin());
-							BLCIterator place = Apply(referenceBegin, referenceEnd, reversedFragment.begin(), reversedFragment.end());
- 							if(place != referenceEnd)
-							{
-								int prevReferenceId = place == referenceBegin ? 0 : (place - 1)->GetSignedBlockId();
-								int prevAssemblyId = range[p].first == bound[p].first ? 0 : (range[p].first - 1)->GetSignedBlockId();
-								int nextReferenceId = place + fragmentSize >= referenceEnd ? 0 : (place + fragmentSize)->GetSignedBlockId();
-								int nextAssemblyId = range[p].first + fragmentSize >= bound[p].second ? 0 : (range[p].first + fragmentSize)->GetSignedBlockId(); 
-								if((prevReferenceId == prevAssemblyId || prevAssemblyId == 0) && (nextReferenceId == nextAssemblyId || nextAssemblyId == 0))
-								{									
-									reversal.push_back(Reversal(place->GetStart(), (place + fragmentSize - 1)->GetEnd()));
-									detected = true;
-								}
-							}
-						}
-					}
-				}
-				while(--fragmentSize > 0 && !detected);
-
-				if(!detected)
-				{
-					size_t fragmentSize = size;
-					do
-					{
-						std::vector<BlockInstance> reversedFragment(fragmentSize);
-						for(size_t pos = 0; pos < size - fragmentSize + 1 && !detected; ++pos)
-						{
-							std::pair<BLCIterator, BLCIterator> range[] = 
-							{
-								std::make_pair(begin + pos, begin + pos + fragmentSize),
-								std::make_pair(reversed.begin() + pos, reversed.begin() + pos + fragmentSize)
-							};
-
-							for(size_t p = 0; p < 2 && !detected; p++)
-							{
-								BLCIterator place = Apply(referenceBegin, referenceEnd, range[p].first, range[p].second);
-								if(place != referenceEnd)
-								{
-									detected = true;
-									translocation.push_back(Translocation(place->GetStart(), (place + fragmentSize - 1)->GetEnd(), 0));
-								}
-							}
-						}
-					}
-					while(--fragmentSize > 0 && !detected);
-				}
-			}
-		}
-	}
-
-	void VariantCaller::GetBlockList(std::vector<BlockInstance> & blockList) const
-	{
-		blockList = blockList_;
+		history = history_;
 	}
 }
