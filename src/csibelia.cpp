@@ -52,9 +52,9 @@ int main(int argc, char * argv[])
 
 		TCLAP::ValueArg<unsigned int> minBlockSize("m",
 			"minblocksize",
-			"Minimum size of a synteny block, default value = 5000 BP.",
+			"Minimum size of a synteny block, default value = 1000 BP.",
 			false,
-			5000,
+			1000,
 			"integer",
 			cmd);
 

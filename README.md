@@ -30,7 +30,7 @@ See INSTALL.md file.
 
 Usage
 =====
-See USAGE.md file.
+See SIBELIA.md for "Sibelia" and C-SIBELIA.md for "C-Sibelia".
 
 Citation
 ========
