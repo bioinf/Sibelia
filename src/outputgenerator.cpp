@@ -470,7 +470,7 @@ namespace SyntenyFinder
 		}
 	}
 
-	void OutputGenerator::GenerateVariantOutput(const std::vector <Variant> & variants, const std::string & outFile) const 
+	void OutputGenerator::GenerateVariantOutput(const std::vector <Variant> & variants, const std::string & assemblyFile, const std::string & outFile) const 
 	{
 		std::ofstream out;
 		TryOpenFile(outFile, out);
@@ -486,7 +486,7 @@ namespace SyntenyFinder
 			}
 			else if (buffer == "##assembly=") 
 			{
-				out << buffer << chrList_[1].GetDescription() << std::endl;
+				out << buffer << assemblyFile << std::endl;
 			}
 			else 
 			{
@@ -515,7 +515,7 @@ namespace SyntenyFinder
 		for (size_t i = 0; i < variants.size(); ++i)
 		{
 			std::string prev = "";
-			if (variants[i].GetReferenceAllele().empty() || variants[i].GetAlternativeAllele().empty()) 
+			if (variants[i].GetReferenceAllele().size() != variants[i].GetAlternativeAllele().size()) 
 				prev = chrList_[0].GetSequence()[variants[i].GetReferencePos() - 1];
 			out << chrName << "\t"
 				<< variants[i].GetReferencePos() << "\t"

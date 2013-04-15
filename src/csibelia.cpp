@@ -172,7 +172,7 @@ int main(int argc, char * argv[])
 		generator.ListBlocksIndices(blockList, defaultCoordsFile);
 		generator.ListBlocksSequences(blockList, defaultSequencesFile);
 		generator.GenerateD3Output(blockList, defaultD3File);
-		generator.GenerateVariantOutput(variant, defaultVariantFile);
+		generator.GenerateVariantOutput(variant, fileName[1], defaultVariantFile);
 		generator.GenerateCircosOutput(blockList, defaultCircosFile, defaultCircosDir);
 
 		std::stringstream buffer;
