@@ -49,7 +49,7 @@ Genomes from the "examples" dir were taken from [5, 6]. Note that you can
 specify multiple FASTA files, just separate them with spaces.
 
 Technical parameters
-===================
+====================
 
 Directory for output files
 --------------------------

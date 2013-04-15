@@ -1,3 +1,19 @@
+Sibelia 3.0.0
+=============
+* C-Sibelia is functional now
+
+Sibelia 2.1.2
+=============
+* Fixed crashes on some input genomes
+
+Sibelia 2.1.1
+=============
+* Got rid of overlap between synteny blocks, overlapping regions are granted to
+the blocks with higher multiplicity
+* Added generation of circos picture that shows blocks at multiple stages
+simultaneously
+* Added cmd option: -v
+
 Sibelia 2.1.0
 =============
 * Improved performance in the case of many genomes. Now it is possible to

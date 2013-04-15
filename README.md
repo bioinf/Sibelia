@@ -1,4 +1,4 @@
-Sibelia comparative genomics suite, pre-alpha version 0.0.1
+Sibelia 3.0.0 Beta version
 
 Release date: TBD
 
@@ -12,19 +12,17 @@ Authors
 
 Introduction
 ============
-This package contains source code for two executables:
+This package contains two programs:
 
-* Sibelia -- "Sibelia" is a tool for finding synteny blocks (regions of 
-conserved DNA) in closely related genomes, like different strains of the same
-bacterial species. It takes a set of FASTA files with genomes and locates
-coordinates of the synteny blocks in these sequences.
-* C-Sibelia -- This program is designed for comparison between a reference
-and a genome represented as a set of contigs. It is able to detect indels of
-different scale, mismatches and simple rearrangements (reversals and 
-translocations).
+* Sibelia -- "Sibelia" is a tool for finding synteny blocks in closely related
+genomes, like different strains of the same bacterial species. It takes a set
+of FASTA files with genomes and locates coordinates of the synteny blocks in
+these sequences. It also represents genomes as permutations of the blocks.
 
-Please note that it is not a release branch, "C-Sibila" is currently unstable
-and is under active developement.
+* C-Sibelia -- This tool is designed for comparison between a reference and
+either a finished genome, or a genome represented as a set of contigs. It is
+able to detect SNPs/SNVs and indels of different scales. It also finds synteny
+blocks between these two genomes.
 
 Installation
 ============

@@ -24,7 +24,7 @@ int main(int argc, char * argv[])
 
 	try
 	{  
-		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "2.5.0");
+		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "3.0.0");
 		TCLAP::ValueArg<unsigned int> maxIterations("i",
 			"maxiterations",
 			"Maximum number of iterations during a stage of simplification, default = 4.",
@@ -156,7 +156,6 @@ int main(int argc, char * argv[])
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
 		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
-		const std::string defaultRearrangementsFile = outFileDir.getValue() + "/rearrangement_scenario.txt";
 		const std::string defaultCoverageReportFile = outFileDir.getValue() + "/coverage_report.txt";
 		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";
 		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
@@ -177,8 +176,8 @@ int main(int argc, char * argv[])
 		generator.GenerateCircosOutput(blockList, defaultCircosFile, defaultCircosDir);
 
 		std::stringstream buffer;
-		finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);
-		generator.OutputBuffer(defaultGraphFile, buffer.str());
+//		finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);
+//		generator.OutputBuffer(defaultGraphFile, buffer.str());
 	} 
 	catch (TCLAP::ArgException &e)
 	{
