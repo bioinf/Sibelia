@@ -7,7 +7,7 @@ way to run "C-Sibelia" is to type:
 
 For example (for two genomes in "examples/C-Sibelia" dir):
 
-	C-Sibelia.exe -s fine -r NCTC8325.fasta -a RN4220.fasta
+	C-Sibelia -s fine -r NCTC8325.fasta -a RN4220.fasta
 
 The command above will run "C-Sibelia" on two bacterial genomes with the "fine"
 simplification parameters. After this run you will find a file "variant.vcf" 
@@ -15,7 +15,7 @@ with found differences between these two genomes in VCF format. You also can
 get additional information about synteny blocks between these two genomes, to
 do this run "C-Sibelia" with the "-o" option set:
 
-	C-Sibelia.exe -s fine -r NCTC8325.fasta -a RN4220.fasta -o out
+	C-Sibelia -s fine -r NCTC8325.fasta -a RN4220.fasta -o out
 
 To understand the information in these files, see "Directory for output files"
 section. Please note that the file with reference must contain only one
