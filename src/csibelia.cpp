@@ -179,8 +179,8 @@ int main(int argc, char * argv[])
 		
 		
 		generator.GenerateVariantOutput(variant, fileName[1], defaultVariantFile);
-		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
-		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
+//		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
+//		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
 		if(outFileDir.isSet())
 		{			
 			generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
