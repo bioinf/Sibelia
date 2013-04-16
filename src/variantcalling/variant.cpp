@@ -8,7 +8,8 @@
 
 namespace SyntenyFinder
 {
-	const size_t Variant::UNKNOWN_BLOCK = -1;
+	const size_t Variant::UNKNOWN_POS = -1;
+	const size_t Variant::UNKNOWN_BLOCK = -1;	
 
 	Variant::Variant(size_t referencePos, size_t blockId, const std::string & referenceAllele, const std::string & alternativeAllele,
 		const FASTARecord & sequence, const std::string & referenceContext, const std::string alternativeContext):

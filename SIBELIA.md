@@ -90,7 +90,7 @@ By default, "Sibelia" produces 5 files:
 There are also optional output files:
 
 1. Sequences file
-2. Dot file for resulting de Bruijn graph
+2. Dot file with resulting de Bruijn graph
 
 All these files are described below in details.
 

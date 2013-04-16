@@ -3,20 +3,23 @@ Basic usage
 Directory "examples/C-Sibelia" contains a set of two bacterial genomes. The easiest
 way to run "C-Sibelia" is to type:
 
-	C-Sibelia.exe -s fine -r <a FASTA file with reference> -a <a FASTA file with a genome>
+	C-Sibelia -s fine -r <a FASTA file with reference> -a <a FASTA file with a genome>
 
 For example (for two genomes in "examples/C-Sibelia" dir):
 
-	C-Sibelia.exe -s fine -r nctc8325.fasta -a RN4220S.fasta
+	C-Sibelia -s fine -r nctc8325.fasta -a RN4220.fasta
 
 The command above will run "C-Sibelia" on two bacterial genomes with the "fine"
 simplification parameters. After this run you will find a file "variant.vcf" 
-with found differences between these two genomes in VCF format. You'll also
-find some other files that contain information about synteny blocks between
-these two genomes.
+with found differences between these two genomes in VCF format. You also can
+get additional information about synteny blocks between these two genomes, to
+do this run "C-Sibelia" with the "-o" option set:
 
-Please note that the file with reference must contain only one sequence, while
-another file may contain multiple sequences (contigs).
+	C-Sibelia -s fine -r nctc8325.fasta -a RN4220.fasta -o out
+
+To understand the information in these files, see "Directory for output files"
+section. Please note that the file with reference must contain only one
+sequence, while another file may contain multiple sequences (contigs).
 
 There is another simplification parameters set, called "loose". To understand
 the difference between them, please read manual for "Sibelia" (SIBELIA.md),
@@ -27,11 +30,18 @@ Technical parameters
 
 Directory for output files
 --------------------------
-See the corresponding section in SIBELIA.md.
+If you want to see files, describing synteny blocks between input genomes, set
+the "outdir" option:
+
+	-o <dir name> or --outdir <dir name>
+
+"C-Sibelia" will write these files there.
 
 Output description
 ==================
-By default, "Sibelia" produces 5 files: 
+By default, "Sibelia" writes only VCF file with found variants ("variant.vcf").
+Additionally, it can produce output similar to Sibelia (see section "Directory
+for output files"):
 
 1. Blocks coordinates
 2. Genomes represented as permutations of the synteny blocks
@@ -39,14 +49,16 @@ By default, "Sibelia" produces 5 files:
 4. Files for generating a "Circos" picture
 5. Interactive html-diagram of synteny blocks
 6. Sequences file
-7. Variant report
 
 All these files are described below in details.
 
 Variant report
 --------------
-File "variants.vcf" contains variants found between two genomes. The variants
-are presented in VCF format.
+Output file "variants.vcf" contains variants found between two genomes. The 
+variants are presented in VCF format, version 4.1. If you want "C-Sibelia" to
+write variants to some other file, set the "variant" option":
+
+	-v <vile name> or --variant <file name>
 
 Blocks coordinates
 ------------------

@@ -25,7 +25,8 @@ namespace SyntenyFinder
 		Variant(size_t referencePos, size_t blockId, const std::string & referenceAllele, const std::string & alternativeAllele,
 			const FASTARecord & sequence, const std::string & referenceContext, const std::string alternativeContext);
 		bool operator < (const Variant & toCompare) const;		
-		static const size_t UNKNOWN_BLOCK;
+		static const size_t UNKNOWN_POS;
+		static const size_t UNKNOWN_BLOCK;		
 	private:		
 		size_t referencePos_;
 		size_t blockId_;

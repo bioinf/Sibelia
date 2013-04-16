@@ -74,6 +74,14 @@ int main(int argc, char * argv[])
 			"file name",
 			cmd);
 
+		TCLAP::ValueArg<std::string> variantsFile("v",
+			"variant",
+			"VCF file with found variants.",
+			false,
+			"variant.vcf",
+			"file name",
+			cmd);
+
 		TCLAP::ValueArg<std::string> assemblyFile("a",
 			"assembly",
 			"FASTA file with the assembly.",
@@ -162,22 +170,21 @@ int main(int argc, char * argv[])
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
 		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
-		const std::string defaultVariantFile = outFileDir.getValue() + "/variant.vcf";
+		const std::string defaultVariantFile = variantsFile.getValue();
 		const std::string defaultPlainVariantFile = outFileDir.getValue() + "/variant.txt";
-
-		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
-		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
-		generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
-		generator.GenerateReport(blockList, defaultCoverageReportFile);
-		generator.ListBlocksIndices(blockList, defaultCoordsFile);
-		generator.ListBlocksSequences(blockList, defaultSequencesFile);
-		generator.GenerateD3Output(blockList, defaultD3File);
+		
 		generator.GenerateVariantOutput(variant, fileName[1], defaultVariantFile);
-		generator.GenerateCircosOutput(blockList, defaultCircosFile, defaultCircosDir);
-
-		std::stringstream buffer;
-//		finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);
-//		generator.OutputBuffer(defaultGraphFile, buffer.str());
+//		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
+//		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
+		if(outFileDir.isSet())
+		{			
+			generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
+			generator.GenerateReport(blockList, defaultCoverageReportFile);
+			generator.ListBlocksIndices(blockList, defaultCoordsFile);
+			generator.ListBlocksSequences(blockList, defaultSequencesFile);
+			generator.GenerateD3Output(blockList, defaultD3File);		
+			generator.GenerateCircosOutput(blockList, defaultCircosFile, defaultCircosDir);
+		}
 	} 
 	catch (TCLAP::ArgException &e)
 	{

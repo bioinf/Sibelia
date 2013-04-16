@@ -337,11 +337,15 @@ namespace SyntenyFinder
 
 						std::vector<CoverUnit>::iterator jt = cover[blockList[i].GetChrId()].begin();
 						std::fill(jt + start, jt + end, unit);
-						posInReference[unit] = refPos;
+						if(blockList[i].GetChrId() == refSeqId_)
+						{
+							refPos = end;
+						}
 					}
 
 					if(inReference == 1)
 					{
+						posInReference[unit] = refPos;
 					}
 				}
 			
@@ -385,13 +389,14 @@ namespace SyntenyFinder
 								variantList.push_back(Variant(pos, Variant::UNKNOWN_BLOCK, referenceAllele, "", (*chr_)[chr], "", ""));
 							}
 						}
-						else if(pos > 0 && posInReference.count(cover[chr][pos - 1]) > 0)
-						{
+						else
+						{							
 							std::string::const_iterator jt = (*chr_)[chr].GetSequence().begin();
 							std::string assemblyAllele(jt + pos, jt + end);
+							size_t refPos = (pos > 0 && posInReference.count(cover[chr][pos - 1]) > 0) ? posInReference[cover[chr][pos - 1]] : Variant::UNKNOWN_POS;
 							if(!SearchInReference(assemblyAllele))
 							{
-								variantList.push_back(Variant(posInReference[cover[chr][pos - 1]], Variant::UNKNOWN_BLOCK, assemblyAllele, "", (*chr_)[chr], "", ""));
+								variantList.push_back(Variant(refPos, Variant::UNKNOWN_BLOCK, assemblyAllele, "", (*chr_)[chr], "", ""));
 							}
 						}
 					}
