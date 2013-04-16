@@ -35,7 +35,8 @@ the "outdir" option:
 
 	-o <dir name> or --outdir <dir name>
 
-"C-Sibelia" will write these files there.
+"C-Sibelia" will write these files there. If this option is set, VCF file with
+variants will also be written in output directory.
 
 Output description
 ==================
@@ -59,6 +60,8 @@ variants are presented in VCF format, version 4.1. If you want "C-Sibelia" to
 write variants to some other file, set the "variant" option":
 
 	-v <vile name> or --variant <file name>
+
+If "-o" option is set, then VCF file be written in the output directory.
 
 Blocks coordinates
 ------------------

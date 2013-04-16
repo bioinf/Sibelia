@@ -1,6 +1,6 @@
 Sibelia 3.0.0 Beta version
 
-Release date: TBD
+Release date: 16.04.2013
 
 Authors
 =======

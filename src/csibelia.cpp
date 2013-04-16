@@ -169,9 +169,14 @@ int main(int argc, char * argv[])
 		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
-		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
-		const std::string defaultVariantFile = variantsFile.getValue();
+		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		
 		const std::string defaultPlainVariantFile = outFileDir.getValue() + "/variant.txt";
+		std::string defaultVariantFile = variantsFile.getValue();
+		if(outFileDir.isSet())
+		{
+			defaultVariantFile = outFileDir.getValue() + "/" + defaultVariantFile;
+		}
+		
 		
 		generator.GenerateVariantOutput(variant, fileName[1], defaultVariantFile);
 //		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
