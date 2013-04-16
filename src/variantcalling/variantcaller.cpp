@@ -130,8 +130,7 @@ namespace SyntenyFinder
 		size_t forward = Traverse(referenceEnd, assemblyEnd, confirmDist);
 		std::advance(referenceEnd, forward);
 		std::advance(assemblyEnd, forward);		
-		std::string pattern(assemblyStart, assemblyEnd);
-		std::cout << referenceStart.GetOriginalPosition() << " " << pattern << std::endl;
+		std::string pattern(assemblyStart, assemblyEnd);		
 		return !SearchInReference(pattern);
 	}
 

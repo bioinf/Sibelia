@@ -1,7 +1,7 @@
 Basic usage
 ===========
-Directory "examples/C-Sibelia" contains a set of two bacterial genomes. The easiest
-way to run "C-Sibelia" is to type:
+Directory "examples/C-Sibelia/Staphylococcus_aureus" contains a set of two
+bacterial genomes. The easiest way to run "C-Sibelia" is to type:
 
 	C-Sibelia -s fine -r <a FASTA file with reference> -a <a FASTA file with a genome>
 
@@ -94,7 +94,7 @@ Here we will describe parameters that can affect computation results.
 Minimum block size
 ------------------
 See the corresponding section in SIBELIA.md. For C-Sibelia default value of
-this parameter is 1000.
+this parameter is 500.
 
 Parameters set
 --------------
