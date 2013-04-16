@@ -486,7 +486,7 @@ namespace SyntenyFinder
 			}
 			else if (buffer == "##assembly=") 
 			{
-				out << buffer << assemblyFile << std::endl;
+				out << buffer << chrList_[1].GetDescription() << std::endl;
 			}
 			else 
 			{
