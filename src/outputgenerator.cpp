@@ -16,6 +16,28 @@ namespace SyntenyFinder
 		typedef std::pair<size_t, std::vector<BlockInstance> > GroupedBlock;
 		typedef std::vector<GroupedBlock> GroupedBlockList;
 
+		std::string GetChrName(const std::string & description)
+		{
+			std::string chrName = ".";
+			size_t chrNameStart = description.find_last_of("|", description.size() - 2);
+			if (chrNameStart == std::string::npos) 
+			{
+				chrName = description;
+			}
+			else 
+			{
+				chrName = description.substr(chrNameStart + 1);
+				size_t chrNameEnd = chrName.find_last_of(".");
+				if (chrNameEnd == std::string::npos) 
+				{
+					chrNameEnd = chrName.size() - 1; 
+				}
+				chrName.erase(chrNameEnd, chrName.size() - chrNameEnd);
+			}
+
+			return chrName;
+		}
+
 		bool ByFirstElement(const GroupedBlock & a, const GroupedBlock & b)
 		{
 			return a.first < b.first;
@@ -482,11 +504,11 @@ namespace SyntenyFinder
 		{
 			if (buffer == "##reference=") 
 			{
-				out << buffer << chrList_[0].GetDescription() << std::endl;
+				out << buffer << GetChrName(chrList_[0].GetDescription()) << std::endl;
 			}
 			else if (buffer == "##assembly=") 
 			{
-				out << buffer << chrList_[1].GetDescription() << std::endl;
+				out << buffer << GetChrName(chrList_[1].GetDescription()) << std::endl;
 			}
 			else 
 			{
@@ -495,22 +517,7 @@ namespace SyntenyFinder
 			std::getline(vcfTemplate, buffer);
 		}
 
-		std::string chrName = ".";
-		size_t chrNameStart = chrList_[0].GetDescription().find_last_of("|", chrList_[0].GetDescription().size() - 2);
-		if (chrNameStart == std::string::npos) 
-		{
-			chrName = chrList_[0].GetDescription();
-		}
-		else 
-		{
-			chrName = chrList_[0].GetDescription().substr(chrNameStart + 1);
-			size_t chrNameEnd = chrName.find_last_of(".");
-			if (chrNameEnd == std::string::npos) 
-			{
-				chrNameEnd = chrName.size() - 1; 
-			}
-			chrName.erase(chrNameEnd, chrName.size() - chrNameEnd);
-		}
+		std::string chrName = GetChrName(chrList_[0].GetDescription());	
 
 		for (size_t i = 0; i < variants.size(); ++i)
 		{

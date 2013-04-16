@@ -1,7 +1,7 @@
 ##fileformat=VCFv4.1
 ##source=Sibelia
-##reference=gi|88193823|ref|NC_007795.1|
-##assembly=gi|332183900|gb|AFGU01000001.1|
+##reference=NC_007795
+##assembly=AFGU01000001
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
 NC_007795	22181	.	C	A	.	.	.
 NC_007795	33961	.	G	A	.	.	.
