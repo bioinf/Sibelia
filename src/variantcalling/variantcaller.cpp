@@ -111,25 +111,6 @@ namespace SyntenyFinder
 
 	bool VariantCaller::ConfirmVariant(StrandIterator referenceStart, StrandIterator referenceEnd, StrandIterator assemblyStart, StrandIterator assemblyEnd) const
 	{		
-		size_t confirmDist = trimK_;
-		for(size_t i = 0; i < confirmDist; i++)
-		{
-			StrandIterator nextReferenceStart = AdvanceBackward(referenceStart, 1);
-			StrandIterator nextAssemblyStart = AdvanceBackward(assemblyStart, 1);
-			if(nextReferenceStart.AtValidPosition() && assemblyStart.AtValidPosition() && *referenceStart == *assemblyStart)
-			{
-				referenceStart = nextReferenceStart;
-				assemblyStart = nextAssemblyStart;
-			}
-			else
-			{
-				break;
-			}
-		}
-		
-		size_t forward = Traverse(referenceEnd, assemblyEnd, confirmDist);
-		std::advance(referenceEnd, forward);
-		std::advance(assemblyEnd, forward);		
 		std::string pattern(assemblyStart, assemblyEnd);		
 		return !SearchInReference(pattern);
 	}
