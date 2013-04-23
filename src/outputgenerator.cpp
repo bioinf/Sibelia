@@ -522,21 +522,30 @@ namespace SyntenyFinder
 		for (size_t i = 0; i < variants.size(); ++i)
 		{
 			std::string prev = "";
-			if (variants[i].GetReferenceAllele().size() != variants[i].GetAlternativeAllele().size()) 
+			if(variants[i].GetReferenceAllele().size() != variants[i].GetAlternativeAllele().size() && 
+				variants[i].GetReferencePos() != Variant::UNKNOWN_POS && variants[i].GetReferencePos() > 0)
+			{
 				prev = chrList_[0].GetSequence()[variants[i].GetReferencePos() - 1];
+			}
+
 			out << chrName << "\t";
 			if(variants[i].GetReferencePos() != Variant::UNKNOWN_POS)
 			{
-				out << variants[i].GetReferencePos() + 1 << "\t";
+				out << variants[i].GetReferencePos() + 1 << "\t"
+					<< ".\t"
+					<< (prev + variants[i].GetReferenceAllele()) << "\t"
+					<< (prev + variants[i].GetAlternativeAllele()) << "\t";
 			}
 			else
 			{
-				out << "." << "\t";
+				out << "." << "\t"
+					<< ".\t"
+					<< ".\t"
+					<< variants[i].GetAlternativeAllele() << "\t";
 			}
 			
-			out	<< ".\t"
-				<< (prev + variants[i].GetReferenceAllele()) << "\t"
-				<< (prev + variants[i].GetAlternativeAllele()) << "\t"
+
+			out	
 				<< ".\t.\t." << std::endl;
 		}
 	}
