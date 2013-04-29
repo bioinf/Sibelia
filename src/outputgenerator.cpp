@@ -628,7 +628,7 @@ namespace SyntenyFinder
 		std::copy(block, block + blockSize, std::ostream_iterator<std::string>(ss, "\n"));
 	}
 
-    void OutputGenerator::BlocksAlignment(const BlockList & block, const std::string & fileName) const
+    void OutputGenerator::OutputBlocksInSAM(const BlockList & block, const std::string & fileName) const
     {
         std::ofstream out;
         TryOpenFile(fileName, out);

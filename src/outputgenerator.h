@@ -30,7 +30,7 @@ namespace SyntenyFinder
 		void ListChromosomesAsPermutations(const BlockList & blockList, const std::string & fileName) const;
 		void RearrangementScenario(const std::vector<std::string> & steps, const std::string & fileName) const;
 		void OutputBuffer(const std::string & fileName, const std::string & buffer) const;		
-        void BlocksAlignment(const BlockList & block, const std::string & fileName) const;
+        void OutputBlocksInSAM(const BlockList & block, const std::string & fileName) const;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(OutputGenerator);
 		static const int CIRCOS_MAX_COLOR;

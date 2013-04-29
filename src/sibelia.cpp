@@ -183,8 +183,7 @@ int main(int argc, char * argv[])
 		if(sequencesFile.isSet())
 		{
 			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
-            generator.BlocksAlignment(history.back(), defaultBlocksAlignmentFile);
-			std::cout << defaultBlocksAlignmentFile << std::endl;
+            generator.OutputBlocksInSAM(history.back(), defaultBlocksAlignmentFile);			
 		}
 
 		if(!hierarchy)
