@@ -1,6 +1,6 @@
-Sibelia 2.1.2
+Sibelia 3.0.0 Beta version
 
-Release date: 9th April 2013
+Release date: 16.04.2013
 
 Authors
 =======
@@ -12,16 +12,17 @@ Authors
 
 Introduction
 ============
-"Sibelia" is a tool for finding synteny blocks (regions of conserved DNA)
-in closely related genomes, like different strains of the same bacterial
-specie. It takes a set of FASTA files with genomes and locates coordinates of
-the synteny blocks in these sequences.
+This package contains two programs:
 
-System Requirements
-===================
-This version is designed for small-scale genomes. For example, it can find
-synteny blocks in 8 bacterial genomes (51 MB of genomic data) in ~10 minutes
-and using 900 MB of RAM and 800 MB HDD space on an Intel i5 laptop. 
+* Sibelia -- "Sibelia" is a tool for finding synteny blocks in closely related
+genomes, like different strains of the same bacterial species. It takes a set
+of FASTA files with genomes and locates coordinates of the synteny blocks in
+these sequences. It also represents genomes as permutations of the blocks.
+
+* C-Sibelia -- This tool is designed for comparison between a reference and
+either a finished genome, or a genome represented as a set of contigs. It is
+able to detect SNPs/SNVs and indels of different scales. It also finds synteny
+blocks between these two genomes.
 
 Installation
 ============
@@ -29,7 +30,7 @@ See INSTALL.md file.
 
 Usage
 =====
-See USAGE.md file.
+See SIBELIA.md for "Sibelia" and C-SIBELIA.md for "C-Sibelia".
 
 Citation
 ========
