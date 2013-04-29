@@ -23,7 +23,7 @@ namespace SyntenyFinder
 
 	std::vector<size_t> BlockFinder::EdgeToVector(const Edge & a)
 	{
-		size_t feature[] = {a.GetStartVertex(), a.GetEndVertex(), a.GetFirstChar()};
+		size_t feature[] = {a.GetStartVertex(), a.GetEndVertex(), static_cast<size_t>(a.GetFirstChar())};
 		return std::vector<size_t>(feature, feature + sizeof(feature) / sizeof(feature[0]));
 	}
 

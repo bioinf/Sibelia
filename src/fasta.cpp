@@ -25,7 +25,7 @@ namespace SyntenyFinder
 		std::string sequence;
 		std::string header;
 		int line = 1;
-		size_t seqId = 0;
+		size_t seqId = record.size();
 
 		try
 		{
@@ -73,7 +73,7 @@ namespace SyntenyFinder
 
 	void FASTAReader::ValidateHeader(std::string & header)
 	{
-		int delim = header.find(' ');
+		size_t delim = header.find(' ');
 		if (delim == std::string::npos)
 		{
 			delim = header.length() - 1;
