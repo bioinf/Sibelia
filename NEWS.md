@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+=======
+Sibelia 3.0.0
+=============
+* C-Sibelia is functional now
+
+>>>>>>> d6dd6905881696f0c5b52268edec06a02059356d
 Sibelia 2.1.2
 =============
 * Fixed crashes on some input genomes

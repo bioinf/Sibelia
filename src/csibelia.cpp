@@ -7,6 +7,7 @@
 #include <tclap/CmdLine.h>
 #include "util.h"
 #include "variantcalling/variantcaller.h"
+#include "variantcalling/simplerearrangements.h"
 
 int main(int argc, char * argv[])
 {	
@@ -23,7 +24,7 @@ int main(int argc, char * argv[])
 
 	try
 	{  
-		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "2.5.0");
+		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "3.0.0");
 		TCLAP::ValueArg<unsigned int> maxIterations("i",
 			"maxiterations",
 			"Maximum number of iterations during a stage of simplification, default = 4.",
@@ -51,9 +52,9 @@ int main(int argc, char * argv[])
 
 		TCLAP::ValueArg<unsigned int> minBlockSize("m",
 			"minblocksize",
-			"Minimum size of a synteny block, default value = 5000 BP.",
+			"Minimum size of a synteny block, default value = 500 BP.",
 			false,
-			5000,
+			500,
 			"integer",
 			cmd);
 
@@ -70,6 +71,14 @@ int main(int argc, char * argv[])
 			"FASTA file with the reference genome.",
 			true,
 			".",
+			"file name",
+			cmd);
+
+		TCLAP::ValueArg<std::string> variantsFile("v",
+			"variant",
+			"VCF file with found variants.",
+			false,
+			"variant.vcf",
 			"file name",
 			cmd);
 
@@ -94,7 +103,7 @@ int main(int argc, char * argv[])
 			stage = ReadStageFile(stageFile.getValue());
 		}
 		
-		size_t totalSize = 0;
+		size_t totalSize = 0;		
 		std::vector<SyntenyFinder::FASTARecord> chrList;
 		std::string fileName[] = {referenceFile.getValue(), assemblyFile.getValue()};		
 		for(size_t file = 0; file < 2; file++)
@@ -123,25 +132,33 @@ int main(int argc, char * argv[])
 		}
 
 		int trimK = INT_MAX;
-		SyntenyFinder::BlockFinder finder(chrList);
+		SyntenyFinder::BlockFinder finder(chrList);				
+		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size() + 1);
+		finder.GenerateSyntenyBlocks(stage[0].first, trimK, stage[0].first, history[0], false, PutProgressChr);
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			trimK = std::min(trimK, stage[i].first);
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
 			finder.PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
+			if(i < stage.size() - 1)
+			{
+				finder.GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i + 1], false, PutProgressChr);
+			}
 		}
-		
-		std::vector<SyntenyFinder::BlockInstance> blockList;
+				
 		std::cout << "Finding variants and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
-		finder.GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), blockList, false, PutProgressChr);
-		size_t refSeqId = chrList[0].GetId();
-		
+		finder.GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), false, PutProgressChr);
+		size_t refSeqId = chrList[0].GetId();				
 		std::vector<SyntenyFinder::Variant> variant;
-		SyntenyFinder::VariantCaller caller(refSeqId, blockList, trimK);
+		std::vector<SyntenyFinder::Reversal> reversal;
+		std::vector<SyntenyFinder::Translocation> translocation;		
+		SyntenyFinder::VariantCaller caller(chrList, 0, history, trimK, minBlockSize.getValue());
 		caller.CallVariants(variant);
+		caller.GetHistory(history);
+		std::vector<SyntenyFinder::BlockInstance> blockList = history.back();
 
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
@@ -152,25 +169,27 @@ int main(int argc, char * argv[])
 		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
-		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
-		const std::string defaultVariantFile = outFileDir.getValue() + "/variant.txt";
-
-		std::string buf;
-		std::ofstream variantFile(defaultVariantFile.c_str());
-		for(size_t i = 0; i < variant.size(); i++)
+		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		
+		const std::string defaultPlainVariantFile = outFileDir.getValue() + "/variant.txt";
+		std::string defaultVariantFile = variantsFile.getValue();
+		if(outFileDir.isSet())
 		{
-			variant[i].ToString(buf);
-			variantFile << buf << std::endl;
+			defaultVariantFile = outFileDir.getValue() + "/" + defaultVariantFile;
 		}
-
-		generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
-		generator.GenerateReport(blockList, defaultCoverageReportFile);
-		generator.ListBlocksIndices(blockList, defaultCoordsFile);
-		generator.GenerateD3Output(blockList, defaultD3File);
-
-		std::stringstream buffer;
-		finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);
-		generator.OutputBuffer(defaultGraphFile, buffer.str());
+		
+		
+		generator.GenerateVariantOutput(variant, fileName[1], defaultVariantFile);
+		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
+		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
+		if(outFileDir.isSet())
+		{			
+			generator.ListChromosomesAsPermutations(blockList, defaultPermutationsFile);
+			generator.GenerateReport(blockList, defaultCoverageReportFile);
+			generator.ListBlocksIndices(blockList, defaultCoordsFile);
+			generator.ListBlocksSequences(blockList, defaultSequencesFile);
+			generator.GenerateD3Output(blockList, defaultD3File);		
+			generator.GenerateCircosOutput(blockList, defaultCircosFile, defaultCircosDir);
+		}
 	} 
 	catch (TCLAP::ArgException &e)
 	{

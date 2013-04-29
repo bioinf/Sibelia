@@ -7083,10 +7083,27 @@ namespace SyntenyFinder
 			return buf.str();
 		}
 
+		const std::string variantTemplateBlockNo0[] = 
+		{
+			std::string("##fileformat=VCFv4.1"),
+			std::string("##source=Sibelia"),
+			std::string("##reference="),
+			std::string("##assembly="),
+			std::string("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO"),
+		};
+
+		std::string GlueResourceVvariantTemplate()
+		{
+			std::stringstream buf;
+			std::copy(variantTemplateBlockNo0, variantTemplateBlockNo0 + 5, std::ostream_iterator<std::string>(buf, "\n"));
+			return buf.str();
+		}
+
 	}
 
 	const std::string d3Template = GlueResourceVd3Template();
 	const std::string circosTemplate = GlueResourceVcircosTemplate();
 	const std::string circosImageConfig = GlueResourceVcircosImageConfig();
+	const std::string variantTemplate = GlueResourceVvariantTemplate();
 }
 

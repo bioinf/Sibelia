@@ -22,11 +22,13 @@ namespace SyntenyFinder
 		void GenerateCircosOutput(const BlockList & blockList, const std::string & outFile, const std::string & outDir) const;
 		void GenerateHierarchyCircosOutput(const std::vector<BlockList> & history, const std::string & outFile, const std::string & outDir) const;
 		void GenerateD3Output(const BlockList & blockList, const std::string & outFile) const;
+		void GenerateVariantOutput(const std::vector <Variant> & variants, const std::string & assemblyFile, const std::string & outFile) const;
 		void ListBlocksIndices(const BlockList & blockList, const std::string & fileName) const;
 		void ListBlocksIndicesHeirarchy(const std::vector<BlockList> & history, const std::string & fileName) const;
 		void OutputTree(const std::vector<BlockList> & history, const std::string & fileName) const;
 		void ListBlocksSequences(const BlockList & blockList, const std::string & fileName) const;		
 		void ListChromosomesAsPermutations(const BlockList & blockList, const std::string & fileName) const;
+		void RearrangementScenario(const std::vector<std::string> & steps, const std::string & fileName) const;
 		void OutputBuffer(const std::string & fileName, const std::string & buffer) const;		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(OutputGenerator);

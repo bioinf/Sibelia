@@ -11,9 +11,12 @@
 
 namespace SyntenyFinder
 {
+	typedef std::vector<BlockInstance>::const_iterator BLCIterator;
+
 	namespace 
 	{
 		const size_t oo = UINT_MAX;
+		const std::string base = "ACGT";
 		bool NextVertex(IndexedSequence & iseq, StrandIterator & reference, StrandIterator referenceEnd, StrandIterator & assembly, StrandIterator assemblyEnd, bool strict)
 		{
 			size_t minSum = oo;						
@@ -51,10 +54,10 @@ namespace SyntenyFinder
 			return minSum != oo;
 		}
 
-		size_t Traverse(StrandIterator reference, StrandIterator assembly)
+		size_t Traverse(StrandIterator reference, StrandIterator assembly, size_t bound = UINT_MAX)
 		{
 			size_t ret = 0;
-			for(;reference.AtValidPosition() && assembly.AtValidPosition() && *reference == *assembly; ++ret)
+			for(;ret < bound && reference.AtValidPosition() && assembly.AtValidPosition() && *reference == *assembly; ++ret)
 			{
 				++reference;
 				++assembly;
@@ -62,63 +65,147 @@ namespace SyntenyFinder
 
 			return ret;
 		}
+
+		typedef std::vector<BlockInstance>::iterator BLIterator;
+		bool SignedBlocksIdEquals(const BlockInstance & a, const BlockInstance & b)
+		{
+			return a.GetSignedBlockId() == b.GetSignedBlockId();
+		}
+
+		void Reverse(BLCIterator begin, BLCIterator end, BLIterator out)
+		{
+			std::copy(begin, end, out);
+			std::for_each(out, out + (end - begin), boost::bind(&BlockInstance::Reverse, _1));
+			std::reverse(out, out + (end - begin));
+		}
+		
+		BLCIterator Apply(BLCIterator begin, BLCIterator end, BLCIterator patternBegin, BLCIterator patternEnd)
+		{
+			size_t size = patternEnd - patternBegin;
+			for(BLCIterator it = begin; it < end - size + 1; ++it)
+			{
+				if(std::equal(patternBegin, patternEnd, it, SignedBlocksIdEquals))
+				{
+					return it;
+				}
+			}
+
+			return end;
+		}
 	}
 
-	VariantCaller::VariantCaller(size_t refSeqId, const std::vector<BlockInstance> & blockList, size_t trimK):
-		refSeqId_(refSeqId), blockList_(blockList), trimK_(trimK)
+	bool VariantCaller::SearchInReference(const std::string & stringPattern) const
+	{		
+		const std::string & sequence = (*chr_)[refSeqId_].GetSequence();
+		std::vector<sauchar_t> pattern(stringPattern.begin(), stringPattern.end());
+		saidx_t count = sa_search(reinterpret_cast<const sauchar_t*>(sequence.c_str()), sequence.size(), &pattern[0], pattern.size(), &referenceSuffixArray_[0], referenceSuffixArray_.size(), &indexOut_[0]);
+		return count != 0;
+	}
+
+	
+	bool VariantCaller::SearchInAssembly(const std::string & stringPattern) const
 	{
-
+		std::vector<sauchar_t> pattern(stringPattern.begin(), stringPattern.end());
+		saidx_t count = sa_search(reinterpret_cast<const sauchar_t*>(assemblySequence_.c_str()), assemblySequence_.size(), &pattern[0], pattern.size(), &assemblySuffixArray_[0], assemblySuffixArray_.size(), &indexOut_[0]);
+		return count != 0;
 	}
 
-	void VariantCaller::AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd, StrandIterator assemblyBegin, StrandIterator assemblyEnd, std::vector<Variant> & variantList) const
+	bool VariantCaller::ConfirmVariant(StrandIterator referenceStart, StrandIterator referenceEnd, StrandIterator assemblyStart, StrandIterator assemblyEnd) const
+	{		
+		std::string pattern(assemblyStart, assemblyEnd);		
+		return !SearchInReference(pattern);
+	}
+
+	VariantCaller::VariantCaller(const std::vector<FASTARecord> & chr, size_t refSeqId, const std::vector<std::vector<BlockInstance> > & history, size_t trimK, size_t minBlockSize):
+		chr_(&chr), refSeqId_(refSeqId), history_(history), trimK_(trimK), minBlockSize_(minBlockSize)
+	{		
+		const std::string & reference = (*chr_)[refSeqId_].GetSequence();							
+		std::stringstream ss;
+		for(size_t i = 0; i < chr_->size(); i++)
+		{
+			if((*chr_)[i].GetId() != refSeqId_)
+			{
+				ss << (*chr_)[i].GetSequence() << "$";
+			}
+		}
+				
+		assemblySequence_ = ss.str();
+		assemblySuffixArray_.resize(assemblySequence_.size());	
+		referenceSuffixArray_.resize(reference.size());	
+		divsufsort(reinterpret_cast<const sauchar_t*>(assemblySequence_.c_str()), &assemblySuffixArray_[0], static_cast<saidx_t>(assemblySequence_.size()));
+		divsufsort(reinterpret_cast<const sauchar_t*>(reference.c_str()), &referenceSuffixArray_[0], static_cast<saidx_t>(reference.size()));
+		indexOut_.resize(reference.size() + assemblySequence_.size());
+	}
+
+	void VariantCaller::AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd, StrandIterator assemblyBegin, StrandIterator assemblyEnd, const FASTARecord & assemblySequence, std::vector<Variant> & variantList) const
 	{
 		using namespace seqan;
-		typedef String<char>				TSequence;
+		typedef String<char> TSequence;
 		typedef Align<TSequence, ArrayGaps>	TAlign;
-		typedef Row<TAlign>::Type			TRow;
-		typedef Iterator<TRow>::Type		TIterator;
-		typedef Position<TAlign>::Type		TPosition;
-
-		std::string buf1(referenceBegin, referenceEnd);
-		std::string buf2(assemblyBegin, assemblyEnd);
-		TSequence seq1(buf1);
-		TSequence seq2(buf2);
-		bool collinear = referenceBegin.GetDirection() == assemblyBegin.GetDirection();
-		if(buf1.size() == 0 || buf2.size() == 0)
+		typedef Row<TAlign>::Type TRow;
+		typedef Iterator<TRow>::Type TIterator;
+		typedef Position<TAlign>::Type TPosition;
+		
+		size_t contextEnd = Traverse(referenceEnd, assemblyEnd, trimK_);
+		std::advance(referenceEnd, contextEnd);
+		std::advance(assemblyEnd, contextEnd);
+		std::string referenceContext(referenceBegin, referenceEnd);
+		std::string assemblyContext(assemblyBegin, assemblyEnd);
+		std::string referenceBuf(referenceBegin, referenceEnd);
+		std::string assemblyBuf(assemblyBegin, assemblyEnd);
+		TSequence referenceSeq(referenceBuf);
+		TSequence assemblySeq(assemblyBuf);
+		StrandIterator saveReferenceBegin = referenceBegin;
+		Variant wholeVariant(referenceBegin.GetOriginalPosition(), blockId, referenceBuf, assemblyBuf, assemblySequence, referenceContext, assemblyContext);
+		if(referenceBuf == assemblyBuf || !ConfirmVariant(referenceBegin, referenceEnd, assemblyBegin, assemblyEnd))
 		{
-			if(buf1.size() + buf2.size() > 0)
+			return;
+		}		
+
+		if(referenceBuf.size() == 0 || assemblyBuf.size() == 0)
+		{
+			if(referenceBuf.size() + assemblyBuf.size() > 0)
 			{
-				variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, buf1, buf2));
+				variantList.push_back(wholeVariant);
 			}
 
 			return;
 		}
-
-		if(buf1.size() + buf2.size() > 4 * trimK_)
+		
+		if(referenceBuf.size() * assemblyBuf.size() > (1 << 20))
 		{
-			for(size_t i = 0; i < buf1.size() && i < buf2.size() && buf1[i] == buf2[i]; i++, ++referenceBegin);
-			variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, buf1, buf2));
+			variantList.push_back(wholeVariant);
 			return;
 		}		
 
+		std::vector<Variant> tempList;
 		TAlign align;
 		resize(rows(align), 2); 
-		assignSource(row(align,0),seq1);
-		assignSource(row(align,1),seq2);
-		std::stringstream ss;		
-		int score = globalAlignment(align,Score<int>(1,-1,-1,-1), Hirschberg());		
+		assignSource(row(align,0), referenceSeq);
+		assignSource(row(align,1), assemblySeq);
+		int score = globalAlignment(align, Score<int>(1, -1, -1, -1), Hirschberg());		
 		TPosition colBegin = beginPosition(cols(align));
 		TPosition colEnd = endPosition(cols(align));
 		TIterator it1 = iter(row(align, 0), colBegin);
 		TIterator it1End = iter(row(align, 0), colEnd);
 		TIterator it2 = iter(row(align, 1), colBegin);
+		const char UNKNOWN = -1;
+		char lastMatch = UNKNOWN;
 		while(it1 != it1End)
 		{
 			if(!isGap(it1) && !isGap(it2))
 			{
-				if(*it1 != *it2)
-				{					
-					variantList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, collinear, std::string(1, *it1), std::string(1, *it2), ss.str()));
+				if(base.find(*it1) != base.npos && base.find(*it2) != base.npos)
+				{
+					if(*it1 != *it2)
+					{	
+						lastMatch = UNKNOWN;
+						tempList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, std::string(1, *it1), std::string(1, *it2), assemblySequence, referenceContext, assemblyContext));
+					}
+					else
+					{
+						lastMatch = *it1;
+					}
 				}
 
 				++referenceBegin;
@@ -127,9 +214,11 @@ namespace SyntenyFinder
 			}
 			else
 			{
-				std::string variantAllele;
-				std::string referenceAllele;
-				size_t pos = referenceBegin.GetOriginalPosition();
+				const std::string start(lastMatch == UNKNOWN ? "" : std::string(1, lastMatch));
+				std::string variantAllele(start);
+				std::string referenceAllele(start);
+				size_t pos = referenceBegin.GetOriginalPosition() - (lastMatch == UNKNOWN ? 1 : 0);
+				lastMatch = UNKNOWN;
 				for(;it1 != it1End; ++it1, ++it2)
 				{
 					if(isGap(it1))
@@ -147,10 +236,18 @@ namespace SyntenyFinder
 					}
 				}
 
-				variantList.push_back(Variant(pos, blockId, collinear, referenceAllele, variantAllele, ss.str()));
+				tempList.push_back(Variant(pos, blockId, referenceAllele, variantAllele, assemblySequence, referenceContext, assemblyContext));
 			}
 		}
-
+		
+		if(tempList.size() > 1)
+		{			
+			variantList.push_back(wholeVariant);
+		}
+		else
+		{
+			std::copy(tempList.begin(), tempList.end(), std::back_inserter(variantList));
+		}
 	}
 
 	void VariantCaller::AlignSyntenyBlocks(const BlockInstance & reference, const BlockInstance & assembly, std::vector<Variant> & variantList) const
@@ -176,9 +273,8 @@ namespace SyntenyFinder
 		StrandIterator assemblyIt = sequence.Begin(assembly.GetDirection(), 1);
 		StrandIterator assemblyEnd = sequence.End(assembly.GetDirection(), 1);
 		if(NextVertex(iseq, referenceIt, referenceEnd, assemblyIt, assemblyEnd, false))
-		{
-			AlignBulgeBranches(reference.GetBlockId(), sequence.Begin(reference.GetDirection(), 0), referenceIt,
-				sequence.Begin(assembly.GetDirection(), 1), assemblyIt, variantList);
+		{			
+			AlignBulgeBranches(reference.GetBlockId(), sequence.Begin(reference.GetDirection(), 0), referenceIt, sequence.Begin(assembly.GetDirection(), 1), assemblyIt, assembly.GetChrInstance(), variantList);
 			while(referenceIt != referenceEnd)
 			{
 				size_t dist = Traverse(referenceIt, assemblyIt) - trimK_;
@@ -187,7 +283,7 @@ namespace SyntenyFinder
 				StrandIterator nextReferenceIt = referenceIt;
 				StrandIterator nextAssemblyIt = assemblyIt;
 				NextVertex(iseq, nextReferenceIt, referenceEnd, nextAssemblyIt, assemblyEnd, true);
-				AlignBulgeBranches(reference.GetBlockId(), referenceIt, nextReferenceIt, assemblyIt, nextAssemblyIt, variantList);
+				AlignBulgeBranches(reference.GetBlockId(), referenceIt, nextReferenceIt, assemblyIt, nextAssemblyIt, assembly.GetChrInstance(), variantList);
 				referenceIt = nextReferenceIt;
 				assemblyIt = nextAssemblyIt;				
 			}
@@ -197,110 +293,125 @@ namespace SyntenyFinder
 	void VariantCaller::CallVariants(std::vector<Variant> & variantList) const
 	{
 		variantList.clear();
-		std::vector<IndexPair> group;
-		std::vector<size_t> sharedBlock;
-		GroupBy(blockList_, compareById, std::back_inserter(group));
-		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
+		const int NO_BLOCK = 0;
+		const size_t NO_STAGE = -1;
+		typedef std::pair<size_t, int> CoverUnit;
+		std::map<CoverUnit, size_t> posInReference;
+		std::vector<std::vector<CoverUnit> > cover(chr_->size());
+		for(size_t chr = 0; chr < cover.size(); chr++)
 		{
-			size_t inReference = 0;
-			size_t inAssembly = 0;
-			for(size_t i = it->first; i < it->second; i++)
+			cover[chr].assign((*chr_)[chr].GetSequence().size(), CoverUnit(NO_STAGE, NO_BLOCK));
+		}
+		
+		for(size_t stage = 0; stage < history_.size(); stage++)
+		{
+			std::vector<IndexPair> group;
+			std::vector<BlockInstance> & blockList = history_[stage];
+			GroupBy(blockList, compareById, std::back_inserter(group));
+			for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 			{
-				inReference += blockList_[i].GetChrId() == refSeqId_ ? 1 : 0;
-				inAssembly += blockList_[i].GetChrId() != refSeqId_ ? 1 : 0;
-			}
-
-			if(inReference == 1 && inAssembly == 1)
-			{
-				sharedBlock.push_back(blockList_[it->first].GetBlockId());
-				if(blockList_[it->first].GetChrId() != refSeqId_)
+				size_t referenceStart = 0;
+				size_t inReference = 0;
+				size_t inAssembly = 0;
+				for(size_t i = it->first; i < it->second; i++) 
 				{
-					std::swap(blockList_[it->first], blockList_[it->first + 1]);
+					inReference += blockList[i].GetChrId() == refSeqId_ ? 1 : 0;
+					inAssembly += blockList[i].GetChrId() != refSeqId_ ? 1 : 0;
 				}
 
-				AlignSyntenyBlocks(blockList_[it->first], blockList_[it->first + 1], variantList);
+				CoverUnit unit(stage, blockList[it->first].GetBlockId());
+				if(inReference >= 1 && inAssembly >= 1)
+				{
+					size_t refPos;
+					for(size_t i = it->first; i < it->second; i++)
+					{
+						size_t start = blockList[i].GetStart();
+						size_t end = blockList[i].GetEnd();
+						if(blockList[i].GetChrId() == refSeqId_)
+						{
+							refPos = blockList[i].GetEnd();
+						}
+
+						std::vector<CoverUnit>::iterator jt = cover[blockList[i].GetChrId()].begin();
+						std::fill(jt + start, jt + end, unit);
+						if(blockList[i].GetChrId() == refSeqId_)
+						{
+							refPos = end;
+						}
+					}
+
+					if(inReference == 1)
+					{
+						posInReference[unit] = refPos;
+					}
+				}
+			
+				if(inReference == 1 && inAssembly == 1)
+				{
+					if(stage == history_.size() - 1)
+					{
+						if(blockList[it->first].GetChrId() != refSeqId_)
+						{
+							std::swap(blockList[it->first], blockList[it->first + 1]);
+						}
+
+						if(blockList[it->first].GetDirection() != DNASequence::positive)
+						{					
+							blockList[it->first].Reverse();
+							blockList[it->first + 1].Reverse();
+						}
+
+						AlignSyntenyBlocks(blockList[it->first], blockList[it->first + 1], variantList);
+					}
+				}
+			}
+		}		
+
+		for(size_t chr = 0; chr < cover.size(); chr++)
+		{
+			for(size_t pos = 0; pos < cover[chr].size(); )
+			{
+				if(cover[chr][pos].first == NO_STAGE)
+				{
+					size_t end = pos;
+					const std::string & sequence = (*chr_)[chr].GetSequence();
+					for(; end < cover[chr].size() && cover[chr][end].first == NO_STAGE; end++);					
+					if(end - pos > minBlockSize_)
+					{												
+						if(chr == refSeqId_)
+						{					
+							std::string referenceAllele(sequence.begin() + pos, sequence.begin() + end);
+							if(!SearchInAssembly(referenceAllele))
+							{
+								variantList.push_back(Variant(pos, Variant::UNKNOWN_BLOCK, referenceAllele, "", (*chr_)[chr], "", ""));
+							}
+						}
+						else
+						{							
+							std::string::const_iterator jt = (*chr_)[chr].GetSequence().begin();
+							std::string assemblyAllele(jt + pos, jt + end);
+							size_t refPos = (pos > 0 && posInReference.count(cover[chr][pos - 1]) > 0) ? posInReference[cover[chr][pos - 1]] : Variant::UNKNOWN_POS;
+							if(!SearchInReference(assemblyAllele))
+							{								
+								variantList.push_back(Variant(Variant::UNKNOWN_POS, Variant::UNKNOWN_BLOCK, "", assemblyAllele, (*chr_)[chr], "", ""));
+							}
+						}
+					}
+
+					pos = end;
+				}
+				else
+				{
+					pos++;
+				}
 			}
 		}
 
 		std::sort(variantList.begin(), variantList.end());
-		std::vector<Variant> filter;
-		for(std::vector<Variant>::iterator it = variantList.begin(); it != variantList.end(); )
-		{
-			std::vector<size_t> belong;
-			std::vector<size_t> seenAt;
-			size_t vpos = it->GetReferencePos();
-			for(std::vector<BlockInstance>::iterator jt = blockList_.begin(); jt != blockList_.end(); ++jt)
-			{
-				if(vpos >= jt->GetStart() && vpos < jt->GetEnd() && jt->GetChrId() == refSeqId_)
-				{
-					belong.push_back(jt->GetBlockId());
-				}
-			}
-
-			std::vector<Variant>::iterator jt = it;
-			for(; it != variantList.end() && it->Equal(*jt); ++it)
-			{
-				seenAt.push_back(it->GetBlockId());					
-			}
-
-			std::sort(belong.begin(), belong.end());
-			std::sort(seenAt.begin(), seenAt.end());
-			if(seenAt == belong)
-			{
-				filter.push_back(*jt);
-			}
-			else
-			{
-			#ifdef _DEBUG
-				std::string buf;
-				std::cerr << "Filtered out variant" << std::endl;
-				for(size_t i = 0; i < seenAt.size(); i++)
-				{
-					(jt + i)->ToString(buf);
-					std::cerr << buf << std::endl;
-				}
-
-				std::cerr << "Belong to blocks:" << std::endl;
-				std::copy(belong.begin(), belong.end(), std::ostream_iterator<size_t>(std::cerr, " "));
-				std::cerr << std::endl;
-				std::cerr << "Seen at blocks:" << std::endl;
-				std::copy(seenAt.begin(), seenAt.end(), std::ostream_iterator<size_t>(std::cerr, " "));
-				std::cerr << std::endl << std::endl;
-		 	#endif
-			}
-		}
-
-		filter.swap(variantList);
-		std::sort(sharedBlock.begin(), sharedBlock.end());
-		CallRearrangements(sharedBlock);		
 	}
 
-	void VariantCaller::CallRearrangements(const std::vector<size_t> & sharedBlock) const
-	{/*
-		std::sort(blockList_.begin(), blockList_.end());
-		typedef std::pair<BlockInstance, BlockInstance> Strip;
-		std::vector<Strip> assembly;
-		std::vector<Strip> reference;
-
-		for(size_t i = 0; !blockList_.empty() && i < blockList_.size() - 1; i++)
-		{
-			bool firstShared = std::binary_search(sharedBlock.begin(), sharedBlock.end(), blockList_[i].GetBlockId());
-			bool secondShared = std::binary_search(sharedBlock.begin(), sharedBlock.end(), blockList_[i + 1].GetBlockId());
-			if(blockList_[i + 1].GetChrId() == blockList_[i].GetChrId() && firstShared && secondShared)
-			{
-				std::vector<Strip> & strip = blockList_[i].GetChrId() == refSeqId_ ? reference : assembly;
-				strip.push_back(std::make_pair(blockList_[i], blockList_[i + 1]));
-			}
-		}
-
-		for(size_t i = 0; i < reference.size(); i++)
-		{
-			for(size_t j = 0; j < assembly.size(); j++)
-			{
-				Strip & rstrip = reference[i];
-				Strip & astrip = assembly[j];
-				if(rstrip.first.GetSignedBlockId() == 
-			}
-		}*/
+	void VariantCaller::GetHistory(std::vector<std::vector<BlockInstance> > & history) const
+	{
+		history = history_;
 	}
 }
