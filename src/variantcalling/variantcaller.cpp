@@ -217,7 +217,7 @@ namespace SyntenyFinder
 				const std::string start(lastMatch == UNKNOWN ? "" : std::string(1, lastMatch));
 				std::string variantAllele(start);
 				std::string referenceAllele(start);
-				size_t pos = referenceBegin.GetOriginalPosition() - (lastMatch == UNKNOWN ? 1 : 0);
+				size_t pos = referenceBegin.GetOriginalPosition() - (lastMatch != UNKNOWN ? 1 : 0);
 				lastMatch = UNKNOWN;
 				for(;it1 != it1End; ++it1, ++it2)
 				{
