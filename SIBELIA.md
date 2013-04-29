@@ -178,6 +178,8 @@ sequence has header in following format:
 
 Where "<header>" is a header of the FASTA sequence where the block instance
 is located. Other fields are described in section "Coordinates file".
+Sequences of synteny blocks are also written in SAM format in the file
+"blocks_sequences.sam".
 
 "d3" visualization
 ------------------

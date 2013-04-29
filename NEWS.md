@@ -1,6 +1,7 @@
 Sibelia 3.0.0
 =============
 * C-Sibelia is functional now
+* Added output of synteny blocks in SAM format
 
 Sibelia 2.1.2
 =============
