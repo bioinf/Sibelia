@@ -222,7 +222,7 @@ namespace SyntenyFinder
 					next.Add(superGenome[pos[match] + k_]);
 				}
 			}
-			while(++match + start < superGenome.size() && lcp[match + start] >= k_);
+			while(++match + start < superGenome.size() && lcp[match + start] >= static_cast<size_t>(k_));
 
 			if(Bifurcation(prev) || Bifurcation(next))
 			{
