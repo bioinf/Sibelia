@@ -7,7 +7,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++")
+	list(APPEND CMAKE_CXX_FLAGS "-std=c++0x -static-libgcc -static-libstdc++")
 endif()
 
 include_directories(${Sibelia_SOURCE_DIR}/include ${libdivsufsort_BINARY_DIR}/include)
