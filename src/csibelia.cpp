@@ -102,8 +102,9 @@ int main(int argc, char * argv[])
 		{
 			stage = ReadStageFile(stageFile.getValue());
 		}
-		
-		size_t totalSize = 0;		
+				
+		size_t totalSize = 0;
+		std::set<size_t> referenceSequenceId;
 		std::vector<SyntenyFinder::FASTARecord> chrList;
 		std::string fileName[] = {referenceFile.getValue(), assemblyFile.getValue()};		
 		for(size_t file = 0; file < 2; file++)
@@ -113,18 +114,20 @@ int main(int argc, char * argv[])
 			{
 				throw std::runtime_error(("Cannot open file " + fileName[file]).c_str());
 			}
-
-			size_t seqCount = reader.GetSequences(chrList);			
-			if(file == 0 && seqCount != 1)
+			
+			reader.GetSequences(chrList);
+			if(file == 0)
 			{
-				throw std::runtime_error(("File with the reference must contain exactly one sequence " + fileName[file]).c_str());
+				for(size_t i = 0; i < chrList.size(); i++)
+				{
+					referenceSequenceId.insert(chrList[i].GetId());
+				}
 			}
 		}
 		
 		for(size_t i = 0; i < chrList.size(); i++)
 		{
 			totalSize += chrList[i].GetSequence().size();
-			std::cout << chrList[i].GetDescription() << std::endl;
 		}
 
 		if(totalSize > SyntenyFinder::MAX_INPUT_SIZE)
@@ -156,7 +159,7 @@ int main(int argc, char * argv[])
 		std::vector<SyntenyFinder::Variant> variant;
 		std::vector<SyntenyFinder::Reversal> reversal;
 		std::vector<SyntenyFinder::Translocation> translocation;		
-		SyntenyFinder::VariantCaller caller(chrList, 0, history, trimK, minBlockSize.getValue());
+		SyntenyFinder::VariantCaller caller(chrList, referenceSequenceId, history, trimK, minBlockSize.getValue());
 		caller.CallVariants(variant);
 		caller.GetHistory(history);
 		std::vector<SyntenyFinder::BlockInstance> blockList = history.back();
