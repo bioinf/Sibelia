@@ -78,7 +78,7 @@ namespace SyntenyFinder
 		{
 			delim = header.length() - 1;
 		}
-		header = header.substr(1, delim - 1);
+		header = header.substr(1, delim);
 		if (header.empty()) throw ParseException("empty header");
 	}
 
@@ -87,10 +87,11 @@ namespace SyntenyFinder
 		const std::string VALID_CHARS = "ACGTURYKMSWBDHWNX-";
 		for (size_t i = 0; i < sequence.length(); ++i)
 		{
+			char orig = sequence[i];
 			sequence[i] = toupper(sequence[i]);
 			if (VALID_CHARS.find(sequence[i]) == std::string::npos) 
 			{
-				throw ParseException((std::string("illegal character: ") + sequence[i]).c_str());
+				throw ParseException((std::string("illegal character: ") + orig).c_str());
 			}
 		}
 	}
