@@ -303,6 +303,7 @@ namespace SyntenyFinder
 			cover[chr].assign((*chr_)[chr].GetSequence().size(), CoverUnit(NO_STAGE, NO_BLOCK));
 		}
 		
+		std::map<CoverUnit, std::vector<std::pair<size_t, size_t> > > bstart;
 		for(size_t stage = 0; stage < history_.size(); stage++)
 		{
 			std::vector<IndexPair> group;
@@ -313,13 +314,15 @@ namespace SyntenyFinder
 				size_t referenceStart = 0;
 				size_t inReference = 0;
 				size_t inAssembly = 0;
+				CoverUnit unit(stage, blockList[it->first].GetBlockId());
 				for(size_t i = it->first; i < it->second; i++) 
 				{
+					bstart[unit].push_back(std::make_pair(blockList[i].GetChrId(), blockList[i].GetEnd()));
+
 					inReference += blockList[i].GetChrId() == refSeqId_ ? 1 : 0;
 					inAssembly += blockList[i].GetChrId() != refSeqId_ ? 1 : 0;
 				}
-
-				CoverUnit unit(stage, blockList[it->first].GetBlockId());
+				
 				if(inReference >= 1 && inAssembly >= 1)
 				{
 					size_t refPos;
@@ -391,6 +394,23 @@ namespace SyntenyFinder
 							std::string::const_iterator jt = (*chr_)[chr].GetSequence().begin();
 							std::string assemblyAllele(jt + pos, jt + end);
 							size_t refPos = (pos > 0 && posInReference.count(cover[chr][pos - 1]) > 0) ? posInReference[cover[chr][pos - 1]] : Variant::UNKNOWN_POS;
+
+							if(refPos == Variant::UNKNOWN_POS)
+							{
+								std::cout << pos << std::endl;
+								if(pos > 0)
+								{
+									CoverUnit unit = cover[chr][pos - 1];
+									for(size_t i = 0; i < bstart[unit].size(); i++)
+									{
+										std::cout << bstart[unit][i].first << " " << bstart[unit][i].second << std::endl;
+									}
+
+									std::cout << std::endl;
+								}								
+							}
+
+
 							if(!SearchInReference(assemblyAllele))
 							{								
 								variantList.push_back(Variant(Variant::UNKNOWN_POS, Variant::UNKNOWN_BLOCK, "", assemblyAllele, (*chr_)[chr], "", ""));

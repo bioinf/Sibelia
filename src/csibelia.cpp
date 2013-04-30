@@ -124,6 +124,7 @@ int main(int argc, char * argv[])
 		for(size_t i = 0; i < chrList.size(); i++)
 		{
 			totalSize += chrList[i].GetSequence().size();
+			std::cout << chrList[i].GetDescription() << std::endl;
 		}
 
 		if(totalSize > SyntenyFinder::MAX_INPUT_SIZE)
