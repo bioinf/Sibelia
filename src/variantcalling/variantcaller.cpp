@@ -395,6 +395,7 @@ namespace SyntenyFinder
 							std::string assemblyAllele(jt + pos, jt + end);
 							size_t refPos = (pos > 0 && posInReference.count(cover[chr][pos - 1]) > 0) ? posInReference[cover[chr][pos - 1]] : Variant::UNKNOWN_POS;
 							/*
+							std::cout << pos << std::endl;
 							if(refPos == Variant::UNKNOWN_POS)
 							{
 								std::cout << pos << std::endl;
@@ -407,13 +408,13 @@ namespace SyntenyFinder
 									}
 
 									std::cout << std::endl;
-								}								
-							}*/
-
+								}
+							}
+							*/
 
 							if(!SearchInReference(assemblyAllele))
 							{								
-								variantList.push_back(Variant(Variant::UNKNOWN_POS, Variant::UNKNOWN_BLOCK, "", assemblyAllele, (*chr_)[chr], "", ""));
+								variantList.push_back(Variant(refPos, Variant::UNKNOWN_BLOCK, "", assemblyAllele, (*chr_)[chr], "", ""));
 							}
 						}
 					}
