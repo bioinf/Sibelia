@@ -181,7 +181,7 @@ int main(int argc, char * argv[])
 			defaultVariantFile = outFileDir.getValue() + "/" + defaultVariantFile;
 		}
 				
-		generator.GenerateVariantOutput(variant, fileName[1], defaultVariantFile);
+		generator.GenerateVariantOutput(variant, referenceSequenceId, fileName[1], defaultVariantFile);
 		std::ofstream plainVariantStream(defaultPlainVariantFile.c_str());
 		std::copy(variant.begin(), variant.end(), std::ostream_iterator<SyntenyFinder::Variant>(plainVariantStream, "\n"));
 		if(outFileDir.isSet())

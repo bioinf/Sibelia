@@ -142,7 +142,7 @@ namespace SyntenyFinder
 		indexOut_.resize(referenceSequence_.size() + assemblySequence_.size());
 	}
 
-	void VariantCaller::AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd, StrandIterator assemblyBegin, StrandIterator assemblyEnd, const FASTARecord & assemblySequence, std::vector<Variant> & variantList) const
+	void VariantCaller::AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd, StrandIterator assemblyBegin, StrandIterator assemblyEnd, const FASTARecord & referenceSequence, const FASTARecord & assemblySequence, std::vector<Variant> & variantList) const
 	{
 		using namespace seqan;
 		typedef String<char> TSequence;
@@ -160,8 +160,8 @@ namespace SyntenyFinder
 		std::string assemblyBuf(assemblyBegin, assemblyEnd);
 		TSequence referenceSeq(referenceBuf);
 		TSequence assemblySeq(assemblyBuf);
-		StrandIterator saveReferenceBegin = referenceBegin;
-		Variant wholeVariant(referenceBegin.GetOriginalPosition(), blockId, referenceBuf, assemblyBuf, assemblySequence, referenceContext, assemblyContext);
+		StrandIterator saveReferenceBegin = referenceBegin;		
+		Variant wholeVariant(referenceBegin.GetOriginalPosition(), blockId, referenceBuf, assemblyBuf, &referenceSequence, &assemblySequence, referenceContext, assemblyContext);
 		if(referenceBuf == assemblyBuf || !ConfirmVariant(referenceBegin, referenceEnd, assemblyBegin, assemblyEnd))
 		{
 			return;
@@ -205,7 +205,7 @@ namespace SyntenyFinder
 					if(*it1 != *it2)
 					{	
 						lastMatch = UNKNOWN;
-						tempList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, std::string(1, *it1), std::string(1, *it2), assemblySequence, referenceContext, assemblyContext));
+						tempList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, std::string(1, *it1), std::string(1, *it2), &referenceSequence, &assemblySequence, referenceContext, assemblyContext));
 					}
 					else
 					{
@@ -241,7 +241,7 @@ namespace SyntenyFinder
 					}
 				}
 
-				tempList.push_back(Variant(pos, blockId, referenceAllele, variantAllele, assemblySequence, referenceContext, assemblyContext));
+				tempList.push_back(Variant(pos, blockId, referenceAllele, variantAllele, &referenceSequence, &assemblySequence, referenceContext, assemblyContext));
 			}
 		}
 		
@@ -279,7 +279,7 @@ namespace SyntenyFinder
 		StrandIterator assemblyEnd = sequence.End(assembly.GetDirection(), 1);
 		if(NextVertex(iseq, referenceIt, referenceEnd, assemblyIt, assemblyEnd, false))
 		{			
-			AlignBulgeBranches(reference.GetBlockId(), sequence.Begin(reference.GetDirection(), 0), referenceIt, sequence.Begin(assembly.GetDirection(), 1), assemblyIt, assembly.GetChrInstance(), variantList);
+			AlignBulgeBranches(reference.GetBlockId(), sequence.Begin(reference.GetDirection(), 0), referenceIt, sequence.Begin(assembly.GetDirection(), 1), assemblyIt, reference.GetChrInstance(), assembly.GetChrInstance(), variantList);
 			while(referenceIt != referenceEnd)
 			{
 				size_t dist = Traverse(referenceIt, assemblyIt) - trimK_;
@@ -288,7 +288,7 @@ namespace SyntenyFinder
 				StrandIterator nextReferenceIt = referenceIt;
 				StrandIterator nextAssemblyIt = assemblyIt;
 				NextVertex(iseq, nextReferenceIt, referenceEnd, nextAssemblyIt, assemblyEnd, true);
-				AlignBulgeBranches(reference.GetBlockId(), referenceIt, nextReferenceIt, assemblyIt, nextAssemblyIt, assembly.GetChrInstance(), variantList);
+				AlignBulgeBranches(reference.GetBlockId(), referenceIt, nextReferenceIt, assemblyIt, nextAssemblyIt, reference.GetChrInstance(), assembly.GetChrInstance(), variantList);
 				referenceIt = nextReferenceIt;
 				assemblyIt = nextAssemblyIt;				
 			}
@@ -386,35 +386,16 @@ namespace SyntenyFinder
 							std::string referenceAllele(sequence.begin() + pos, sequence.begin() + end);
 							if(!SearchInAssembly(referenceAllele))
 							{
-								variantList.push_back(Variant(pos, Variant::UNKNOWN_BLOCK, referenceAllele, "", (*chr_)[chr], "", ""));
+								variantList.push_back(Variant(pos, Variant::UNKNOWN_BLOCK, referenceAllele, "", &(*chr_)[chr], 0, "", ""));
 							}
 						}
 						else
 						{							
 							std::string::const_iterator jt = (*chr_)[chr].GetSequence().begin();
 							std::string assemblyAllele(jt + pos, jt + end);
-							size_t refPos = (pos > 0 && posInReference.count(cover[chr][pos - 1]) > 0) ? posInReference[cover[chr][pos - 1]] : Variant::UNKNOWN_POS;
-							/*
-							std::cout << pos << std::endl;
-							if(refPos == Variant::UNKNOWN_POS)
-							{
-								std::cout << pos << std::endl;
-								if(pos > 0)
-								{
-									CoverUnit unit = cover[chr][pos - 1];
-									for(size_t i = 0; i < bstart[unit].size(); i++)
-									{
-										std::cout << bstart[unit][i].first << " " << bstart[unit][i].second << std::endl;
-									}
-
-									std::cout << std::endl;
-								}
-							}
-							*/
-
 							if(!SearchInReference(assemblyAllele))
 							{								
-								variantList.push_back(Variant(refPos, Variant::UNKNOWN_BLOCK, "", assemblyAllele, (*chr_)[chr], "", ""));
+								variantList.push_back(Variant(Variant::UNKNOWN_POS, Variant::UNKNOWN_BLOCK, "", assemblyAllele, 0, &(*chr_)[chr], "", ""));
 							}
 						}
 					}

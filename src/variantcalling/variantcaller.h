@@ -35,8 +35,7 @@ namespace SyntenyFinder
 		bool SearchInReference(const std::string & pattern) const;		
 		bool ConfirmVariant(StrandIterator refenceStart, StrandIterator referenceEnd, StrandIterator assemblyStart, StrandIterator assemblyEnd) const;
 		void AlignSyntenyBlocks(const BlockInstance & reference, const BlockInstance & assembly, std::vector<Variant> & variantList) const;
-		void AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd,
-			StrandIterator assemblyBegin, StrandIterator assemblyEnd, const FASTARecord & assemblySequence, std::vector<Variant> & variantList) const;
+		void AlignBulgeBranches(size_t blockId, StrandIterator referenceBegin, StrandIterator referenceEnd, StrandIterator assemblyBegin, StrandIterator assemblyEnd, const FASTARecord & referenceSequence, const FASTARecord & assemblySequence, std::vector<Variant> & variantList) const;
 	};
 }
 

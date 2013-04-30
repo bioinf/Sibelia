@@ -16,14 +16,15 @@ namespace SyntenyFinder
 	public:
 		size_t GetBlockId() const;
 		size_t GetReferencePos() const;
-		const FASTARecord & GetSequence() const;
-        const std::string & GetReferenceAllele() const;
-        const std::string & GetAlternativeAllele() const;		
-		const std::string & GetReferenceContext() const;
-		const std::string & GetAlternativeContext() const;
+		const FASTARecord* GetAssemblySequence() const;
+		const FASTARecord* GetReferenceSequence() const;
+        const std::string& GetReferenceAllele() const;
+        const std::string& GetAlternativeAllele() const;		
+		const std::string& GetReferenceContext() const;
+		const std::string& GetAlternativeContext() const;
 		bool Equal(const Variant & toCompare) const;
 		Variant(size_t referencePos, size_t blockId, const std::string & referenceAllele, const std::string & alternativeAllele,
-			const FASTARecord & sequence, const std::string & referenceContext, const std::string alternativeContext);
+			const FASTARecord * referenceSequence, const FASTARecord * assemblySequence, const std::string & referenceContext, const std::string alternativeContext);
 		bool operator < (const Variant & toCompare) const;		
 		static const size_t UNKNOWN_POS;
 		static const size_t UNKNOWN_BLOCK;		
@@ -34,7 +35,8 @@ namespace SyntenyFinder
 		std::string alternativeAllele_;
 		std::string referenceContext_;
 		std::string alternativeContext_;
-		const FASTARecord * sequence_;
+		const FASTARecord * referenceSequence_;
+		const FASTARecord * assemblySequence_;
 		std::string alignment_;
 		friend std::ostream& operator << (std::ostream & out, const Variant & variant);
 	};

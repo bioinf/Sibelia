@@ -16,26 +16,25 @@ namespace SyntenyFinder
 		typedef std::pair<size_t, std::vector<BlockInstance> > GroupedBlock;
 		typedef std::vector<GroupedBlock> GroupedBlockList;
 
-		std::string GetChrName(const std::string & description)
+		std::string GetChrName(std::string description)
 		{
-			std::string chrName = ".";
-			size_t chrNameStart = description.find_last_of("|", description.size() - 2);
-			if (chrNameStart == std::string::npos) 
+			for(std::string::iterator it = description.begin(); it != description.end(); ++it)
 			{
-				chrName = description;
-			}
-			else 
-			{
-				chrName = description.substr(chrNameStart + 1);
-				size_t chrNameEnd = chrName.find_last_of(".");
-				if (chrNameEnd == std::string::npos) 
+				if(*it == '|' || *it == '.')
 				{
-					chrNameEnd = chrName.size() - 1; 
+					*it = ' ';
 				}
-				chrName.erase(chrNameEnd, chrName.size() - chrNameEnd);
+			}
+			
+			std::string buf;
+			std::stringstream ss(description);
+			std::vector<std::string> token;
+			while(ss >> buf)
+			{
+				token.push_back(buf);
 			}
 
-			return chrName;
+			return token.size() == 5 ? token[3] : description;
 		}
 
 		bool ByFirstElement(const GroupedBlock & a, const GroupedBlock & b)
@@ -542,7 +541,7 @@ namespace SyntenyFinder
 		}
 	}
 
-	void OutputGenerator::GenerateVariantOutput(const std::vector <Variant> & variants, const std::string & assemblyFile, const std::string & outFile) const 
+	void OutputGenerator::GenerateVariantOutput(const std::vector <Variant> & variants, const std::set<size_t> referenceSequence, const std::string & assemblyFile, const std::string & outFile) const 
 	{
 		std::ofstream out;
 		TryOpenFile(outFile, out);
@@ -554,11 +553,25 @@ namespace SyntenyFinder
 		{
 			if (buffer == "##reference=") 
 			{
-				out << buffer << GetChrName(chrList_[0].GetDescription()) << std::endl;
+				for(size_t i = 0; i < chrList_.size(); i++)
+				{
+					if(referenceSequence.count(chrList_[i].GetId()) > 0)
+					{
+						out << buffer << GetChrName(chrList_[i].GetDescription()) << std::endl;
+						break;
+					}
+				}				
 			}
 			else if (buffer == "##assembly=") 
 			{
-				out << buffer << GetChrName(chrList_[1].GetDescription()) << std::endl;
+				for(size_t i = 0; i < chrList_.size(); i++)
+				{
+					if(referenceSequence.count(chrList_[i].GetId()) == 0)
+					{
+						out << buffer << GetChrName(chrList_[i].GetDescription()) << std::endl;
+						break;
+					}
+				}				
 			}
 			else 
 			{
@@ -566,11 +579,10 @@ namespace SyntenyFinder
 			}
 			std::getline(vcfTemplate, buffer);
 		}
-
-		std::string chrName = GetChrName(chrList_[0].GetDescription());	
-
+		
 		for (size_t i = 0; i < variants.size(); ++i)
-		{
+		{			
+			std::string chrName = variants[i].GetReferenceSequence() == 0 ? "." : GetChrName(variants[i].GetReferenceSequence()->GetDescription());
 			out << chrName << "\t";
 			if(variants[i].GetReferencePos() != Variant::UNKNOWN_POS)
 			{

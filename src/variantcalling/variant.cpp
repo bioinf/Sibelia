@@ -12,16 +12,18 @@ namespace SyntenyFinder
 	const size_t Variant::UNKNOWN_BLOCK = -1;	
 
 	Variant::Variant(size_t referencePos, size_t blockId, const std::string & referenceAllele, const std::string & alternativeAllele,
-		const FASTARecord & sequence, const std::string & referenceContext, const std::string alternativeContext):
+		const FASTARecord * referenceSequence, const FASTARecord * assemblySequence, const std::string & referenceContext, const std::string alternativeContext):
 		referencePos_(referencePos), blockId_(blockId), referenceAllele_(referenceAllele), alternativeAllele_(alternativeAllele),
-			sequence_(&sequence), referenceContext_(referenceContext), alternativeContext_(alternativeContext)
+			referenceSequence_(referenceSequence), assemblySequence_(assemblySequence), referenceContext_(referenceContext), alternativeContext_(alternativeContext)
 	{
 
 	}
 
 	bool Variant::operator < (const Variant & toCompare) const
 	{
-		return referencePos_ < toCompare.referencePos_;
+		size_t currentReferenceId = referenceSequence_ == 0 ? -1 : referenceSequence_->GetId();
+		size_t otherReferenceId = toCompare.GetReferenceSequence() == 0 ? -1 : toCompare.GetReferenceSequence()->GetId(); 
+		return std::make_pair(currentReferenceId, referencePos_) < std::make_pair(otherReferenceId, toCompare.referencePos_);
 	}
 
 	size_t Variant::GetBlockId() const
@@ -49,9 +51,14 @@ namespace SyntenyFinder
 		return toCompare.referencePos_ == referencePos_ && referenceAllele_ == toCompare.referenceAllele_ && alternativeAllele_ == toCompare.alternativeAllele_;
 	}
 
-	const FASTARecord & Variant::GetSequence() const
+	const FASTARecord* Variant::GetReferenceSequence() const
 	{
-		return *sequence_;
+		return referenceSequence_;
+	}
+
+	const FASTARecord* Variant::GetAssemblySequence() const
+	{
+		return assemblySequence_;
 	}
 
 	const std::string & Variant::GetReferenceContext() const
@@ -77,7 +84,7 @@ namespace SyntenyFinder
 			out << variant.blockId_;
 		}
 		
-		out << '\t' << variant.GetSequence().GetDescription();
+		out << '\t' << (variant.GetAssemblySequence() == 0 ? "NONE" : variant.GetAssemblySequence()->GetDescription());
 		out << '\t' << (variant.referenceContext_.empty() ? "." : variant.referenceContext_);
 		return out << '\t' << (variant.alternativeContext_.empty() ? "." : variant.alternativeContext_);
 	}
