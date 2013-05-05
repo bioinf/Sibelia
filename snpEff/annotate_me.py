@@ -25,6 +25,9 @@ class Block:
 	
 	def __eq__(self, other):
 		return self.id == other.id and self.strand == other.strand
+	
+	def __ne__(self, other):
+		return not self == other
 
 	def reverse(self):
 		return Block(self.id, not self.strand, self.start, self.end)
@@ -57,94 +60,87 @@ class Permutation:
 		else:
 			return -1
 
-	def find_mobile_elements(self, mobile_elements):
-		# very simple version, find single repeating blocks
-		repeats = {} # block_id -> block
-		for i, block in enumerate(self.permutation):
-			if block.id in repeats.keys():
-				repeats[block.id].append(block)
-			else:
-				repeats[block.id] = [block]
-		for block_id, entry in repeats.iteritems():
-			if len(entry) >= ME_THRESHOLD:
-				for block in entry:
-					insert_to_mobile_elements([Block(block.id, block.strand)], mobile_elements, self.id, block.start, block.end)
-
 class MobileElement:
-	def __init__(self, locations, blocks_seq=[], genome_seq="", descriptions=[]):
+	def __init__(self, permutation_id, location, blocks_seq=None, description="", permutation_name=""):
+		self.permutation_id = permutation_id
 		self.blocks_seq = blocks_seq
-		self.locations = locations
-		self.genome_seq = genome_seq
-		self.descriptions = descriptions
+		self.location = location
+		self.description = description
+		self.permutation_name = permutation_name
 
 	def __str__(self):
-		res = "Blocks:\n"
-		for block in self.blocks_seq:
-			res += str(block) + " "
-		res += "Locations:" + str(self.locations) + "\n"
-		res += "Description:" + str(self.descriptions) + "\n"
-		res += "Sequence:" + self.genome_seq
+		res = "Description:" + self.description + "\n"
+		res += "Permutation:" + str(self.permutation_id) + " - " + self.permutation_name + "\n"
+		res += "Location:" + str(self.location) + "\n"
+		res += "Blocks:" + ("\n start id = " + str(self.blocks_seq[0]) + ", end id = " + str(self.blocks_seq[1]) if self.blocks_seq else "None")
+#		for block in self.blocks_seq:
+#			res += str(block) + " "
 		return res
 
-def blast_sequence(sequence):
-	blast_handle = NCBIWWW.qblast("blastn", "nr", sequence, megablast = True)
+def find_neighbors(permutations, before_me, after_me, before, after):
+	for i, block in enumerate(permutations[0].permutation):
+		if before_me and before_me.id == block.id:
+			before.append(i)
+		if after_me and after_me.id == block.id:
+			after.append(i)
+
+def find_difference(mobile_elements, permutations, fout):
+	for me in mobile_elements:
+		if not me.blocks_seq or not me.permutation_id:
+			continue
+		first_block = permutations[me.permutation_id].permutation[me.blocks_seq[0]]
+		last_block = permutations[me.permutation_id].permutation[me.blocks_seq[1]]
+		before_me = (permutations[me.permutation_id].permutation[me.blocks_seq[0] - 1]
+			if me.blocks_seq[0] > 0 else None)
+		after_me = (permutations[me.permutation_id].permutation[me.blocks_seq[1] + 1]
+			if me.blocks_seq[1] < len(permutations[me.permutation_id].permutation) - 1 else None)
+#		print str(first_block) + " " + str(last_block) + " " + str(before_me) + " " + str(after_me)
+
+		before = []
+		after = []
+		find_neighbors(permutations, before_me, after_me, before, after)
+
+		for block_id in before:
+			if (permutations[0].permutation[block_id + 1] != first_block
+					and permutations[0].permutation[block_id - 1] != first_block.reverse()):
+#				print str(permutations[0].permutation[block_id + 1]) + " " + str(permutations[0].permutation[block_id - 1]) + " " + str(first_block)
+				fout.write("Mobile element: " + str(me) + "\n")
+				fout.write("Insert near: " + str(block_id) + " - " + str(permutations[0].permutation[block_id]) + "\n\n")
+
+		for block_id in after:
+			if (permutations[0].permutation[block_id - 1] != last_block
+					and permutations[0].permutation[block_id + 1] != last_block.reverse()):
+				fout.write("Mobile element: " + str(me) + "\n")
+				fout.write("Insert near: " + str(block_id) + " - " + str(permutations[0].permutation[block_id]) + "\n\n")
+
+def blast_sequence(sequence, mobile_elements, permutations):
+	blast_handle = NCBIWWW.qblast("blastn", "nr", sequence, megablast = True, entrez_query = "insert*[Title] OR transpos*[Title]")
+#	out = open("tmp_res.xml", "w")
+#	out.write(blast_handle.read())
+#	out.close()
+#	blast_records = NCBIXML.parse(open("tmp_res.xml"))
 	blast_records = NCBIXML.parse(blast_handle)
-	insertion_hits = []
-	for record in blast_records:
-		for aln in record.alignments:
-			if aln.title.find("insert") > 0 or aln.title.find("transpos") > 0:
-				insertion_hits.append(aln)
-	return insertion_hits
-
-def insert_blast_res_to_mobile_elements(blast_results, mobile_elements, permutations, seq_id):
-	permutation = next(p for p in permutations if p.name == seq_id)
-	for hit in blast_results:
-		for hsp in hit.hsps:
-			start_block = next((i for i, block in enumerate(permutation.permutation) if block.start >= hsp.query_start), None)
-			end_block = next((len(permutation.permutation) - 1 - i for i, block in enumerate(permutation.permutation[::-1]) 
-				if block.end <= hsp.query_start + hit.length), None)
-			if start_block and end_block and start_block >= end_block:
-				insert_to_mobile_elements(permutation.permutation[start_block:end_block + 1], mobile_elements, permutation.id, 
-					permutation.permutation[start_block].start, permutation.permutation[end_block].end, hit.title)
-			else:
-				mobile_elements.append(MobileElement(locations = {permutation.id: [(hsp.query_start, hsp.query_start + hit.length, True)]}, descriptions = [hit.title]))
-
-def insert_to_mobile_elements(blocks_seq, mobile_elements, permutation_id, start = 0, end = 0, description = ""):
-	if not start and not end:
-		start = blocks_seq[0].start
-		end = blocks_seq[-1].end
-	for me in mobile_elements:
-		compare_res = Permutation.compare_permutations(me.blocks_seq, blocks_seq)
-		if compare_res == -1:
-			continue
-		else:
-			if permutation_id not in me.locations.keys():
-				me.locations[permutation_id] = []
-			if compare_res == 1:
-				me.locations[permutation_id].append((start, end, False))
-			elif compare_res == 0:
-				me.locations[permutation_id].append((start, end, True))
-			if description:
-				me.descriptions.append(description)
+	record = None
+	try:
+		for record in blast_records:
+			permutation = next((p for p in permutations if p.name == record.query), None)
+			if not permutation:
+				continue
+			for aln in record.alignments:
+				for hsp in aln.hsps:
+					insert_blast_res_to_mobile_elements(mobile_elements, permutation, hsp.query_start, hsp.query_start + len(hsp.query), aln.title)
+	except: 
+		print "Unknown error occured " + str(sys.exc_info()) + " " + (" on " + record.query if record else "")
 		return
-	mobile_elements.append(MobileElement(blocks_seq = blocks_seq, locations = {permutation_id: [(start, end, True)]}, descriptions = [description]))
 
-def get_descriptions(blocks_seq, mobile_elements):
-	for me in mobile_elements:
-		if any((blocks_seq == me.blocks_seq[i : i + len(blocks_seq)]) for i in xrange(0, len(me.blocks_seq) - len(blocks_seq) + 1)):
-			return me.descriptions
-	return None
-
-def fill_mobile_element_seq(sequences, mobile_elements):
-	for me in mobile_elements:
-		if me.descriptions:
-			continue
-		descriptions = get_descriptions(me.blocks_seq, mobile_elements)
-		if (descriptions):
-			me.descriptions = descriptions
-			continue
-		for block in me.blocks_seq:
-			me.genome_seq += sequences[block.id - 1] if block.strand else sequences[block.id - 1].reverse_complement()
+def insert_blast_res_to_mobile_elements(mobile_elements, permutation, query_start, query_end, description):
+	start_block = next((i for i, block in enumerate(permutation.permutation) if block.start >= query_start), None)
+	end_block = next((len(permutation.permutation) - 1 - i for i, block in enumerate(permutation.permutation[::-1]) 
+		if block.end <= query_end), None)
+	if start_block is not None and end_block is not None and start_block <= end_block:
+		mobile_elements.append(MobileElement(permutation_id = permutation.id, location = (query_start, query_end), blocks_seq = (start_block, end_block), description = description, permutation_name = permutation.name))
+	else:
+		mobile_elements.append(MobileElement(permutation_id = permutation.id, location = (query_start, query_end), description = description, permutation_name = permutation.name))
 
 def add_block_start_end(permutations, block_id, seq_id, start, end, prev = 0):
 	permutation = next(p for p in permutations if p.name == seq_id)
@@ -171,21 +167,18 @@ def parse_permutations_file(filename, permutations):
 		else:
 			permutations[-1].permutation = parse_permutation_string(l.strip())
 
-def parse_sequences_file(filename, sequences, permutations):
-	prev = 0
-	prev_seq_id = ""
+def parse_sequences_file(filename, permutations):
+	prev = {}
 	for block_record in SeqIO.parse(filename, "fasta"):
 		block_params = {param.split('=')[0]: param.split('=')[1] for param in block_record.id.split(',')}
 		block_id, strand, seq_id, start, end = (int(block_params['Block_id']), (block_params['Strand'] == '\'+\''), block_params['Seq'][1:-1], int(block_params['Start']), int(block_params['End']))
 
-		if block_id == len(sequences) + 1:
-			sequences.append(block_record.seq if strand else block_record.seq.reverse_complement())
-			prev = 0
-		if prev_seq_id != seq_id:
-			prev_seq_id = seq_id
-			prev = 0
+		if seq_id not in prev.keys():
+			prev[seq_id] = {}
+		if block_id not in prev[seq_id]:
+			prev[seq_id][block_id] = 0
 
-		prev = add_block_start_end(permutations, block_id, seq_id, start, end, prev)
+		prev[seq_id][block_id] = add_block_start_end(permutations, block_id, seq_id, start, end, prev[seq_id][block_id])
 
 def parse_assembly_file(filename, sequences):
 	for record in SeqIO.parse(filename, "fasta"):
@@ -199,6 +192,7 @@ if (__name__ == "__main__"):
 	parser.add_argument("-p", action="store", dest="permutations", help="genome permutations file")
 	parser.add_argument("-s", action="store", dest="sequences", help="block sequences file")
 	parser.add_argument("-a", action="store", dest="assembly", help="FASTA file with assembly")
+	parser.add_argument("-r", action="store", dest="reference", help="FASTA file with reference")
 	parser.add_argument("-o", action="store", dest="output", help="output file")
 
 	args = parser.parse_args()
@@ -219,36 +213,24 @@ if (__name__ == "__main__"):
 		sys.exit(-1)
 
 	if (not args.output):
-		args.output = "./mob_el.txt"
+		args.output = "./mobile_elements.txt"
 	
 	permutations = []
 	mobile_elements = []
-	blocks_sequences = []
-	contigs = []
 
 	parse_permutations_file(args.permutations, permutations)
-	parse_sequences_file(args.sequences, blocks_sequences, permutations)
-	parse_assembly_file(args.assembly, contigs)
+	parse_sequences_file(args.sequences, permutations)
 
-	for i, seq_record in enumerate(contigs):
-		if (len(seq_record.seq) < 70000):
-			print seq_record.id + " start"
-			blast_results = blast_sequence(seq_record.seq)
-			insert_blast_res_to_mobile_elements(blast_results, mobile_elements, permutations, seq_record.id)			
-			print seq_record.id + " done"
+	if args.assembly and os.path.exists(args.assembly):
+		blast_sequence(open(args.assembly).read(), mobile_elements, permutations)
+
+	if args.reference and os.path.exists(args.reference):
+		blast_sequence(open(args.reference).read(), mobile_elements, permutations)
+
+	fout = open(args.output, "w")
+
+	for me in mobile_elements:
+		fout.write(str(me) + "\n\n")
 	
-	for me in mobile_elements:
-		print me
-
-	for permutation in permutations:
-		permutation.find_mobile_elements(mobile_elements)
-
-	for me in mobile_elements:
-		print me
-
-	fill_mobile_element_seq(blocks_sequences, mobile_elements)
-
-	print "After fill"
-
-	for me in mobile_elements:
-		print me
+	fout.write("\n\nMobile elements insertions:\n\n")
+	find_difference(mobile_elements, permutations, fout)
