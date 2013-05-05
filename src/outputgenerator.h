@@ -24,6 +24,8 @@ namespace SyntenyFinder
 		void GenerateD3Output(const BlockList & blockList, const std::string & outFile) const;
 		void GenerateVariantOutput(const std::vector <Variant> & variants, const std::string & assemblyFile, const std::string & outFile) const;
 		void ListBlocksIndices(const BlockList & blockList, const std::string & fileName) const;
+		void ListBlocksIndicesHeirarchy(const std::vector<BlockList> & history, const std::string & fileName) const;
+		void OutputTree(const std::vector<BlockList> & history, const std::string & fileName) const;
 		void ListBlocksSequences(const BlockList & blockList, const std::string & fileName) const;		
 		void ListChromosomesAsPermutations(const BlockList & blockList, const std::string & fileName) const;
 		void RearrangementScenario(const std::vector<std::string> & steps, const std::string & fileName) const;

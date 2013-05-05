@@ -16,6 +16,7 @@ namespace SyntenyFinder
 	namespace 
 	{
 		const size_t oo = UINT_MAX;
+		const std::string base = "ACGT";
 		bool NextVertex(IndexedSequence & iseq, StrandIterator & reference, StrandIterator referenceEnd, StrandIterator & assembly, StrandIterator assemblyEnd, bool strict)
 		{
 			size_t minSum = oo;						
@@ -111,25 +112,6 @@ namespace SyntenyFinder
 
 	bool VariantCaller::ConfirmVariant(StrandIterator referenceStart, StrandIterator referenceEnd, StrandIterator assemblyStart, StrandIterator assemblyEnd) const
 	{		
-		size_t confirmDist = trimK_;
-		for(size_t i = 0; i < confirmDist; i++)
-		{
-			StrandIterator nextReferenceStart = AdvanceBackward(referenceStart, 1);
-			StrandIterator nextAssemblyStart = AdvanceBackward(assemblyStart, 1);
-			if(nextReferenceStart.AtValidPosition() && assemblyStart.AtValidPosition() && *referenceStart == *assemblyStart)
-			{
-				referenceStart = nextReferenceStart;
-				assemblyStart = nextAssemblyStart;
-			}
-			else
-			{
-				break;
-			}
-		}
-		
-		size_t forward = Traverse(referenceEnd, assemblyEnd, confirmDist);
-		std::advance(referenceEnd, forward);
-		std::advance(assemblyEnd, forward);		
 		std::string pattern(assemblyStart, assemblyEnd);		
 		return !SearchInReference(pattern);
 	}
@@ -207,13 +189,23 @@ namespace SyntenyFinder
 		TIterator it1 = iter(row(align, 0), colBegin);
 		TIterator it1End = iter(row(align, 0), colEnd);
 		TIterator it2 = iter(row(align, 1), colBegin);
+		const char UNKNOWN = -1;
+		char lastMatch = UNKNOWN;
 		while(it1 != it1End)
 		{
 			if(!isGap(it1) && !isGap(it2))
 			{
-				if(*it1 != *it2)
-				{					
-					tempList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, std::string(1, *it1), std::string(1, *it2), assemblySequence, referenceContext, assemblyContext));
+				if(base.find(*it1) != base.npos && base.find(*it2) != base.npos)
+				{
+					if(*it1 != *it2)
+					{	
+						lastMatch = UNKNOWN;
+						tempList.push_back(Variant(referenceBegin.GetOriginalPosition(), blockId, std::string(1, *it1), std::string(1, *it2), assemblySequence, referenceContext, assemblyContext));
+					}
+					else
+					{
+						lastMatch = *it1;
+					}
 				}
 
 				++referenceBegin;
@@ -222,9 +214,11 @@ namespace SyntenyFinder
 			}
 			else
 			{
-				std::string variantAllele;
-				std::string referenceAllele;
-				size_t pos = referenceBegin.GetOriginalPosition();
+				const std::string start(lastMatch == UNKNOWN ? "" : std::string(1, lastMatch));
+				std::string variantAllele(start);
+				std::string referenceAllele(start);
+				size_t pos = referenceBegin.GetOriginalPosition() - (lastMatch == UNKNOWN ? 1 : 0);
+				lastMatch = UNKNOWN;
 				for(;it1 != it1End; ++it1, ++it2)
 				{
 					if(isGap(it1))
