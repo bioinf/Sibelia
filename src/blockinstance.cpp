@@ -90,6 +90,16 @@ namespace SyntenyFinder
 		return std::pair<size_t, size_t>(0, 0);
 	}
 
+	bool BlockInstance::operator == (const BlockInstance & toCompare) const
+	{
+		return start_ == toCompare.start_ && end_ == toCompare.end_ && chr_->GetId() == toCompare.chr_->GetId() && id_ == toCompare.id_;
+	}
+
+	bool BlockInstance::operator != (const BlockInstance & toCompare) const
+	{
+		return !(*this == toCompare);
+	}
+
 	void BlockInstance::Reverse()
 	{
 		id_ = -id_;

@@ -35,6 +35,8 @@ namespace SyntenyFinder
 		size_t GetConventionalEnd() const;
 		std::pair<size_t, size_t> CalculateOverlap(const BlockInstance & instance) const;		
 		bool operator < (const BlockInstance & toCompare) const;
+		bool operator == (const BlockInstance & toCompare) const;
+		bool operator != (const BlockInstance & toCompare) const;
 	private:
 		int id_;		
 		size_t start_;

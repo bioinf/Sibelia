@@ -84,7 +84,7 @@ namespace SyntenyFinder
 			out << variant.blockId_;
 		}
 		
-		out << '\t' << (variant.GetAssemblySequence() == 0 ? "NONE" : variant.GetAssemblySequence()->GetDescription());
+		out << '\t' << (variant.GetAssemblySequence() == 0 ? "None" : variant.GetAssemblySequence()->GetDescription());
 		out << '\t' << (variant.referenceContext_.empty() ? "." : variant.referenceContext_);
 		return out << '\t' << (variant.alternativeContext_.empty() ? "." : variant.alternativeContext_);
 	}
