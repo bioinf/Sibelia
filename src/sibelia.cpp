@@ -6,6 +6,7 @@
 
 #include <tclap/CmdLine.h>
 #include "util.h"
+#include "postprocessor.h"
 
 int main(int argc, char * argv[])
 {	
@@ -162,6 +163,7 @@ int main(int argc, char * argv[])
 			if(hierarchy || fullOutput)
 			{
 				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
+				SyntenyFinder::Postprocessor::GlueStripes(history[i], chrList);
 			}
 
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
@@ -173,8 +175,9 @@ int main(int argc, char * argv[])
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
-		SyntenyFinder::OutputGenerator generator(chrList);
+		SyntenyFinder::Postprocessor::GlueStripes(history.back(), chrList);
 
+		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateDirectory(outFileDir.getValue());
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
 		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
