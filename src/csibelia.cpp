@@ -192,6 +192,10 @@ int main(int argc, char * argv[])
 			generator.ListBlocksSequences(blockList, defaultSequencesFile);
 			generator.GenerateD3Output(blockList, defaultD3File);		
 			generator.GenerateCircosOutput(blockList, defaultCircosFile, defaultCircosDir);
+
+			std::stringstream buffer;
+			finder.SerializeCondensedGraph(lastK, buffer, PutProgressChr);
+			generator.OutputBuffer(defaultGraphFile, buffer.str());
 		}
 	} 
 	catch (TCLAP::ArgException &e)

@@ -15,3 +15,5 @@ presentation/*.toc
 *.gz
 .idea
 
+src/.metadata*
+src/csibelia/.*

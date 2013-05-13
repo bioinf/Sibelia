@@ -31,6 +31,12 @@ int main(int argc, char * argv[])
 			"integer",
 			cmd);
 
+		TCLAP::SwitchArg fullOutputFlag("",
+			"fulloutput",
+			"Output synteny blocks from all stages",
+			cmd,
+			false);
+
 		TCLAP::ValueArg<std::string> tempFileDir("t",
 			"tempdir",
 			"Directory where temporary files are stored",
@@ -62,7 +68,7 @@ int main(int argc, char * argv[])
 			"sequencesfile",
 			"Output sequences of synteny blocks (FASTA format), default = not set.",
 			cmd,
-			false);
+			false);		
 
 		std::string description = std::string("Parameters set, used for the simplification. ") +
 			std::string("Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).");
@@ -106,7 +112,7 @@ int main(int argc, char * argv[])
 			false,
 			".",
 			"dir name",
-			cmd);
+			cmd);		
 
 		cmd.xorAdd(parameters, stageFile);
 		cmd.parse(argc, argv);
@@ -145,22 +151,24 @@ int main(int argc, char * argv[])
 		}
 
 		int trimK = INT_MAX;
+		bool fullOutput = fullOutputFlag.isSet();
 		bool hierarchy = hierarchyPicture.isSet();
-		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size());
+		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size() + 1);
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));		
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			trimK = std::min(trimK, stage[i].first);
-			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
-			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
-			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
-			if(hierarchy && i < stage.size() - 1)
+			if(hierarchy || fullOutput)
 			{
 				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
 			}
+
+			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
+			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
+			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);			
 		}
-		
+				
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
@@ -186,6 +194,16 @@ int main(int argc, char * argv[])
             generator.OutputBlocksInSAM(history.back(), defaultBlocksAlignmentFile);			
 		}
 
+		if(fullOutput)
+		{
+			for(size_t i = 0; i < history.size(); i++)
+			{
+				std::stringstream file;
+				file << outFileDir.getValue() << "/blocks_coords" << i << ".txt";
+				generator.ListBlocksIndices(history[i], file.str());
+			}
+		}
+
 		if(!hierarchy)
 		{
 			generator.GenerateCircosOutput(history.back(), defaultCircosFile, defaultCircosDir);
@@ -193,7 +211,7 @@ int main(int argc, char * argv[])
 		else
 		{
 			generator.GenerateHierarchyCircosOutput(history, defaultCircosFile, defaultCircosDir);
-		}
+		}		
 
 		if(graphFile.isSet())
 		{
