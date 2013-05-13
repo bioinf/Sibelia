@@ -165,7 +165,7 @@ int main(int argc, char * argv[])
 		std::vector<SyntenyFinder::BlockInstance> blockList = history.back();
 
 		SyntenyFinder::OutputGenerator generator(chrList);
-		SyntenyFinder::CreateDirectory(outFileDir.getValue());
+		SyntenyFinder::CreateOutDirectory(outFileDir.getValue());
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
 		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
 		const std::string defaultCoverageReportFile = outFileDir.getValue() + "/coverage_report.txt";

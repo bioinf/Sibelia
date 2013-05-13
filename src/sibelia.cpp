@@ -32,9 +32,9 @@ int main(int argc, char * argv[])
 			"integer",
 			cmd);
 
-		TCLAP::SwitchArg fullOutputFlag("",
-			"fulloutput",
-			"Output synteny blocks from all stages",
+		TCLAP::SwitchArg comparativeFlag("",
+			"comparative",
+			"internal flag used by C-Sibelia",
 			cmd,
 			false);
 
@@ -128,7 +128,16 @@ int main(int argc, char * argv[])
 			stage = ReadStageFile(stageFile.getValue());
 		}
 		
+		int trimK = INT_MAX;
 		size_t totalSize = 0;
+		std::set<size_t> referenceChrId;
+		bool hierarchy = hierarchyPicture.isSet();
+		bool comparative = comparativeFlag.isSet();
+		if(comparative && (fileName.end() - fileName.begin()) != 2)
+		{
+			throw std::runtime_error("In comparative mode only two FASTA files are acceptable");
+		}
+
 		std::vector<SyntenyFinder::FASTARecord> chrList;
 		for(std::vector<std::string>::const_iterator it = fileName.begin(); it != fileName.end(); it++)
 		{
@@ -138,7 +147,14 @@ int main(int argc, char * argv[])
 				throw std::runtime_error(("Cannot open file " + *it).c_str());
 			}
 
-			reader.GetSequences(chrList);			
+			reader.GetSequences(chrList);
+			if(it == fileName.begin() && comparative)
+			{
+				for(size_t i = 0; i < chrList.size(); i++)
+				{
+					referenceChrId.insert(chrList[i].GetId());
+				}
+			}
 		}
 		
 		for(size_t i = 0; i < chrList.size(); i++)
@@ -150,20 +166,18 @@ int main(int argc, char * argv[])
 		{
 			throw std::runtime_error("Input is larger than 1 GB, can't proceed");
 		}
-
-		int trimK = INT_MAX;
-		bool fullOutput = fullOutputFlag.isSet();
-		bool hierarchy = hierarchyPicture.isSet();
+		
 		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size() + 1);
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
-		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));		
+		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
+		SyntenyFinder::Postprocessor processor(chrList, minBlockSize.getValue());
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			trimK = std::min(trimK, stage[i].first);
-			if(hierarchy || fullOutput)
+			if(hierarchy || comparative)
 			{
 				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
-				SyntenyFinder::Postprocessor::GlueStripes(history[i], chrList);
+				processor.GlueStripes(history[i]);
 			}
 
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
@@ -175,10 +189,10 @@ int main(int argc, char * argv[])
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
-		SyntenyFinder::Postprocessor::GlueStripes(history.back(), chrList);
+		processor.GlueStripes(history.back());
 
 		SyntenyFinder::OutputGenerator generator(chrList);
-		SyntenyFinder::CreateDirectory(outFileDir.getValue());
+		SyntenyFinder::CreateOutDirectory(outFileDir.getValue());
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
 		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
 		const std::string defaultCoverageReportFile = outFileDir.getValue() + "/coverage_report.txt";
@@ -197,8 +211,9 @@ int main(int argc, char * argv[])
             generator.OutputBlocksInSAM(history.back(), defaultBlocksAlignmentFile);			
 		}
 
-		if(fullOutput)
+		if(comparative)
 		{
+			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
 			for(size_t i = 0; i < history.size(); i++)
 			{
 				std::stringstream file;

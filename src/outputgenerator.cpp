@@ -328,7 +328,7 @@ namespace SyntenyFinder
 	{
 		int r = 100;
 		std::ofstream config;
-		CreateDirectory(outDir);
+		CreateOutDirectory(outDir);
 		TryOpenFile(outFile, config);
 		config << circosTemplate;		
 		WriteCircosLinks(outDir, "circos.segdup.txt", history.back());
@@ -353,7 +353,7 @@ namespace SyntenyFinder
 	void OutputGenerator::GenerateCircosOutput(const BlockList & blockList, const std::string & outFile, const std::string & outDir) const
 	{		
 		std::ofstream config;
-		CreateDirectory(outDir);
+		CreateOutDirectory(outDir);
 		TryOpenFile(outFile, config);
 		config << circosTemplate;		
 		WriteCircosLinks(outDir, "circos.segdup.txt", blockList);

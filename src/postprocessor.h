@@ -7,16 +7,34 @@
 #ifndef _POSTPROCESSOR_H_
 #define _POSTPROCESSOR_H_
 
+#include <seqan/align.h>
+#undef min
+#undef max
 #include "fasta.h"
 #include "blockinstance.h"
 
 namespace SyntenyFinder
 {
-
 	class Postprocessor
 	{
-	public:
-		static void GlueStripes(std::vector<BlockInstance> & block, const std::vector<FASTARecord> & chr);
+	public:		
+		Postprocessor(const std::vector<FASTARecord> & chr, size_t minBlockSize);
+		void GlueStripes(std::vector<BlockInstance> & block);
+		void ImproveBlockBoundaries(std::vector<BlockInstance> & block, const std::set<size_t> & referenceSequenceId);	
+	private:
+		DISALLOW_COPY_AND_ASSIGN(Postprocessor);
+		const std::vector<FASTARecord> * chr_;
+		std::set<size_t> referenceSequenceId_;
+		std::vector<std::vector<BlockInstance> > history_;
+		size_t minBlockSize_;
+		const BlockInstance* PreviousBlock(const BlockInstance & block, const std::vector<BlockInstance> & blockList);
+		const BlockInstance* NextBlock(const BlockInstance & block, const std::vector<BlockInstance> & blockList);
+		std::pair<size_t, size_t> DetermineLeftProbableBoundaries(std::vector<BlockInstance> & blockList, size_t block);
+		std::pair<size_t, size_t> DetermineRightProbableBoundaries(std::vector<BlockInstance> & blockList, size_t block);
+		void CorrectBlocksBoundaries(std::vector<BlockInstance> & blockList, size_t referenceBlock, size_t assemblyBlock);
+		void UpdateBlockBoundaries(BlockInstance & block, std::pair<size_t, size_t> leftBoundaries, std::pair<size_t, size_t> rightBoundaries, std::pair<size_t, size_t> startAlignmentCoords, std::pair<size_t, size_t> endAlignmentCoords);
+		void LocalAlignment(const std::string & sequence1, const std::string & sequence2, std::pair<size_t, size_t> & coord1, std::pair<size_t, size_t> & coord2);
+		void GetBoundariesSequence(const BlockInstance & block, std::pair<size_t, size_t> leftBoundaries, std::pair<size_t, size_t> rightBoundaries, std::string & start, std::string & end);
 	};
 
 }

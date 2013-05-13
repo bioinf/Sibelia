@@ -27,7 +27,7 @@ namespace SyntenyFinder
 		#include <direct.h>
 	#endif
 
-	bool CreateDirectory(const std::string & path)
+	bool CreateOutDirectory(const std::string & path)
 	{
 		int result = 0;
 	#ifdef _WIN32
