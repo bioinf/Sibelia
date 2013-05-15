@@ -201,16 +201,6 @@ int main(int argc, char * argv[])
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf"; const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		
         const std::string defaultBlocksAlignmentFile = outFileDir.getValue() + "/blocks_sequences.sam";
-		generator.ListChromosomesAsPermutations(history.back(), defaultPermutationsFile);
-		generator.GenerateReport(history.back(), defaultCoverageReportFile);
-		generator.ListBlocksIndices(history.back(), defaultCoordsFile);
-		generator.GenerateD3Output(history.back(), defaultD3File);
-		if(sequencesFile.isSet())
-		{
-			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
-            generator.OutputBlocksInSAM(history.back(), defaultBlocksAlignmentFile);			
-		}
-
 		if(comparative)
 		{
 			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
@@ -221,6 +211,19 @@ int main(int argc, char * argv[])
 				generator.ListBlocksIndices(history[i], file.str());
 			}
 		}
+		else
+		{
+			generator.ListBlocksIndices(history.back(), defaultCoordsFile);
+		}
+
+		generator.ListChromosomesAsPermutations(history.back(), defaultPermutationsFile);
+		generator.GenerateReport(history.back(), defaultCoverageReportFile);		
+		generator.GenerateD3Output(history.back(), defaultD3File);
+		if(sequencesFile.isSet())
+		{
+			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
+            generator.OutputBlocksInSAM(history.back(), defaultBlocksAlignmentFile);			
+		}		
 
 		if(!hierarchy)
 		{

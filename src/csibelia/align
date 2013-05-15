@@ -1,0 +1,191 @@
+########################################
+# Program: needle
+# Rundate: Wed 15 May 2013 19:46:32
+# Commandline: needle
+#    -asequence C:\Users\HP\AppData\Local\Temp\needle05384101165569387927.jembosstmp
+#    -bsequence C:\Users\HP\AppData\Local\Temp\needle12299421733356912759.jembosstmp
+#    -gapopen 10.0
+#    -gapextend 15.0
+#    -noendweight
+#    -endopen 10.0
+#    -endextend 0.5
+#    -brief
+#    -aformat srspair
+#    -auto
+# Align_format: srspair
+# Report_file: nc_007795.needle
+########################################
+
+#=======================================
+#
+# Aligned_sequences: 2
+# 1: NC_007795
+# 2: Seq="contig_24",Strand='+',Block_id=115,Start=1,End=21454
+# Matrix: EDNAFULL
+# Gap_penalty: 10.0
+# Extend_penalty: 10.0
+#
+# Length: 1860
+# Identity:    1835/1860 (98.7%)
+# Similarity:  1835/1860 (98.7%)
+# Gaps:           0/1860 ( 0.0%)
+# Score: 9075.0
+# 
+#
+#=======================================
+
+NC_007795          1 GACTCAGACAGCGACTCAGACTCAGACAGCGACTCAGACTCAGACAGTGA     50
+                     |||||||||||.||.|||||.|||||||||||||||||.|||||.||.||
+Seq="contig_2      1 GACTCAGACAGTGATTCAGATTCAGACAGCGACTCAGATTCAGATAGCGA     50
+
+NC_007795         51 TTCAGATTCAGACAGCGACTCAGATTCAGATAGCGACTCAGATTCGGACA    100
+                     .||||||||.||||||||.|||||.||||||||||||||||||||.||.|
+Seq="contig_2     51 CTCAGATTCGGACAGCGATTCAGACTCAGATAGCGACTCAGATTCAGATA    100
+
+NC_007795        101 GCGATTCAGACTCAGATAGCGACTCAGATTCAGATAGCGATTCAGACTCA    150
+                     ||||||||||||||||.||||||||||||||||||||||||||.||||||
+Seq="contig_2    101 GCGATTCAGACTCAGACAGCGACTCAGATTCAGATAGCGATTCGGACTCA    150
+
+NC_007795        151 GACAGCGACTCAGATTCAGATAGCGATTCGGACTCAGACAGCGATTCAGA    200
+                     ||||||||.|||||.|||||||||||.||.||||||||||||||.|||||
+Seq="contig_2    151 GACAGCGATTCAGACTCAGATAGCGACTCAGACTCAGACAGCGACTCAGA    200
+
+NC_007795        201 CTCAGATAGCGACTCAGACTCAGACAGCGACTCAGATTCAGATAGCGATT    250
+                     .|||||||||||.||.||||||||.|||||||||||||||||.|||||||
+Seq="contig_2    201 TTCAGATAGCGATTCGGACTCAGATAGCGACTCAGATTCAGACAGCGATT    250
+
+NC_007795        251 CGGACTCAGATAGCGACTCAGATTCAGACAGCGATTCAGACTCAGATAGC    300
+                     |.||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    251 CAGACTCAGATAGCGACTCAGATTCAGACAGCGATTCAGACTCAGATAGC    300
+
+NC_007795        301 GACTCAGATTCAGACAGCGATTCAGACTCAGATAGCGACTCAGACTCAGA    350
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    301 GACTCAGATTCAGACAGCGATTCAGACTCAGATAGCGACTCAGACTCAGA    350
+
+NC_007795        351 CAGTGATTCAGATTCAGACAGCGACTCAGACTCAGATAGCGACTCAGATT    400
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    351 CAGTGATTCAGATTCAGACAGCGACTCAGACTCAGATAGCGACTCAGATT    400
+
+NC_007795        401 CGGACAGCGACTCAGACTCTGATAGCGACTCAGACTCAGACAGTGATTCA    450
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    401 CGGACAGCGACTCAGACTCTGATAGCGACTCAGACTCAGACAGTGATTCA    450
+
+NC_007795        451 GACAGCGATTCAGACTCGGATGCAGGAAAACATACACCTGTTAAACCAAT    500
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    451 GACAGCGATTCAGACTCGGATGCAGGAAAACATACACCTGTTAAACCAAT    500
+
+NC_007795        501 GAGTACTACTAAAGACCATCACAATAAAGCAAAAGCATTACCAGAAACAG    550
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    501 GAGTACTACTAAAGACCATCACAATAAAGCAAAAGCATTACCAGAAACAG    550
+
+NC_007795        551 GTAGTGAAAATAACGGCTCAAATAACGCAACGTTATTTGGTGGATTATTT    600
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    551 GTAGTGAAAATAACGGCTCAAATAACGCAACGTTATTTGGTGGATTATTT    600
+
+NC_007795        601 GCAGCATTAGGTTCATTATTGTTATTCGGTCGTCGCAAAAAACAAAACAA    650
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    601 GCAGCATTAGGTTCATTATTGTTATTCGGTCGTCGCAAAAAACAAAACAA    650
+
+NC_007795        651 ATAATACAATATGACCCAGGTCCTTGTGGCCTGGTTTTTTTATAATTACA    700
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    651 ATAATACAATATGACCCAGGTCCTTGTGGCCTGGTTTTTTTATAATTACA    700
+
+NC_007795        701 CATGCAATAGATGTATTTTTCATATAAAATAAACAATAAAGATACGGAAT    750
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    701 CATGCAATAGATGTATTTTTCATATAAAATAAACAATAAAGATACGGAAT    750
+
+NC_007795        751 AAAACTTATATGAGGCGATAATATGAATTACATTTTAGGAACAATTTTAG    800
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    751 AAAACTTATATGAGGCGATAATATGAATTACATTTTAGGAACAATTTTAG    800
+
+NC_007795        801 AAAGTAAAATTACAGGTGTAGAAAAAGCGCAAATAAATAGATTGAAGTTG    850
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    801 AAAGTAAAATTACAGGTGTAGAAAAAGCGCAAATAAATAGATTGAAGTTG    850
+
+NC_007795        851 TTCAAACAACACGGCATATCTTCAAAATGTGTATATGTTAAATGGAATCC    900
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    851 TTCAAACAACACGGCATATCTTCAAAATGTGTATATGTTAAATGGAATCC    900
+
+NC_007795        901 TTATTCATACACATATGCGAAGCAACATCAGATTGAAAATGATGTATTTA    950
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    901 TTATTCATACACATATGCGAAGCAACATCAGATTGAAAATGATGTATTTA    950
+
+NC_007795        951 CAATGTATGACTATTTTCAAAAAGCAATCAATTATAAAAAGACAAAGCAA   1000
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2    951 CAATGTATGACTATTTTCAAAAAGCAATCAATTATAAAAAGACAAAGCAA   1000
+
+NC_007795       1001 GTTAACTGGATACAGTATTGGGAAAAGTCATGTAGGTACACATTGAAATT   1050
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1001 GTTAACTGGATACAGTATTGGGAAAAGTCATGTAGGTACACATTGAAATT   1050
+
+NC_007795       1051 TGTGGAAAATTCAAATGATGTCAGAATATATGATGAAGAGCAATTTGTAA   1100
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1051 TGTGGAAAATTCAAATGATGTCAGAATATATGATGAAGAGCAATTTGTAA   1100
+
+NC_007795       1101 TGTATGCTCATTTTTTAGATAAACAGTATCATCAATTAAATTATGTGAAT   1150
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1101 TGTATGCTCATTTTTTAGATAAACAGTATCATCAATTAAATTATGTGAAT   1150
+
+NC_007795       1151 TATTTTGATCATAAAAGAAGAAAAGTAAAACGCGAATTGTATGATGGAAG   1200
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1151 TATTTTGATCATAAAAGAAGAAAAGTAAAACGCGAATTGTATGATGGAAG   1200
+
+NC_007795       1201 AGGCTTTTTAAGTTGTTCTCGAATTTTAGGTGAAGGACAACGGATTGTAC   1250
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1201 AGGCTTTTTAAGTTGTTCTCGAATTTTAGGTGAAGGACAACGGATTGTAC   1250
+
+NC_007795       1251 TCGAAAATTACTATACACCTAATGGGGAAATCGTCATCCAAAAATATTTT   1300
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1251 TCGAAAATTACTATACACCTAATGGGGAAATCGTCATCCAAAAATATTTT   1300
+
+NC_007795       1301 GACGATATAAAAGGGAAAAACACGCTCACAAAGGTTATCTTAAATGAAGA   1350
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1301 GACGATATAAAAGGGAAAAACACGCTCACAAAGGTTATCTTAAATGAAGA   1350
+
+NC_007795       1351 CCAGCATCAACAATTTTTTGATACAGAAGATGAATTAGTTCAATATTTTC   1400
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1351 CCAGCATCAACAATTTTTTGATACAGAAGATGAATTAGTTCAATATTTTC   1400
+
+NC_007795       1401 TCCATCAATTATGTAAAAATAATGATCAAATCATATTAGATCGTCCTCAT   1450
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1401 TCCATCAATTATGTAAAAATAATGATCAAATCATATTAGATCGTCCTCAT   1450
+
+NC_007795       1451 GAATTAGGAAATGTTATAGCGGGATTAAATCAAAGTATTCCAGTTATTGT   1500
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1451 GAATTAGGAAATGTTATAGCGGGATTAAATCAAAGTATTCCAGTTATTGT   1500
+
+NC_007795       1501 TGTGCTCCATAGTACACATTTATCCGGTGCCGGTAATGGTATAAAAAGTT   1550
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1501 TGTGCTCCATAGTACACATTTATCCGGTGCCGGTAATGGTATAAAAAGTT   1550
+
+NC_007795       1551 TTTATAAAACAGTGTTTAATAATTTAACACGTTATAAAGCGATTGTTGTA   1600
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1551 TTTATAAAACAGTGTTTAATAATTTAACACGTTATAAAGCGATTGTTGTA   1600
+
+NC_007795       1601 TCAACAGAAAAGCAATGCCAAGATATTTCACAATATATTGAAAATAAAAT   1650
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1601 TCAACAGAAAAGCAATGCCAAGATATTTCACAATATATTGAAAATAAAAT   1650
+
+NC_007795       1651 ACCAGTTATCAATATTCCGGTTGGCTACGTGGCAAATTTAAAGTATCAAT   1700
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1651 ACCAGTTATCAATATTCCGGTTGGCTACGTGGCAAATTTAAAGTATCAAT   1700
+
+NC_007795       1701 TTGACATCAATCAAAAGGAGAAAAATCATATCATATCAATTGCTCGCCTC   1750
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1701 TTGACATCAATCAAAAGGAGAAAAATCATATCATATCAATTGCTCGCCTC   1750
+
+NC_007795       1751 GTTGAAAATAAACAAATTAAACATCAAATTGAAGTAATCAAGCAATTAGT   1800
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1751 GTTGAAAATAAACAAATTAAACATCAAATTGAAGTAATCAAGCAATTAGT   1800
+
+NC_007795       1801 AACAAAACATCCCAATATTCAATTGAATATTTATGGACATGGAAATGGTT   1850
+                     ||||||||||||||||||||||||||||||||||||||||||||||||||
+Seq="contig_2   1801 AACAAAACATCCCAATATTCAATTGAATATTTATGGACATGGAAATGGTT   1850
+
+NC_007795       1851 TGTCAGAATA   1860
+                     ||||||||||
+Seq="contig_2   1851 TGTCAGAATA   1860
+
+
+#---------------------------------------
+#---------------------------------------
