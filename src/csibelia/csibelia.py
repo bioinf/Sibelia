@@ -7,7 +7,7 @@ import vcf
 from Bio import SeqIO
 from Bio import AlignIO
 
-MINIMUM_CONTEXT_SIZE = 3
+MINIMUM_CONTEXT_SIZE = 30
 BLOCKS_FILE = 'blocks_sequences.fasta'
 LAGAN_DIR = 'C:/Temp/lagan20'
 os.environ['LAGAN_DIR'] = LAGAN_DIR
@@ -24,9 +24,9 @@ class Variant(object):
 		self._synteny_block_id = synteny_block_id
 
 	def __str__(self):
-		return "\t".join([str(self._reference_pos), self._reference_allele, self._assembly_allele, 
-						  self._contig_id, str(self._synteny_block_id),
-						  self._reference_context, self._assembly_context])
+		return "\t".join([str(self._reference_pos), self._reference_allele, self._assembly_allele,
+						str(self._synteny_block_id), self._contig_id,
+						self._reference_context, self._assembly_context])
 				
 	def get_synteny_block_id(self):
 		return self._synteny_block_id	
@@ -35,19 +35,19 @@ class Variant(object):
 		return self._reference_context
 	
 	def get_assembly_context(self):
-		return self.assembly_context
-	
+		return self._assembly_context
+			
 	def get_reference_pos(self):
-		return self.reference_pos
+		return self._reference_pos
 	
 	def get_contig_id(self):
-		return self.contig_id
+		return self._contig_id
 	
 	def get_reference_allele(self):
-		return self.reference_allele
+		return self._reference_allele
 	
 	def get_assembly_allele(self):
-		return self.assembly_allele
+		return self._assembly_allele
 
 def no_gaps(sequence):
 	return ''.join([ch for ch in sequence if ch != '-'])
@@ -65,6 +65,7 @@ def get_context(alignment, alignment_segment, segment_index):
 		segment = alignment_segment[segment_index + 1]
 		end = segment[0] + min(segment[1] - segment[0], MINIMUM_CONTEXT_SIZE)
 		context.append(str(alignment[0][segment[0]:end].seq))
+	else:
 		context.append('')
 		
 	segment = alignment_segment[segment_index]
@@ -119,11 +120,56 @@ def parse_alignment(alingment_file_name, synteny_block_id, contig_id, reference_
 def get_reference_seqid(fileName):
 	return [record.id for record in SeqIO.parse(fileName, "fasta")]	
 
+def parse_header(header):
+	ret = dict()
+	header = header.split(',')
+	for item in header:
+		item = item.split('=')
+		key = item[0]
+		value = ''.join([ch for ch in item[1] if ch != "'" and ch != '"'])
+		ret[key] = value
+	return ret
+
+def find_instance(instance_list, reference_seq_id, in_reference):
+	for instance in instance_list:
+		header = parse_header(instance.description)
+		if (header['Seq'] in reference_seq_id) == in_reference:
+			return instance
+	return None
+
 def call_variants(directory, reference_seq_id):
 	os.chdir(directory)
-	for record in SeqIO.parse(BLOCKS_FILE, 'fasta'):		
-		print record.description, reference_seq_id[0] in record.id
-	os.chdir('..')
+	block_seq = dict()	
+	for record in SeqIO.parse(BLOCKS_FILE, 'fasta'):				
+		block_id = parse_header(record.description)['Block_id']
+		if block_id not in block_seq:
+			block_seq[block_id] = []			
+		block_seq[block_id].append(record)		
+	
+	ALIGNMENT_FILE = 'align.fasta'
+	REFERENCE_BLOCK_FILE = 'blockr.fasta'
+	ASSEMBLY_BLOCK_FILE = 'blocka.fasta'
+	lagan_cmd = ' '.join([LAGAN_DIR + "/lagan.pl", REFERENCE_BLOCK_FILE,
+						ASSEMBLY_BLOCK_FILE, '-mfa >', ALIGNMENT_FILE])
+	
+	variant_list = []
+	for synteny_block_id, instance_list in block_seq.items():		
+		if len(instance_list) == 2:		
+			reference_instance = find_instance(instance_list, reference_seq_id, True)
+			assembly_instance = find_instance(instance_list, reference_seq_id, False)
+			if (not reference_instance is None) and (not assembly_instance is None):				
+				reference_start = int(parse_header(reference_instance.description)['Start'])
+				contig_id = parse_header(assembly_instance.description)['Seq']
+				instance = [reference_instance, assembly_instance]
+				handle = [open(REFERENCE_BLOCK_FILE, 'w'), open(ASSEMBLY_BLOCK_FILE, 'w')]
+				for index, record in enumerate(instance):
+					SeqIO.write(record, handle[index], 'fasta')
+					handle[index].close()
+				os.system(lagan_cmd)
+				variant_list.extend(parse_alignment(ALIGNMENT_FILE, synteny_block_id, contig_id, reference_start))
+							
+	os.chdir('..')	
+	return variant_list
 
 parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.')
 parser.add_argument('reference', help='A multi-FASTA file with the reference genome')
@@ -137,10 +183,13 @@ args = parser.parse_args()
 sibelia_cmd = ' '.join(['Sibelia', '-s fine', '-m', str(args.minblocksize), args.reference, 
 						args.assembly, '--comparative', '-o', args.tempdir])
 '''
-lagan_cmd = ' '.join([LAGAN_DIR + "/lagan.pl", 'block10_1.fasta block10_2.fasta', '-mfa > out'])
-#os.system(lagan_cmd)
+
+
+#var = parse_alignment('.out/align.fasta', 12, '', 0)
+
 
 reference_seq_id = get_reference_seqid('NCTC8325.fasta')
 variant_list = call_variants('.out', reference_seq_id)
-
-#os.system(cmd)
+variant_list.sort(key=Variant.get_reference_pos)
+for v in variant_list:
+	print v
