@@ -1,12 +1,16 @@
-import argparse
+import re
 import os, sys
+import argparse
 lib_path = os.path.abspath('./lib')
 sys.path.append(lib_path)
 import vcf
+from Bio import SeqIO
 from Bio import AlignIO
 
 MINIMUM_CONTEXT_SIZE = 3
-LAGAN_PATH = 'C:/Temp/lagan20'
+BLOCKS_FILE = 'blocks_sequences.fasta'
+LAGAN_DIR = 'C:/Temp/lagan20'
+os.environ['LAGAN_DIR'] = LAGAN_DIR
 
 class Variant(object):
 	def __init__(self, reference_pos, contig_id, reference_allele, assembly_allele,
@@ -112,6 +116,14 @@ def parse_alignment(alingment_file_name, synteny_block_id, contig_id, reference_
 				
 	return variant		   
 
+def get_reference_seqid(fileName):
+	return [record.id for record in SeqIO.parse(fileName, "fasta")]	
+
+def call_variants(directory, reference_seq_id):
+	os.chdir(directory)
+	for record in SeqIO.parse(BLOCKS_FILE, 'fasta'):		
+		print record.description, reference_seq_id[0] in record.id
+	os.chdir('..')
 
 parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.')
 parser.add_argument('reference', help='A multi-FASTA file with the reference genome')
@@ -122,11 +134,13 @@ parser.add_argument('-m', '--minblocksize', help='Minimum size of a synteny bloc
 					
 '''
 args = parser.parse_args()
-cmd = ' '.join(['Sibelia', '-s fine', '-m', str(args.minblocksize), args.reference,
-				 args.assembly, '--comparative', '-o', args.tempdir])'''
-os.environ['LAGAN_PATH'] = LAGAN_PATH
-lagan_cmd = ' '.join([LAGAN_PATH + "/lagan.pl", 'block10_1.fasta block10_2.fasta', '-mfa > out'])
-os.system(lagan_cmd)
+sibelia_cmd = ' '.join(['Sibelia', '-s fine', '-m', str(args.minblocksize), args.reference, 
+						args.assembly, '--comparative', '-o', args.tempdir])
+'''
+lagan_cmd = ' '.join([LAGAN_DIR + "/lagan.pl", 'block10_1.fasta block10_2.fasta', '-mfa > out'])
+#os.system(lagan_cmd)
 
+reference_seq_id = get_reference_seqid('NCTC8325.fasta')
+variant_list = call_variants('.out', reference_seq_id)
 
 #os.system(cmd)

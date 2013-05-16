@@ -78,6 +78,11 @@ namespace SyntenyFinder
 		{
 			delim = header.length() - 1;
 		}
+		else
+		{
+			--delim;
+		}
+
 		header = header.substr(1, delim);
 		if (header.empty()) throw ParseException("empty header");
 	}
