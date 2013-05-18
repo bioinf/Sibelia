@@ -182,9 +182,9 @@ namespace SyntenyFinder
 	void BlockFinder::Extend(std::vector<StrandIterator> current, std::vector<size_t> & start, std::vector<size_t> & end, std::vector<Indicator> & overlap, std::set<ChrPos> & localOverlap, IndexedSequence & iseq, bool forward)
 	{
 		bool extend = true;
-		while(extend)
+		for(size_t step = 0; extend; ++step)
 		{
-			char headingChar = EMPTY;
+			char headingChar = EMPTY;			
 			for(size_t i = 0; i < current.size() && extend; i++)
 			{					
 				extend = current[i].AtValidPosition();
@@ -198,7 +198,7 @@ namespace SyntenyFinder
 
 					size_t nowPos = current[i].GetOriginalPosition();
 					ChrPos nowChrPos(chrId, nowPos);
-					extend = extend && (headingChar == *current[i]) && (overlap[chrId][nowPos] == POS_FREE) && localOverlap.count(nowChrPos) == 0;
+					extend = (headingChar == *current[i]) && (overlap[chrId][nowPos] == POS_FREE) && localOverlap.count(nowChrPos) == 0;
 				}					
 			}
 
@@ -211,7 +211,7 @@ namespace SyntenyFinder
 					localOverlap.insert(ChrPos(chrId, nowPos));
 					if(forward)
 					{
-						end[i] = nowPos;
+						end[i] = nowPos;						
 						++current[i];
 					}
 					else
@@ -231,7 +231,7 @@ namespace SyntenyFinder
 		BifurcationStorage bifStorage = iseq.BifStorage();		
 		std::vector<std::pair<size_t, std::vector<StrandIterator> > > edgeGroup;
 		for(size_t i = 0; i <= bifStorage.GetMaxId(); i++)
-		{			
+		{
 			std::vector<std::pair<char, StrandIterator> > edge;
 			std::vector<BifurcationStorage::IteratorProxy> buffer;
 			bifStorage.ListPositions(i, std::back_inserter(buffer));			
@@ -292,6 +292,11 @@ namespace SyntenyFinder
 				{
 					current.push_back(*it);
 				}
+			}
+
+			if(current.size() < 2)
+			{
+				continue;
 			}
 
 			std::vector<size_t> start(current.size());
