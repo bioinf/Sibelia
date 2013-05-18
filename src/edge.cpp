@@ -82,4 +82,9 @@ namespace SyntenyFinder
 	{
 		return firstChar;
 	}
+
+	bool BlockFinder::Edge::operator < (const Edge & edge)
+	{
+		return std::make_pair(GetChr(), GetActualPosition()) < std::make_pair(edge.GetChr(), edge.GetActualPosition());
+	}
 }

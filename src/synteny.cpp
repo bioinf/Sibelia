@@ -20,7 +20,7 @@ namespace SyntenyFinder
 			{
 				return firstBlock < toCompare.firstBlock;
 			}
-		};		
+		};
 	}
 
 	const char BlockFinder::POS_FREE = 0;
@@ -119,10 +119,9 @@ namespace SyntenyFinder
 		return drop;
 	}
 
-	void BlockFinder::ResolveOverlap(EdgeIterator start, EdgeIterator end, size_t minSize, std::vector<Indicator> & overlap, std::vector<Edge> & nowBlock)
+	void BlockFinder::ResolveOverlap(EdgeIterator start, EdgeIterator end, size_t minSize, std::vector<Indicator> & overlap, std::vector<Edge> & nowBlock) const
 	{
-		nowBlock.clear();
-		typedef std::pair<size_t, size_t> ChrPos;
+		nowBlock.clear();		
 		std::set<ChrPos> localOverlap;
 		for(; start != end; ++start)
 		{
@@ -160,6 +159,176 @@ namespace SyntenyFinder
 					ChrPos now(chrNumber, pos);
 					localOverlap.insert(now);
 				}
+			}
+		}
+	}
+
+	namespace
+	{
+		const char EMPTY = ' ';	
+		template<class First, class Second>
+			bool LessFirst(const std::pair<First, Second> & a, const std::pair<First, Second> & b)
+			{
+				return a.first < b.first;
+			}
+
+		typedef std::pair<size_t, std::vector<StrandIterator> > IteratorEdgeGroup;
+		bool CompareIteratorEdgeGroup(const IteratorEdgeGroup & a, const IteratorEdgeGroup & b)
+		{
+			return std::make_pair(a.second.size(), a.first) < std::make_pair(b.second.size(), b.first);
+		}		
+	}
+
+	void BlockFinder::Extend(std::vector<StrandIterator> current, std::vector<size_t> & start, std::vector<size_t> & end, std::vector<Indicator> & overlap, std::set<ChrPos> & localOverlap, IndexedSequence & iseq, bool forward)
+	{
+		bool extend = true;
+		while(extend)
+		{
+			char headingChar = EMPTY;
+			for(size_t i = 0; i < current.size() && extend; i++)
+			{					
+				extend = current[i].AtValidPosition();
+				if(extend)
+				{
+					size_t chrId = iseq.GetChr(current[i]);
+					if(headingChar == EMPTY)
+					{
+						headingChar = *current[i];
+					}
+
+					size_t nowPos = current[i].GetOriginalPosition();
+					ChrPos nowChrPos(chrId, nowPos);
+					extend = extend && (headingChar == *current[i]) && (overlap[chrId][nowPos] == POS_FREE) && localOverlap.count(nowChrPos) == 0;
+				}					
+			}
+
+			if(extend)
+			{
+				for(size_t i = 0; i < start.size(); i++)
+				{
+					size_t chrId = iseq.GetChr(current[i]);
+					size_t nowPos = current[i].GetOriginalPosition();
+					localOverlap.insert(ChrPos(chrId, nowPos));
+					if(forward)
+					{
+						end[i] = nowPos;
+						++current[i];
+					}
+					else
+					{
+						start[i] = nowPos;
+						--current[i];
+					}
+				}
+			}
+		}
+	}
+
+	void BlockFinder::GenerateExtendedSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly, ProgressCallBack enumeration)
+	{			
+		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_);
+		iseq.ConstructChrIndex();
+		BifurcationStorage bifStorage = iseq.BifStorage();		
+		std::vector<std::pair<size_t, std::vector<StrandIterator> > > edgeGroup;
+		for(size_t i = 0; i <= bifStorage.GetMaxId(); i++)
+		{			
+			std::vector<std::pair<char, StrandIterator> > edge;
+			std::vector<BifurcationStorage::IteratorProxy> buffer;
+			bifStorage.ListPositions(i, std::back_inserter(buffer));			
+			for(size_t i = 0; i < buffer.size(); i++)
+			{
+				char endChar = EMPTY;
+				if(ProperKMer(*buffer[i], k + 1))
+				{
+					endChar = *AdvanceForward(*buffer[i], k);
+				}
+
+				edge.push_back(std::make_pair(endChar, *buffer[i]));
+			}
+
+			std::sort(edge.begin(), edge.end());
+			std::vector<std::pair<size_t, size_t> > group;
+			GroupBy(edge, LessFirst<char, StrandIterator>, std::back_inserter(group));
+			for(auto it = group.begin(); it != group.end(); ++it)
+			{
+				if(edge[it->first].first != EMPTY)
+				{
+					size_t minPositiveStart = INT_MAX;
+					std::vector<StrandIterator> nowGroupEdge;
+					for(size_t i = it->first; i < it->second; i++)
+					{					
+						nowGroupEdge.push_back(edge[i].second);
+						if(edge[i].second.GetDirection() == DNASequence::positive)
+						{
+							minPositiveStart = std::min(minPositiveStart, edge[i].second.GetOriginalPosition());
+						}
+					}
+
+					if(minPositiveStart != INT_MAX && nowGroupEdge.size() >= 2)
+					{				
+						edgeGroup.push_back(std::make_pair(minPositiveStart, std::vector<StrandIterator>(nowGroupEdge)));
+					}
+				}
+			}			
+		}
+
+		block.clear();
+		int blockCount = 1;
+		std::sort(edgeGroup.begin(), edgeGroup.end(), CompareIteratorEdgeGroup);
+		std::vector<Indicator> overlap(rawSeq_.size());
+		for(size_t i = 0; i < rawSeq_.size(); i++)
+		{
+			overlap[i].resize(originalSize_[i], POS_FREE);
+		}
+
+		for(auto jt = edgeGroup.begin(); jt != edgeGroup.end(); ++jt)
+		{
+			std::set<ChrPos> localOverlap;
+			std::vector<StrandIterator> current;
+			for(auto it = jt->second.begin(); it != jt->second.end(); ++it)
+			{
+				size_t chrId = iseq.GetChr(*it);
+				if(overlap[chrId][it->GetOriginalPosition()] != POS_OCCUPIED)
+				{
+					current.push_back(*it);
+				}
+			}
+
+			std::vector<size_t> start(current.size());
+			std::vector<size_t> end(current.size());
+			for(size_t i = 0; i < start.size(); i++)
+			{				
+				start[i] = end[i] = current[i].GetOriginalPosition();
+			}
+
+			Extend(current, start, end, overlap, localOverlap, iseq, true);
+			std::for_each(current.begin(), current.end(), boost::bind(&StrandIterator::operator--, _1));
+			Extend(current, start, end, overlap, localOverlap, iseq, false);
+			size_t NONE = -1;
+			std::vector<Edge> nowBlock;			
+			for(size_t i = 0; i < current.size(); i++)
+			{
+				size_t chrId = iseq.GetChr(current[i]);
+				size_t originalStart = std::min(start[i], end[i]);
+				size_t originalEnd = std::max(start[i], end[i]) + 1;				
+				Edge buf(chrId, current[i].GetDirection(), NONE, NONE, NONE, NONE, originalStart, originalEnd - originalStart, EMPTY);
+				nowBlock.push_back(buf);
+			}
+
+			while(TrimBlocks(nowBlock, trimK, minSize));			
+			if(nowBlock.size() > 1)
+			{
+				for(size_t i = 0; i < nowBlock.size(); i++)
+				{
+					int strand = nowBlock[i].GetDirection() == DNASequence::positive ? +1 : -1;
+					size_t start = nowBlock[i].GetOriginalPosition();
+					size_t end = start + nowBlock[i].GetOriginalLength();
+					Indicator::iterator it = overlap[nowBlock[i].GetChr()].begin();
+					std::fill(it + start, it + end, POS_OCCUPIED);
+					block.push_back(BlockInstance(blockCount * strand, &(*originalChrList_)[nowBlock[i].GetChr()], start, end));
+				}
+
+				blockCount++;
 			}
 		}
 	}

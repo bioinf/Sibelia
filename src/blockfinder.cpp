@@ -29,7 +29,7 @@ namespace SyntenyFinder
 		do
 		{
 			iterations++;
-			for(size_t id = 0; id < bifStorage.GetMaxId(); id++)
+			for(size_t id = 0; id <= bifStorage.GetMaxId(); id++)
 			{			
 				totalBulges += RemoveBulges(sequence, bifStorage, k, minBranchSize, id);
 				if(++count >= threshold && !callBack.empty())

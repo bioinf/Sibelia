@@ -41,11 +41,13 @@ namespace SyntenyFinder
 		BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir);
 		void SerializeGraph(size_t k, std::ostream & out);
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack());
+		void GenerateExtendedSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
 		void GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
-		void PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());				
+		void PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
 		typedef std::vector<Pos> PosVector;
+		typedef std::pair<size_t, size_t> ChrPos;
 		std::string tempDir_;
 		IndexedSequence * iseq_;		
 		std::vector<std::string> rawSeq_;	
@@ -70,6 +72,7 @@ namespace SyntenyFinder
 			size_t GetOriginalLength() const;
 			char GetFirstChar() const;
 			static bool PositiveEdge(const Edge & e);
+			bool operator < (const Edge & e);
 		private:
 			size_t chr;
 			DNASequence::Direction direction;
@@ -114,8 +117,10 @@ namespace SyntenyFinder
 		void UpdateBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,
 			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBack);
 		typedef std::vector<Bool> Indicator;
-		typedef std::vector<Edge>::iterator EdgeIterator;		
-		void ResolveOverlap(EdgeIterator start, EdgeIterator end, size_t minSize, std::vector<Indicator> & overlap, std::vector<Edge> & nowBlock);
+		typedef std::vector<Edge>::iterator EdgeIterator;
+		
+		void ResolveOverlap(EdgeIterator start, EdgeIterator end, size_t minSize, std::vector<Indicator> & overlap, std::vector<Edge> & nowBlock) const;
+		void Extend(std::vector<StrandIterator> current, std::vector<size_t> & start, std::vector<size_t> & end, std::vector<Indicator> & overlap, std::set<ChrPos> & localOverlap, IndexedSequence & iseq, bool forward);
 	};
 }
 

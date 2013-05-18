@@ -10,7 +10,7 @@
 #include "variantcalling/simplerearrangements.h"
 
 int main(int argc, char * argv[])
-{	
+{	/*
 	signal(SIGINT, SignalHandler);
 	signal(SIGABRT, SignalHandler);	
 	signal(SIGTERM, SignalHandler);
@@ -138,7 +138,7 @@ int main(int argc, char * argv[])
 		int trimK = INT_MAX;
 		SyntenyFinder::BlockFinder finder(chrList);				
 		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size() + 1);
-		finder.GenerateSyntenyBlocks(stage[0].first, trimK, stage[0].first, history[0], false, PutProgressChr);
+		finder.GenerateSyntenyBlocks(stage[0].first, trimK, stage[0].first, history[0], true, false, PutProgressChr);
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			trimK = std::min(trimK, stage[i].first);
@@ -147,14 +147,14 @@ int main(int argc, char * argv[])
 			finder.PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);
 			if(i < stage.size() - 1)
 			{
-				finder.GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i + 1], false, PutProgressChr);
+				finder.GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i + 1], true, false, PutProgressChr);
 			}
 		}
 				
 		std::cout << "Finding variants and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
-		finder.GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), false, PutProgressChr);
+		finder.GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), true, false, PutProgressChr);
 		size_t refSeqId = chrList[0].GetId();				
 		std::vector<SyntenyFinder::Variant> variant;
 		std::vector<SyntenyFinder::Reversal> reversal;
@@ -210,6 +210,6 @@ int main(int argc, char * argv[])
 	{
 		SyntenyFinder::TempFile::Cleanup();
 	}
-	
+	*/
 	return 0;
 }

@@ -188,8 +188,8 @@ sibelia_cmd = ' '.join(['Sibelia', '-s fine', '-m', str(args.minblocksize), args
 #var = parse_alignment('.out/align.fasta', 12, '', 0)
 
 
-reference_seq_id = get_reference_seqid('NCTC8325.fasta')
-variant_list = call_variants('.out', reference_seq_id)
+reference_seq_id = get_reference_seqid('H37Rv.fasta')
+variant_list = call_variants('.tuberout', reference_seq_id)
 variant_list.sort(key=Variant.get_reference_pos)
 for v in variant_list:
 	print v
