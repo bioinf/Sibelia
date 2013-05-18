@@ -283,20 +283,31 @@ namespace SyntenyFinder
 
 		for(auto jt = edgeGroup.begin(); jt != edgeGroup.end(); ++jt)
 		{
+			size_t commonShift = 0;
 			std::set<ChrPos> localOverlap;
 			std::vector<StrandIterator> current;
 			for(auto it = jt->second.begin(); it != jt->second.end(); ++it)
 			{
-				size_t chrId = iseq.GetChr(*it);
-				if(overlap[chrId][it->GetOriginalPosition()] != POS_OCCUPIED)
+				size_t shift = 0;
+				StrandIterator edge = *it;
+				size_t chrId = iseq.GetChr(edge);				
+				for(; shift < k + 1 && overlap[chrId][edge.GetOriginalPosition()] == POS_OCCUPIED && edge.AtValidPosition(); shift++, ++edge);
+
+				if(shift < k + 1 && edge.AtValidPosition())
 				{
 					current.push_back(*it);
+					commonShift = std::max(commonShift, shift);
 				}
 			}
 
 			if(current.size() < 2)
 			{
 				continue;
+			}
+			
+			for(size_t step = 0; step < commonShift; step++)
+			{
+				std::for_each(current.begin(), current.end(), boost::bind(&StrandIterator::operator++, _1));
 			}
 
 			std::vector<size_t> start(current.size());
