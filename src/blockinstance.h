@@ -27,12 +27,13 @@ namespace SyntenyFinder
 		DNASequence::Direction GetDirection() const;
 		int GetBlockId() const;
 		const FASTARecord& GetChrInstance() const;
+		int GetSign() const;
 		size_t GetChrId() const;
 		size_t GetStart() const;
 		size_t GetEnd() const;
 		size_t GetLength() const;
 		size_t GetConventionalStart() const;
-		size_t GetConventionalEnd() const;
+		size_t GetConventionalEnd() const;		
 		std::pair<size_t, size_t> CalculateOverlap(const BlockInstance & instance) const;		
 		bool operator < (const BlockInstance & toCompare) const;
 		bool operator == (const BlockInstance & toCompare) const;

@@ -154,7 +154,7 @@ int main(int argc, char * argv[])
 			}
 
 			reader.GetSequences(chrList);
-			if(it == fileName.begin() && comparative)
+			if(it == fileName.begin())
 			{
 				for(size_t i = 0; i < chrList.size(); i++)
 				{
@@ -195,16 +195,12 @@ int main(int argc, char * argv[])
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
+		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly, PutProgressChr);
+		processor.GlueStripes(history.back());
 		if(matchRepeatsFlag.isSet())
 		{
-			finder->GenerateExtendedSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly, PutProgressChr);
+			processor.MatchRepeats(history.back(), referenceChrId);
 		}
-		else
-		{
-			finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly, PutProgressChr);
-		}
-
-		processor.GlueStripes(history.back());
 
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateOutDirectory(outFileDir.getValue());

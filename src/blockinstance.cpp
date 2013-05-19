@@ -26,6 +26,11 @@ namespace SyntenyFinder
 		return id_ > 0 ? DNASequence::positive : DNASequence::negative;
 	}
 
+	int BlockInstance::GetSign() const
+	{
+		return GetSignedBlockId() > 0 ? +1 : -1;
+	}
+
 	int BlockInstance::GetBlockId() const
 	{
 		return Abs(id_);

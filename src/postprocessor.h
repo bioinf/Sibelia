@@ -20,7 +20,8 @@ namespace SyntenyFinder
 	public:		
 		Postprocessor(const std::vector<FASTARecord> & chr, size_t minBlockSize);
 		void GlueStripes(std::vector<BlockInstance> & block);
-		void ImproveBlockBoundaries(std::vector<BlockInstance> & block, const std::set<size_t> & referenceSequenceId);	
+		void MatchRepeats(std::vector<BlockInstance> & block, const std::set<size_t> & referenceSequenceId);
+		void ImproveBlockBoundaries(std::vector<BlockInstance> & block, const std::set<size_t> & referenceSequenceId);
 	private:
 		DISALLOW_COPY_AND_ASSIGN(Postprocessor);
 		const std::vector<FASTARecord> * chr_;

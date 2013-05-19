@@ -342,4 +342,98 @@ namespace SyntenyFinder
 			}
 		}
 	}
+
+	void Postprocessor::MatchRepeats(std::vector<BlockInstance> & blockList, const std::set<size_t> & referenceSequenceId)
+	{
+		bool glue = true;
+		std::map<int, size_t> inReference;
+		std::map<int, std::vector<size_t> > multiplicity;
+		while(glue)
+		{
+			glue = false;
+			inReference.clear();
+			multiplicity.clear();
+			std::sort(blockList.begin(), blockList.end(), CompareBlocksNaturally);
+			for(auto it = blockList.begin(); it != blockList.end(); ++it)
+			{
+				if(multiplicity.find(it->GetBlockId()) == multiplicity.end())
+				{
+					inReference.insert(std::make_pair(it->GetBlockId(), 0));
+					multiplicity.insert(std::make_pair(it->GetBlockId(), std::vector<size_t>()));					
+				}
+
+				multiplicity[it->GetBlockId()].push_back(it - blockList.begin());
+				if(referenceSequenceId.count(it->GetChrId()) > 0)
+				{
+					inReference[it->GetBlockId()]++;
+				}
+			}
+
+			for(auto it = multiplicity.begin(); it != multiplicity.end() && !glue; ++it)
+			{
+				if(it->second.size() == 2 && inReference[it->first] == 1)
+				{
+					std::vector<size_t> nextBlockPos;
+					for(auto posIt = it->second.begin(); posIt != it->second.end(); ++posIt)
+					{
+						int pos = static_cast<int>(*posIt);
+						int nextPos = pos + blockList[pos].GetSign();
+						if(nextPos >= 0 && nextPos < static_cast<int>(blockList.size()) && blockList[pos].GetChrId() == blockList[nextPos].GetChrId())
+						{
+							nextBlockPos.push_back(nextPos);
+						}
+					}
+
+					if(nextBlockPos.size() == 2)
+					{
+						BlockInstance startBlock[2] = {blockList[it->second[0]], blockList[it->second[1]]};
+						BlockInstance nextBlock[2] = {blockList[nextBlockPos[0]], blockList[nextBlockPos[1]]};
+						int startMlp = startBlock[0].GetSign() * startBlock[1].GetSign();
+						int nextMlp = nextBlock[0].GetSign() * nextBlock[1].GetSign();
+						if(nextBlock[0].GetBlockId() == nextBlock[1].GetBlockId() && startMlp == nextMlp)
+						{
+							glue = true;
+							for(size_t i = 0; i < 2; i++)
+							{
+								blockList.erase(std::remove_if(blockList.begin(), blockList.end(), boost::bind(&BlockInstance::operator==, startBlock[i], _1)), blockList.end());
+								blockList.erase(std::remove_if(blockList.begin(), blockList.end(), boost::bind(&BlockInstance::operator==, nextBlock[i], _1)), blockList.end());
+								size_t start = std::min(startBlock[i].GetStart(), nextBlock[i].GetStart());
+								size_t end = std::max(startBlock[i].GetEnd(), nextBlock[i].GetEnd());
+								blockList.push_back(BlockInstance(startBlock[i].GetSignedBlockId(), &startBlock[i].GetChrInstance(), start, end));
+							}
+						}
+					}
+				}
+			}
+		}
+
+		std::vector<BlockInstance> toDelete;
+		for(auto it = multiplicity.begin(); it != multiplicity.end(); ++it)
+		{
+			if(it->second.size() == 1)
+			{
+				toDelete.push_back(blockList[it->second[0]]);
+			}
+		}
+
+		for(auto it = toDelete.begin(); it != toDelete.end(); ++it)
+		{
+			blockList.erase(std::remove_if(blockList.begin(), blockList.end(), boost::bind(&BlockInstance::operator==, *it, _1)), blockList.end());
+		}
+		
+		std::vector<int> oldId;
+		for(auto it = blockList.begin(); it != blockList.end(); ++it)
+		{
+			oldId.push_back(it->GetBlockId());
+		}
+
+		std::sort(oldId.begin(), oldId.end());
+		oldId.erase(std::unique(oldId.begin(), oldId.end()), oldId.end());
+		for(auto it = blockList.begin(); it != blockList.end(); ++it)
+		{
+			int sign = it->GetSign();
+			size_t newId = std::lower_bound(oldId.begin(), oldId.end(), it->GetBlockId()) - oldId.begin() + 1;
+			*it = BlockInstance(static_cast<int>(newId) * sign, &it->GetChrInstance(), it->GetStart(), it->GetEnd());
+		}
+	}
 }
