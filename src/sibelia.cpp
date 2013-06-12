@@ -94,12 +94,12 @@ int main(int argc, char * argv[])
 			5000,
 			"integer",
 			cmd);
-/*
+
 		TCLAP::SwitchArg sharedOnly("a",
 			"sharedonly",
 			"Output only blocks that occur exactly once in each input sequence.",			
 			cmd,
-			false);*/
+			false);
 
 		TCLAP::SwitchArg inRAM("r",
 			"inram",
@@ -173,7 +173,6 @@ int main(int argc, char * argv[])
 			throw std::runtime_error("Input is larger than 1 GB, can't proceed");
 		}
 		
-		bool sharedOnly = false;
 		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size() + 1);
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
@@ -183,7 +182,7 @@ int main(int argc, char * argv[])
 			trimK = std::min(trimK, stage[i].first);
 			if(hierarchy || comparative)
 			{
-				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly);
+				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
 				processor.GlueStripes(history[i]);
 			}
 
@@ -195,7 +194,7 @@ int main(int argc, char * argv[])
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
-		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly, PutProgressChr);
+		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
 		processor.GlueStripes(history.back());
 		if(matchRepeatsFlag.isSet())
 		{

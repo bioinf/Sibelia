@@ -1,6 +1,10 @@
 import re
+import time
 import os, sys
 import argparse
+import itertools
+import functools
+import multiprocessing
 lib_path = os.path.abspath('./lib')
 sys.path.append(lib_path)
 import vcf
@@ -137,6 +141,25 @@ def find_instance(instance_list, reference_seq_id, in_reference):
 			return instance
 	return None
 
+def process_unique_block(unique_block, block_index):
+	pid = str(os.getpid()) + '_'
+	ALIGNMENT_FILE = pid + 'align.fasta'
+	REFERENCE_BLOCK_FILE = pid + 'blockr.fasta'
+	ASSEMBLY_BLOCK_FILE = pid + 'blocka.fasta'
+	lagan_cmd = ' '.join([LAGAN_DIR + "/lagan.pl", REFERENCE_BLOCK_FILE,
+						ASSEMBLY_BLOCK_FILE, '-mfa >', ALIGNMENT_FILE])
+	
+	synteny_block_id, reference_instance, assembly_instance = unique_block[block_index]
+	reference_start = int(parse_header(reference_instance.description)['Start'])
+	contig_id = parse_header(assembly_instance.description)['Seq']
+	instance = [reference_instance, assembly_instance]
+	handle = [open(REFERENCE_BLOCK_FILE, 'w'), open(ASSEMBLY_BLOCK_FILE, 'w')]
+	for index, record in enumerate(instance):
+		SeqIO.write(record, handle[index], 'fasta')
+		handle[index].close()
+	os.system(lagan_cmd)
+	return parse_alignment(ALIGNMENT_FILE, synteny_block_id, contig_id, reference_start)
+	
 def call_variants(directory, reference_seq_id):
 	os.chdir(directory)
 	block_seq = dict()	
@@ -145,31 +168,24 @@ def call_variants(directory, reference_seq_id):
 		if block_id not in block_seq:
 			block_seq[block_id] = []			
 		block_seq[block_id].append(record)		
-	
-	ALIGNMENT_FILE = 'align.fasta'
-	REFERENCE_BLOCK_FILE = 'blockr.fasta'
-	ASSEMBLY_BLOCK_FILE = 'blocka.fasta'
-	lagan_cmd = ' '.join([LAGAN_DIR + "/lagan.pl", REFERENCE_BLOCK_FILE,
-						ASSEMBLY_BLOCK_FILE, '-mfa >', ALIGNMENT_FILE])
-	
-	variant_list = []
+			
+	cpu_count = multiprocessing.cpu_count() - 1
+	pool = multiprocessing.Pool(cpu_count)
+	unique_block = []	
 	for synteny_block_id, instance_list in block_seq.items():		
 		if len(instance_list) == 2:		
 			reference_instance = find_instance(instance_list, reference_seq_id, True)
 			assembly_instance = find_instance(instance_list, reference_seq_id, False)
-			if (not reference_instance is None) and (not assembly_instance is None):				
-				reference_start = int(parse_header(reference_instance.description)['Start'])
-				contig_id = parse_header(assembly_instance.description)['Seq']
-				instance = [reference_instance, assembly_instance]
-				handle = [open(REFERENCE_BLOCK_FILE, 'w'), open(ASSEMBLY_BLOCK_FILE, 'w')]
-				for index, record in enumerate(instance):
-					SeqIO.write(record, handle[index], 'fasta')
-					handle[index].close()
-				os.system(lagan_cmd)
-				variant_list.extend(parse_alignment(ALIGNMENT_FILE, synteny_block_id, contig_id, reference_start))
-							
-	os.chdir('..')	
-	return variant_list
+			if (not reference_instance is None) and (not assembly_instance is None):
+				unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
+		
+	process_block = functools.partial(process_unique_block, unique_block)	
+	variant = pool.map(process_block, range(len(unique_block)))
+	os.chdir('..')
+	variant = [obj for obj in itertools.chain.from_iterable(variant)]	
+	return variant
+
+start = time.time()
 
 parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.')
 parser.add_argument('reference', help='A multi-FASTA file with the reference genome')
@@ -193,3 +209,5 @@ variant_list = call_variants('.tuberout', reference_seq_id)
 variant_list.sort(key=Variant.get_reference_pos)
 for v in variant_list:
 	print v
+
+print >> sys.stderr, (time.time() - start), "seconds elapsed"
