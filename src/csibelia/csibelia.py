@@ -2,6 +2,7 @@ import re
 import os
 import sys
 import time
+import shutil
 import argparse
 import itertools
 import functools
@@ -210,32 +211,29 @@ def process_unique_block(unique_block, block_index):
 	alignment_handle.close()
 	return parse_alignment(alignment_file, reference_chr_id, synteny_block_id, contig_id, reference_start)
 	
-def call_variants(directory, reference_seq, min_block_size):	
+def call_variants(directory, reference_seq, min_block_size, proc_num):	
 	os.chdir(directory)
-	'''
 	block_seq = dict()	
 	for record in SeqIO.parse(BLOCKS_FILE, 'fasta'):				
 		block_id = parse_header(record.description)['Block_id']
 		if block_id not in block_seq:
 			block_seq[block_id] = []			
 		block_seq[block_id].append(record)		
-			
-	cpu_count = multiprocessing.cpu_count()
-	pool = multiprocessing.Pool(cpu_count)
+				
+	pool = multiprocessing.Pool(proc_num)
 	unique_block = []	
 	for synteny_block_id, instance_list in block_seq.items():		
 		if len(instance_list) == 2:		
-			reference_instance = find_instance(instance_list, reference_seq_id, True)
-			assembly_instance = find_instance(instance_list, reference_seq_id, False)
+			reference_instance = find_instance(instance_list, reference_seq.keys(), True)
+			assembly_instance = find_instance(instance_list, reference_seq.keys(), False)
 			if (not reference_instance is None) and (not assembly_instance is None):
 				unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
 		
 	process_block = functools.partial(process_unique_block, unique_block)	
 	variant = pool.map(process_block, range(len(unique_block)))	
-	variant = [obj for obj in itertools.chain.from_iterable(variant)]'''
-	variant = []
+	variant = [obj for obj in itertools.chain.from_iterable(variant)]
 	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
-	coords_file_list = [file for file in os.listdir('.') if coords_file_re.match(file)]
+	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
 	blocks_coords = itertools.chain.from_iterable([parse_blocks_coords(coords_file) for coords_file in coords_file_list])
 	base_cover = dict()
 	for seq_id, seq in reference_seq.items():
@@ -281,20 +279,19 @@ start = time.time()
 parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.')
 parser.add_argument('reference', help='A multi-FASTA file with the reference genome')
 parser.add_argument('assembly', help='A multi-FASTA file with the assembly genome')
-parser.add_argument('-t', '--tempdir', help='Directory for temporary  files', default='out')
+parser.add_argument('-t', '--tempdir', help='Directory for temporary  files', default='.out')
 parser.add_argument('-m', '--minblocksize', help='Minimum size of a synteny block', type=int, default=500)
-
-
-					
-'''
+parser.add_argument('-p', '--processcount', help='Number of running processes', type=int, default=1)
 args = parser.parse_args()
 sibelia_cmd = ' '.join(['Sibelia', '-s fine', '-m', str(args.minblocksize), args.reference, 
-						args.assembly, '--comparative', '-o', args.tempdir])
-'''
-
-reference_organism, reference_seq = get_reference_seq('H37Rv.fasta')
-variant_list = call_variants('.tuberout', reference_seq, 500)
+						'-q', args.assembly, '--matchrepeats', '--allstages', '-o', args.tempdir])
+print >> sys.stderr, "Calculating synteny blocks..."
+os.system(sibelia_cmd)
+reference_organism, reference_seq = get_reference_seq(args.reference)
+print >> sys.stderr, "Calling variants..."
+variant_list = call_variants(args.tempdir, reference_seq, args.minblocksize, args.processcount)
 variant_list.sort(key=Variant.get_reference_pos)
 generate_conventional_output(variant_list, open('variant.txt', 'w'))
 generate_vcf_output(variant_list, reference_organism, open('variant.vcf', 'w'))
+shutil.rmtree(args.tempdir)
 print >> sys.stderr, (time.time() - start), "seconds elapsed"
