@@ -34,13 +34,13 @@ int main(int argc, char * argv[])
 
 		TCLAP::SwitchArg matchRepeatsFlag("",
 			"matchrepeats",
-			"internal flag used by C-Sibelia",
+			"Extend unique synteny blocks whenever possible",
 			cmd,
 			false);
 
-		TCLAP::SwitchArg comparativeFlag("",
-			"comparative",
-			"internal flag used by C-Sibelia",
+		TCLAP::SwitchArg allStagesFlag("",
+			"allstages",
+			"Output coordinates of synteny blocks from all stages",
 			cmd,
 			false);
 
@@ -137,11 +137,12 @@ int main(int argc, char * argv[])
 		int trimK = INT_MAX;
 		size_t totalSize = 0;
 		std::set<size_t> referenceChrId;
-		bool hierarchy = hierarchyPicture.isSet();
-		bool comparative = comparativeFlag.isSet();
-		if(comparative && (fileName.end() - fileName.begin()) != 2)
+		bool allStages = allStagesFlag.isSet();		
+		bool hierarchy = hierarchyPicture.isSet();	
+		bool matchRepeats = matchRepeatsFlag.isSet();
+		if(matchRepeats && (fileName.end() - fileName.begin()) != 2)
 		{
-			throw std::runtime_error("In comparative mode only two FASTA files are acceptable");
+			throw std::runtime_error("In matching repeats mode only two FASTA files are acceptable");
 		}
 
 		std::vector<SyntenyFinder::FASTARecord> chrList;
@@ -180,7 +181,7 @@ int main(int argc, char * argv[])
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			trimK = std::min(trimK, stage[i].first);
-			if(hierarchy || comparative)
+			if(hierarchy || allStages)
 			{
 				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
 				processor.GlueStripes(history[i]);
@@ -199,6 +200,7 @@ int main(int argc, char * argv[])
 		if(matchRepeatsFlag.isSet())
 		{
 			processor.MatchRepeats(history.back(), referenceChrId);
+			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
 		}
 
 		SyntenyFinder::OutputGenerator generator(chrList);
@@ -211,9 +213,8 @@ int main(int argc, char * argv[])
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf"; const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		
         const std::string defaultBlocksAlignmentFile = outFileDir.getValue() + "/blocks_sequences.sam";
-		if(comparative)
-		{
-			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
+		if(allStages)
+		{			
 			for(size_t i = 0; i < history.size(); i++)
 			{
 				std::stringstream file;

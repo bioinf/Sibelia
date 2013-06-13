@@ -1,13 +1,11 @@
-import re
+import os
+import sys
 import time
-import os, sys
 import argparse
 import itertools
 import functools
+import subprocess
 import multiprocessing
-lib_path = os.path.abspath('./lib')
-sys.path.append(lib_path)
-import vcf
 from Bio import SeqIO
 from Bio import AlignIO
 
@@ -16,10 +14,17 @@ BLOCKS_FILE = 'blocks_sequences.fasta'
 LAGAN_DIR = 'C:/Temp/lagan20'
 os.environ['LAGAN_DIR'] = LAGAN_DIR
 
+def strip_chr_id(chr_id):
+	part = chr_id.split('|')
+	if len(part) == 5:
+		return part[-2].split('.')[0]
+	return chr_id
+
 class Variant(object):
-	def __init__(self, reference_pos, contig_id, reference_allele, assembly_allele,
-				 reference_context, assembly_context, synteny_block_id):
-		self._reference_pos = reference_pos
+	def __init__(self, reference_chr_id, reference_pos, contig_id, reference_allele,
+				 assembly_allele, reference_context, assembly_context, synteny_block_id):
+		self._reference_chr_id = reference_chr_id
+		self._reference_pos = reference_pos		
 		self._contig_id = contig_id
 		self._reference_allele = reference_allele.upper()  
 		self._assembly_allele = assembly_allele.upper()
@@ -44,6 +49,9 @@ class Variant(object):
 	def get_reference_pos(self):
 		return self._reference_pos
 	
+	def get_reference_chr_id(self):
+		return self._reference_chr_id
+	
 	def get_contig_id(self):
 		return self._contig_id
 	
@@ -52,6 +60,11 @@ class Variant(object):
 	
 	def get_assembly_allele(self):
 		return self._assembly_allele
+	
+	def get_vcf_record(self):
+		data = [strip_chr_id(self.get_reference_chr_id()), str(self.get_reference_pos()),
+			'.', self.get_reference_allele(), self.get_assembly_allele(), '.', '.', '.']
+		return '\t'.join(data)
 
 def no_gaps(sequence):
 	return ''.join([ch for ch in sequence if ch != '-'])
@@ -77,7 +90,7 @@ def get_context(alignment, alignment_segment, segment_index):
 	assembly_context = context[0] + no_gaps(alignment[1][segment[0]:segment[1]]) + context[1]
 	return reference_context, assembly_context
 
-def parse_alignment(alingment_file_name, synteny_block_id, contig_id, reference_start):	
+def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id, contig_id, reference_start):	
 	last_match = None
 	start_position = None
 	alignment_segment = []
@@ -114,11 +127,11 @@ def parse_alignment(alingment_file_name, synteny_block_id, contig_id, reference_
 			SNP = end - start == 1 and alignment[0][start] != '-' and alignment[1][start] != '-'
 			if start == 0 or SNP:
 				shift = 0
-			reference_allele = no_gaps(alignment[0][start - shift: end])
-			assembly_allele = no_gaps(alignment[1][start - shift: end])
-			variant.append(Variant(variant_reference_start - shift, contig_id, reference_allele, assembly_allele,
-								   reference_context, assembly_context, synteny_block_id))
-				
+			reference_allele = no_gaps(alignment[0][start - shift:end])
+			assembly_allele = no_gaps(alignment[1][start - shift:end])
+			variant.append(Variant(reference_chr_id, variant_reference_start - shift, contig_id,
+								reference_allele, assembly_allele, reference_context, assembly_context,
+								synteny_block_id))				
 	return variant		   
 
 def get_reference_seqid(fileName):
@@ -146,19 +159,22 @@ def process_unique_block(unique_block, block_index):
 	ALIGNMENT_FILE = pid + 'align.fasta'
 	REFERENCE_BLOCK_FILE = pid + 'blockr.fasta'
 	ASSEMBLY_BLOCK_FILE = pid + 'blocka.fasta'
-	lagan_cmd = ' '.join([LAGAN_DIR + "/lagan.pl", REFERENCE_BLOCK_FILE,
-						ASSEMBLY_BLOCK_FILE, '-mfa >', ALIGNMENT_FILE])
+	lagan_cmd = [LAGAN_DIR + "/lagan.pl", REFERENCE_BLOCK_FILE, ASSEMBLY_BLOCK_FILE, '-mfa']
+	alignment_handle = open(ALIGNMENT_FILE, 'w')
 	
 	synteny_block_id, reference_instance, assembly_instance = unique_block[block_index]
 	reference_start = int(parse_header(reference_instance.description)['Start'])
+	reference_chr_id = parse_header(reference_instance.description)['Seq']
 	contig_id = parse_header(assembly_instance.description)['Seq']
 	instance = [reference_instance, assembly_instance]
 	handle = [open(REFERENCE_BLOCK_FILE, 'w'), open(ASSEMBLY_BLOCK_FILE, 'w')]
 	for index, record in enumerate(instance):
 		SeqIO.write(record, handle[index], 'fasta')
 		handle[index].close()
-	os.system(lagan_cmd)
-	return parse_alignment(ALIGNMENT_FILE, synteny_block_id, contig_id, reference_start)
+	with open(os.devnull, "w") as fnull:
+		subprocess.call(lagan_cmd, stdout=alignment_handle, stderr=fnull)
+	alignment_handle.close()
+	return parse_alignment(ALIGNMENT_FILE, reference_chr_id, synteny_block_id, contig_id, reference_start)
 	
 def call_variants(directory, reference_seq_id):
 	os.chdir(directory)
@@ -169,7 +185,7 @@ def call_variants(directory, reference_seq_id):
 			block_seq[block_id] = []			
 		block_seq[block_id].append(record)		
 			
-	cpu_count = multiprocessing.cpu_count() - 1
+	cpu_count = multiprocessing.cpu_count()
 	pool = multiprocessing.Pool(cpu_count)
 	unique_block = []	
 	for synteny_block_id, instance_list in block_seq.items():		
@@ -185,8 +201,19 @@ def call_variants(directory, reference_seq_id):
 	variant = [obj for obj in itertools.chain.from_iterable(variant)]	
 	return variant
 
-start = time.time()
+def generate_conventional_output(variant_list, handle):
+	for variant in variant_list:
+		print >> handle, variant
 
+def generate_vcf_output(variant_list, reference, handle):
+	vcf_header = ['##fileformat=VCFv4.1', '##source=Sibelia', '##reference=' + strip_chr_id(reference)]
+	table_header = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO']
+	print >> handle, '\n'.join(vcf_header)
+	print >> handle, '\t'.join(table_header)
+	for variant in variant_list:
+		print >> handle, variant.get_vcf_record()
+		
+start = time.time()
 parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.')
 parser.add_argument('reference', help='A multi-FASTA file with the reference genome')
 parser.add_argument('assembly', help='A multi-FASTA file with the assembly genome')
@@ -200,14 +227,9 @@ sibelia_cmd = ' '.join(['Sibelia', '-s fine', '-m', str(args.minblocksize), args
 						args.assembly, '--comparative', '-o', args.tempdir])
 '''
 
-
-#var = parse_alignment('.out/align.fasta', 12, '', 0)
-
-
 reference_seq_id = get_reference_seqid('H37Rv.fasta')
 variant_list = call_variants('.tuberout', reference_seq_id)
 variant_list.sort(key=Variant.get_reference_pos)
-for v in variant_list:
-	print v
-
+generate_conventional_output(variant_list, open('variant.txt', 'w'))
+generate_vcf_output(variant_list, reference_seq_id[0], open('variant.vcf', 'w'))
 print >> sys.stderr, (time.time() - start), "seconds elapsed"
