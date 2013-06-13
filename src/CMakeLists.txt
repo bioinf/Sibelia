@@ -12,21 +12,18 @@ endif()
 
 include_directories(${Sibelia_SOURCE_DIR}/include ${libdivsufsort_BINARY_DIR}/include)
 add_executable(Sibelia sibelia.cpp postprocessor.cpp indexedsequence.cpp util.cpp outputgenerator.cpp blockfinder.cpp blockinstance.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp edge.cpp fasta.cpp serialization.cpp synteny.cpp test/unrolledlisttest.cpp platform.cpp stranditerator.cpp vertexenumeration.cpp resource.cpp variantcalling/variant.cpp)
-add_executable(C-Sibelia csibelia.cpp indexedsequence.cpp variantcalling/simplerearrangements.cpp variantcalling/rearrangement.cpp variantcalling/variant.cpp variantcalling/variantcaller.cpp util.cpp outputgenerator.cpp blockfinder.cpp blockinstance.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp edge.cpp fasta.cpp serialization.cpp synteny.cpp test/unrolledlisttest.cpp platform.cpp stranditerator.cpp vertexenumeration.cpp resource.cpp)
 target_link_libraries(Sibelia divsufsort)
-target_link_libraries(C-Sibelia divsufsort)
 
 set(CMAKE_PROJECT_NAME Sibelia)
 set(ROOT_DIR "${CMAKE_SOURCE_DIR}/../")
 
 if(BINARY_PACKAGE)
-	install(TARGETS Sibelia C-Sibelia RUNTIME DESTINATION bin)
+	install(TARGETS Sibelia RUNTIME DESTINATION bin)
 	install(DIRECTORY ${ROOT_DIR}/examples/ DESTINATION examples)
 	install(FILES ${ROOT_DIR}/NEWS.md ${ROOT_DIR}/README.md ${ROOT_DIR}/USAGE.md ${ROOT_DIR}/INSTALL.md ${ROOT_DIR}/SIBELIA.md ${ROOT_DIR}/C-SIBELIA.md ${ROOT_DIR}/LICENSE DESTINATION .)
 
 else()
 	install(TARGETS Sibelia RUNTIME DESTINATION bin)
-	install(TARGETS C-Sibelia RUNTIME DESTINATION bin)
 endif()
 
 
