@@ -31,10 +31,10 @@ class Variant(object):
 		self._reference_chr_id = reference_chr_id
 		self._reference_pos = reference_pos		
 		self._contig_id = str(contig_id)
-		self._reference_allele = '.' if reference_allele is None else reference_allele.upper()  
-		self._assembly_allele = '.' if assembly_allele is None else assembly_allele.upper()
-		self._reference_context = str(None if reference_context is None else reference_context.upper())
-		self._assembly_context = str(None if assembly_context is None else assembly_context.upper())
+		self._reference_allele = '' if reference_allele is None else reference_allele.upper()  
+		self._assembly_allele = '' if assembly_allele is None else assembly_allele.upper()
+		self._reference_context = str('' if reference_context is None else reference_context.upper())
+		self._assembly_context = str('' if assembly_context is None else assembly_context.upper())
 		self._synteny_block_id = synteny_block_id
 
 	def __str__(self):
@@ -261,14 +261,16 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 				if end - start > min_block_size:
 					if seq_id in reference_seq:					
 						common_char = str(reference_seq[seq_id][start - 1]) if start > 0 else ''
+						assembly_allele = common_char if common_char else None						
 						reference_allele = common_char + str(reference_seq[seq_id][start:end])
-						variant.append(Variant(seq_id, start, None, reference_allele, common_char,
-											reference_allele, None, None))
-					else:
+						variant.append(Variant(seq_id, start, None, reference_allele, assembly_allele,
+											reference_allele, assembly_allele, None))
+					else:						
 						common_char = str(assembly_seq[seq_id][start - 1]) if start > 0 else ''
+						reference_allele = common_char if common_char else None
 						assembly_allele = common_char + str(assembly_seq[seq_id][start:end])
-						insertion.append(Variant(None, None, seq_id, common_char, assembly_allele,
-											None, assembly_allele, None))
+						record = (seq_id, str(start), assembly_allele)
+						insertion.append('\t'.join(record))
 			else:
 				i += 1
 	
