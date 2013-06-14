@@ -1,0 +1,323 @@
+LAGAN tools README (Authors: Michael Brudno, Michael F. Kim & Chuong Do)
+lagan@cs.stanford.edu					04/02/2003
+
+This document describes how to use LAGAN associated wrappers and tools.
+
+Both mrun.pl and mrunpairs.pl are wrappers to mlagan.  The only
+difference is that mrunpairs.pl generates a set of pairwise
+alignments, whereas mrun.pl does the standard multiple alignment.
+Both of these tools use a helper script mextract.pl to parse out the
+individual sequence files from a Multi-FASTA file.
+
+Having run MLAGAN, we can visualize the output on a nucleotide level
+in a "pretty" format using mpretty.pl.  We can also project the
+multiple sequence alignment into any number of its constituent
+sequences, using mproject.pl. We provide a tool (mviz.pl) which will 
+take a multiple alignment in Multi-FASTA form and create a VISTA plot.
+
+Using the parameter file, you can completely specify the parameters to
+an mlagan job.  We provide a sample file (sample.params) with more
+information on how to use the various parameters.
+
+Sequence names are always taken to be the first white-space terminated
+string after the ">" in a FASTA or Multi-FASTA file, e.g.:
+
+>sample1 This is the first sample sequence.
+ACGT...
+
+>sample2 This is the second sapmle sequence.
+ACGT...
+
+Here the sequence names would be sample1 and sample2.
+
+
+The scorealign tool scores an alignment (multiple or pairwise in MFA format). The rc script
+reverse-complements a sequence, and the bin2mf, mf2bin.pl and bin2bl scripts convert between the 
+various output formats.
+
+mrunfile.pl
+-----------
+Usage:
+mrunfile.pl filename [-pairwise] [-vista]
+
+Required Parameter:
+filename : name of the parameter file (e.g. sample.params)
+
+Optional parameters:
+-pairwise : generates a set of pairwise alignments
+-vista : creates a VISTA plot using the output
+
+Example:
+mrunfile.pl sample.params -vista
+
+This would run MLAGAN using the parameters in sample.params and
+generate a VISTA plot at the end.
+
+Uses:
+mrun.pl or mrunpairs.pl
+
+
+mrun.pl
+-------
+Usage:
+mrun.pl filename -tree "(tree...)"
+
+Required parameters:
+filename : name of the Multi-FASTA file with the sequences to align.
+-tree "(tree)" : a fully parenthesized phylogenetic tree over the
+sequence names.
+
+Optional parameters:
+[base sequence name [sequence pairs]] : For projection into pairs for
+VISTA output, you may wish to specify a base sequence and specific
+pairs of sequences to have projected.  If you do not specify sequence
+pairs, then all possible pairings to the base sequence will be
+generated.  If you do not specify a base sequence, the default base
+sequence is the first sequence in the multi-FASTA input.
+
+other MLAGAN parameters:
+-nested : runs iterative improvement in a nested fashion
+-postir : incorporates the final improvement phase
+-lazy : uses lazy mode for anchor generation
+-verbose : give verbose output
+-translate : do translated comparisons
+-out "filename": outputs to filename
+-version : prints version info
+
+other VISTA parameters:
+(see VISTA plotfile definition for more info)
+per sequence pair:
+--regmin # (default: 75)
+--regmax # (default: 100)
+--min # (default: 50)
+per plotfile:
+--bases # (default: 10000)
+--tickdist # (default: 2000)
+--resolution # (default: 25)
+--window # (default: 40)
+--numwindows # (default: 4)
+
+Example:
+mrun.pl sample.fasta -tree "(sample1 (sample2 sample3))"
+
+This will run mlagan on the sequences in sample.fasta with the
+phylogenetic tree specified above.  
+
+
+Uses:
+mextract.pl to parse out the constituent sequences into individual
+FASTA files for use by mlagan.  Also uses mextract.pl with -masked
+option for parsing out .masked multi-FASTA files.
+
+
+mrunpairs.pl
+------------
+Usage:
+mrunpairs.pl filename
+
+Required parameter:
+filename : multi-FASTA file.
+
+Optional parameters:
+(same as mrun.pl optional parameters, see above)
+
+Example:
+mrunpairs.pl sample.fasta sample1 sample1 sample2 sample1 sample3
+
+This will generate the pairs (sample1 sample2), (sample1 sample3),
+using sample1 as a base sequence (for VISTA plots).
+
+
+Uses:
+mextract.pl to parse out the constituent sequences into individual
+FASTA files for use by mlagan.  Also uses mextract.pl with -masked
+option for parsing out .masked multi-FASTA files.
+
+
+mpretty.pl
+----------
+Usage:
+mpretty.pl filename
+
+Required parameter:
+filename : Multi-FASTA file to view.
+
+Optional parameters:
+-linelen value : number of bases to display per line
+ (min: 10, default: 50)
+-interval value : frequency of markers
+ (min: 10, default: 10, none: 0)
+-labellen value : length of the sequence label
+ (min: 5, default: 5, none: 0)
+-start value : position to start from (>=1)
+-end value : position to end from (>=start position)
+-base sequence_name : sequence name on which to base start/end positions.
+-nocounts : turn off sequence position counts
+
+
+Example:
+mpretty.pl sample.fasta -nocounts -interval 0 -linelen 72
+
+This will print out the contents of sample.fasta without sequence
+position counters, without interval markers and at 72 bases per line,
+with the sequence labels on each line at their default length.
+Because of the way the labels are printed, this will cause each line
+to have length 80 characters.
+
+mpretty.pl sample.fasta -start 101 -end 150
+
+This will print out the contents of sample.fasta from positions 101 to
+positions 150 in the alignment, inclusive. 
+
+mpretty.pl sample.fasta -start 131 -end 140 -base sample1_aligned
+
+This will print out the contents of sample.fasta from position 131 to
+position 140 relative to the sequence sample1_aligned. 
+
+
+mextract.pl
+-----------
+Usage:
+mextract.pl filename [-masked]
+
+Required parameter:
+filename : Multi-FASTA file to extract sequences from.
+
+Optional parameter:
+-masked : For dealing with masked Multi-FASTA files.
+
+Example:
+mextract.pl sample.fasta
+
+This will extract the contents of sample.fasta (e.g. sample1, sample2,
+sample3) and put them into files:
+sample_sample1.fa
+sample_sample2.fa
+sample_sample3.fa
+
+Masked Example:
+mextract.pl sample.fasta.masked -masked
+
+This will extract the contents of sample.fasta.masked (e.g. sample1, sample2,
+sample3) and put them into files:
+sample_sample1.fa.masked
+sample_sample2.fa.masked
+sample_sample3.fa.masked
+
+For use with rechaos.pl in anchoring.
+
+
+mproject.pl
+-----------
+Usage:
+mproject.pl filename seqname1 [seqname2 ... ]
+
+Required parameters:
+filename : Multi-FASTA file to extract sequences from.
+and at least one sequence name.
+
+Example:
+mproject.pl sample.out sample1 sample2
+
+In this example, sample.out is the resulting alignment of a number of
+sequences -- including sample1 and sample2.  This script will project
+the multiple alignment into the pair sample1 and sample2.
+
+
+mviz.pl
+-------
+Usage:
+mviz.pl data_file param_file [plotfile]
+
+Required parameters:
+data_file : Multi-FASTA file to visualize using VISTA 
+	  (this must be the first argument)
+param_file : Parameter file (same format as used in other scripts)
+	   (this must be the second argument)
+
+Optional parameter:
+plotfile : VISTA plotfile (if specified, must be specified third) 
+	 Script will use this plotfile instead of automatically
+	 generated one.
+
+Example:
+mviz.pl sample.out sample.params sample.plotfile
+
+This will generate a VISTA plot using the data in sample.out, the
+settings in sample.params, but with sample.plotfile as the given
+plotfile.
+
+Uses:
+RunVista
+
+
+scorealign
+----------
+Usage:
+scorealign mfa_alignment %cutoff [-regions]
+Optional parameters:
+regions: Print the high scoring regions in the alignment.
+
+Example:
+scorealign alignment.mfa 80
+
+This will return the score of the alignment in the file 
+"alignment.mfa" that meat an 80% threshold.
+
+scorealign
+----------
+Usage:
+scorealign mfa_alignment %cutoff [-regions]
+Optional parameters:
+regions: Print the high scoring regions in the alignment.
+
+Example:
+scorealign alignment.mfa 80
+
+This will return the score of the alignment in the file 
+"alignment.mfa" that meat an 80% threshold.
+
+mf2bin.pl
+---------
+Usage:
+mf2bin.pl inputfile [-out outputfile]
+
+Required parameter:
+inputfile : Multi-FASTA file with two sequences to convert to bin.
+
+Optional parameter:
+-out outputfile : Put bin output to ouputfile.
+
+Example:
+mf2bin.pl sample1_sample2.fa -out sample1_sample2.bin
+
+This will take the file sample1_sample2.fa (which contains the
+alignment or projection of a larger alignment of sample1 and sample2)
+and pack it into VISTA binary format and output the result to
+sample1_sample2.bin.
+
+
+bin2mf
+------
+Usage:
+bin2mf { - | alignment_file}
+
+Example 
+bin2mf align.bin > align.mfa
+cat align.bin | bin2mf - > align.mfa
+
+This will convert the binary file in align.bin into multi-fasta format,
+and save it as align.mfa.
+
+bin2bl
+------
+Usage:
+bin2mf { - | alignment_file}
+
+Example 
+bin2mf align.bin > align.bl
+cat align.bin | bin2mf - > align.bl
+
+This will convert the binary file in align.bin into BLAST-like format,
+and save it as align.bl.
+

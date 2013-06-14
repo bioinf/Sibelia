@@ -1,0 +1,83 @@
+Shuffle-LAGAN with SuperMap README
+Michael Brudno, brudno@cs.toronto.edu
+
+0. Overview
+This directory contains the code for Shuffle-LAGAN, a glocal alignment tool described 
+in Brudno, Malde, Poliakov, Do, Couronee, Dubchak & Batzoglou  "Glocal alignment: Finding 
+rearrangements during alignment", ISMB 2003 Proceedings (see 
+http://lagan.stanford.edu/cite.html for detailed citation information). 
+It also 
+It is distributed under the SuperMap chaining algorithm which is currently 
+unpublished.
+
+1. Installation
+
+If you received Shuffle-LAGAN as part of the LAGAN toolkit it is installed 
+automatically with the rest of the package. The code assumes $LAGAN_DIR 
+has been set. 
+
+
+2. Running
+Just give it two sequences and let it roll:
+
+#slagan.pl seq1.fa seq2.fa 
+
+3. Input
+
+The input sequences should be in FASTA format. You should provide a 
+.masked file for each of the sequences (see README.FIRST) Output will be 
+in XMFA format, described lower.
+
+
+4. Output
+The overall result are three files, a .chaos file with the local 
+alignments in the chaos format, a .mon file with the 1-monotonic chain 
+(see http://lagan.stanford.edu/manual.html for what this is) and a .xmfa 
+file with the actual alignments in the XMFA format.
+
+A. XMFA Format
+
+The format is based on Multi-FASTA, but allows for several multiple local alignments to be 
+stored in a file. It is as follows:
+
+> seq_num:start1-end1 +/- comments (sequence name, etc.)
+AC-TG-NAC--TG
+AC-TG-NACTGTG
+...
+> seq_num:startN-endN +/- comments (sequence name, etc.)
+AC-TG-NAC--TG
+AC-TG-NACTGTG
+...
+= (line starting with an "=" separates different alignments, and can have any comments)
+> seq_num:start1-end1 +/- comments (sequence name, etc.)
+AC-TG-NAC--TG
+AC-TG-NACTGTG
+...
+> seq_num:startN-endN +/- comments (sequence name, etc.)
+AC-TG-NAC--TG
+AC-TG-NACTGTG
+...
+
+5. Parameters 
+Will be described for the next release. E-mail the author for details.
+
+6. Utilities
+
+The utilities directory ($LAGAN_DIR/utils) has 2 programs which may be of 
+use to Shuffle-LAGAN users:
+
+A. Glue 
+Given a Shuffle-LAGAN alignment in XMFA format it glues together a "fake" 
+second sequence and builds a single pairwise alignment in multi-fasta 
+format. This can then be visualized using VISTA, or used in other ways 
+(e.g. you can get several of these "fake" sequence and use MLAGAN to do 
+multiple alignment).
+
+B. dotplot
+Given a list of local alignments in the format of the monotinic file 
+(.mon) it builds a series of gnuplot commands that build a dotplot of the 
+local alignments. Useful for seeing which rearrangements were found.
+
+This README will be extended in the future.
+Please send questions to Michael Brudno, brudno@cs.stanford.edu
+

@@ -1,0 +1,71 @@
+README.mlagan for MLAGAN multiple aligner  v2.0    
+Author: Michael Brudno (brudno@cs.toronto.edu)           Updated 09/14/2006
+
+LAGAN was developed by 
+Michael Brudno, Chuong Do, Michael F Kim, Mukund Sundararajan and Serafim 
+Batzoglou of the Dept of Computer Science at Stanford University, 
+with assistance from many other people. 
+See http://lagan.stanford.edu or contact lagan@cs.stanford.edu
+for more information.
+
+I Description
+
+MLAGAN is a multiple global alignment tool. It does a Needleman-Wunsch alignment in a 
+limited area of the matrix, determined during an anchoring phase.
+
+The algorithm consists of 3 main parts, each documented in its own README file:
+
+1. Generation of ordered local alignments (anchors) between all pairs of sequences, 
+using the CHAOS local alignment tool and anchors program
+2. Doing progressive global alignment, guided by a phylogenetic tree, in a 
+limited area of thw NW matrix given the set of anchors.
+
+mlagan is the main executable.
+
+II Usage
+
+1. Input
+Mlagan accepts requires two or more fasta files (first arguments), optionally 
+takes a  -tree argument specifying a phylogenetic tree, reads gap and 
+substitution parameters from nucmatrix.txt file (or another optionally 
+provided file) and takes several optional command line options:
+
+nucmatrix.txt -- This file has the substitution matrix used by lagan and the gap  
+penalties. The gaps penalties are on the line immediately after the matrix,
+the first number is the gap open, the second the gap continue.
+
+-tree "string" 
+You need to specify a phylogenetic tree for the sequences. This must be a pairwise tree,
+with parenthesis specifying nodes. Here are a few examples:
+"(human (mouse rat))"
+"((human mouse)(fugu zebrafish))"
+The name of each sequence must be specified somewhere on the fasta line of the input sequence:
+>g324325|Homo sapiens    human
+ACTGG....
+Either "Homo" or "sapiens" or "human" are valid names to call the sequence.
+
+-translate [default off] 
+Use translated anchoring (homology done on the amino acid level). This is useful
+for distant (human/chicken, human/fish, and the like) comparisons.
+
+-fastreject [default off]
+Abandon the alignment if the homology looks weak. Currently tuned for 
+human/mouse distance, or closer. Please contact the authors for more 
+details on this option.
+
+-out filename [default standard out]
+Output the alignment to filename, rather than standard out.
+
+2. Output
+
+The output by default is in Multi-FASTA format. You can use the mpretty tool in the 
+utils directory to view a human-friendly version.
+
+3. Prolagan
+Prolagan is the pairwise progressive step of mlagan. It should be run just 
+like mlagan, but with two additional arguments, -pro1 and -pro2 which are files
+with profiles (alignments) which should be aligned together. Note that all 
+sequences (and the tree) must still be given to prolagan. This program is useful
+if you have two alignments already and want to just align them, instead of 
+realigning all sequences.
+

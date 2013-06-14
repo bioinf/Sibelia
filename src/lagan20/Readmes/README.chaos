@@ -1,0 +1,164 @@
+README for CHAOS  (CHAins Of Score) version 0.933    10/22/2003
+Author: Michael Brudno (brudno@cs.stanford.edu)
+
+0. Availability + Legalese
+ The source code of this version of CHAOS is freely available to all users
+under the GNU Public License (GPL). See the file LICENSE in this directory for more
+information.You can download it from http://www.stanford.edu/~brudno/chaos/
+ If you use CHAOS regularly please consider contacting brudno@cs.stanford.edu to be 
+placed on a mailing list to be contacted about any updates and bug-fixes.    
+If you use CHAOS in a published result please cite:
+
+Michael Brudno and Burkhard Morgenstern. "Fast and sensitive alignment of
+large genomic sequences" Proceedings of the IEEE Computer Society
+Bioinformatics Conference (CSB) 2002 pp. 138-47
+
+I. Installation 
+   To install CHAOS you need to copy the source files to your local 
+computer, untar/ungzip them, and run "make". I am assuming you have a 
+reasonably modern installation of gcc. The sequence of commands should be:
+
+% gunzip chaos.tar.gz
+% tar xvf chaos.tar
+% make
+ 
+This will create the executable files "chaos" and "anchors". This
+distibutiuon also includes the program ancs4dialign.pl, a perl script for
+connecting CHAOS with DIALIGN. Both these tools are described in section V.
+
+
+Because CHAOS uses no system-dependent or implementation dependent libraries
+it should compile on all platforms and ANSI C compilers. If you have problems
+compiling the sources please e-mail the author. You will need to also set the
+environment variable LAGAN_DIR to the directory where you installed CHAOS. in
+c-shell this can be done by executing
+
+% setenv LAGAN_DIR `pwd`
+
+on the prompt. For other shells the command differs.
+
+II Description
+   CHAOS is a heuristic local alignment tool optimized for non-coding 
+regions of the genome.  The main idea behind the algorithm lies in the 
+chaining together of similar regions, or seeds. A seed is a pair of k-long 
+words with at least n identical base pairs (bp). A seed k1 can then be 
+chained to the seed k2 whenever the indeces of k1 in both sequences are 
+higher than the indeces of k2, and k1 and k2 are "near" each other, with 
+"near" defined by both a distance and a gap criteria. The final score of a 
+chain is the total number of matching bp in it. There is no explicit gap 
+penalty for matching seeds which are seperated by an unequal number of 
+bases in the two sequences.
+
+III Usage
+1. Input Parameters
+   The main input are two fasta files. the first should contain a single 
+query sequence, while the second can be a database of several sequences.
+There are followed by any number of command line options. This list is partial,  
+(run chaos without args for the full list):
+
+nucmatrix.txt -- This file has the substitution matrix used by lagan and the gap  
+penalties. The gaps penalties are on the line immediately after the matrix,
+the first number is the gap open, the second the gap continue.
+
+blosum62s.txt -- This file has a (scaled) version of the blosum62 matrix and 
+appropriate gap parameters.
+
+-p     = Peptide sequence [default genomic]
+Whether the input is a peptide or genomic sequence. For peptide sequences 
+we call "similar" letters equal. In the default configuration we have 
+"PCMH[DE][KR][NQ][ST][ILV][FYW][AG]X*", where letters in the same brackets 
+are considered equal. Currently this is not user-settable, but as usual if 
+you really want to be able to change this e-mail me.
+
+-v     = Verbose mode [default brief]
+Displays the Smith-Waterman alignments of the resulting conserved regions.
+
+-b     = Both strands [default forward-only]
+Add this if you are interested in similarities on both strands of the DNA. 
+Meaningless if used with -p. 
+
+-t     = Translated [default off]
+Makes the 6 translated frames of the sequences and compares them, 
+forward against forward, backward against backward (all against all if -b 
+specified).
+
+-wl #  = Word Length [default 10 for genomic, 4 for peptide]
+The length of the seed (k in the description above).
+
+-nd #  = Number of Degeneracy [default 1 for genomic, 0 for peptide]
+Amount of degeneracy allowed in the seed (k-n in the description above).
+
+-co #  = score CutOff [default 25]
+Scores above this cutoff are shown.
+
+-rsc $ = reScoring cutoff [default 0]
+After the alignments are found they are rescored using a fast Smith-Waterman like
+algorithm. This lets you set the rescoring cutoff, to see only the high confidence hits.
+Scores around 2500 and greater are indicative of strong homology. One common use of this 
+is to set -co to something small, and control only the S-W quality of alignments.
+
+-lb #  = LookBack distance [default 20 for genomic, 8 for peptide]
+How far away two seeds are allowed to be so that they are chained.
+
+-gl #  = maximum Gap Length [default 5]
+Maximum sized gap allowed between two seeds if they are to be chained.
+
+-version = prints the version number
+
+2. Usage notes/suggestions
+The part of the algorithm which usually takes longest is chaining. So if 
+it is too slow, try increasing the wl parameter, decreasing the -nd 
+parameter or both. If you do so, you probably need to adjust the -co or -rsc
+paramters so that the results you get are meaningful. The -ext parameter seems 
+to be very effective, we strongly suggest it.
+
+IV Description of Algorithm
+1. Seed Location
+
+Seeds are found by first indexing the query sequence in a "threaded trie"  
+of height k. In a trie every node corresponds to some [part of a] word. In
+a threaded trie, every node has a back pointer to the node which
+corresponds to the same word without its first letter. We start by
+inserting into the threaded trie all of the k-mers of the query sequence.  
+Then we do a "walk" using the database sequence, where starting at the
+root, for every letter if the current node has a child corresponding to
+this letter we go down to it, and if it does not we folloe back pointers
+until it does, or we hit the root. If degeneracy is allowed, we just allow
+multiple current nodes, which correspond to the possible degenerate words.
+
+2. Search Space and Chaining
+
+The seeds seen over the course of the past -lb basepairs are stored in a 
+skip list, indexed by the difference of its indeces in the two sequences 
+(diagonal number). For each seed we do a range query in the skip list, 
+finding the possible hits with which it can be chained. the highest 
+scoring chain is picked, and it can then be further extended by future 
+hits.
+
+IV anchors and ancs4dialign
+
+Anchors is a small C program, that given a list of CHAOS local alignments
+resolves them into a strictly increasing list of anchors using an algorithm
+based on the Longest increasing subsequence problem. The anchors given out
+by the program can be used to anchor any global aligner that supports an 
+external anchors file, e.g. LAGAN or dialign. For Dialign we include an extra 
+script, ancs4dialign, written by Burkhard Morgenstern that given a 
+multi-fasta file with several sequences will create a .anc file that dialign 
+will use if given the -anc option.
+
+V Future Work
+
+I am interested in further extending CHAOS. However with most such features I
+will be user driven: if you want a specific feature, ask me. This way I'll
+spend less time working on things no one will ever use. One issue which is 
+of particular interest is placing statistical confidence estimates on the 
+chains. If you are interested in helping me work on CHAOS please contact me, 
+I am open to collaborations in this area.
+
++-----------------------------------------------------------------+
+| Michael Brudno                | 260S Clark Center               |
+| PhD Candidate                 | (650) 725-6094                  |
+| Dept. of Computer Science     | brudno@cs.stanford.edu          |
+| Stanford University           | http://www.stanford.edu/~brudno |
++-----------------------------------------------------------------+
+

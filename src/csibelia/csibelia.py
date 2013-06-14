@@ -11,11 +11,12 @@ import multiprocessing
 from Bio import SeqIO
 from Bio import AlignIO
 
-MINIMUM_CONTEXT_SIZE = 30
-BLOCKS_FILE = 'blocks_sequences.fasta'
-LAGAN_DIR = 'C:/Temp/lagan20'
 COVER = 1
 UNCOVER = 0
+MINIMUM_CONTEXT_SIZE = 30
+BLOCKS_FILE = 'blocks_sequences.fasta'
+INSTALL_DIR = os.path.dirname(os.path.abspath(__file__))
+LAGAN_DIR = os.path.join(INSTALL_DIR, '.lagan20')
 os.environ['LAGAN_DIR'] = LAGAN_DIR
 
 def strip_chr_id(chr_id):
@@ -30,8 +31,8 @@ class Variant(object):
 		self._reference_chr_id = reference_chr_id
 		self._reference_pos = reference_pos		
 		self._contig_id = str(contig_id)
-		self._reference_allele = reference_allele.upper()  
-		self._assembly_allele = assembly_allele.upper()
+		self._reference_allele = '.' if reference_allele is None else reference_allele.upper()  
+		self._assembly_allele = '.' if assembly_allele is None else assembly_allele.upper()
 		self._reference_context = str(None if reference_context is None else reference_context.upper())
 		self._assembly_context = str(None if assembly_context is None else assembly_context.upper())
 		self._synteny_block_id = synteny_block_id
@@ -151,7 +152,7 @@ def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id, con
 	for symbol in alignment[0]:
 		reference_position_map.append(position)
 		position += 1 if symbol != '-' else 0
-
+	
 	variant = []	
 	for segment_index, segment in enumerate(alignment_segment):
 		start, end, match = segment
@@ -169,7 +170,7 @@ def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id, con
 								synteny_block_id))				
 	return variant		   
 
-def get_reference_seq(file_name):
+def get_seq(file_name):
 	seq = [(record.id, record.seq) for record in SeqIO.parse(file_name, "fasta")]	
 	return (seq[0][0], dict(seq))
 
@@ -211,7 +212,7 @@ def process_unique_block(unique_block, block_index):
 	alignment_handle.close()
 	return parse_alignment(alignment_file, reference_chr_id, synteny_block_id, contig_id, reference_start)
 	
-def call_variants(directory, reference_seq, min_block_size, proc_num):	
+def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num):	
 	os.chdir(directory)
 	block_seq = dict()	
 	for record in SeqIO.parse(BLOCKS_FILE, 'fasta'):				
@@ -236,15 +237,19 @@ def call_variants(directory, reference_seq, min_block_size, proc_num):
 	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
 	blocks_coords = itertools.chain.from_iterable([parse_blocks_coords(coords_file) for coords_file in coords_file_list])
 	base_cover = dict()
-	for seq_id, seq in reference_seq.items():
-		base_cover[seq_id] = [UNCOVER for _ in seq]
+	for seq_group in (reference_seq, assembly_seq):		
+		for seq_id, seq in seq_group.items():
+			base_cover[seq_id] = [UNCOVER for _ in seq]
+			
 	for block in blocks_coords:
 		reference = [obj for obj in block if obj[0] in reference_seq]
 		if reference and len(reference) < len(block):
-			for instance in reference:
+			for instance in block:
 				size = instance[2] - instance[1]
 				base_cover[instance[0]][instance[1]:instance[2]] = [COVER] * size
-	os.chdir('..')
+	
+	insertion = []
+	os.chdir('..')	
 	for seq_id, cover in base_cover.items():
 		i = 0
 		while i < len(cover):
@@ -253,15 +258,21 @@ def call_variants(directory, reference_seq, min_block_size, proc_num):
 				while i < len(cover) and cover[i] == UNCOVER:
 					i += 1
 				end = i
-				if end - start > min_block_size:					
-					common_char = str(reference_seq[seq_id][start - 1]) if start > 0 else ''
-					reference_allele = common_char + str(reference_seq[seq_id][start:end])
-					variant.append(Variant(seq_id, start, None, reference_allele, 
-										common_char, None, None, None))
+				if end - start > min_block_size:
+					if seq_id in reference_seq:					
+						common_char = str(reference_seq[seq_id][start - 1]) if start > 0 else ''
+						reference_allele = common_char + str(reference_seq[seq_id][start:end])
+						variant.append(Variant(seq_id, start, None, reference_allele, common_char,
+											reference_allele, None, None))
+					else:
+						common_char = str(assembly_seq[seq_id][start - 1]) if start > 0 else ''
+						assembly_allele = common_char + str(assembly_seq[seq_id][start:end])
+						insertion.append(Variant(None, None, seq_id, common_char, assembly_allele,
+											None, assembly_allele, None))
 			else:
 				i += 1
 	
-	return variant
+	return (variant, insertion)
 
 def generate_conventional_output(variant_list, handle):
 	for variant in variant_list:
@@ -283,15 +294,20 @@ parser.add_argument('-t', '--tempdir', help='Directory for temporary  files', de
 parser.add_argument('-m', '--minblocksize', help='Minimum size of a synteny block', type=int, default=500)
 parser.add_argument('-p', '--processcount', help='Number of running processes', type=int, default=1)
 args = parser.parse_args()
-sibelia_cmd = ' '.join(['Sibelia', '-s fine', '-m', str(args.minblocksize), args.reference, 
-						'-q', args.assembly, '--matchrepeats', '--allstages', '-o', args.tempdir])
+
+sibelia_cmd = ' '.join([os.path.join('', 'Sibelia'), '-s fine', '-m', 
+					str(args.minblocksize), args.reference, args.assembly, '-q', 
+					'--matchrepeats', '--allstages', '-o', args.tempdir])
 print >> sys.stderr, "Calculating synteny blocks..."
 os.system(sibelia_cmd)
-reference_organism, reference_seq = get_reference_seq(args.reference)
+_, assembly_seq = get_seq(args.assembly)
+reference_organism, reference_seq = get_seq(args.reference)
 print >> sys.stderr, "Calling variants..."
-variant_list = call_variants(args.tempdir, reference_seq, args.minblocksize, args.processcount)
+variant_list, insertion_list = call_variants(args.tempdir, reference_seq, assembly_seq,
+											 args.minblocksize, args.processcount)
 variant_list.sort(key=Variant.get_reference_pos)
 generate_conventional_output(variant_list, open('variant.txt', 'w'))
+generate_conventional_output(insertion_list, open('insertion.txt', 'w'))
 generate_vcf_output(variant_list, reference_organism, open('variant.vcf', 'w'))
 shutil.rmtree(args.tempdir)
 print >> sys.stderr, (time.time() - start), "seconds elapsed"

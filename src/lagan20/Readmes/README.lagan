@@ -1,0 +1,74 @@
+NOTE: Pairwise lagan has not changed in the 2.0 release
+
+README.lagan for LAGAN aligner (Limited Area Global Alignment of Nucleotides) v1.1    
+Author: Michael Brudno (brudno@cs.stanford.edu)                  04/02/2003
+
+LAGAN was developed by 
+Michael Brudno, Chuong Do, Michael F Kim and Serafim Batzoglouof the Dept of 
+Computer Science at Stanford University, with assistance from many other people. 
+See http://lagan.stanford.edu or contact lagan@cs.stanford.edu
+for more information.
+
+I Description
+
+LAGAN is a global alignment tool. It does a Needleman-Wunsch alignment in a 
+limited area of the matrix, determined during an anchoring phase.
+
+The algorithm consists of 3 main parts, each documented in its own README file:
+
+1. Generation of local alignments, using the CHAOS local alignment tool
+2. Finding a monotonically increasing set of anchors from these local alignment, 
+using the anchors program.
+3. Doing global alignment in a limited area of thw NW matrix given the set of 
+anchors (order tool).
+
+lagan.pl is the main executable that calls the three steps.
+
+II Usage
+
+1. Input
+Lagan accepts requires two fasta files (first two arguments),reads gap and 
+substitution parameters from the nucmatrix.txt file  and takes several 
+optional command line options.
+
+nucmatrix.txt -- This file has the substitution matrix used by lagan and the gap 
+penalties. The gaps penalties are on the line immediately after the matrix,
+the first number is the gap open, the second the gap continue.
+
+-chaos "string" [default none]
+The contents of string will be passed as arguments to CHAOS. See the CHAOS readme 
+for details.
+
+-order "string" [default none]
+The contents of string will be passed as arguments to order. 
+
+-recurfl "list of k-tuplets" [default: "(12,0,25,0),(13,1,25,0),(8,1,30,0)(7,1,30,0)"]
+A list of (wordlength,number of degeneracies,score cutoff, rescoringcutoff) k-tuplets to be 
+used in the recursive anchoring. See README.chaos for the meaning of these numbers.
+
+-translate [default off] 
+Use translated anchoring (homology done on the amino acid level). This is useful
+for distant (human/chicken, human/fish, and the like) comparisons.
+
+-bin [default off]
+print the output in binary format, for use by the bin2bl tool, or VISTA
+
+-mfa [default off]
+print the output in Multi-FASTA format, for use by many standard tools
+
+-rc [default off]
+reverse-complement the second sequence before doing the alignment
+
+-fastreject
+Abandon the alignment if the homology looks weak. Currently tuned for human/mouse
+distance, or closer. Please contact the authors for more details on this option.
+
+2. Output
+
+The output by default is in a blast like format, but you can use the -mfa or -bin 
+options to save the results in multi-fasta, or binary format respectively. The 
+binary format is a compact representation accepted by VISTA. There are some converters 
+between the formats in the utils directory (see README.tools)
+
+
+

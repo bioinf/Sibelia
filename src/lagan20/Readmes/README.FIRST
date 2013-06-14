@@ -1,0 +1,80 @@
+README.first for LAGAN Toolkit (Limited Area Global Alignment of Nucleotides) v2.0   
+Author: Michael Brudno (brudno@cs.toronto.edu)                  09/14/2006
+
+LAGAN was developed by 
+Michael Brudno, Chuong Do, Sanket Malde, Michael F Kim and Serafim Batzoglou of 
+the Dept of Computer Science at Stanford University, with assistance from many 
+other people. See http://lagan.stanford.edu or contact lagan@cs.stanford.edu
+for more information.
+
+0. Availability + Legalese
+   The source code of this version of LAGAN is freely available to all users 
+under the GNU Public License (GPL). See the file LICENSE in this directory for more 
+information. You can download the LAGAN sources from http://lagan.stanford.edu
+If you use LAGAN regularly please consider contacting lagan@cs.stanford.edu 
+to be placed on a mailing list to be contacted about any updates and bug-fixes. 
+If you use LAGAN in a published result please see 
+http://lagan.stanford.edu/cite.html for the latest citation information.
+
+I. Installation 
+   To install LAGAN you need to copy the source files to your local 
+computer, untar/ungzip them, and run "make". I am assuming you have a 
+reasonably modern installation of gcc and perl. The sequence of commands should 
+be:
+
+% gunzip lagan.tar.gz
+% tar xvf lagan.tar
+% make
+ 
+This will create the executable files chaos, anchors, order, mlagan, 
+glocal, prolagan as well as many tools in the utils directory. 
+
+You may also need to go into all the .pl file, and change the first line
+to call your perl interpreter. You must also specify an environment
+variable $LAGAN_DIR to point to the directory where you installed LAGAN.
+
+Because LAGAN uses no system-dependent or implementation dependent 
+libraries it should compile on all platforms and ANSI C compilers. 
+We use it on a Linux box. Please tell us if you have trouble compiling/running 
+LAGAN tools on your favorite platform, we have found that most of these problems 
+are easily resolved.
+
+II Description
+LAGAN toolkit is a set of tools for local, global, and multiple alignment of DNA
+sequences. Please see our website (http://lagan.stanford.edu) for publications 
+describing LAGAN and its components.
+
+The 4 main parts of LAGAN, each documented in its own README file are:
+
+1. CHAOS local alignment tool
+2. LAGAN pairwise global alignment tool
+3. MLAGAN multiple global alignment tool.
+4. Shuffle-LAGAN pairwise glocal alignment (with the SuperMap chaining addition)
+
+There are also numerous utilities and scripts, mainly in the utils subdirectory.
+Some of these are documented in the README.tools file. Of particular interest 
+may be scorealign, that can score a LAGAN or MLAGAN alignment, and the series 
+of "m" tools: mproject, mextract, mpretty, mrunfile for running mlagan and 
+parsing its output.
+
+
+III Repeat Masking
+
+LAGAN, MLAGAN, and Shuffle-LAGAN can use masking information to improve 
+the quality of the alignment. If you are trying to align sequence seq1.fa 
+and seq2.fa you should create the files seq1.fa.masked and seq2.fa.masked 
+which should have repeats masked to Ns. LAGAN, M-LAGAN and S-LAGAN 
+will know to look for these files when aligning. CHAOS doesn't recognise 
+repeat information, you should just use it on the masked files if this is 
+appropriate.
+
+IV Changes from previous version
+
+0.9 -> 1.0: Several bug fixes, alignment parameters are now in the nucmatrix.txt file
+1.0 -> 1.1: Several bug fixes, Fastreject now clips at intersection rather than union. 
+1.1 -> 1.2: A few bug fixes, Shuffle-LAGAN added.
+1.2 -> 1.21: A few bug fixes, sped up shuffle-lagan, code is now GPLed
+1.21-> 2.0: A few minor (and couple of major) bug fixes. MLAGAN no longer 
+requires a tree, and takes a substitution matrix as an argument, added 
+supermap chaining (and a new implementation of glocal chaining), updated 
+to align up to 63 sequences.
