@@ -13,10 +13,14 @@ endif()
 include_directories(${Sibelia_SOURCE_DIR}/include ${libdivsufsort_BINARY_DIR}/include)
 add_executable(Sibelia sibelia.cpp postprocessor.cpp indexedsequence.cpp util.cpp outputgenerator.cpp blockfinder.cpp blockinstance.cpp bifurcationstorage.cpp bulgeremoval.cpp dnasequence.cpp edge.cpp fasta.cpp serialization.cpp synteny.cpp test/unrolledlisttest.cpp platform.cpp stranditerator.cpp vertexenumeration.cpp resource.cpp variantcalling/variant.cpp)
 target_link_libraries(Sibelia divsufsort)
+file(COPY "${CMAKE_SOURCE_DIR}/csibelia/csibelia.py" DESTINATION "${CMAKE_BINARY_DIR}")
+file(RENAME "${CMAKE_BINARY_DIR}/csibelia.py" "${CMAKE_BINARY_DIR}/C-Sibelia.py")
 
 set(CMAKE_PROJECT_NAME Sibelia)
 set(ROOT_DIR "${CMAKE_SOURCE_DIR}/../")
-
+include(externalproject)
+externalproject_add(lagan URL "${CMAKE_SOURCE_DIR}/lagan" PREFIX lagan CONFIGURE_COMMAND "" BUILD_COMMAND make BUILD_IN_SOURCE 1 INSTALL_COMMAND "")
+externalproject_get_property(lagan SOURCE_DIR)
 if(BINARY_PACKAGE)
 	install(TARGETS Sibelia RUNTIME DESTINATION bin)
 	install(DIRECTORY ${ROOT_DIR}/examples/ DESTINATION examples)
@@ -24,6 +28,8 @@ if(BINARY_PACKAGE)
 
 else()
 	install(TARGETS Sibelia RUNTIME DESTINATION bin)
+	install(DIRECTORY ${SOURCE_DIR} DESTINATION bin)
+	install(FILES ${CMAKE_SOURCE_DIR}/C-Sibelia.py DESTINATION bin)
 endif()
 
 
