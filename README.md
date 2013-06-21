@@ -1,6 +1,6 @@
 Sibelia 3.0.0 Beta version
 
-Release date: 16.04.2013
+Release date: 24.06.2013
 
 Authors
 =======
@@ -33,6 +33,13 @@ See INSTALL.md file.
 Usage
 =====
 See SIBELIA.md for "Sibelia" and C-SIBELIA.md for "C-Sibelia".
+
+OS Support
+==========
+This version of "Sibelia" supports only "Linux"-based operating systems.
+"Windows" users may try our web server http://etool.me/software/sibelia
+or use a virtual machine. "Windows" support will be retained soon in the
+future releases.
 
 Citation
 ========

@@ -220,6 +220,7 @@ def find_instance(instance_list, reference_seq_id, in_reference):
 	return None
 
 def process_unique_block(unique_block, block_index):
+	print len(unique_block), block_index
 	pid = str(os.getpid()) + '_'	
 	alignment_file = pid + 'align.fasta'
 	reference_block_file = pid + 'blockr.fasta'
@@ -349,5 +350,5 @@ variant_list.sort(key=Variant.get_reference_pos)
 generate_conventional_output(variant_list, open('variant.txt', 'w'))
 generate_conventional_output(insertion_list, open('insertion.txt', 'w'))
 generate_vcf_output(variant_list, reference_organism, open(args.variant, 'w'))
-#shutil.rmtree(args.tempdir)
+shutil.rmtree(temp_dir)
 print >> sys.stderr, (time.time() - start), "seconds elapsed"

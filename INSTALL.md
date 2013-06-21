@@ -1,8 +1,12 @@
 Installation
 ============
 
-Sibelia is distributed both as binaries (Windows, Linux and OS X) and as source
+Sibelia is distributed both as binaries (Linux and OS X) and as source
 codes. 
+
+System requirements
+===================
+"C-Sibelia" requires "Python" and "Perl" to be istalled in your system.
 
 Building from the Source Code
 -----------------------------
@@ -11,8 +15,7 @@ Building Sibelia requires:
 * CMake
 * GCC C++ compiler (version 4.2.0+ works fine)
 
-The code is compatible with MSVS 2010 and MinGW, as well as with default
-Linux and OS X environment.
+The code is compatible with Linux and OS X environment.
 
 To build and install the program under Linux, type following:
 
@@ -29,6 +32,3 @@ option set:
 	cmake ../src -DCMAKE_INSTALL_PREFIX="<install destination>"
 	make
 	make install
-
-To build "Sibelia" under Windows or other systems, see documentation for CMake
-and your particular build system.
