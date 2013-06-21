@@ -18,3 +18,4 @@ presentation/*.toc
 src/.metadata*
 src/csibelia/.*
 *.pyc
+src/csibelia/lagan
