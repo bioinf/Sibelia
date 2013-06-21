@@ -1,95 +1,47 @@
 Basic usage
 ===========
-Directory "examples/C-Sibelia/Staphylococcus_aureus" contains a set of two
-bacterial genomes. The easiest way to run "C-Sibelia" is to type:
+The easiest way to run "C-Sibelia" is to type:
 
-	C-Sibelia -s fine -r <a FASTA file with reference> -a <a FASTA file with a genome>
+	C-Sibelia <FASTA file with reference> <FASTA file with a genome>
 
-For example (for two genomes in "examples/C-Sibelia" dir):
+For example, directory "examples/C-Sibelia/Staphylococcus_aureus" contains a
+set of two bacterial genomes. To run "C-Sibelia" on this dataset, type:
 
-	C-Sibelia -s fine -r NCTC8325.fasta -a RN4220.fasta
+	C-Sibelia NCTC8325.fasta RN4220.fasta
 
 The command above will run "C-Sibelia" on two bacterial genomes with the "fine"
-simplification parameters. After this run you will find a file "variant.vcf" 
-with found differences between these two genomes in VCF format. You also can
-get additional information about synteny blocks between these two genomes, to
-do this run "C-Sibelia" with the "-o" option set:
-
-	C-Sibelia -s fine -r NCTC8325.fasta -a RN4220.fasta -o out
-
-To understand the information in these files, see "Directory for output files"
-section. Please note that the file with reference must contain only one
-sequence, while another file may contain multiple sequences (contigs).
+simplification parameters. After this run you can find a file "variant.vcf" 
+with detected differences between these two genomes in VCF format.
 
 There is another simplification parameters set, called "loose". To understand
 the difference between them, please read manual for "Sibelia" (SIBELIA.md),
 section "Basic usage".
 
-Technical parameters
-====================
-
-Directory for output files
---------------------------
-If you want to see files, describing synteny blocks between input genomes, set
-the "outdir" option:
-
-	-o <dir name> or --outdir <dir name>
-
-"C-Sibelia" will write these files there. If this option is set, VCF file with
-variants will also be written in output directory.
+"C-Sibelia" requires some free disk space to write it's temporary files. By
+default, they're stored within the current working directory. If you want to
+store temporary files in some other location, use the '-t' option.
 
 Output description
 ==================
-By default, "Sibelia" writes only VCF file with found variants ("variant.vcf").
-Additionally, it can produce output similar to Sibelia (see section "Directory
-for output files"):
-
-1. Blocks coordinates
-2. Genomes represented as permutations of the synteny blocks
-3. Coverage report
-4. Files for generating a "Circos" picture
-5. Interactive html-diagram of synteny blocks
-6. Sequences file
-
-All these files are described below in details.
-
-Variant report
---------------
 Output file "variants.vcf" contains variants found between two genomes. The 
 variants are presented in VCF format, version 4.1. If you want "C-Sibelia" to
 write variants to some other file, set the "variant" option":
 
-	-v <vile name> or --variant <file name>
+	-v <file name> or --variant <file name>
 
-If "-o" option is set, then VCF file be written in the output directory.
+Technical parameters
+====================
 
-Blocks coordinates
-------------------
-See the corresponding section in SIBELIA.md.
+Directory for temporary files
+-----------------------------
+Default directory is the current working directory. You can change this by
+setting a cmd parameter:
 
-Genomes permutations
---------------------
-See the corresponding section in SIBELIA.md.
+	-t <dir name> or --tempdir <dir name>
 
-Coverage report
----------------
-See the corresponding section in SIBELIA.md.
-
-Sequences file
---------------
-See the corresponding section in SIBELIA.md.
-
-"d3" visualization
-------------------
-See the corresponding section in SIBELIA.md.
-
-"Circos" visualization
-----------------------
-See the corresponding section in SIBELIA.md.
-
-Fine tuning
-===========
-Here we will describe parameters that can affect computation results.
+"Sibelia" creates some temporary files while running. By default these files
+are placed in the output directory. If you want to place temporary files in
+another folder due to some reasons, use this parameter. 
 
 Minimum block size
 ------------------

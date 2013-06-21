@@ -123,7 +123,6 @@ int main(int argc, char * argv[])
 
 		cmd.xorAdd(parameters, stageFile);
 		cmd.parse(argc, argv);
-
 		std::vector<std::pair<int, int> > stage;
 		if(parameters.isSet())
 		{

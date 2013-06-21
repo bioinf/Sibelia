@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import shutil
+import tempfile
 import argparse
 import itertools
 import functools
@@ -315,27 +316,38 @@ def generate_vcf_output(variant_list, reference, handle):
 		print >> handle, variant.get_vcf_record()
 
 start = time.time()
-parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.')
+parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('reference', help='A multi-FASTA file with the reference genome')
 parser.add_argument('assembly', help='A multi-FASTA file with the assembly genome')
-parser.add_argument('-t', '--tempdir', help='Directory for temporary  files', default='.out')
+parser.add_argument('-s', '--parameters', help='Parameters set, used for the simplification. \
+					Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).', 
+					default='fine')
 parser.add_argument('-m', '--minblocksize', help='Minimum size of a synteny block', type=int, default=500)
+parser.add_argument('-t', '--tempdir', help='Directory for temporary  files', default='.')
 parser.add_argument('-p', '--processcount', help='Number of running processes', type=int, default=1)
+parser.add_argument('-i', '--maxiterations', help='Maximum number of iterations during a stage of simplification',
+					default=4)
+parser.add_argument('-v', '--variant', help='Output file with detected variants', default='variant.vcf')
 args = parser.parse_args()
 
-sibelia_cmd = ' '.join([os.path.join(INSTALL_DIR, 'Sibelia'), '-s fine', '-m', 
-					str(args.minblocksize), args.reference, args.assembly, '-q', 
-					'--matchrepeats', '--allstages', '-o', args.tempdir])
+temp_dir = tempfile.mkdtemp(dir=args.tempdir)
+sibelia_cmd = ' '.join([os.path.join(INSTALL_DIR, 'Sibelia'), 					
+					args.reference, args.assembly,
+					'-q', '--matchrepeats', '--allstages',
+					'-m', str(args.minblocksize),
+					'-o', temp_dir,
+					'-s', args.parameters,
+					'-i', str(args.maxiterations)])
 print >> sys.stderr, "Calculating synteny blocks..."
 os.system(sibelia_cmd)
 _, assembly_seq = get_seq(args.assembly)
 reference_organism, reference_seq = get_seq(args.reference)
 print >> sys.stderr, "Calling variants..."
-variant_list, insertion_list = call_variants(args.tempdir, reference_seq, assembly_seq,
+variant_list, insertion_list = call_variants(temp_dir, reference_seq, assembly_seq,
 											 args.minblocksize, args.processcount)
 variant_list.sort(key=Variant.get_reference_pos)
 generate_conventional_output(variant_list, open('variant.txt', 'w'))
 generate_conventional_output(insertion_list, open('insertion.txt', 'w'))
-generate_vcf_output(variant_list, reference_organism, open('variant.vcf', 'w'))
-shutil.rmtree(args.tempdir)
+generate_vcf_output(variant_list, reference_organism, open(args.variant, 'w'))
+#shutil.rmtree(args.tempdir)
 print >> sys.stderr, (time.time() - start), "seconds elapsed"

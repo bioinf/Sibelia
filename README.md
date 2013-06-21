@@ -19,10 +19,9 @@ genomes, like different strains of the same bacterial species. It takes a set
 of FASTA files with genomes and locates coordinates of the synteny blocks in
 these sequences. It also represents genomes as permutations of the blocks.
 
-* C-Sibelia -- This tool is designed for comparison between a reference and
-either a finished genome, or a genome represented as a set of contigs. It is
-able to detect SNPs/SNVs and indels of different scales. It also finds synteny
-blocks between these two genomes.
+* C-Sibelia -- This tool is designed for comparison between two genomes
+represented either in finished form or as sets of contigs. It is able to detect
+SNPs/SNVs and indels of different scales. 
 
 Installation
 ============
@@ -36,9 +35,9 @@ Citation
 ========
 If you use "Sibelia" in your research, please cite:
 
-Ilya Minkin, Nikolay Vyahhi, Son Pham. "SyntenyFinder: A Synteny Blocks 
-Generation and Genome Comparison Tool" (poster), WABI 2012
-http://bioinf.spbau.ru/sites/default/files/SyntenyFinder.pdf
+Ilya Minkin, Anand Patel, Mikhail Kolmogorov, Nikolay Vyahhi, Son Pham.
+"Sibelia: A fast synteny blocks generation tool for many closely related
+microbial genomes" (accepted at WABI 2013).
 
 License
 =======
@@ -60,7 +59,7 @@ http://www.seqan.de
 
 Contacts
 ========
-E-mail your feedback at ilya.minkinen@gmail.com.
+E-mail your feedback at ivminkin@gmail.com.
 
 You also can report bugs or suggest features using issue tracker at GitHub
 https://github.com/bioinf/Sibelia/issues
