@@ -21,7 +21,10 @@ these sequences. It also represents genomes as permutations of the blocks.
 
 * C-Sibelia -- This tool is designed for comparison between two genomes
 represented either in finished form or as sets of contigs. It is able to detect
-SNPs/SNVs and indels of different scales. 
+SNPs/SNVs and indels of different scales. "C-Sibelia" works by locating synteny
+blocks between the input genomes and aligning different copies of a block.
+It considers only unique blocks, i.e. blocks having one copy in reference and
+one copy in another genome.
 
 Installation
 ============

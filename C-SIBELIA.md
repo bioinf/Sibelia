@@ -31,6 +31,8 @@ write variants to some other file, set the "variant" option":
 
 Technical parameters
 ====================
+"C-Sibelia" works by aligning different copies of a synteny block. It relies
+on "Sibelia" in finding the blocks. Thus, it accepts many 
 
 Directory for temporary files
 -----------------------------
