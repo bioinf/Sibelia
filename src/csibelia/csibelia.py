@@ -196,7 +196,7 @@ def process_unique_block(unique_block, block_index):
 	alignment_file = pid + 'align.fasta'
 	reference_block_file = pid + 'blockr.fasta'
 	assembly_block_file = pid + 'blocka.fasta'
-	lagan_cmd = [LAGAN_DIR + "/lagan.pl", reference_block_file, assembly_block_file, '-mfa']
+	lagan_cmd = ['perl', LAGAN_DIR + "/lagan.pl", reference_block_file, assembly_block_file, '-mfa']
 	alignment_handle = open(alignment_file, 'w')	
 	synteny_block_id, reference_instance, assembly_instance = unique_block[block_index]
 	reference_start = int(parse_header(reference_instance.description)['Start'])
