@@ -19,3 +19,4 @@ src/.metadata*
 src/csibelia/.*
 *.pyc
 src/csibelia/lagan
+src/csibelia/Sibelia.exe

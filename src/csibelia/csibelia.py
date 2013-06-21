@@ -7,9 +7,8 @@ import argparse
 import itertools
 import functools
 import subprocess
+import collections
 import multiprocessing
-from Bio import SeqIO
-from Bio import AlignIO
 
 COVER = 1
 UNCOVER = 0
@@ -19,11 +18,40 @@ INSTALL_DIR = os.path.dirname(os.path.abspath(__file__))
 LAGAN_DIR = os.path.join(INSTALL_DIR, 'lagan')
 os.environ['LAGAN_DIR'] = LAGAN_DIR
 
+FastaRecord = collections.namedtuple('FastaRecord', ['seq', 'description', 'id'])
+
 def strip_chr_id(chr_id):
 	part = chr_id.split('|')
 	if len(part) == 5:
 		return part[-2].split('.')[0]
 	return chr_id
+
+def parse_fasta_file(file_name):	
+	handle = open(file_name)
+	line = [line.strip() for line in handle if line.strip() != '']
+	record = []
+	i = 0
+	while i < len(line):
+		if line[i][0] == '>':
+			j = i + 1
+			while j < len(line) and line[j][0] != '>':
+				j += 1
+			seq = ''.join(line[i + 1:j])
+			description = line[i][1:].strip()
+			seq_id = description.split()[0]
+			record.append(FastaRecord(seq=seq, description=description, id=seq_id))
+			i = j
+		else:
+			i += 1		
+	handle.close()
+	return record
+
+def write_fasta_records(fasta_record, file_name):
+	handle = open(file_name, 'w')
+	for record in fasta_record:
+		print >> handle, '>' + record.description
+		print >> handle, record.seq
+	handle.close()
 
 class Variant(object):
 	def __init__(self, reference_chr_id, reference_pos, contig_id, reference_allele,
@@ -110,14 +138,14 @@ def get_context(alignment, alignment_segment, segment_index):
 	if segment_index > 0:
 		segment = alignment_segment[segment_index - 1]
 		start = segment[1] - min(segment[1] - segment[0], MINIMUM_CONTEXT_SIZE)
-		context.append(str(alignment[0][start:segment[1]].seq))
+		context.append(str(alignment[0][start:segment[1]]))
 	else:
 		context.append('')
 
 	if segment_index + 1 < len(alignment_segment):
 		segment = alignment_segment[segment_index + 1]
 		end = segment[0] + min(segment[1] - segment[0], MINIMUM_CONTEXT_SIZE)
-		context.append(str(alignment[0][segment[0]:end].seq))
+		context.append(str(alignment[0][segment[0]:end]))
 	else:
 		context.append('')
 		
@@ -130,7 +158,7 @@ def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id, con
 	last_match = None
 	start_position = None
 	alignment_segment = []
-	alignment = AlignIO.read(open(alingment_file_name), "fasta")
+	alignment = [record.seq for record in parse_fasta_file(alingment_file_name)]		
 	for now_position, symbol in enumerate(zip(alignment[0], alignment[1])):
 		now_match = symbol[0] == symbol[1]
 		if last_match is None:
@@ -144,9 +172,8 @@ def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id, con
 				start_position = alignment_segment[-1][0]
 				del alignment_segment[-1]
 			last_match = now_match
-	alignment_segment.append([start_position, now_position, last_match])
-	alignment_segment[-1][1] = alignment.get_alignment_length()
-
+			
+	alignment_segment.append([start_position, len(alignment[0]), last_match])
 	position = reference_start
 	reference_position_map = []
 	for symbol in alignment[0]:
@@ -171,7 +198,7 @@ def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id, con
 	return variant		   
 
 def get_seq(file_name):
-	seq = [(record.id, record.seq) for record in SeqIO.parse(file_name, "fasta")]	
+	seq = [(record.id, record.seq) for record in parse_fasta_file(file_name)]	
 	return (seq[0][0], dict(seq))
 
 def parse_header(header):
@@ -192,21 +219,20 @@ def find_instance(instance_list, reference_seq_id, in_reference):
 	return None
 
 def process_unique_block(unique_block, block_index):
-	pid = str(os.getpid()) + '_'
+	pid = str(os.getpid()) + '_'	
 	alignment_file = pid + 'align.fasta'
 	reference_block_file = pid + 'blockr.fasta'
 	assembly_block_file = pid + 'blocka.fasta'
 	lagan_cmd = ['perl', LAGAN_DIR + "/lagan.pl", reference_block_file, assembly_block_file, '-mfa']
 	alignment_handle = open(alignment_file, 'w')	
-	synteny_block_id, reference_instance, assembly_instance = unique_block[block_index]
+	synteny_block_id, reference_instance, assembly_instance = unique_block[block_index]	
 	reference_start = int(parse_header(reference_instance.description)['Start'])
-	reference_chr_id = parse_header(reference_instance.description)['Seq']
+	reference_chr_id = parse_header(reference_instance.description)['Seq']	
 	contig_id = parse_header(assembly_instance.description)['Seq']
 	instance = [reference_instance, assembly_instance]
-	handle = [open(reference_block_file, 'w'), open(assembly_block_file, 'w')]
+	file_name = [reference_block_file, assembly_block_file]	
 	for index, record in enumerate(instance):
-		SeqIO.write(record, handle[index], 'fasta')
-		handle[index].close()
+		write_fasta_records([record], file_name[index])		
 	with open(os.devnull, "w") as fnull:
 		subprocess.call(lagan_cmd, stdout=alignment_handle, stderr=fnull)
 	alignment_handle.close()
@@ -215,11 +241,11 @@ def process_unique_block(unique_block, block_index):
 def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num):	
 	os.chdir(directory)
 	block_seq = dict()	
-	for record in SeqIO.parse(BLOCKS_FILE, 'fasta'):				
+	for record in parse_fasta_file(BLOCKS_FILE):				
 		block_id = parse_header(record.description)['Block_id']
 		if block_id not in block_seq:
 			block_seq[block_id] = []			
-		block_seq[block_id].append(record)		
+		block_seq[block_id].append(record)
 				
 	pool = multiprocessing.Pool(proc_num)
 	unique_block = []	
@@ -229,8 +255,8 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 			assembly_instance = find_instance(instance_list, reference_seq.keys(), False)
 			if (not reference_instance is None) and (not assembly_instance is None):
 				unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
-		
-	process_block = functools.partial(process_unique_block, unique_block)	
+	
+	process_block = functools.partial(process_unique_block, unique_block)
 	variant = pool.map(process_block, range(len(unique_block)))	
 	variant = [obj for obj in itertools.chain.from_iterable(variant)]
 	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
@@ -297,7 +323,7 @@ parser.add_argument('-m', '--minblocksize', help='Minimum size of a synteny bloc
 parser.add_argument('-p', '--processcount', help='Number of running processes', type=int, default=1)
 args = parser.parse_args()
 
-sibelia_cmd = ' '.join([os.path.join('', 'Sibelia'), '-s fine', '-m', 
+sibelia_cmd = ' '.join([os.path.join(INSTALL_DIR, 'Sibelia'), '-s fine', '-m', 
 					str(args.minblocksize), args.reference, args.assembly, '-q', 
 					'--matchrepeats', '--allstages', '-o', args.tempdir])
 print >> sys.stderr, "Calculating synteny blocks..."
