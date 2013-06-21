@@ -233,7 +233,7 @@ int main(int argc, char * argv[])
 		if(sequencesFile.isSet())
 		{
 			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
-            generator.OutputBlocksInSAM(history.back(), defaultBlocksAlignmentFile);			
+//			generator.OutputBlocksInSAM(history.back(), defaultBlocksAlignmentFile);			
 		}		
 
 		if(!hierarchy)
