@@ -253,7 +253,7 @@ int main(int argc, char * argv[])
 
 		std::cout.setf(std::cout.fixed);
 		std::cout.precision(2);
-		std::cout << "Time elapsed: " << double(clock()) / CLOCKS_PER_SEC << " seconds" << std::endl;
+	//	std::cout << "Time elapsed: " << double(clock()) / CLOCKS_PER_SEC << " seconds" << std::endl;
 	} 
 	catch (TCLAP::ArgException &e)
 	{

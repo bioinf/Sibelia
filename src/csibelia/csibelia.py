@@ -348,8 +348,7 @@ print >> sys.stderr, "Calling variants..."
 variant_list, insertion_list = call_variants(temp_dir, reference_seq, assembly_seq,
 											 args.minblocksize, args.processcount)
 variant_list.sort(key=Variant.get_reference_pos)
-generate_conventional_output(variant_list, open('variant.txt', 'w'))
-generate_conventional_output(insertion_list, open('insertion.txt', 'w'))
+#generate_conventional_output(variant_list, open('variant.txt', 'w'))
+#generate_conventional_output(insertion_list, open('insertion.txt', 'w'))
 generate_vcf_output(variant_list, reference_organism, open(args.variant, 'w'))
 shutil.rmtree(temp_dir)
-print >> sys.stderr, (time.time() - start), "seconds elapsed"
