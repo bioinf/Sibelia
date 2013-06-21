@@ -1,3 +1,5 @@
+#!/usr/local/bin/python
+
 import re
 import os
 import sys
@@ -196,7 +198,7 @@ def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id, con
 			variant.append(Variant(reference_chr_id, variant_reference_start - shift, contig_id,
 								reference_allele, assembly_allele, reference_context, assembly_context,
 								synteny_block_id))				
-	return variant		   
+	return variant
 
 def get_seq(file_name):
 	seq = [(record.id, record.seq) for record in parse_fasta_file(file_name)]	
@@ -219,8 +221,7 @@ def find_instance(instance_list, reference_seq_id, in_reference):
 			return instance
 	return None
 
-def process_unique_block(unique_block, block_index):
-	print len(unique_block), block_index
+def process_unique_block(unique_block, block_index):	
 	pid = str(os.getpid()) + '_'	
 	alignment_file = pid + 'align.fasta'
 	reference_block_file = pid + 'blockr.fasta'

@@ -1,4 +1,4 @@
-Sibelia 3.0.0 Beta version
+Sibelia 3.0.0
 
 Release date: 24.06.2013
 
