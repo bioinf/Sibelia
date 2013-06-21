@@ -24,7 +24,7 @@ vvi dad, score;
 int gapopen, gapcont;
 int NCtoNC = 0, NCtoCN = -1000, CNtoNC = -1000, CNtoCN = 0;
 
-void readScoreMatrix (char *filename){
+void readScoreMatrix (const char *filename){
   FILE *file;
   int i, j, k, numlets = 0;
   char lets[256], line[1024];  
@@ -61,7 +61,7 @@ void readScoreMatrix (char *filename){
 }
 
 void calculateScoreMatrix (int cons_rate){
-  char *alpha = "ATCG";
+  const char *alpha = "ATCG";
   int i, j;
 
   for (int i = 0; i < 256; i++)
