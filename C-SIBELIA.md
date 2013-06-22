@@ -46,8 +46,8 @@ setting a cmd parameter:
 are placed in the output directory. If you want to place temporary files in
 another folder due to some reasons, use this parameter. 
 
-Number of processes to for alignment
-------------------------------------
+Number of processes for alignment
+---------------------------------
 "C-Sibelia" can perform alignment of synteny blocks using multiple processes
 to speed-up. By default, it uses only one process. To change the number of 
 concurrent alignment processes, use the "-p" option:
