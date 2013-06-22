@@ -23,11 +23,33 @@ store temporary files in some other location, use the '-t' option.
 
 Output description
 ==================
+
+Variant output
+--------------
 Output file "variants.vcf" contains variants found between two genomes. The 
 variants are presented in VCF format, version 4.1. If you want "C-Sibelia" to
 write variants to some other file, set the "variant" option":
 
 	-v <file name> or --variant <file name>
+
+Unmapped insertions
+-------------------
+Sometimes it is impossible to determine exact position of variation relative to
+a given reference. Particularly, suppose that you compare an assembly in form
+of contigs against a fully assembled reference. And of the contigs doesn't 
+contain synteny blocks at all. It seem to be a novel insertion, but how can
+it's position relative to the reference be determined? Such insertions are
+shown in VCF file on the first lines using breakends (see specification of the
+VCF format for reference) which are located arbitrarily within the first 
+sequence from the reference genome. However, this way of reporting such
+variants may be unconvenient, so if you want to see unmapped insertions in a
+simple text format, use the key:
+
+	-u <file name> or --unmapped <file name>
+
+With the "-u" key set, novel insertions are written in the file <file name> in
+form of a table with columns depicting sequence ID, position in that sequence 
+and the novel insertion fragment itself.
 
 Technical parameters
 ====================
