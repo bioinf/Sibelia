@@ -7,6 +7,7 @@ codes.
 System requirements
 ===================
 "C-Sibelia" requires "Python" and "Perl" to be istalled in your system.
+The annotation script requires "Java" runtime.
 
 Building from the Source Code
 -----------------------------

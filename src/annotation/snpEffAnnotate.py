@@ -6,7 +6,7 @@ import re
 import sys
 import subprocess
 
-script_dir = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'snpEff')
 
 parser = ArgumentParser(description='Script for variants annotation')
 parser.add_argument("-i", action="store", dest="source", help="source vcf file with variants")

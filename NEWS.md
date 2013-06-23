@@ -1,6 +1,7 @@
 Sibelia 3.0.0
 =============
 * C-Sibelia is functional now
+* Variant annotation with snpEff
 
 Sibelia 2.1.2
 =============

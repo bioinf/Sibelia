@@ -27,13 +27,17 @@ blocks between the input genomes and aligning different copies of a block.
 It considers only unique blocks, i.e. blocks having one copy in reference and
 one copy in another genome.
 
+It also contains a script for annotation of variants found by "C-Sibelia" using
+the "snpEff" tool.
+
 Installation
 ============
 See INSTALL.md file.
 
 Usage
 =====
-See SIBELIA.md for "Sibelia" and C-SIBELIA.md for "C-Sibelia".
+See SIBELIA.md for "Sibelia", C-SIBELIA.md for "C-Sibelia" and "ANNOTATION.md"
+for the annotation script.
 
 OS Support
 ==========
