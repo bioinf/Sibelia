@@ -5,7 +5,7 @@ Sibelia is distributed both as binaries (Linux and OS X) and as source
 codes. 
 
 System requirements
-===================
+-------------------
 "C-Sibelia" requires "Python" and "Perl" to be istalled in your system.
 The annotation script requires "Java" runtime.
 
