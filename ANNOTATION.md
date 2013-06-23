@@ -1,3 +1,5 @@
+Variants annotation
+===================
 The script "snpEffAnnotate.py" is designed for variant annotation and effect
 prediction for variants found by C-Sibelia. It can be launched without 
 arguments from directory with C-Sibelia results:
@@ -12,6 +14,10 @@ By default, name of annotated vcf is variant_ann.vcf. You can specify
 other name with -o option. For example:
 	
 	snpEffAnnotate.py -i variants.vcf -o annotated.vcf
+
+Description of output file format can be found at
+
+	http://snpeff.sourceforge.net/SnpEff_manual.html#output
 	
 Take into account, that by default, script uses ##assembly field from vcf file
 to get NCBI database name. For example, a possible value of this field can be
