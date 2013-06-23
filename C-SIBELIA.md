@@ -2,12 +2,13 @@ Basic usage
 ===========
 The easiest way to run "C-Sibelia" is to type:
 
-	C-Sibelia.py <FASTA file with reference> <FASTA file with a genome>
+	python C-Sibelia.py <FASTA file with reference> <FASTA file with a genome>
 
 For example, directory "examples/C-Sibelia/Staphylococcus_aureus" contains a
-set of two bacterial genomes. To run "C-Sibelia" on this dataset, type:
+set of two bacterial genomes. To run "C-Sibelia" on this dataset, type in the
+"build" directory:
 
-	C-Sibelia.py NCTC8325.fasta RN4220.fasta
+	python C-Sibelia.py ../examples/C-Sibelia/Staphylococcus_aureus/NCTC8325.fasta ../examples/C-Sibelia/Staphylococcus_aureus/RN4220.fasta
 
 The command above will run "C-Sibelia" on two bacterial genomes with the "fine"
 simplification parameters. After this run you can find a file "variant.vcf" 
