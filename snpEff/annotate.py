@@ -6,7 +6,7 @@ import re
 import sys
 import subprocess
 
-script_dir = os.path.dirname(sys.argv[0])
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
 parser = ArgumentParser(description='Script for variants annotation')
 parser.add_argument("-i", action="store", dest="source", help="source vcf file with variants")
@@ -21,7 +21,7 @@ if (not args.source):
 	args.source = "./variant.vcf"
 
 if (not os.path.exists(args.source)):
-	print "Please, specify source variants file"
+	print "Please specify source variants file"
 	sys.exit(-1)
 
 if (not args.dest):

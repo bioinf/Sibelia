@@ -8,6 +8,7 @@ Authors
 * Ilya Minkin (St. Petersburg Academic University)
 * Nikolay Vyahhi (St. Petersburg Academic University)
 * Mikhail Kolmogorov (St. Petersburg Academic University)
+* Ekaterina Starostina (St. Petersburg Academic University)
 * Son Pham (University of California, San Diego)
 
 Introduction
@@ -53,7 +54,7 @@ License
 =======
 "Sibelia" is distributed under GNU GPL v2 license, see LICENSE.
 
-It also uses third-party librarires:
+It also uses third-party librarires and programs:
 * kseq.h (MIT License), author Heng Li
 http://lh3lh3.users.sourceforge.net/kseq.shtml
 * libdivsufsort (MIT License), author Yuta Mori

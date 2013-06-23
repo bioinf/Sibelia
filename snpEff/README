@@ -1,6 +1,6 @@
-annotate.py is a script for variant annotation and effect prediction for synteny blocks found by C-Sibelia
-
-It can be launched without arguments from directory with C-Sibelia results:
+The script annotate.py is designed for variant annotation and effect prediction
+for variants found by C-Sibelia. It can be launched without arguments from
+directory with C-Sibelia results:
 	
 	annotate.py
 
@@ -8,16 +8,20 @@ If you want to specify your own vcf file as input for this tool, type:
 
 	annotate.py -i variants.vcf
 
-By default, name of annotated vcf is variant_ann.vcf. You can specify other name with -o option
-
-For example:
+By default, name of annotated vcf is variant_ann.vcf. You can specify
+other name with -o option. For example:
 	
 	annotate.py -i variants.vcf -o annotated.vcf
 	
-Take into account, that by default, script uses ##assembly field from vcf file to get NCBI database name. Possible value of this field can be "##assembly=gi|57116681|ref|NC_000962.2|". 
+Take into account, that by default, script uses ##assembly field from vcf file
+to get NCBI database name. For example, a possible value of this field can be
+"##assembly=gi|57116681|ref|NC_000962.2|". 
 
-One more important note about vcf is that #CHROM column must contain cromosome name exactly the same as in snpEff database. For assembly name above it will be "NC_000962".
+One more important note about vcf is that #CHROM column must contain cromosome
+name exactly the same as in snpEff database. For assembly name above it will be
+"NC_000962".
 
-If you wish, you can specify snpEff database name with --db argument. Possible database names can be get by command:
+If you wish, you can specify snpEff database name with the "--db" argument. 
+Possible database names could be got by the command:
 
 	java -jar snpEff.jar databases
