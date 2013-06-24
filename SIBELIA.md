@@ -1,5 +1,9 @@
 Basic usage
 ===========
+In this manual it is assumed that "Sibelia" is properly installed and the
+directory with "Sibelia.py" is in your "PATH" environment variable or input
+files are in the same folder with "Sibelia.py".
+
 Directory "examples/Sibelia" contains two sets of bacterial genomes. The easiest way 
 to run "Sibelia" is to type:
 
