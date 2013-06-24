@@ -1,6 +1,9 @@
 Basic usage
 ===========
-The easiest way to run "C-Sibelia" is to type:
+In this manual it is assumed that "C-Sibelia" is properly installed and the
+directory with "C-Sibelia.py" is in your "PATH" environment variable or input
+files are in the same folder with "C-Sibelia.py". The easiest way to run
+"C-Sibelia" is to type:
 
 	C-Sibelia.py <FASTA file with reference> <FASTA file with a genome>
 
