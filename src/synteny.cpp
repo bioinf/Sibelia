@@ -3,6 +3,8 @@
 //* All Rights Reserved
 //* See file LICENSE for details.
 //****************************************************************************
+#pragma GCC diagnostic ignored "-Wpragmas"
+#pragma GCC diagnostic ignored "-Wc++11-extensions"
 
 #include "blockfinder.h"
 
