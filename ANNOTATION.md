@@ -10,10 +10,10 @@ If you want to specify your own vcf file as input for this tool, type:
 
 	snpEffAnnotate.py -i variants.vcf
 
-By default, name of annotated vcf is variant_ann.vcf. You can specify
-other name with -o option. For example:
+By default, all outup files are located in './annotation' directory, name of annotated vcf is variant_ann.vcf. You can specify
+other directory with -o option, if specified directory is not exists it will be created. For example:
 	
-	snpEffAnnotate.py -i variants.vcf -o annotated.vcf
+	snpEffAnnotate.py -i variants.vcf -o annotation
 
 Description of output file format can be found at
 
