@@ -391,6 +391,12 @@ if not args.unmapped is None:
 	insert_handle.close()
 else: 
 	write_insertions_as_vcf(insertion_list, reference_organism, vcf_output)
+
+#conventional = open('variant.txt', 'w')
+#generate_conventional_output(variant_list, conventional)
+#generate_conventional_output(insertion_list, conventional)
+#conventional.close()
 	
 write_variants_vcf(variant_list, vcf_output)
 shutil.rmtree(temp_dir)
+

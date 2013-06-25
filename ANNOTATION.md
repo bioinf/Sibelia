@@ -28,3 +28,4 @@ name exactly the same as in snpEff database. For assembly name above it will be
 "NC_000962".
 
 If you wish, you can specify snpEff database name with the "--db" argument.
+You also can specify the output directory by uisng the "-o" key.
