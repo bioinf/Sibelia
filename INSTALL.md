@@ -1,14 +1,15 @@
 Installation
 ============
 
-Sibelia is distributed both as binaries (Linux and OS X) and as source codes.
+"Sibelia" is distributed both as binaries (Linux and OS X) and as source codes.
 If you build "Sibelia" from source codes, you have to install it before usage.
 
 System requirements
 -------------------
 "C-Sibelia" requires "Python" and "Perl" to be istalled in your system. Please
 note that "C-Sibelia" runs only under "Python2" of version at least 2.7. The
-annotation script requires "Java" runtime.
+annotation script requires "Java" runtime. Unfortunately, "C-Sibelia" is 
+available only under "Linux", 
 
 Building from the Source Code
 -----------------------------
@@ -34,3 +35,11 @@ option set:
 	cmake ../src -DCMAKE_INSTALL_PREFIX="<install destination>"
 	make
 	make install
+
+You can install "Sibelia" only, without "C-Sibelia". To do this, use the option
+"NOCSIBELIA" while running "CMake":
+
+	cd build
+	cmake ../src -NOCSIBELIA
+	make
+	sudo make install
