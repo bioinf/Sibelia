@@ -8,7 +8,6 @@
 
 #include "outputgenerator.h"
 #include "platform.h"
-#include "variantcalling/variant.h"
 
 namespace SyntenyFinder
 {
@@ -540,69 +539,6 @@ namespace SyntenyFinder
 		{
 			std::getline(htmlTemplate, buffer);
 			out << buffer << std::endl;
-		}
-	}
-
-	void OutputGenerator::GenerateVariantOutput(const std::vector <Variant> & variants, const std::set<size_t> referenceSequence, const std::string & assemblyFile, const std::string & outFile) const 
-	{
-		std::ofstream out;
-		TryOpenFile(outFile, out);
-		
-		std::istringstream vcfTemplate(variantTemplate);
-		std::string buffer;
-		std::getline(vcfTemplate, buffer);
-		while (!buffer.empty())
-		{
-			if (buffer == "##reference=") 
-			{
-				for(size_t i = 0; i < chrList_.size(); i++)
-				{
-					if(referenceSequence.count(chrList_[i].GetId()) > 0)
-					{
-						out << buffer << GetChrName(chrList_[i].GetDescription()) << std::endl;
-						break;
-					}
-				}				
-			}
-			else if (buffer == "##assembly=") 
-			{
-				for(size_t i = 0; i < chrList_.size(); i++)
-				{
-					if(referenceSequence.count(chrList_[i].GetId()) == 0)
-					{
-						out << buffer << GetChrName(chrList_[i].GetDescription()) << std::endl;
-						break;
-					}
-				}				
-			}
-			else 
-			{
-				out << buffer << std::endl;
-			}
-			std::getline(vcfTemplate, buffer);
-		}
-		
-		for (size_t i = 0; i < variants.size(); ++i)
-		{			
-			std::string chrName = variants[i].GetReferenceSequence() == 0 ? "." : GetChrName(variants[i].GetReferenceSequence()->GetDescription());
-			out << chrName << "\t";
-			if(variants[i].GetReferencePos() != Variant::UNKNOWN_POS)
-			{
-				out << variants[i].GetReferencePos() + 1 << "\t"
-					<< ".\t"
-					<< variants[i].GetReferenceAllele() << "\t"
-					<< variants[i].GetAlternativeAllele() << "\t";
-			}
-			else
-			{
-				out << "-1\t"
-					<< "." << "\t"
-					<< ".\t"
-					<< variants[i].GetAlternativeAllele() << "\t";
-			}
-			
-
-			out	<< ".\t.\t." << std::endl;
 		}
 	}
 

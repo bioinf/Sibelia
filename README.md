@@ -39,8 +39,8 @@ Usage
 See SIBELIA.md for "Sibelia", C-SIBELIA.md for "C-Sibelia" and "ANNOTATION.md"
 for the annotation script.
 
-OS Support
-==========
+System requirements
+===================
 This version of "C-Sibelia" supports only "Linux"-based operating systems, but
 "Sibelia" runs fine on "Windows". To use "C-Sibelia", "Windows" users may use a
 virtual machine or try our web server:
@@ -49,6 +49,11 @@ virtual machine or try our web server:
 
 "Windows" support will be retained soon in the future releases. Binary releases
 for "Windows" contain only "Sibelia" binaries.
+
+"C-Sibelia" requires "Python" and "Perl" to be istalled in your system. Please
+note that "C-Sibelia" runs only under "Python2" of version at least 2.7. The
+annotation script requires "Java" runtime. Unfortunately, "C-Sibelia" is 
+available only under "Linux".
 
 Citation
 ========

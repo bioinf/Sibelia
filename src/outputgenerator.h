@@ -9,7 +9,6 @@
 
 #include "resource.h"
 #include "blockfinder.h"
-#include "variantcalling/variant.h"
 
 namespace SyntenyFinder
 {	
@@ -21,8 +20,7 @@ namespace SyntenyFinder
 		void GenerateReport(const BlockList & blockList, const std::string & fileName) const;		
 		void GenerateCircosOutput(const BlockList & blockList, const std::string & outFile, const std::string & outDir) const;
 		void GenerateHierarchyCircosOutput(const std::vector<BlockList> & history, const std::string & outFile, const std::string & outDir) const;
-		void GenerateD3Output(const BlockList & blockList, const std::string & outFile) const;
-		void GenerateVariantOutput(const std::vector <Variant> & variants, const std::set<size_t> referenceSequence, const std::string & assemblyFile, const std::string & outFile) const;
+		void GenerateD3Output(const BlockList & blockList, const std::string & outFile) const;		
 		void ListBlocksIndices(const BlockList & blockList, const std::string & fileName) const;
 		void ListBlocksIndicesHeirarchy(const std::vector<BlockList> & history, const std::string & fileName) const;
 		void OutputTree(const std::vector<BlockList> & history, const std::string & fileName) const;
