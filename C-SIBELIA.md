@@ -4,6 +4,11 @@ In this manual it is assumed that "C-Sibelia" is properly installed and the
 directory with "C-Sibelia.py" is in your "PATH" environment variable or input
 files are in the same folder with "C-Sibelia.py".
 
+Please not that "C-Sibelia" is available for "Linux"-based OS' only, use 
+virtual machine with "Linux" or our web-server to run it:
+
+	http://etool.me/software/sibelia
+
 The easiest way to run "C-Sibelia" is to type:
 
 	C-Sibelia.py <FASTA file with reference> <FASTA file with a genome>
