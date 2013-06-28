@@ -351,11 +351,11 @@ def write_insertions_text(variant_list, handle):
 		record = [variant.get_contig_id(), str(variant.get_assembly_pos() + 1), variant.get_assembly_allele()]
 		print >> handle, '\t'.join(record)
 		
-def write_insertions_vcf(variant_list, file_name):
+def write_insertions_fasta(variant_list, file_name):
 	record = []	
 	for variant in variant_list:
-		desription = '>Seq="' + variant.get_contig_id + '",Start=' + str(variant.get_assembly_pos() + 1)
-		record.append(FastaRecord(seq=variant.get_assembly_allele(), id=desription, description=description))
+		description = 'Seq="' + variant.get_contig_id() + '",Start=' + str(variant.get_assembly_pos() + 1)
+		record.append(FastaRecord(seq=variant.get_assembly_allele(), id=description, description=description))
 	write_fasta_records(record, file_name)
 
 start = time.time()
@@ -395,13 +395,11 @@ write_vcf_header(reference_organism, vcf_output)
 if args.unmapped is None:
 	write_insertions_vcf(insertion_list, reference_organism, vcf_output)
 else:
-	write_insertions_fasta(insertion_list, args.unmapped) 	
-
+	write_insertions_fasta(insertion_list, args.unmapped)
 #conventional = open('variant.txt', 'w')
 #generate_conventional_output(variant_list, conventional)
 #generate_conventional_output(insertion_list, conventional)
 #conventional.close()
-	
 write_variants_vcf(variant_list, vcf_output)
 shutil.rmtree(temp_dir)
 
