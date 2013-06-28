@@ -50,10 +50,15 @@ def parse_fasta_file(file_name):
 	return record
 
 def write_fasta_records(fasta_record, file_name):
+	LINE_LENGTH = 60
 	handle = open(file_name, 'w')
 	for record in fasta_record:
-		print >> handle, '>' + record.description
-		print >> handle, record.seq
+		print >> handle, '>' + record.description		
+		pos = 0
+		while pos < len(record.seq):
+			end = min(pos + LINE_LENGTH, len(record.seq))
+			print >> handle, record.seq[pos:end]
+			pos = end
 	handle.close()
 
 class Variant(object):
