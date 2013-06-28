@@ -8,8 +8,7 @@ import sys
 import subprocess
 
 FILENAME = "variant_ann.vcf"
-
-script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'snpEff')
+script_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'lib', 'Sibelia', 'snpEff')
 
 parser = ArgumentParser(description='Script for variants annotation')
 parser.add_argument("-i", action="store", dest="source", help="source vcf file with variants")

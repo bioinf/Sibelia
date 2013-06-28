@@ -18,7 +18,7 @@ UNCOVER = 0
 MINIMUM_CONTEXT_SIZE = 30
 BLOCKS_FILE = 'blocks_sequences.fasta'
 INSTALL_DIR = os.path.dirname(os.path.abspath(__file__))
-LAGAN_DIR = os.path.join(INSTALL_DIR, 'lagan')
+LAGAN_DIR = os.path.join(INSTALL_DIR, '..', 'lib', 'Sibelia', 'lagan')
 os.environ['LAGAN_DIR'] = LAGAN_DIR
 
 FastaRecord = collections.namedtuple('FastaRecord', ['seq', 'description', 'id'])

@@ -1,3 +1,4 @@
+
 Installation
 ============
 
@@ -28,11 +29,3 @@ option set:
 	cmake ../src -DCMAKE_INSTALL_PREFIX="<install destination>"
 	make
 	make install
-
-You can install "Sibelia" only, without "C-Sibelia". To do this, use the option
-"NOCSIBELIA" while running "CMake":
-
-	cd build
-	cmake ../src -NOCSIBELIA="YES"
-	make
-	sudo make install

@@ -1,6 +1,6 @@
 Sibelia 3.0.0
 
-Release date: 25.06.2013
+Release date: 1.07.2013
 
 Authors
 =======
@@ -45,7 +45,7 @@ This version of "C-Sibelia" supports only "Linux"-based operating systems, but
 "Sibelia" runs fine on "Windows". To use "C-Sibelia", "Windows" users may use a
 virtual machine or try our web server:
 
-	http://etool.me/software/sibelia
+	http://etool.me/software/csibelia
 
 "Windows" support will be retained soon in the future releases. Binary releases
 for "Windows" contain only "Sibelia" binaries.
