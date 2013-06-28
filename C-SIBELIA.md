@@ -9,9 +9,11 @@ virtual machine with "Linux" or our web-server to run it:
 
 	http://etool.me/software/sibelia
 
-The easiest way to run "C-Sibelia" is to type:
+"C-Sibelia" finds a set of differences between an assembly and a reference. All
+of them are given relative to the given reference. The easiest way to run
+"C-Sibelia" is to type:
 
-	C-Sibelia.py <FASTA file with reference> <FASTA file with a genome>
+	C-Sibelia.py <FASTA file with reference> <FASTA file with an assembly>
 
 For example, directory "examples/C-Sibelia/Staphylococcus_aureus" contains a
 set of two bacterial genomes. To run "C-Sibelia" on this dataset, type in the
