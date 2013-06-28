@@ -41,7 +41,7 @@ for the annotation script.
 
 System requirements
 ===================
-This version of "C-Sibelia" supports only "Linux"-based operating systems, but
+This version of "C-Sibelia" supports only "Unix"-like operating systems, but
 "Sibelia" runs fine on "Windows". To use "C-Sibelia", "Windows" users may use a
 virtual machine or try our web server:
 
@@ -52,8 +52,7 @@ for "Windows" contain only "Sibelia" binaries.
 
 "C-Sibelia" requires "Python" and "Perl" to be istalled in your system. Please
 note that "C-Sibelia" runs only under "Python2" of version at least 2.7. The
-annotation script requires "Java" runtime. Unfortunately, "C-Sibelia" is 
-available only under "Linux".
+annotation script requires "Java" runtime. 
 
 Citation
 ========
