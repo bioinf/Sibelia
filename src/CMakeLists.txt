@@ -4,7 +4,11 @@ add_subdirectory(libdivsufsort-2.0.1)
 set(CMAKE_BUILD_TYPE Release)
 if(STATIC_LINKAGE)
 	list(APPEND CMAKE_C_FLAGS "-static-libgcc")
-	list(APPEND CMAKE_CXX_FLAGS "-std=c++0x -static-libgcc -static-libstdc++")
+	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc -static-libstdc++")
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+	list(APPEND CMAKE_CXX_FLAGS "-std=c++0x")
 endif()
 
 include_directories(${Sibelia_SOURCE_DIR}/include ${libdivsufsort_BINARY_DIR}/include)
