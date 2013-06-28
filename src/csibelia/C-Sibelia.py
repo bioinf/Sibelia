@@ -325,7 +325,7 @@ def write_variants_vcf(variant_list, handle):
 	for variant in variant_list:
 		print >> handle, variant.get_vcf_record()
 		
-def write_insertions_as_vcf(variant_list, reference_organism, handle):
+def write_insertions_vcf(variant_list, reference_organism, handle):
 	ref_len = str(len(reference_organism.seq))	
 	reference_chr = strip_chr_id(reference_organism.id)
 	for index, variant in enumerate(variant_list):
@@ -344,12 +344,19 @@ def write_insertions_as_vcf(variant_list, reference_organism, handle):
 		for record in (start_record, end_record):
 			print >> handle, '\t'.join(record)
 
-def write_insertions_as_text(variant_list, handle):
+def write_insertions_text(variant_list, handle):
 	header = ['SEQ_ID', 'POS', 'FRAGMENT']
 	print >> handle, '\t'.join(header)
 	for variant in variant_list:
 		record = [variant.get_contig_id(), str(variant.get_assembly_pos() + 1), variant.get_assembly_allele()]
 		print >> handle, '\t'.join(record)
+		
+def write_insertions_vcf(variant_list, file_name):
+	record = []	
+	for variant in variant_list:
+		desription = '>Seq="' + variant.get_contig_id + '",Start=' + str(variant.get_assembly_pos() + 1)
+		record.append(FastaRecord(seq=variant.get_assembly_allele(), id=desription, description=description))
+	write_fasta_records(record, file_name)
 
 start = time.time()
 parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -385,12 +392,10 @@ variant_list, insertion_list = call_variants(temp_dir, reference_seq, assembly_s
 variant_list.sort(key=Variant.get_reference_pos)
 vcf_output = open(args.variant, 'w') 
 write_vcf_header(reference_organism, vcf_output)
-if not args.unmapped is None:
-	insert_handle = open(args.unmapped, 'w')
-	write_insertions_as_text(insertion_list, insert_handle)
-	insert_handle.close()
-else: 
-	write_insertions_as_vcf(insertion_list, reference_organism, vcf_output)
+if args.unmapped is None:
+	write_insertions_vcf(insertion_list, reference_organism, vcf_output)
+else:
+	write_insertions_fasta(insertion_list, args.unmapped) 	
 
 #conventional = open('variant.txt', 'w')
 #generate_conventional_output(variant_list, conventional)
