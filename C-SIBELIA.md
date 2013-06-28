@@ -9,8 +9,8 @@ virtual machine with "Linux" or our web-server to run it:
 
 	http://etool.me/software/sibelia
 
-"C-Sibelia" finds a set of differences between an assembly and a reference. All
-of them are given relative to the given reference. The easiest way to run
+"C-Sibelia" finds a set of differences between a reference and an assembly. All
+of them are reported relative to the given reference. The easiest way to run
 "C-Sibelia" is to type:
 
 	C-Sibelia.py <FASTA file with reference> <FASTA file with an assembly>

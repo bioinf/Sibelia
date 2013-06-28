@@ -2,11 +2,8 @@ cmake_minimum_required(VERSION 2.8)
 project(Sibelia CXX)
 add_subdirectory(libdivsufsort-2.0.1)
 set(CMAKE_BUILD_TYPE Release)
-if(CMAKE_COMPILER_IS_GNUCC)
-	list(APPEND CMAKE_CXX_FLAGS "-static-libgcc")
-endif()
-
-if(CMAKE_COMPILER_IS_GNUCXX)
+if(STATIC_LINKAGE)
+	list(APPEND CMAKE_C_FLAGS "-static-libgcc")
 	list(APPEND CMAKE_CXX_FLAGS "-std=c++0x -static-libgcc -static-libstdc++")
 endif()
 
