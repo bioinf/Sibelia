@@ -183,6 +183,7 @@ int main(int argc, char * argv[])
 			if(hierarchy || allStages)
 			{
 				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
+				processor.GlueStripes(history[i]);
 			}
 
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
@@ -231,7 +232,7 @@ int main(int argc, char * argv[])
 		{
 			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
 //			generator.OutputBlocksInSAM(history.back(), defaultBlocksAlignmentFile);			
-		}		
+		}
 
 		if(!hierarchy)
 		{
