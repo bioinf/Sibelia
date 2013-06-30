@@ -386,7 +386,8 @@ sibelia_cmd = ' '.join([os.path.join(INSTALL_DIR, 'Sibelia'),
 					'-m', str(args.minblocksize),
 					'-o', temp_dir,
 					'-s', args.parameters,
-					'-i', str(args.maxiterations)])
+					'-i', str(args.maxiterations)],
+					'-r')
 print >> sys.stderr, "Calculating synteny blocks..."
 os.system(sibelia_cmd)
 _, assembly_seq = get_seq(args.assembly)
