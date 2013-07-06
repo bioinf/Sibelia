@@ -5,7 +5,7 @@ import shutil
 import argparse
 import subprocess
 
-default_out_config = 'circos.sorted.conf'
+default_out_config = 'sorted.circos.conf'
 default_out_config_path = os.path.join('<input_folder>', 'circos', default_out_config)
 parser = argparse.ArgumentParser(description='A script for sorting sequences in Sibelia output.',
 				formatter_class=argparse.ArgumentDefaultsHelpFormatter)
