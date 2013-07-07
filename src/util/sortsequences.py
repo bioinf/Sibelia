@@ -23,7 +23,7 @@ out_config = os.path.join(circos_folder, default_out_config) if args.out_config 
 
 args = ['perl', orderchr, '-links', os.path.join(circos_folder, 'circos.segdup.txt'),
 	'-karyotype', os.path.join(circos_folder, 'circos.sequences.txt')]
-stdout, _ = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+stdout, _ = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=sys.stderr).communicate()
 
 re_order = re.compile('chromosomes_order')
 order = (line for line in stdout.split('\n') if re_order.findall(line)).next()
