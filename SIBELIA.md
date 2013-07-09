@@ -47,7 +47,8 @@ such output use option "-a":
 Synteny blocks are visualized with an interactive diagram (see section "d3"
 visualization"). The blocks are also can be visualized with "Circos" (see 
 section "Circos" visualization"). While "Circos" is better for publications,
-"d3" diagram is better for analysis.
+"d3" diagram is better for analysis. Please note that sequences that do not
+contain any synteny blocks instances are not shown on these diagrams.
 
 Genomes from the "examples/Sibelia" dir were taken from [5, 6]. Note that you
 can specify multiple FASTA files, just separate them with spaces.
