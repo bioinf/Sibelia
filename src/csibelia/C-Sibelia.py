@@ -248,8 +248,11 @@ def process_unique_block(unique_block, block_index):
 		write_fasta_records([record], file_name[index])		
 	with open(os.devnull, "w") as fnull:
 		subprocess.call(lagan_cmd, stdout=alignment_handle, stderr=fnull)
-	alignment_handle.close()
-	return parse_alignment(alignment_file, reference_chr_id, synteny_block_id, contig_id, reference_start)
+	alignment_handle.close()	
+	ret = parse_alignment(alignment_file, reference_chr_id, synteny_block_id, contig_id, reference_start)
+	for file_name in (reference_block_file, assembly_block_file, alignment_file):
+		os.remove(file_name)
+	return ret
 	
 def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num):	
 	os.chdir(directory)
@@ -371,15 +374,17 @@ parser.add_argument('-s', '--parameters', help='Parameters set, used for the sim
 					Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).', 
 					default='fine')
 parser.add_argument('-m', '--minblocksize', help='Minimum size of a synteny block', type=int, default=500)
-parser.add_argument('-t', '--tempdir', help='Directory for temporary  files', default='.')
 parser.add_argument('-p', '--processcount', help='Number of running processes', type=int, default=1)
 parser.add_argument('-i', '--maxiterations', help='Maximum number of iterations during a stage of simplification',
 					default=4)
 parser.add_argument('-v', '--variant', help='Output file with detected variants', default='variant.vcf')
 parser.add_argument('-u', '--unmapped', help='Name of the file to store unmapped insertions in text format', type=str)
+group = parser.add_mutually_exclusive_group()
+group.add_argument('-t', '--tempdir', help='Directory for temporary files', default='.')
+group.add_argument('-o', '--outdir', help='Directory for synteny block output files', default=None)
 args = parser.parse_args()
 
-temp_dir = tempfile.mkdtemp(dir=args.tempdir)
+temp_dir = tempfile.mkdtemp(dir=args.tempdir) if args.outdir is None else args.outdir
 sibelia_cmd = ' '.join([os.path.join(INSTALL_DIR, 'Sibelia'), 					
 					args.reference, args.assembly,
 					'-q', '--matchrepeats', '--allstages',
@@ -407,5 +412,6 @@ else:
 #generate_conventional_output(insertion_list, conventional)
 #conventional.close()
 write_variants_vcf(variant_list, vcf_output)
-shutil.rmtree(temp_dir)
+if args.outdir is None:
+	shutil.rmtree(temp_dir)
 

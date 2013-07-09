@@ -31,7 +31,10 @@ section "Basic usage".
 
 "C-Sibelia" requires some free disk space to write it's temporary files. By
 default, they're stored within the current working directory. If you want to
-store temporary files in some other location, use the '-t' option.
+store temporary files in some other location, use the "-t" option.
+
+You can also obtain synteny blocks which were used by "C-Sibelia" in variant
+calling. To do this, run "C-Sibelia" with "-o" option set.
 
 Output description
 ==================
@@ -65,6 +68,16 @@ Technical parameters
 "Sibelia" in finding the blocks. Thus, it accepts some arguments of "Sibelia"
 that control synteny block generation.
 
+Directory for synteny blocks output
+-----------------------------------
+By default, "C-Sibelia" prodcues only a single VCF file. However, you can also
+store the synteny block information. To do this, use the "-o" cmd parameter:
+
+	-o <dir name> or --outdir <dir name>
+
+The directory <dir name> will contain output produced by "Sibelia" that was
+for variant calling.
+
 Directory for temporary files
 -----------------------------
 Default directory is the current working directory. You can change this by
@@ -74,7 +87,8 @@ setting a cmd parameter:
 
 "Sibelia" creates some temporary files while running. By default these files
 are placed in the output directory. If you want to place temporary files in
-another folder due to some reasons, use this parameter. 
+another folder due to some reasons, use this parameter. If you specify a folder
+for synteny blocks ("-o" option), temporary files will be put there.
 
 Number of processes for alignment
 ---------------------------------
