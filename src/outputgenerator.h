@@ -38,10 +38,10 @@ namespace SyntenyFinder
 		const ChrList & chrList_;		
 		void ListChrs(std::ostream & out) const;
 		void TryOpenFile(const std::string & fileName, std::ofstream & stream) const;
-		void TryOpenResourceFile(const std::string & fileName, std::ifstream & stream) const;		
-		void WriteCircosKaryoType(const std::string & outDir, const std::string & fileName) const;
+		void TryOpenResourceFile(const std::string & fileName, std::ifstream & stream) const;				
 		void WriteCircosImageConfig(const std::string & outDir, const std::string & fileName, int r) const;
 		void WriteCircosLinks(const std::string & outDir, const std::string & fileName, const BlockList & block) const;
+		void WriteCircosKaryoType(const std::string & outDir, const std::string & fileName,const BlockList & blockList) const;
 		void WriteCircosHighlight(const std::string & outDir, const std::string & fileName, const BlockList & block, int r0, int r1, bool ideogram, std::ofstream & config) const;		
 	};
 }

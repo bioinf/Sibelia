@@ -333,7 +333,7 @@ namespace SyntenyFinder
 		TryOpenFile(outFile, config);
 		config << circosTemplate;		
 		WriteCircosLinks(outDir, "circos.segdup.txt", history.back());
-		WriteCircosKaryoType(outDir, "circos.sequences.txt");
+		WriteCircosKaryoType(outDir, "circos.sequences.txt", history.back());
 		config << "<highlights>\n\tfill_color = green" << std::endl;		
 		WriteCircosHighlight(outDir, "circos.highlight.txt", history.back(), 0, 0, true, config);		
 		for(std::vector<BlockList>::const_reverse_iterator it = ++history.rbegin(); it != history.rend(); ++it)
@@ -358,7 +358,7 @@ namespace SyntenyFinder
 		TryOpenFile(outFile, config);
 		config << circosTemplate;		
 		WriteCircosLinks(outDir, "circos.segdup.txt", blockList);
-		WriteCircosKaryoType(outDir, "circos.sequences.txt");
+		WriteCircosKaryoType(outDir, "circos.sequences.txt", blockList);
 		config << "<highlights>\n\tfill_color = green" << std::endl;		
 		WriteCircosHighlight(outDir, "circos.highlight.txt", blockList, 0, 0, true, config);
 		config << "</highlights>" << std::endl;
@@ -451,15 +451,24 @@ namespace SyntenyFinder
 		config << "\t</highlight>" << std::endl;
 	}
 
-	void OutputGenerator::WriteCircosKaryoType(const std::string & outDir, const std::string & fileName) const
+	void OutputGenerator::WriteCircosKaryoType(const std::string & outDir, const std::string & fileName, const BlockList & blockList) const
 	{
-		std::ofstream karFile;
+		std::ofstream karFile;		
 		TryOpenFile(outDir + "/" + fileName, karFile);
+		std::set<size_t> chrToShow;
+		for(auto it = blockList.begin(); it != blockList.end(); ++it)
+		{
+			chrToShow.insert(it->GetChrId());
+		}
+
 		for (size_t i = 0; i < chrList_.size(); ++i)
 		{
-			int colorId = (i + 1) % CIRCOS_MAX_COLOR;
-			karFile << "chr - seq" << i + 1 << " " << chrList_[i].GetDescription() << " 0 " << chrList_[i].GetSequence().length();
-			karFile	<< " chr" << colorId << std::endl;
+			if(chrToShow.count(chrList_[i].GetId()))
+			{
+				int colorId = (i + 1) % CIRCOS_MAX_COLOR;
+				karFile << "chr - seq" << i + 1 << " " << chrList_[i].GetDescription() << " 0 " << chrList_[i].GetSequence().length();
+				karFile	<< " chr" << colorId << std::endl;
+			}
 		}
 	}
 
