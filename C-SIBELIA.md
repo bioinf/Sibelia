@@ -76,7 +76,7 @@ store the synteny block information. To do this, use the "-o" cmd parameter:
 	-o <dir name> or --outdir <dir name>
 
 The directory <dir name> will contain output produced by "Sibelia" that was
-for variant calling.
+used for variant calling.
 
 Directory for temporary files
 -----------------------------
