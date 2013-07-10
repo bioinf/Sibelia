@@ -211,8 +211,8 @@ int main(int argc, char * argv[])
 		}
 
 		if(correctBoundaries)
-		{
-			processor.MatchRepeats(history.back(), referenceChrId);			
+		{			
+			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
 		}
 
 		SyntenyFinder::OutputGenerator generator(chrList);
