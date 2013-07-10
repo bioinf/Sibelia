@@ -1,5 +1,7 @@
 Sibelia 3.0.1
 =============
+* Fixed a bug in C-Sibelia: incorrect reporting of variants within synteny
+blocks having opposite directions
 * Removed sequences without synteny blocks from Circos diagrams
 * C-Sibelia allows to store synteny blocks
 * Added C-Sibelia cmd options: -o

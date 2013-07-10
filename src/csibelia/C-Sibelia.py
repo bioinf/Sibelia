@@ -26,6 +26,14 @@ FastaRecord = collections.namedtuple('FastaRecord', ['seq', 'description', 'id']
 class FailedStartException(Exception):
 	pass
 
+def reverse_complementary(seq):
+	comp = dict()
+	comp['A'] = 'T'
+	comp['T'] = 'A'
+	comp['C'] = 'G'
+	comp['G'] = 'C'
+	return ''.join([(comp[ch] if ch in comp else ch) for ch in seq[::-1]])
+
 def strip_chr_id(chr_id):
 	part = chr_id.split('|')
 	if len(part) == 5:
@@ -169,7 +177,8 @@ def get_context(alignment, alignment_segment, segment_index):
 	assembly_context = context[0] + no_gaps(alignment[1][segment[0]:segment[1]]) + context[1]
 	return reference_context, assembly_context
 
-def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id, contig_id, reference_start):	
+def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id,
+				 contig_id, reference_start, reference_direction, assembly_direction):	
 	last_match = None
 	start_position = None
 	alignment_segment = []
@@ -193,7 +202,7 @@ def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id, con
 	reference_position_map = []
 	for symbol in alignment[0]:
 		reference_position_map.append(position)
-		position += 1 if symbol != '-' else 0
+		position += reference_direction if symbol != '-' else 0
 	
 	variant = []	
 	for segment_index, segment in enumerate(alignment_segment):
@@ -207,6 +216,10 @@ def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id, con
 				shift = 0
 			reference_allele = no_gaps(alignment[0][start - shift:end])
 			assembly_allele = no_gaps(alignment[1][start - shift:end])
+			if reference_direction == -1:
+				reference_allele = reverse_complementary(reference_allele)
+				assembly_allele = reverse_complementary(assembly_allele)
+				
 			variant.append(Variant(reference_chr_id, variant_reference_start - shift, contig_id, None,
 								reference_allele, assembly_allele, reference_context, assembly_context,
 								synteny_block_id))				
@@ -241,10 +254,14 @@ def process_unique_block(unique_block, block_index):
 	assembly_block_file = pid + 'blocka.fasta'
 	lagan_cmd = ['perl', LAGAN_DIR + "/lagan.pl", reference_block_file, assembly_block_file, '-mfa']
 	alignment_handle = open(alignment_file, 'w')	
-	synteny_block_id, reference_instance, assembly_instance = unique_block[block_index]	
-	reference_start = int(parse_header(reference_instance.description)['Start'])
-	reference_chr_id = parse_header(reference_instance.description)['Seq']	
-	contig_id = parse_header(assembly_instance.description)['Seq']
+	synteny_block_id, reference_instance, assembly_instance = unique_block[block_index]
+	reference_header = parse_header(reference_instance.description)
+	assembly_header = parse_header(assembly_instance.description)	
+	reference_start = int(reference_header['Start'])
+	reference_chr_id = reference_header['Seq']	
+	reference_direction = +1 if reference_header['Strand'] == '+' else -1
+	assembly_direction = +1 if assembly_header['Strand'] == '+' else -1
+	contig_id = assembly_header['Seq']
 	instance = [reference_instance, assembly_instance]
 	file_name = [reference_block_file, assembly_block_file]	
 	for index, record in enumerate(instance):
@@ -254,7 +271,8 @@ def process_unique_block(unique_block, block_index):
 	if worker.returncode != 0:
 		raise FailedStartException(stderr)
 	alignment_handle.close()	
-	ret = parse_alignment(alignment_file, reference_chr_id, synteny_block_id, contig_id, reference_start)
+	ret = parse_alignment(alignment_file, reference_chr_id, synteny_block_id,
+						contig_id, reference_start, reference_direction, assembly_direction)
 	for file_name in (reference_block_file, assembly_block_file, alignment_file):
 		os.remove(file_name)
 	return ret
