@@ -208,7 +208,9 @@ do following:
 For example of such diagrams (generated from "Helicobacter_pylori.fasta),
 see "examples/Sibelia/Helicobacter_pylori/circos/circos.png". Also note that
 such diagrams can become very piled with larger number of genomes. To overcome
-this, plot only big blocks, see section "Minimum block size".
+this, plot only big blocks, see section "Minimum block size". Blocks located
+on the positive strand are colored green, while blocks from negative strand
+are red.
 
 By default, "Sibelia" plots only blocks obtained after the last stage.
 You can also view blocks at the intermediate stages by using switch:

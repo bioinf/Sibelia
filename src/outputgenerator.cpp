@@ -431,6 +431,10 @@ namespace SyntenyFinder
 			{
 				highlightFile << " fill_color=chr" << color << "_a0";
 			}
+			else
+			{
+				highlightFile << " fill_color=" << (itBlock->GetDirection() == DNASequence::positive ? "green" : "red")  << "_a0";
+			}
 
 			highlightFile << std::endl;
 		}
@@ -467,7 +471,8 @@ namespace SyntenyFinder
 			{
 				int colorId = (i + 1) % CIRCOS_MAX_COLOR;
 				karFile << "chr - seq" << i + 1 << " " << chrList_[i].GetDescription() << " 0 " << chrList_[i].GetSequence().length();
-				karFile	<< " chr" << colorId << std::endl;
+			//	karFile	<< " chr" << colorId << std::endl;
+				karFile << " green_a4" << std::endl;
 			}
 		}
 	}
