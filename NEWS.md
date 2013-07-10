@@ -3,7 +3,7 @@ Sibelia 3.0.1
 * Removed sequences without synteny blocks from Circos diagrams
 * C-Sibelia allows to store synteny blocks
 * Added C-Sibelia cmd options: -o
-
+* Added Sibelia cmd options: --nopostprocess, --allstages, --correctboundaries
 
 Sibelia 3.0.0
 =============

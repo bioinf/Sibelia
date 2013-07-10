@@ -32,9 +32,15 @@ int main(int argc, char * argv[])
 			"integer",
 			cmd);
 
-		TCLAP::SwitchArg matchRepeatsFlag("",
-			"matchrepeats",
-			"Extend unique synteny blocks whenever possible",
+		TCLAP::SwitchArg correctBoundariesFlag("",
+			"correctboundaries",
+			"Correct boundaries of unique synteny blocks",
+			cmd,
+			false);
+
+		TCLAP::SwitchArg noPostProcessingFlag("",
+			"nopostprocess",
+			"Do not perform postprocessing (stripe gluing)",
 			cmd,
 			false);
 
@@ -137,11 +143,12 @@ int main(int argc, char * argv[])
 		size_t totalSize = 0;
 		std::set<size_t> referenceChrId;
 		bool allStages = allStagesFlag.isSet();		
-		bool hierarchy = hierarchyPicture.isSet();	
-		bool matchRepeats = matchRepeatsFlag.isSet();
-		if(matchRepeats && (fileName.end() - fileName.begin()) != 2)
+		bool hierarchy = hierarchyPicture.isSet();
+		bool noPostProcessing = noPostProcessingFlag.isSet();
+		bool correctBoundaries = correctBoundariesFlag.isSet();
+		if(correctBoundaries && (fileName.end() - fileName.begin()) != 2)
 		{
-			throw std::runtime_error("In matching repeats mode only two FASTA files are acceptable");
+			throw std::runtime_error("In correction mode only two FASTA files are acceptable");
 		}
 
 		std::vector<SyntenyFinder::FASTARecord> chrList;
@@ -183,7 +190,10 @@ int main(int argc, char * argv[])
 			if(hierarchy || allStages)
 			{
 				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
-				processor.GlueStripes(history[i]);
+				if(!noPostProcessing)
+				{
+					processor.GlueStripes(history[i]);
+				}
 			}
 
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
@@ -195,11 +205,14 @@ int main(int argc, char * argv[])
 		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
-		processor.GlueStripes(history.back());
-		if(matchRepeatsFlag.isSet())
+		if(!noPostProcessing)
 		{
-			processor.MatchRepeats(history.back(), referenceChrId);
-			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
+			processor.GlueStripes(history.back());
+		}
+
+		if(correctBoundaries)
+		{
+			processor.MatchRepeats(history.back(), referenceChrId);			
 		}
 
 		SyntenyFinder::OutputGenerator generator(chrList);
@@ -256,15 +269,18 @@ int main(int argc, char * argv[])
 	} 
 	catch (TCLAP::ArgException &e)
 	{
-		std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl; 
+		std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
+		return 1;
 	}
 	catch (std::runtime_error & e)
 	{
 		std::cerr << "error: " << e.what() << std::endl;
+		return 1;
 	}
 	catch(...)
 	{
 		SyntenyFinder::TempFile::Cleanup();
+		return 1;
 	}
 
 	return 0;

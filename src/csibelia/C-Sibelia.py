@@ -23,6 +23,9 @@ os.environ['LAGAN_DIR'] = LAGAN_DIR
 
 FastaRecord = collections.namedtuple('FastaRecord', ['seq', 'description', 'id'])
 
+class FailedStartException(Exception):
+	pass
+
 def strip_chr_id(chr_id):
 	part = chr_id.split('|')
 	if len(part) == 5:
@@ -245,9 +248,11 @@ def process_unique_block(unique_block, block_index):
 	instance = [reference_instance, assembly_instance]
 	file_name = [reference_block_file, assembly_block_file]	
 	for index, record in enumerate(instance):
-		write_fasta_records([record], file_name[index])		
-	with open(os.devnull, "w") as fnull:
-		subprocess.call(lagan_cmd, stdout=alignment_handle, stderr=fnull)
+		write_fasta_records([record], file_name[index])
+	worker = subprocess.Popen(lagan_cmd, stdout=alignment_handle, stderr=subprocess.PIPE)
+	_, stderr = worker.communicate()
+	if worker.returncode != 0:
+		raise FailedStartException(stderr)
 	alignment_handle.close()	
 	ret = parse_alignment(alignment_file, reference_chr_id, synteny_block_id, contig_id, reference_start)
 	for file_name in (reference_block_file, assembly_block_file, alignment_file):
@@ -273,7 +278,11 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 				unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
 	
 	process_block = functools.partial(process_unique_block, unique_block)
-	variant = pool.map(process_block, range(len(unique_block)))	
+	result = pool.map_async(process_block, range(len(unique_block)))
+	variant = result.get()
+	pool.close()
+	pool.join()
+		
 	variant = [obj for obj in itertools.chain.from_iterable(variant)]	
 	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
 	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
@@ -384,34 +393,42 @@ group.add_argument('-t', '--tempdir', help='Directory for temporary files', defa
 group.add_argument('-o', '--outdir', help='Directory for synteny block output files', default=None)
 args = parser.parse_args()
 
-temp_dir = tempfile.mkdtemp(dir=args.tempdir) if args.outdir is None else args.outdir
-sibelia_cmd = ' '.join([os.path.join(INSTALL_DIR, 'Sibelia'), 					
-					args.reference, args.assembly,
-					'-q', '--matchrepeats', '--allstages',
-					'-m', str(args.minblocksize),
-					'-o', temp_dir,
-					'-s', args.parameters,
-					'-i', str(args.maxiterations),
-					'-r'])
-print >> sys.stderr, "Calculating synteny blocks..."
-os.system(sibelia_cmd)
-_, assembly_seq = get_seq(args.assembly)
-reference_organism, reference_seq = get_seq(args.reference)
-print >> sys.stderr, "Calling variants..."
-variant_list, insertion_list = call_variants(temp_dir, reference_seq, assembly_seq,
-											 args.minblocksize, args.processcount)
-variant_list.sort(key=Variant.get_reference_pos)
-vcf_output = open(args.variant, 'w') 
-write_vcf_header(reference_organism, vcf_output)
-if args.unmapped is None:
-	write_insertions_vcf(insertion_list, reference_organism, vcf_output)
-else:
-	write_insertions_fasta(insertion_list, args.unmapped)
-#conventional = open('variant.txt', 'w')
-#generate_conventional_output(variant_list, conventional)
-#generate_conventional_output(insertion_list, conventional)
-#conventional.close()
-write_variants_vcf(variant_list, vcf_output)
-if args.outdir is None:
-	shutil.rmtree(temp_dir)
+try:	
+	temp_dir = tempfile.mkdtemp(dir=args.tempdir) if args.outdir is None else args.outdir
+	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia'), 					
+				args.reference, args.assembly,
+				'-q', '--correctboundaries', '--allstages', '--nopostprocess',
+				'-m', str(args.minblocksize),
+				'-o', temp_dir,
+				'-s', args.parameters,
+				'-i', str(args.maxiterations),
+				'-r']
+	print >> sys.stderr, "Calculating synteny blocks..."
+	worker = subprocess.Popen(sibelia_cmd, stdout=None, stderr=subprocess.PIPE)
+	_, stderr = worker.communicate()
+	if worker.returncode != 0:
+		raise FailedStartException(stderr)
+	_, assembly_seq = get_seq(args.assembly)
+	reference_organism, reference_seq = get_seq(args.reference)
+	print >> sys.stderr, "Calling variants..."
+	variant_list, insertion_list = call_variants(temp_dir, reference_seq, assembly_seq,
+												 args.minblocksize, args.processcount)
+	variant_list.sort(key=Variant.get_reference_pos)
+	vcf_output = open(args.variant, 'w') 
+	write_vcf_header(reference_organism, vcf_output)
+	if args.unmapped is None:
+		write_insertions_vcf(insertion_list, reference_organism, vcf_output)
+	else:
+		write_insertions_fasta(insertion_list, args.unmapped)
+	#conventional = open('variant.txt', 'w')
+	#generate_conventional_output(variant_list, conventional)
+	#generate_conventional_output(insertion_list, conventional)
+	#conventional.close()
+	write_variants_vcf(variant_list, vcf_output)
+	if args.outdir is None:
+		shutil.rmtree(temp_dir)
+except FailedStartException as e:
+	print 'An error occured:', e
+except EnvironmentError as e:
+	print 'An error occured:', e
 
