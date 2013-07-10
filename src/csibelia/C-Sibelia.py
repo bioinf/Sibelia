@@ -388,9 +388,10 @@ parser.add_argument('-i', '--maxiterations', help='Maximum number of iterations 
 					default=4)
 parser.add_argument('-v', '--variant', help='Output file with detected variants', default='variant.vcf')
 parser.add_argument('-u', '--unmapped', help='Name of the file to store unmapped insertions in text format', type=str)
+parser.add_argument('--debug', help='Generate output in text files', action='store_true')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-t', '--tempdir', help='Directory for temporary files', default='.')
-group.add_argument('-o', '--outdir', help='Directory for synteny block output files', default=None)
+group.add_argument('-o', '--outdir', help='Directory for synteny block output files')
 args = parser.parse_args()
 
 try:	
@@ -420,13 +421,17 @@ try:
 		write_insertions_vcf(insertion_list, reference_organism, vcf_output)
 	else:
 		write_insertions_fasta(insertion_list, args.unmapped)
-	#conventional = open('variant.txt', 'w')
-	#generate_conventional_output(variant_list, conventional)
-	#generate_conventional_output(insertion_list, conventional)
-	#conventional.close()
+		
+	if not args.debug is None:
+		conventional = open('variant.txt', 'w')
+		generate_conventional_output(variant_list, conventional)
+		generate_conventional_output(insertion_list, conventional)
+		conventional.close()
+		
 	write_variants_vcf(variant_list, vcf_output)
 	if args.outdir is None:
 		shutil.rmtree(temp_dir)
+		
 except FailedStartException as e:
 	print 'An error occured:', e
 except EnvironmentError as e:

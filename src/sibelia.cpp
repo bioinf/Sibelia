@@ -223,7 +223,8 @@ int main(int argc, char * argv[])
 		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";
 		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
-		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf"; const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		      
+		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
+		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		      
 		if(allStages)
 		{			
 			for(size_t i = 0; i < history.size(); i++)
