@@ -22,6 +22,7 @@ LAGAN_DIR = os.path.join(INSTALL_DIR, '..', 'lib', 'Sibelia', 'lagan')
 os.environ['LAGAN_DIR'] = LAGAN_DIR
 
 FastaRecord = collections.namedtuple('FastaRecord', ['seq', 'description', 'id'])
+SyntenyBlock = collections.namedtuple('SyntenyBlock', ['seq', 'chr_id', 'strand', 'id', 'start', 'end'])
 
 class FailedStartException(Exception):
 	pass
@@ -75,15 +76,15 @@ def write_fasta_records(fasta_record, file_name):
 class Variant(object):
 	def __init__(self, reference_chr_id, reference_pos, contig_id, assembly_pos, reference_allele,
 				 assembly_allele, reference_context, assembly_context, synteny_block_id):
-		self._reference_chr_id = reference_chr_id
-		self._reference_pos = reference_pos		
+		self._reference_chr_id = '.' if reference_chr_id is None else reference_chr_id
+		self._reference_pos = '.' if reference_pos is None else reference_pos  		
 		self._contig_id = str(contig_id)
 		self._assembly_pos = assembly_pos
-		self._reference_allele = '' if reference_allele is None else reference_allele.upper()  
-		self._assembly_allele = '' if assembly_allele is None else assembly_allele.upper()
-		self._reference_context = str('' if reference_context is None else reference_context.upper())
-		self._assembly_context = str('' if assembly_context is None else assembly_context.upper())
-		self._synteny_block_id = synteny_block_id
+		self._reference_allele = '.' if reference_allele is None else reference_allele.upper()  
+		self._assembly_allele = '.' if assembly_allele is None else assembly_allele.upper()
+		self._reference_context = '.' if reference_context is None else reference_context.upper()
+		self._assembly_context = '.' if assembly_context is None else assembly_context.upper()
+		self._synteny_block_id = '.' if synteny_block_id is None else synteny_block_id
 
 	def __str__(self):
 		return "\t".join([str(self._reference_pos), self._reference_allele, self._assembly_allele,
@@ -124,37 +125,6 @@ class Variant(object):
 
 def no_gaps(sequence):
 	return ''.join([ch for ch in sequence if ch != '-'])
-
-def parse_blocks_coords(blocks_file):
-	line = [l.strip() for l in open(blocks_file) if l.strip()]
-	pos = 1
-	num_seq_id = dict()
-	while pos < len(line) and line[pos][0] != '-':
-		line[pos] = line[pos].split()
-		num_seq_id[line[pos][0]] = line[pos][2]
-		pos += 1
-	pos += 1
-	block_list = []	
-	while pos < len(line):				
-		pos += 2
-		block = []
-		while line[pos][0] != '-':
-			instance = line[pos].split()
-			chr_id = instance[0]
-			strand = instance[1]
-			start = int(instance[2])
-			end = int(instance[3])
-			if strand == '+':
-				start -= 1
-			else:
-				temp = start
-				start = end - 1
-				end = temp			
-			block.append((num_seq_id[chr_id], start, end))			
-			pos += 1
-		pos += 1
-		block_list.append(block)
-	return block_list
 
 def get_context(alignment, alignment_segment, segment_index):
 	context = []	
@@ -241,9 +211,8 @@ def parse_header(header):
 	return ret
 
 def find_instance(instance_list, reference_seq_id, in_reference):
-	for instance in instance_list:
-		header = parse_header(instance.description)
-		if (header['Seq'] in reference_seq_id) == in_reference:
+	for instance in instance_list:		
+		if (instance.chr_id in reference_seq_id) == in_reference:
 			return instance
 	return None
 
@@ -255,17 +224,15 @@ def process_unique_block(unique_block, block_index):
 	lagan_cmd = ['perl', LAGAN_DIR + "/lagan.pl", reference_block_file, assembly_block_file, '-mfa']
 	alignment_handle = open(alignment_file, 'w')	
 	synteny_block_id, reference_instance, assembly_instance = unique_block[block_index]
-	reference_header = parse_header(reference_instance.description)
-	assembly_header = parse_header(assembly_instance.description)	
-	reference_start = int(reference_header['Start'])
-	reference_chr_id = reference_header['Seq']	
-	reference_direction = +1 if reference_header['Strand'] == '+' else -1
-	assembly_direction = +1 if assembly_header['Strand'] == '+' else -1
-	contig_id = assembly_header['Seq']
+	reference_start = reference_instance.start
+	reference_chr_id = reference_instance.chr_id	
+	contig_id = assembly_instance.chr_id
 	instance = [reference_instance, assembly_instance]
-	file_name = [reference_block_file, assembly_block_file]	
-	for index, record in enumerate(instance):
-		write_fasta_records([record], file_name[index])
+	file_name = [reference_block_file, assembly_block_file]
+	reference_direction = +1 if reference_instance.strand == '+' else -1
+	assembly_direction = +1 if reference_instance.strand == '+' else -1
+	for index, block in enumerate(instance):
+		write_fasta_records([FastaRecord(id=block.chr_id, description=block.chr_id, seq=block.seq)], file_name[index])
 	worker = subprocess.Popen(lagan_cmd, stdout=alignment_handle, stderr=subprocess.PIPE)
 	_, stderr = worker.communicate()
 	if worker.returncode != 0:
@@ -276,48 +243,58 @@ def process_unique_block(unique_block, block_index):
 	for file_name in (reference_block_file, assembly_block_file, alignment_file):
 		os.remove(file_name)
 	return ret
+
+def get_size(record):
+	return abs(record.end - record.start) + 1
 	
 def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num):	
 	os.chdir(directory)
 	block_seq = dict()	
-	for record in parse_fasta_file(BLOCKS_FILE):				
-		block_id = parse_header(record.description)['Block_id']
+	for record in parse_fasta_file(BLOCKS_FILE):
+		header = parse_header(record.description)
+		chr_id = header['Seq']
+		strand = header['Strand']
+		block_id = int(header['Block_id'])
+		start = int(header['Start'])
+		end = int(header['End'])		 
 		if block_id not in block_seq:
-			block_seq[block_id] = []			
-		block_seq[block_id].append(record)
-	
+			block_seq[block_id] = []
+		block = SyntenyBlock(chr_id=chr_id, seq=record.seq, id=block_id, strand=strand, start=start, end=end)
+		block_seq[block_id].append(block)
+
 	pool = multiprocessing.Pool(proc_num)
 	unique_block = []	
 	for synteny_block_id, instance_list in block_seq.items():		
 		if len(instance_list) == 2:		
 			reference_instance = find_instance(instance_list, reference_seq.keys(), True)
-			assembly_instance = find_instance(instance_list, reference_seq.keys(), False)
+			assembly_instance = find_instance(instance_list, reference_seq.keys(), False)			
 			if (not reference_instance is None) and (not assembly_instance is None):
-				unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
+				reference_size = get_size(reference_instance)
+				assembly_size = get_size(assembly_instance)
+				if reference_size >= min_block_size and assembly_size >= min_block_size:
+					unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
 	
 	process_block = functools.partial(process_unique_block, unique_block)
 	result = pool.map_async(process_block, range(len(unique_block)))
 	variant = result.get()
 	pool.close()
 	pool.join()
-		
-	variant = [obj for obj in itertools.chain.from_iterable(variant)]	
-	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
-	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
-	blocks_coords = itertools.chain.from_iterable([parse_blocks_coords(coords_file) for coords_file in coords_file_list])
+	
+	variant = [obj for obj in itertools.chain.from_iterable(variant)]			
 	base_cover = dict()
 	for seq_group in (reference_seq, assembly_seq):		
 		for seq_id, seq in seq_group.items():
 			base_cover[seq_id] = [UNCOVER for _ in seq]
 			
-	for block in blocks_coords:
-		reference = [obj for obj in block if obj[0] in reference_seq]
-		if reference and len(reference) < len(block):
-			for instance in block:
-				size = instance[2] - instance[1]
-				base_cover[instance[0]][instance[1]:instance[2]] = [COVER] * size
+	for _, instance_list in block_seq.items():
+		reference = [instance for instance in instance_list if instance.chr_id in reference_seq]
+		if reference and len(reference) < len(instance_list):
+			for instance in instance_list:				
+				start = min(instance.start, instance.end) - 1
+				end = max(instance.start, instance.end)
+				base_cover[instance.chr_id][start:end] = [COVER] * (end - start)
 	
-	insertion = []
+	insertion = []	
 	os.chdir('..')	
 	for seq_id, cover in base_cover.items():
 		i = 0
@@ -328,7 +305,7 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 					i += 1
 				end = i
 				if end - start > min_block_size:
-					if seq_id in reference_seq:					
+					if seq_id in reference_seq:
 						common_char = str(reference_seq[seq_id][start - 1]) if start > 0 else ''
 						assembly_allele = common_char if common_char else None						
 						reference_allele = common_char + str(reference_seq[seq_id][start:end])
@@ -416,8 +393,8 @@ try:
 	temp_dir = tempfile.mkdtemp(dir=args.tempdir) if args.outdir is None else args.outdir
 	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia'), 					
 				args.reference, args.assembly,
-				'-q', '--correctboundaries', '--allstages', '--nopostprocess',
-				'-m', str(args.minblocksize),
+				'-q', '--correctboundaries', '--nopostprocess',
+				'-m', '30',
 				'-o', temp_dir,
 				'-s', args.parameters,
 				'-i', str(args.maxiterations),
