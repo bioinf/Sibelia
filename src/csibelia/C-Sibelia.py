@@ -246,7 +246,18 @@ def process_unique_block(unique_block, block_index):
 
 def get_size(record):
 	return abs(record.end - record.start) + 1
-	
+
+def determine_unique_block(instance_list, reference_seq, min_block_size):
+	if len(instance_list) == 2:
+		reference_instance = find_instance(instance_list, reference_seq.keys(), True)
+		assembly_instance = find_instance(instance_list, reference_seq.keys(), False)			
+		if (not reference_instance is None) and (not assembly_instance is None):
+			reference_size = get_size(reference_instance)
+			assembly_size = get_size(assembly_instance)
+			if reference_size >= min_block_size and assembly_size >= min_block_size:
+				return (reference_instance, assembly_instance)
+	return (None, None)
+						
 def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num):	
 	os.chdir(directory)
 	block_seq = dict()	
@@ -266,13 +277,9 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 	unique_block = []	
 	for synteny_block_id, instance_list in block_seq.items():		
 		if len(instance_list) == 2:		
-			reference_instance = find_instance(instance_list, reference_seq.keys(), True)
-			assembly_instance = find_instance(instance_list, reference_seq.keys(), False)			
-			if (not reference_instance is None) and (not assembly_instance is None):
-				reference_size = get_size(reference_instance)
-				assembly_size = get_size(assembly_instance)
-				if reference_size >= min_block_size and assembly_size >= min_block_size:
-					unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
+			reference_instance, assembly_instance = determine_unique_block(instance_list, reference_seq, min_block_size)			
+			if (not reference_instance is None):
+				unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
 	
 	process_block = functools.partial(process_unique_block, unique_block)
 	result = pool.map_async(process_block, range(len(unique_block)))
@@ -286,13 +293,13 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 		for seq_id, seq in seq_group.items():
 			base_cover[seq_id] = [UNCOVER for _ in seq]
 			
-	for _, instance_list in block_seq.items():
+	for block_id, instance_list in block_seq.items():
 		reference = [instance for instance in instance_list if instance.chr_id in reference_seq]
 		if reference and len(reference) < len(instance_list):
 			for instance in instance_list:				
 				start = min(instance.start, instance.end) - 1
 				end = max(instance.start, instance.end)
-				base_cover[instance.chr_id][start:end] = [COVER] * (end - start)
+				base_cover[instance.chr_id][start:end] = [block_id] * (end - start)
 	
 	insertion = []	
 	os.chdir('..')	
@@ -305,16 +312,37 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 					i += 1
 				end = i
 				if end - start > min_block_size:
-					if seq_id in reference_seq:
+					if not seq_id in reference_seq:
+						reference_chr_id = None
+						reference_pos = None
+						reference_allele = None
+						assembly_allele = str(assembly_seq[seq_id][start:end])						
+						if start > 0:
+							instance_list = block_seq[cover[start - 1]]
+							reference_instance, assembly_instance = determine_unique_block(instance_list, reference_seq, min_block_size)
+							if not reference_instance is None:								
+								if reference_instance.strand == assembly_instance.strand:
+									reference_pos = max(reference_instance.start, reference_instance.end)									
+								else:									
+									reference_pos = min(reference_instance.start, reference_instance.end) - 1
+									
+								chr_id = reference_instance.chr_id
+								if reference_pos > 0:
+									common_char = reference_seq[chr_id][reference_pos - 1]
+									reference_allele = common_char
+									assembly_allele = common_char + assembly_allele
+								else:
+									reference_pos = None
+						variant_type = insertion if reference_pos is None else variant
+						variant_type.append(Variant(reference_chr_id, reference_pos, seq_id, start,
+												 reference_allele, assembly_allele, 
+												 reference_allele, assembly_allele, None))
+					else:
 						common_char = str(reference_seq[seq_id][start - 1]) if start > 0 else ''
 						assembly_allele = common_char if common_char else None						
 						reference_allele = common_char + str(reference_seq[seq_id][start:end])
 						variant.append(Variant(seq_id, start, None, None, reference_allele, assembly_allele,
-											reference_allele, assembly_allele, None))
-					else:												
-						assembly_allele = str(assembly_seq[seq_id][start:end])					
-						insertion.append(Variant(None, None, seq_id, start, None, assembly_allele,
-												 None, assembly_allele, None))
+											reference_allele, assembly_allele, None))											
 			else:
 				i += 1
 	
