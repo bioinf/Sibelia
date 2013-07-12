@@ -27,6 +27,30 @@ SyntenyBlock = collections.namedtuple('SyntenyBlock', ['seq', 'chr_id', 'strand'
 class FailedStartException(Exception):
 	pass
 
+def parse_blocks_coords(blocks_file):		
+	group = [[]]
+	num_seq_id = dict()
+	line = [l.strip() for l in open(blocks_file) if l.strip()]	
+	for l in line:
+		if l[0] == '-':
+			group.append([])
+		else:
+			group[-1].append(l)			
+	for l in group[0]:	
+		l = l.split()
+		num_seq_id[l[0]] = l[2]	
+	ret = dict()
+	for g in [g for g in group[1:] if g]:		
+		block_id = int(g[0].split()[1][1:])
+		ret[block_id] = []	
+		for l in g[2:]:
+			l = l.split()
+			chr_id = num_seq_id[l[0]]
+			start = int(l[2])
+			end = int(l[3])
+			ret[block_id].append(SyntenyBlock(seq='', chr_id=chr_id, strand=l[1], id=block_id, start=start, end=end))		
+	return ret
+
 def reverse_complementary(seq):
 	comp = dict()
 	comp['A'] = 'T'
@@ -257,7 +281,22 @@ def determine_unique_block(instance_list, reference_seq, min_block_size):
 			if reference_size >= min_block_size and assembly_size >= min_block_size:
 				return (reference_instance, assembly_instance)
 	return (None, None)
-						
+
+def depict_coverage(block_seq, reference_seq, assembly_seq, base_cover):
+	if base_cover is None:
+		base_cover = dict()
+		for seq_group in (reference_seq, assembly_seq):		
+			for seq_id, seq in seq_group.items():
+				base_cover[seq_id] = [UNCOVER for _ in seq]			
+	for block_id, instance_list in block_seq.items():
+		reference = [instance for instance in instance_list if instance.chr_id in reference_seq]
+		if reference and len(reference) < len(instance_list):
+			for instance in instance_list:				
+				start = min(instance.start, instance.end) - 1
+				end = max(instance.start, instance.end)
+				base_cover[instance.chr_id][start:end] = [block_id] * (end - start)
+	return base_cover	
+					
 def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num):	
 	os.chdir(directory)
 	block_seq = dict()	
@@ -285,25 +324,18 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 	result = pool.map_async(process_block, range(len(unique_block)))
 	variant = result.get()
 	pool.close()
-	pool.join()
-	
-	variant = [obj for obj in itertools.chain.from_iterable(variant)]			
-	base_cover = dict()
-	for seq_group in (reference_seq, assembly_seq):		
-		for seq_id, seq in seq_group.items():
-			base_cover[seq_id] = [UNCOVER for _ in seq]
-			
-	for block_id, instance_list in block_seq.items():
-		reference = [instance for instance in instance_list if instance.chr_id in reference_seq]
-		if reference and len(reference) < len(instance_list):
-			for instance in instance_list:				
-				start = min(instance.start, instance.end) - 1
-				end = max(instance.start, instance.end)
-				base_cover[instance.chr_id][start:end] = [block_id] * (end - start)
-	
+	pool.join()	
+	variant = [obj for obj in itertools.chain.from_iterable(variant)]
+	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
+	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
+	blocks_coords = (parse_blocks_coords(coords_file) for coords_file in coords_file_list)	
+	all_cover = None
+	for stage in blocks_coords:
+		all_cover = depict_coverage(stage, reference_seq, assembly_seq, all_cover)
+	main_cover = depict_coverage(block_seq, reference_seq, assembly_seq, None)	
 	insertion = []	
 	os.chdir('..')	
-	for seq_id, cover in base_cover.items():
+	for seq_id, cover in all_cover.items():
 		i = 0
 		while i < len(cover):
 			if cover[i] == UNCOVER:
@@ -318,21 +350,23 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 						reference_allele = None
 						assembly_allele = str(assembly_seq[seq_id][start:end])						
 						if start > 0:
-							instance_list = block_seq[cover[start - 1]]
-							reference_instance, assembly_instance = determine_unique_block(instance_list, reference_seq, min_block_size)
-							if not reference_instance is None:								
-								if reference_instance.strand == assembly_instance.strand:
-									reference_pos = max(reference_instance.start, reference_instance.end)									
-								else:									
-									reference_pos = min(reference_instance.start, reference_instance.end) - 1
-									
-								chr_id = reference_instance.chr_id
-								if reference_pos > 0:
-									common_char = reference_seq[chr_id][reference_pos - 1]
-									reference_allele = common_char
-									assembly_allele = common_char + assembly_allele
-								else:
-									reference_pos = None
+							prev_block_id = main_cover[seq_id][start - 1]							
+							if prev_block_id != UNCOVER:
+								instance_list = block_seq[prev_block_id]
+								reference_instance, assembly_instance = determine_unique_block(instance_list, reference_seq, min_block_size)
+								if not reference_instance is None:								
+									if reference_instance.strand == assembly_instance.strand:
+										reference_pos = max(reference_instance.start, reference_instance.end)									
+									else:									
+										reference_pos = min(reference_instance.start, reference_instance.end) - 1
+										
+									chr_id = reference_instance.chr_id
+									if reference_pos > 0:
+										common_char = reference_seq[chr_id][reference_pos - 1]
+										reference_allele = common_char
+										assembly_allele = common_char + assembly_allele
+									else:
+										reference_pos = None
 						variant_type = insertion if reference_pos is None else variant
 						variant_type.append(Variant(reference_chr_id, reference_pos, seq_id, start,
 												 reference_allele, assembly_allele, 
@@ -421,7 +455,7 @@ try:
 	temp_dir = tempfile.mkdtemp(dir=args.tempdir) if args.outdir is None else args.outdir
 	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia'), 					
 				args.reference, args.assembly,
-				'-q', '--correctboundaries', '--nopostprocess',
+				'-q', '--correctboundaries', '--nopostprocess', '--allstages',
 				'-m', '30',
 				'-o', temp_dir,
 				'-s', args.parameters,

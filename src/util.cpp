@@ -67,8 +67,8 @@ std::vector<std::pair<int, int> > FineStageFile()
 	std::pair<int, int> stage[] = 
 	{
 		std::make_pair(30, 150),
-		std::make_pair(100, 1000),
-		std::make_pair(1000, 2500),		
+		std::make_pair(100, 500),
+		std::make_pair(500, 1500),		
 	};
 
 	return std::vector<std::pair<int, int> >(stage, stage + sizeof(stage) / sizeof(stage[0]));
