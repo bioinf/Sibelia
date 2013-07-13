@@ -230,8 +230,9 @@ namespace SyntenyFinder
 	{			
 		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_);
 		iseq.ConstructChrIndex();
-		BifurcationStorage bifStorage = iseq.BifStorage();		
-		std::vector<std::pair<size_t, std::vector<StrandIterator> > > edgeGroup;
+		BifurcationStorage bifStorage = iseq.BifStorage();
+		typedef std::vector<std::pair<size_t, std::vector<StrandIterator> > > EdgeGroup;
+		EdgeGroup edgeGroup;
 		for(size_t i = 0; i <= bifStorage.GetMaxId(); i++)
 		{
 			std::vector<std::pair<char, StrandIterator> > edge;
@@ -251,7 +252,7 @@ namespace SyntenyFinder
 			std::sort(edge.begin(), edge.end());
 			std::vector<std::pair<size_t, size_t> > group;
 			GroupBy(edge, LessFirst<char, StrandIterator>, std::back_inserter(group));
-			for(auto it = group.begin(); it != group.end(); ++it)
+			for(std::vector<std::pair<size_t, size_t> >::iterator it = group.begin(); it != group.end(); ++it)
 			{
 				if(edge[it->first].first != EMPTY)
 				{
@@ -283,12 +284,12 @@ namespace SyntenyFinder
 			overlap[i].resize(originalSize_[i], POS_FREE);
 		}
 
-		for(auto jt = edgeGroup.begin(); jt != edgeGroup.end(); ++jt)
+		for(EdgeGroup::iterator jt = edgeGroup.begin(); jt != edgeGroup.end(); ++jt)
 		{
 			size_t commonShift = 0;
 			std::set<ChrPos> localOverlap;
 			std::vector<StrandIterator> current;
-			for(auto it = jt->second.begin(); it != jt->second.end(); ++it)
+			for(std::vector<StrandIterator>::iterator it = jt->second.begin(); it != jt->second.end(); ++it)
 			{
 				size_t shift = 0;
 				StrandIterator edge = *it;

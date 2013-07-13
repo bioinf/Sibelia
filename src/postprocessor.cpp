@@ -356,7 +356,7 @@ namespace SyntenyFinder
 			inReference.clear();
 			multiplicity.clear();
 			std::sort(blockList.begin(), blockList.end(), CompareBlocksNaturally);
-			for(auto it = blockList.begin(); it != blockList.end(); ++it)
+			for(std::vector<BlockInstance>::iterator it = blockList.begin(); it != blockList.end(); ++it)
 			{
 				if(multiplicity.find(it->GetBlockId()) == multiplicity.end())
 				{
@@ -371,12 +371,12 @@ namespace SyntenyFinder
 				}
 			}
 
-			for(auto it = multiplicity.begin(); it != multiplicity.end() && !glue; ++it)
+			for(std::map<int, std::vector<size_t> >::iterator it = multiplicity.begin(); it != multiplicity.end() && !glue; ++it)
 			{
 				if(it->second.size() == 2 && inReference[it->first] == 1)
 				{
 					std::vector<size_t> nextBlockPos;
-					for(auto posIt = it->second.begin(); posIt != it->second.end(); ++posIt)
+					for(std::vector<size_t>::iterator posIt = it->second.begin(); posIt != it->second.end(); ++posIt)
 					{
 						int pos = static_cast<int>(*posIt);
 						int nextPos = pos + blockList[pos].GetSign();
@@ -410,7 +410,7 @@ namespace SyntenyFinder
 		}
 
 		std::vector<BlockInstance> toDelete;
-		for(auto it = multiplicity.begin(); it != multiplicity.end(); ++it)
+		for(std::map<int, std::vector<size_t> >::iterator it = multiplicity.begin(); it != multiplicity.end(); ++it)
 		{
 			if(it->second.size() == 1)
 			{
@@ -418,20 +418,20 @@ namespace SyntenyFinder
 			}
 		}
 
-		for(auto it = toDelete.begin(); it != toDelete.end(); ++it)
+		for(std::vector<BlockInstance>::iterator it = toDelete.begin(); it != toDelete.end(); ++it)
 		{
 			blockList.erase(std::remove_if(blockList.begin(), blockList.end(), boost::bind(&BlockInstance::operator==, *it, _1)), blockList.end());
 		}
 		
 		std::vector<int> oldId;
-		for(auto it = blockList.begin(); it != blockList.end(); ++it)
+		for(std::vector<BlockInstance>::iterator it = blockList.begin(); it != blockList.end(); ++it)
 		{
 			oldId.push_back(it->GetBlockId());
 		}
 
 		std::sort(oldId.begin(), oldId.end());
 		oldId.erase(std::unique(oldId.begin(), oldId.end()), oldId.end());
-		for(auto it = blockList.begin(); it != blockList.end(); ++it)
+		for(std::vector<BlockInstance>::iterator it = blockList.begin(); it != blockList.end(); ++it)
 		{
 			int sign = it->GetSign();
 			size_t newId = std::lower_bound(oldId.begin(), oldId.end(), it->GetBlockId()) - oldId.begin() + 1;

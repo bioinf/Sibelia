@@ -460,7 +460,7 @@ namespace SyntenyFinder
 		std::ofstream karFile;		
 		TryOpenFile(outDir + "/" + fileName, karFile);
 		std::set<size_t> chrToShow;
-		for(auto it = blockList.begin(); it != blockList.end(); ++it)
+		for(BlockList::const_iterator it = blockList.begin(); it != blockList.end(); ++it)
 		{
 			chrToShow.insert(it->GetChrId());
 		}
@@ -620,7 +620,7 @@ namespace SyntenyFinder
             std::stringstream ss;
             ss << blockList[it->first].GetBlockId();
             std::string s = ss.str();
-            for (auto i = blockList.begin() + it->first; i < blockList.begin() + it->second; i++)
+			for (BlockList::const_iterator i = blockList.begin() + it->first; i < blockList.begin() + it->second; i++)
             {
                 out << "Block #" << s << '\t'; // QNAME
                 out << 0 << '\t'; // FLAG
