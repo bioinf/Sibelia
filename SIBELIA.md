@@ -2,10 +2,10 @@ Basic usage
 ===========
 In this manual it is assumed that "Sibelia" is properly installed and the
 directory with "Sibelia.py" is in your "PATH" environment variable or input
-files are in the same folder with "Sibelia.py".
+files are in the same folder with "Sibelia" executable.
 
-Directory "examples/Sibelia" contains two sets of bacterial genomes. The easiest way 
-to run "Sibelia" is to type:
+Directory "examples/Sibelia" contains two sets of bacterial genomes. The easiest
+way to run "Sibelia" is to type:
 
 	Sibelia -s loose <input FASTA file(s)>
 
@@ -27,10 +27,10 @@ with "fine" parameters set, type:
 
 The difference between "loose" and "fine" set is that "loose" usually produces
 fewer blocks, but longer. And it may lose some small synteny blocks 
-(shorter than 15 000 BP), while "fine" option produces more blocks (but 
-shorter) and their coverage is worse. Usually "loose" is the best choice, but
-if you do not want to lose information about small-scale rearrangements, 
-use "fine".
+(shorter than 15 000 BP), while "fine" option produces more blocks (but shorter)
+and their coverage is worse. Usually "loose" is the best choice, but if you do
+not want to lose information about small-scale rearrangements,  use "fine". See
+also section "Output description" for detailed depiction of the output format.
 
 If you are not satisfied by the results (poor coverage, for example), try to set
 simplification parameters manually (see section "Fine tuning"). 
@@ -47,8 +47,8 @@ such output use option "-a":
 Synteny blocks are visualized with an interactive diagram (see section "d3"
 visualization"). The blocks are also can be visualized with "Circos" (see 
 section "Circos" visualization"). While "Circos" is better for publications,
-"d3" diagram is better for analysis. Please note that sequences that do not
-contain any synteny blocks instances are not shown on these diagrams.
+"d3" diagram is more suitable for analysis. Please note that sequences that do
+not contain any synteny blocks instances are not shown on these diagrams.
 
 Genomes from the "examples/Sibelia" dir were taken from [5, 6]. Note that you
 can specify multiple FASTA files, just separate them with spaces.
@@ -95,13 +95,28 @@ By default, "Sibelia" produces 5 files:
 There are also optional output files:
 
 1. Sequences file
-2. Dot file with resulting de Bruijn graph
+2. Blocks coordinates (old format)
+3. Dot file with resulting de Bruijn graph
 
 All these files are described below in details.
 
 Blocks coordinates
 ------------------
-File name = "blocks_coords.txt".
+Coordinates of synteny blocks are listed in file "blocks_coords.gff". For
+description of this format, see:
+
+	https://cgwb.nci.nih.gov/FAQ/FAQformat.html#format3
+
+Each record represents different copies of a synteny block. Copies having the
+same number in the "tag" field (last column) form are instances of the same
+synteny block..
+
+Blocks coordinates (old format)
+-------------------------------
+File name = "blocks_coords.txt". This format was used by "Sibelia" before 3.0.1
+release. To output blocks in this format, use switch:
+
+	--oldformat
 
 First part of this file lists input sequences, their IDs, sizes and 
 descriptions. IDs are just index numbers of sequences (in the same order as
@@ -275,7 +290,7 @@ own synteny blocks. You can get blocks from all stages by specifying flag:
 
 	--allstages
 
-Files "blocks_coordsN.txt" will contain their coordinates, where N is the
+Files "blocks_coordsN.(txt|gff)" will contain their coordinates, where N is the
 number of stage. Zero corresponds to blocks obtained without any simplification.
 
 Boundaries correction

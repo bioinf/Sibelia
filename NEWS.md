@@ -1,10 +1,12 @@
 Sibelia 3.0.1
 =============
 * Fixed a bug in C-Sibelia: incorrect reporting of variants within synteny
-blocks having opposite directions
+  blocks having opposite directions
+* Added output of synteny blocks in GFF format (default)
 * Removed sequences without synteny blocks from Circos diagrams
-* C-Sibelia allows to store synteny blocks
-* Added Sibelia cmd options: --nopostprocess, --allstages, --correctboundaries
+* Blocks orientations are depicted on Circos diagram by different colors
+* Added Sibelia cmd options: --nopostprocess, --allstages, --correctboundaries,
+  --oldformat
 * Slightly changed "fine" parameters simplification set
 
 Sibelia 3.0.0
@@ -20,16 +22,16 @@ Sibelia 2.1.2
 Sibelia 2.1.1
 =============
 * Got rid of overlap between synteny blocks, overlapping regions are granted to
-the blocks with higher multiplicity
+  the blocks with higher multiplicity
 * Added generation of circos picture that shows blocks at multiple stages
-simultaneously
+  simultaneously
 * Added cmd option: -v
 
 Sibelia 2.1.0
 =============
 * Improved performance in the case of many genomes. Now it is possible to
-compute synteny blocks for 59 E.coli genomes within 70 minutes and 8 GB of RAM
-on a standard desktop
+  compute synteny blocks for 59 E.coli genomes within 70 minutes and 8 GB of
+  RAM on a standard desktop
 * Synteny block boundaries now are more precise
 
 Sibelia 2.0.1
@@ -38,7 +40,7 @@ Sibelia 2.0.1
 * Fixed bug with multiple input files
 * Fixed circos generation in case of many input sequencs
 * Changed format of coordinates of synteny blocks, see USAGE.md, section
-"Blocks coordinates"
+  "Blocks coordinates"
 
 Sibelia 2.0.0
 =============

@@ -46,6 +46,12 @@ int main(int argc, char * argv[])
 			cmd,
 			false);
 
+		TCLAP::SwitchArg oldFormatFlag("",
+			"oldformat",
+			"Use old format of blocks coordinates",
+			cmd,
+			false);
+
 		TCLAP::SwitchArg allStagesFlag("",
 			"allstages",
 			"Output coordinates of synteny blocks from all stages",
@@ -217,33 +223,32 @@ int main(int argc, char * argv[])
 			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
 		}
 
+		bool oldFormat = oldFormatFlag.isSet();
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateOutDirectory(outFileDir.getValue());
-		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords.txt";
+		boost::function<void(const std::vector<SyntenyFinder::BlockInstance>&, const std::string&)> coordsWriter = 
+			oldFormat ? boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndices, boost::cref(generator), _1, _2)
+					  : boost::bind(&SyntenyFinder::OutputGenerator::ListBlocksIndicesGFF, boost::cref(generator), _1, _2);
+		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords" + (oldFormat ? ".txt" : ".gff");
 		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
 		const std::string defaultCoverageReportFile = outFileDir.getValue() + "/coverage_report.txt";
 		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";
 		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
-		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";      
-		const std::string defaultGFFFile = outFileDir.getValue() + "/blocks_coords.gff";
+		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";      		
 		if(allStages)
 		{			
 			for(size_t i = 0; i < history.size(); i++)
-			{				
-				std::stringstream GFFFile;
-				std::stringstream conventionalFile;
-				GFFFile << outFileDir.getValue() << "/blocks_coords" << i << ".gff";
-				conventionalFile << outFileDir.getValue() << "/blocks_coords" << i << ".txt";
-				generator.ListBlocksIndices(history[i], conventionalFile.str());
-				generator.ListBlocksIndicesGFF(history[i], GFFFile.str());
+			{
+				std::stringstream file;
+				file << outFileDir.getValue() << "/blocks_coords" << i << (oldFormat ? ".txt" : ".gff");
+				coordsWriter(history[i], file.str());
 			}
 		}
 		else
 		{
-			generator.ListBlocksIndicesGFF(history.back(), defaultGFFFile);
-			generator.ListBlocksIndices(history.back(), defaultCoordsFile);
+			coordsWriter(history.back(), defaultCoordsFile);
 		}
 
 		generator.ListChromosomesAsPermutations(history.back(), defaultPermutationsFile);
@@ -252,7 +257,6 @@ int main(int argc, char * argv[])
 		if(sequencesFile.isSet())
 		{
 			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
-//			generator.OutputBlocksInSAM(history.back(), defaultBlocksAlignmentFile);			
 		}
 
 		if(!hierarchy)

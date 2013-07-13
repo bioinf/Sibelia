@@ -455,7 +455,8 @@ try:
 	temp_dir = tempfile.mkdtemp(dir=args.tempdir)
 	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia'), 					
 				args.reference, args.assembly,
-				'-q', '--correctboundaries', '--nopostprocess', '--allstages',
+				'-q', '--correctboundaries', '--nopostprocess',
+				'--allstages', '--oldformat',
 				'-m', '30',
 				'-o', temp_dir,
 				'-s', args.parameters,

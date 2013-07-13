@@ -596,6 +596,8 @@ namespace SyntenyFinder
 	{
 		std::ofstream out;
 		TryOpenFile(fileName, out);
+		BlockList block(blockList);
+		std::sort(block.begin(), block.end(), compareById);
 		const std::string header[] =
 		{
 			"##gff-version 2",
@@ -604,7 +606,7 @@ namespace SyntenyFinder
 		};
 
 		out << Join(header, header + 3, "\n") << std::endl;
-		for(BlockList::const_iterator it = blockList.begin(); it != blockList.end(); ++it)
+		for(BlockList::const_iterator it = block.begin(); it != block.end(); ++it)
 		{
 			size_t start = std::min(it->GetConventionalStart(), it->GetConventionalEnd());
 			size_t end = std::max(it->GetConventionalStart(), it->GetConventionalEnd());
