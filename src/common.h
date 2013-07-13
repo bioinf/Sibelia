@@ -42,6 +42,7 @@
 	TypeName(const TypeName&); \
 	void operator=(const TypeName&)
 
+extern const std::string VERSION;
 extern const std::string DELIMITER;
 
 namespace SyntenyFinder

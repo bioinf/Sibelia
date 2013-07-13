@@ -15,33 +15,33 @@ namespace SyntenyFinder
 	{
 		const char COVERED = 1;
 		typedef std::pair<size_t, std::vector<BlockInstance> > GroupedBlock;
-		typedef std::vector<GroupedBlock> GroupedBlockList;
-
-		std::string GetChrName(std::string description)
-		{
-			for(std::string::iterator it = description.begin(); it != description.end(); ++it)
-			{
-				if(*it == '|' || *it == '.')
-				{
-					*it = ' ';
-				}
-			}
-			
-			std::string buf;
-			std::stringstream ss(description);
-			std::vector<std::string> token;
-			while(ss >> buf)
-			{
-				token.push_back(buf);
-			}
-
-			return token.size() == 5 ? token[3] : description;
-		}
+		typedef std::vector<GroupedBlock> GroupedBlockList;		
 
 		bool ByFirstElement(const GroupedBlock & a, const GroupedBlock & b)
 		{
 			return a.first < b.first;
 		}
+
+		std::string IntToStr(size_t x)
+		{
+			std::stringstream ss;
+			ss << x;
+			return ss.str();
+		}
+
+		template<class It>
+			std::string Join(It start, It end, const std::string & delimiter)
+			{
+				It last = --end;
+				std::stringstream ss;
+				for(; start != end; ++start)
+				{
+					ss << *start << delimiter;
+				}
+
+				ss << *last;
+				return ss.str();
+			}
 
 		std::string OutputIndex(const BlockInstance & block)
 		{
@@ -590,6 +590,39 @@ namespace SyntenyFinder
 	{
 		std::stringstream ss;
 		std::copy(block, block + blockSize, std::ostream_iterator<std::string>(ss, "\n"));
+	}
+
+	void OutputGenerator::ListBlocksIndicesGFF(const BlockList & blockList, const std::string & fileName) const
+	{
+		std::ofstream out;
+		TryOpenFile(fileName, out);
+		const std::string header[] =
+		{
+			"##gff-version 2",
+			std::string("##source-version Sibelia ") + VERSION,
+			"##Type DNA"
+		};
+
+		out << Join(header, header + 3, "\n") << std::endl;
+		for(BlockList::const_iterator it = blockList.begin(); it != blockList.end(); ++it)
+		{
+			size_t start = std::min(it->GetConventionalStart(), it->GetConventionalEnd());
+			size_t end = std::max(it->GetConventionalStart(), it->GetConventionalEnd());
+			const std::string record[] = 
+			{
+				it->GetChrInstance().GetStripedId(),
+				"Sibelia",
+				"synteny_block_copy",
+				IntToStr(start),
+				IntToStr(end),
+				".",
+				(it->GetDirection() == DNASequence::positive ? "+" : "-"),
+				".",
+				IntToStr(static_cast<size_t>(it->GetBlockId()))
+			};
+
+			out << Join(record, record + sizeof(record) / sizeof(record[0]), "\t") << std::endl;
+		}
 	}
 
     void OutputGenerator::OutputBlocksInSAM(const BlockList & block, const std::string & fileName) const

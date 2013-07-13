@@ -5,8 +5,10 @@
 //****************************************************************************
 
 #include <tclap/CmdLine.h>
-#include "util.h"
 #include "postprocessor.h"
+#include "util.h"
+
+const std::string VERSION("3.0.1");
 
 int main(int argc, char * argv[])
 {	
@@ -23,7 +25,7 @@ int main(int argc, char * argv[])
 
 	try
 	{  
-		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', "3.0.1");
+		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', VERSION);
 		TCLAP::ValueArg<unsigned int> maxIterations("i",
 			"maxiterations",
 			"Maximum number of iterations during a stage of simplification, default = 4.",
@@ -224,18 +226,23 @@ int main(int argc, char * argv[])
 		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
-		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";		      
+		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";      
+		const std::string defaultGFFFile = outFileDir.getValue() + "/blocks_coords.gff";
 		if(allStages)
 		{			
 			for(size_t i = 0; i < history.size(); i++)
-			{
-				std::stringstream file;
-				file << outFileDir.getValue() << "/blocks_coords" << i << ".txt";
-				generator.ListBlocksIndices(history[i], file.str());
+			{				
+				std::stringstream GFFFile;
+				std::stringstream conventionalFile;
+				GFFFile << outFileDir.getValue() << "/blocks_coords" << i << ".gff";
+				conventionalFile << outFileDir.getValue() << "/blocks_coords" << i << ".txt";
+				generator.ListBlocksIndices(history[i], conventionalFile.str());
+				generator.ListBlocksIndicesGFF(history[i], GFFFile.str());
 			}
 		}
 		else
 		{
+			generator.ListBlocksIndicesGFF(history.back(), defaultGFFFile);
 			generator.ListBlocksIndices(history.back(), defaultCoordsFile);
 		}
 

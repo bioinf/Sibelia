@@ -41,6 +41,28 @@ namespace SyntenyFinder
 			return description_;
 		}
 
+		std::string GetStripedId() const
+		{
+			std::string description(description_);
+			for(std::string::iterator it = description.begin(); it != description.end(); ++it)
+			{
+				if(*it == '|' || *it == '.')
+				{
+					*it = ' ';
+				}
+			}
+			
+			std::string buf;
+			std::stringstream ss(description);
+			std::vector<std::string> token;
+			while(ss >> buf)
+			{
+				token.push_back(buf);
+			}
+
+			return token.size() == 5 ? token[3] : description;
+		}
+
 	private:
 		size_t id_;
 		std::string sequence_;

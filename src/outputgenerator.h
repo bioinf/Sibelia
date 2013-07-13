@@ -7,6 +7,7 @@
 #ifndef _OUTPUT_GENERATOR_H_
 #define _OUTPUT_GENERATOR_H_
 
+#include "util.h"
 #include "resource.h"
 #include "blockfinder.h"
 
@@ -22,12 +23,13 @@ namespace SyntenyFinder
 		void GenerateHierarchyCircosOutput(const std::vector<BlockList> & history, const std::string & outFile, const std::string & outDir) const;
 		void GenerateD3Output(const BlockList & blockList, const std::string & outFile) const;		
 		void ListBlocksIndices(const BlockList & blockList, const std::string & fileName) const;
+		void ListBlocksIndicesGFF(const BlockList & blockList, const std::string & fileName) const;
 		void ListBlocksIndicesHeirarchy(const std::vector<BlockList> & history, const std::string & fileName) const;
 		void OutputTree(const std::vector<BlockList> & history, const std::string & fileName) const;
 		void ListBlocksSequences(const BlockList & blockList, const std::string & fileName) const;		
 		void ListChromosomesAsPermutations(const BlockList & blockList, const std::string & fileName) const;
 		void RearrangementScenario(const std::vector<std::string> & steps, const std::string & fileName) const;
-		void OutputBuffer(const std::string & fileName, const std::string & buffer) const;		
+		void OutputBuffer(const std::string & fileName, const std::string & buffer) const;	
         void OutputBlocksInSAM(const BlockList & block, const std::string & fileName) const;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(OutputGenerator);
