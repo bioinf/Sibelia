@@ -350,11 +350,11 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 						reference_allele = None
 						assembly_allele = str(assembly_seq[seq_id][start:end])						
 						if start > 0:
-							prev_block_id = main_cover[seq_id][start - 1]							
+							prev_block_id = main_cover[seq_id][start - 1]					
 							if prev_block_id != UNCOVER:
-								instance_list = block_seq[prev_block_id]
+								instance_list = block_seq[prev_block_id]								
 								reference_instance, assembly_instance = determine_unique_block(instance_list, reference_seq, min_block_size)
-								if not reference_instance is None:								
+								if not reference_instance is None:							
 									if reference_instance.strand == assembly_instance.strand:
 										reference_pos = max(reference_instance.start, reference_instance.end)									
 									else:									
@@ -366,7 +366,8 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 										reference_allele = common_char
 										assembly_allele = common_char + assembly_allele
 									else:
-										reference_pos = None
+										reference_pos = None							
+								
 						variant_type = insertion if reference_pos is None else variant
 						variant_type.append(Variant(reference_chr_id, reference_pos, seq_id, start,
 												 reference_allele, assembly_allele, 
@@ -448,11 +449,10 @@ parser.add_argument('-u', '--unmapped', help='Name of the file to store unmapped
 parser.add_argument('--debug', help='Generate output in text files', action='store_true')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-t', '--tempdir', help='Directory for temporary files', default='.')
-group.add_argument('-o', '--outdir', help='Directory for synteny block output files')
 args = parser.parse_args()
 
 try:	
-	temp_dir = tempfile.mkdtemp(dir=args.tempdir) if args.outdir is None else args.outdir
+	temp_dir = tempfile.mkdtemp(dir=args.tempdir)
 	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia'), 					
 				args.reference, args.assembly,
 				'-q', '--correctboundaries', '--nopostprocess', '--allstages',
@@ -485,9 +485,8 @@ try:
 		generate_conventional_output(insertion_list, conventional)
 		conventional.close()
 		
-	write_variants_vcf(variant_list, vcf_output)
-	if args.outdir is None:
-		shutil.rmtree(temp_dir)
+	write_variants_vcf(variant_list, vcf_output)	
+	#shutil.rmtree(temp_dir)
 		
 except FailedStartException as e:
 	print 'An error occured:', e

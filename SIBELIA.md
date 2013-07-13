@@ -255,7 +255,39 @@ Default = not set. Add flag to cmd parameters to set:
 
 	-a or --sharedonly
 
-Output only blocks that occur exactly once in each input sequence.
+Output only blocks that occur exactly once in each input sequence. This option
+assumes that all input genomes contain single chromosome.
+
+Postprocessing
+--------------
+By default, synteny blocks are postprocessed after computation by gluing
+"stripes" consisting of the same synteny blocks. For example, if each 
+occurence of synteny block 1 is followed by synteny block 2 and vice a versa,
+their directions are consistent, then they are "glued" together to form a
+single synteny block. Postprocessing could be turned off by specifying flag:
+
+	--nopostprocess
+
+Output blocks from all stages
+-----------------------------
+"Sibelia" performs computations in multiple stages. Every stage produces it's
+own synteny blocks. You can get blocks from all stages by specifying flag:
+
+	--allstages
+
+Files "blocks_coordsN.txt" will contain their coordinates, where N is the
+number of stage. Zero corresponds to blocks obtained without any simplification.
+
+Boundaries correction
+---------------------
+Algorithm of "Sibelia" depends on presence of solid k-mers within syntenic
+regions. If such regions contain variations close to their borders, they will
+be truncated. In case of two genomes, some synteny blocks (of multiplicity two)
+could be corrected using local alinment algorithms. Use flag:
+
+	--correctboundaries
+
+This flag is used by "C-Sibelia".
 
 Parameters set
 --------------
@@ -326,8 +358,9 @@ The "fine" set consists of 3 stages and it's final values are less:
 | K        | D         |
 | :------- | --------: |
 | 30       | 150       |
-| 100      | 1000      |
-| 1000     | 2500      |
+| 100      | 500       |
+| 500      | 1500      |
+
 
 As you can see, "loose" set is more aggressive -- at it's final stage it glues
 together 5000-mers that are separated from each other by at most 15000 symbols.

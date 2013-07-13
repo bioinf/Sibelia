@@ -4,8 +4,8 @@ Sibelia 3.0.1
 blocks having opposite directions
 * Removed sequences without synteny blocks from Circos diagrams
 * C-Sibelia allows to store synteny blocks
-* Added C-Sibelia cmd options: -o
 * Added Sibelia cmd options: --nopostprocess, --allstages, --correctboundaries
+* Slightly changed "fine" parameters simplification set
 
 Sibelia 3.0.0
 =============
