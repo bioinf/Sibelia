@@ -449,10 +449,11 @@ parser.add_argument('-u', '--unmapped', help='Name of the file to store unmapped
 parser.add_argument('--debug', help='Generate output in text files', action='store_true')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-t', '--tempdir', help='Directory for temporary files', default='.')
+group.add_argument('-o', '--outdir', help='Directory for synteny block output files')
 args = parser.parse_args()
 
 try:	
-	temp_dir = tempfile.mkdtemp(dir=args.tempdir)
+	temp_dir = tempfile.mkdtemp(dir=args.tempdir) if args.outdir is None else args.outdir
 	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia'), 					
 				args.reference, args.assembly,
 				'-q', 
@@ -460,7 +461,7 @@ try:
 				'--nopostprocess',
 				'--allstages',
 				'--lastk', '30',
-				'-m', args.minblocksize, 
+				'-m', str(args.minblocksize), 
 				'-o', temp_dir,
 				'-s', args.parameters,
 				'-i', str(args.maxiterations),
@@ -476,21 +477,25 @@ try:
 	variant_list, insertion_list = call_variants(temp_dir, reference_seq, assembly_seq,
 												 args.minblocksize, args.processcount)
 	variant_list.sort(key=Variant.get_reference_pos)
-	vcf_output = open(args.variant, 'w') 
-	write_vcf_header(reference_organism, vcf_output)
-	if args.unmapped is None:
-		write_insertions_vcf(insertion_list, reference_organism, vcf_output)
+	vcf_file = args.variant if args.outdir is None else os.path.join(args.outdir, args.variant)			
+	vcf_output = open(vcf_file, 'w')
+	write_vcf_header(reference_organism, vcf_output)	
+	if not args.unmapped is None:		
+		insertion_file = args.unmapped if args.outdir is None else os.path.join(args.outdir, args.unmapped)
+		write_insertions_fasta(insertion_list, insertion_file)
 	else:
-		write_insertions_fasta(insertion_list, args.unmapped)
-		
+		write_insertions_vcf(insertion_list, reference_organism, vcf_output)
+			
+	write_variants_vcf(variant_list, vcf_output)
 	if not args.debug is None:
-		conventional = open('variant.txt', 'w')
-		generate_conventional_output(variant_list, conventional)
-		generate_conventional_output(insertion_list, conventional)
-		conventional.close()
-		
-	write_variants_vcf(variant_list, vcf_output)	
-	#shutil.rmtree(temp_dir)
+		conventional_file = 'variant.txt' if args.outdir is None else os.path.join(args.outdir, 'variant.txt')
+		conventional_handle = open(conventional_file, 'w')
+		generate_conventional_output(variant_list, conventional_handle)
+		generate_conventional_output(insertion_list, conventional_handle)
+		conventional_handle.close()
+			
+	if args.outdir is None:
+		shutil.rmtree(temp_dir)	
 		
 except FailedStartException as e:
 	print 'An error occured:', e

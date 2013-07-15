@@ -7,6 +7,7 @@ Sibelia 3.0.1
 * Blocks orientations are depicted on Circos diagram by different colors
 * Added Sibelia cmd options: --nopostprocess, --allstages, --correctboundaries,
   --gff, --lastk
+* Added C-Sibelia cmd options: -o
 * Slightly changed "fine" parameters simplification set
 
 Sibelia 3.0.0

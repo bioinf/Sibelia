@@ -33,6 +33,9 @@ section "Basic usage".
 default, they're stored within the current working directory. If you want to
 store temporary files in some other location, use the "-t" option.
 
+You can also obtain synteny blocks which were used by "C-Sibelia" in variant
+calling. To do this, run "C-Sibelia" with "-o" option set.
+
 Output description
 ==================
 
@@ -43,6 +46,8 @@ variants are presented in VCF format, version 4.1. If you want "C-Sibelia" to
 write variants to some other file, set the "variant" option":
 
 	-v <file name> or --variant <file name>
+
+If you specify the "-o" option, then variant file will be put in that directory.
 
 Unmapped insertions
 -------------------
@@ -58,6 +63,16 @@ variants may be unconvenient, so if you want to see unmapped insertions in the
 FASTA format, use the key:
 
 	-u <file name> or --unmapped <file name>
+
+Directory for synteny blocks output
+-----------------------------------
+By default, "C-Sibelia" prodcues only a single VCF file. However, you can also
+store the synteny block information. To do this, use the "-o" cmd parameter:
+
+	-o <dir name> or --outdir <dir name>
+
+The directory <dir name> will contain output produced by "Sibelia" that was
+used for variant calling.
 
 Technical parameters
 ====================

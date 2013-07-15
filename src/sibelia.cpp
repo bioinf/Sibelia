@@ -25,12 +25,12 @@ public:
 		return value > threshold_;
 	}
 
-	std::string GreaterIntegerConstraint::shortID() const
+	std::string shortID() const
 	{
 		return typeDesc_;
 	}
 
-	std::string GreaterIntegerConstraint::description() const
+	std::string description() const
 	{
 		return typeDesc_;   
 	}
