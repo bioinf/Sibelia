@@ -2,11 +2,11 @@ Sibelia 3.0.1
 =============
 * Fixed a bug in C-Sibelia: incorrect reporting of variants within synteny
   blocks having opposite directions
-* Added output of synteny blocks in GFF format (default)
+* Added output of synteny blocks in GFF format
 * Removed sequences without synteny blocks from Circos diagrams
 * Blocks orientations are depicted on Circos diagram by different colors
 * Added Sibelia cmd options: --nopostprocess, --allstages, --correctboundaries,
-  --oldformat
+  --gff
 * Slightly changed "fine" parameters simplification set
 
 Sibelia 3.0.0

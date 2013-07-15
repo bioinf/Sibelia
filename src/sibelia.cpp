@@ -10,6 +10,36 @@
 
 const std::string VERSION("3.0.1");
 
+class GreaterIntegerConstraint: public TCLAP::Constraint<int>
+{
+public:
+	GreaterIntegerConstraint(int value): threshold_(value)
+	{
+		std::stringstream ss;
+		ss << "integer > " << value;
+		typeDesc_ = ss.str();
+	}
+
+	bool check(const int & value) const
+	{
+		return value > threshold_;
+	}
+
+	std::string GreaterIntegerConstraint::shortID() const
+	{
+		return typeDesc_;
+	}
+
+	std::string GreaterIntegerConstraint::description() const
+	{
+		return typeDesc_;   
+	}
+
+private:
+	int threshold_;
+	std::string typeDesc_;
+};
+
 int main(int argc, char * argv[])
 {	
 	signal(SIGINT, SignalHandler);
@@ -22,35 +52,36 @@ int main(int argc, char * argv[])
 	std::map<std::string, std::vector<std::pair<int, int> > > defaultParameters;
 	defaultParameters["loose"] = LooseStageFile();
 	defaultParameters["fine"] = FineStageFile();
-
+	GreaterIntegerConstraint greaterThanOne(1);
+	GreaterIntegerConstraint greaterThanZero(0);
 	try
 	{  
 		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', VERSION);
-		TCLAP::ValueArg<unsigned int> maxIterations("i",
+		TCLAP::ValueArg<int> maxIterations("i",
 			"maxiterations",
 			"Maximum number of iterations during a stage of simplification, default = 4.",
 			false,
 			4,
-			"integer",
+			&greaterThanZero,
 			cmd);
 
 		TCLAP::SwitchArg correctBoundariesFlag("",
 			"correctboundaries",
-			"Correct boundaries of unique synteny blocks",
+			"Correct boundaries of unique synteny blocks.",
 			cmd,
 			false);
 
 		TCLAP::SwitchArg noPostProcessingFlag("",
 			"nopostprocess",
-			"Do not perform postprocessing (stripe gluing)",
+			"Do not perform postprocessing (stripe gluing).",
 			cmd,
 			false);
 
-		TCLAP::SwitchArg oldFormatFlag("",
-			"oldformat",
-			"Use old format of blocks coordinates",
+		TCLAP::SwitchArg GFFFormatFlag("",
+			"gff",
+			"Use GFF format for reporting blocks coordinates",
 			cmd,
-			false);
+			false);		
 
 		TCLAP::SwitchArg allStagesFlag("",
 			"allstages",
@@ -58,9 +89,17 @@ int main(int argc, char * argv[])
 			cmd,
 			false);
 
+		TCLAP::ValueArg<int> lastKValue("",
+			"lastk",
+			"Value of K used for the synteny blocks inferring.",
+			false,
+			5000,
+			&greaterThanOne,
+			cmd);
+
 		TCLAP::ValueArg<std::string> tempFileDir("t",
 			"tempdir",
-			"Directory where temporary files are stored",
+			"Directory where temporary files are stored.",
 			false,
 			".",
 			"dir name",
@@ -75,19 +114,19 @@ int main(int argc, char * argv[])
 
 		TCLAP::SwitchArg hierarchyPicture("v",
 			"visualize",
-			"Draw circos diagram with blocks at different stages",
+			"Draw circos diagram with blocks at different stages.",
 			cmd,
 			false);
 
 		TCLAP::SwitchArg graphFile("g",
 			"graphfile",
-			"Output resulting condensed de Bruijn graph (in dot format), default = not set.",
+			"Output resulting condensed de Bruijn graph (in dot format).",
 			cmd,
 			false);
 
 		TCLAP::SwitchArg sequencesFile("q",
 			"sequencesfile",
-			"Output sequences of synteny blocks (FASTA format), default = not set.",
+			"Output sequences of synteny blocks (FASTA format).",
 			cmd,
 			false);		
 
@@ -210,8 +249,9 @@ int main(int argc, char * argv[])
 		}
 
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
-		size_t lastK = std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
+		size_t lastK = lastKValue.isSet() ? lastKValue.getValue() : std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
+		std::cout << lastK << std::endl;
 		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
 		if(!noPostProcessing)
 		{
@@ -223,7 +263,7 @@ int main(int argc, char * argv[])
 			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
 		}
 
-		bool oldFormat = oldFormatFlag.isSet();
+		bool oldFormat = !GFFFormatFlag.isSet();
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateOutDirectory(outFileDir.getValue());
 		boost::function<void(const std::vector<SyntenyFinder::BlockInstance>&, const std::string&)> coordsWriter = 

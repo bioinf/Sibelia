@@ -84,7 +84,7 @@ data in RAM.
 
 Output description
 ==================
-By default, "Sibelia" produces 5 files: 
+By default, "Sibelia" produces following files: 
 
 1. Blocks coordinates
 2. Genomes represented as permutations of the synteny blocks
@@ -95,32 +95,15 @@ By default, "Sibelia" produces 5 files:
 There are also optional output files:
 
 1. Sequences file
-2. Blocks coordinates (old format)
-3. Dot file with resulting de Bruijn graph
+2. Dot file with resulting de Bruijn graph
 
 All these files are described below in details.
 
 Blocks coordinates
 ------------------
-Coordinates of synteny blocks are listed in file "blocks_coords.gff". For
-description of this format, see:
-
-	https://cgwb.nci.nih.gov/FAQ/FAQformat.html#format3
-
-Each record represents different copies of a synteny block. Copies having the
-same number in the "tag" field (last column) form are instances of the same
-synteny block..
-
-Blocks coordinates (old format)
--------------------------------
-File name = "blocks_coords.txt". This format was used by "Sibelia" before 3.0.1
-release. To output blocks in this format, use switch:
-
-	--oldformat
-
-First part of this file lists input sequences, their IDs, sizes and 
-descriptions. IDs are just index numbers of sequences (in the same order as
-they apper in the input files).
+File name = "blocks_coords.txt". First part of this file lists input sequences,
+their IDs, sizes and descriptions. IDs are just index numbers of sequences (in
+the same order as they apper in the input files).
 
 Second part of the file describes synteny blocks in sections separated by 
 dashes. Each section starts with the synteny block ID. Then all instances
@@ -137,6 +120,19 @@ sequences are treated as positive strands
 Note that all coordinates are given relatively to POSITIVE strand of the
 sequence. If an instance of a synteny block is located on the positive strand,
 then start < end, otherwise start > end. 
+
+If you wish, you can obtain coordinates in GFF format. If you use the flag:
+
+	-gff
+
+Then coordinates of synteny blocks are listed in file "blocks_coords.gff". For
+description of this format, see:
+
+	https://cgwb.nci.nih.gov/FAQ/FAQformat.html#format3
+
+Each record represents different copies of a synteny block. Copies having the
+same number in the "tag" field (last column) are instances of the same synteny
+block.
 
 Genomes permutations
 --------------------
