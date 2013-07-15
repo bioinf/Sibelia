@@ -244,8 +244,9 @@ is used for generating synteny blocks. To understand the graph, see [1].
 Condensed means that only bifurcations in the graph are plotted and 
 non-branching paths are collapsed into a single edge. Blue edges are generated
 from positive strand and red edges are from negative strand respectively. Note
-that this graph is generated for K = min(Kn, MinimumBlockSize) where Kn is the
-value of K used for the last stage (see section "Fine tuning").
+that this graph is generated for K = min(Kn, MinimumBlockSize) or for value of
+"--lastk" cmd parameter if it is set, where Kn is the value of K used for the
+last stage (see section "Fine tuning").
 
 Fine tuning
 ===========
@@ -400,6 +401,17 @@ synteny blocks.
 
 If you cannot find synteny blocks with the default parameters, try to start
 with smaller values of K (~20), increase D values or vary number of stages.
+
+Last value of K
+---------------
+In "Sibelia" de Bruijn graph is constructed (N + 1) times, where N is the
+number of simplification stages. De Bruijn graph which is constructed last is
+used for inferring synteny blocks. Value of K for this grahp is determined by
+min(Kn, MinimumBlockSize)  where Kn is the value of K used for the last stage.
+You can override this value by setting the "--lastk" parameter:
+
+   --lastk <integer > 1>
+
 
 Maximum number of iterations
 ----------------------------

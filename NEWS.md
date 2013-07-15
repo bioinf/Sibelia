@@ -6,7 +6,7 @@ Sibelia 3.0.1
 * Removed sequences without synteny blocks from Circos diagrams
 * Blocks orientations are depicted on Circos diagram by different colors
 * Added Sibelia cmd options: --nopostprocess, --allstages, --correctboundaries,
-  --gff
+  --gff, --lastk
 * Slightly changed "fine" parameters simplification set
 
 Sibelia 3.0.0
