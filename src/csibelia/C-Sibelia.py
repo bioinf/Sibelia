@@ -438,7 +438,7 @@ def write_alignments_xmfa(alignment_list, handle):
 			block = alignment.block_instance			
 			print >> handle, ">%i:%i-%i %s %s" % (block.chr_num, block.start, block.end, block.strand, block.chr_id)
 			write_wrapped_text(alignment.body, handle)
-			print >> handle, '='
+		print >> handle, '='
 
 def write_insertions_text(variant_list, handle):
 	header = ['SEQ_ID', 'POS', 'FRAGMENT']
