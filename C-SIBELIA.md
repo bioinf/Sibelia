@@ -23,7 +23,8 @@ set of two bacterial genomes. To run "C-Sibelia" on this dataset, type in the
 
 The command above will run "C-Sibelia" on two bacterial genomes with the "fine"
 simplification parameters. After this run you can find a file "variant.vcf" 
-with detected differences between these two genomes in VCF format.
+with detected differences between these two genomes in VCF format. You can also
+obtain alignments between these two genomes (see section "Alignment output").
 
 There is another simplification parameters set, called "loose". To understand
 the difference between them, please read manual for "Sibelia" (SIBELIA.md),
@@ -63,6 +64,19 @@ variants may be unconvenient, so if you want to see unmapped insertions in the
 FASTA format, use the key:
 
 	-u <file name> or --unmapped <file name>
+
+If you specify the "-o" option, then insertion file will be put in that
+directory.
+
+Alignment output
+----------------
+You can also obtain alignment of obtained synteny blocks. To get this file, use
+the "-a" flag:
+	
+	-a <file name> or --alignment <file name>
+
+If you specify the "-o" option, then alignment file will be put in that
+directory. Alignments are listed in XMFA format.
 
 Directory for synteny blocks output
 -----------------------------------
