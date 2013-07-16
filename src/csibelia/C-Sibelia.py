@@ -15,6 +15,7 @@ import multiprocessing
 
 COVER = 1
 UNCOVER = 0
+LINE_LENGTH = 60
 MINIMUM_CONTEXT_SIZE = 30
 BLOCKS_FILE = 'blocks_sequences.fasta'
 INSTALL_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -22,23 +23,29 @@ LAGAN_DIR = os.path.join(INSTALL_DIR, '..', 'lib', 'Sibelia', 'lagan')
 os.environ['LAGAN_DIR'] = LAGAN_DIR
 
 FastaRecord = collections.namedtuple('FastaRecord', ['seq', 'description', 'id'])
-SyntenyBlock = collections.namedtuple('SyntenyBlock', ['seq', 'chr_id', 'strand', 'id', 'start', 'end'])
+SyntenyBlock = collections.namedtuple('SyntenyBlock', ['seq', 'chr_id', 'strand', 'id', 'start', 'end', 'chr_num'])
+AlignmentRecord = collections.namedtuple('AlignmentRecord', ['body', 'block_instance'])
 
 class FailedStartException(Exception):
 	pass
 
+def unzip_list(zipped_list):
+	return ([x for (x, _) in zipped_list], [y for (_, y) in zipped_list])
+
 def parse_blocks_coords(blocks_file):		
 	group = [[]]
 	num_seq_id = dict()
+	seq_id_num = dict()
 	line = [l.strip() for l in open(blocks_file) if l.strip()]	
 	for l in line:
 		if l[0] == '-':
 			group.append([])
 		else:
 			group[-1].append(l)			
-	for l in group[0]:	
+	for l in group[0][1:]:	
 		l = l.split()
-		num_seq_id[l[0]] = l[2]	
+		num_seq_id[l[0]] = l[2]
+		seq_id_num[l[2]] = int(l[0])		
 	ret = dict()
 	for g in [g for g in group[1:] if g]:		
 		block_id = int(g[0].split()[1][1:])
@@ -48,8 +55,9 @@ def parse_blocks_coords(blocks_file):
 			chr_id = num_seq_id[l[0]]
 			start = int(l[2])
 			end = int(l[3])
-			ret[block_id].append(SyntenyBlock(seq='', chr_id=chr_id, strand=l[1], id=block_id, start=start, end=end))		
-	return ret
+			chr_num = int(l[0])
+			ret[block_id].append(SyntenyBlock(seq='', chr_id=chr_id, strand=l[1], id=block_id, start=start, end=end, chr_num=chr_num))		
+	return (ret, seq_id_num)
 
 def reverse_complementary(seq):
 	comp = dict()
@@ -85,16 +93,18 @@ def parse_fasta_file(file_name):
 	handle.close()
 	return record
 
-def write_fasta_records(fasta_record, file_name):
-	LINE_LENGTH = 60
+def write_wrapped_text(text, handle):
+	pos = 0
+	while pos < len(text):
+		end = min(pos + LINE_LENGTH, len(text))
+		print >> handle, text[pos:end]
+		pos = end
+
+def write_fasta_records(fasta_record, file_name):	
 	handle = open(file_name, 'w')
 	for record in fasta_record:
 		print >> handle, '>' + record.description		
-		pos = 0
-		while pos < len(record.seq):
-			end = min(pos + LINE_LENGTH, len(record.seq))
-			print >> handle, record.seq[pos:end]
-			pos = end
+		write_wrapped_text(record.seq, handle)
 	handle.close()
 
 class Variant(object):
@@ -217,13 +227,12 @@ def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id,
 			variant.append(Variant(reference_chr_id, variant_reference_start - shift, contig_id, None,
 								reference_allele, assembly_allele, reference_context, assembly_context,
 								synteny_block_id))				
-	return variant
+	return (variant, alignment)
 
 def get_seq(file_name):
 	all_seq = [record for record in parse_fasta_file(file_name)]
-	seq = [(record.id, record.seq) for record in all_seq ]	
-	return (all_seq[0], dict(seq))
-
+	return [(record.id, record.seq) for record in all_seq ]	
+	
 def parse_header(header):
 	ret = dict()
 	header = header.split(',')
@@ -262,11 +271,14 @@ def process_unique_block(unique_block, block_index):
 	if worker.returncode != 0:
 		raise FailedStartException(stderr)
 	alignment_handle.close()	
-	ret = parse_alignment(alignment_file, reference_chr_id, synteny_block_id,
-						contig_id, reference_start, reference_direction, assembly_direction)
+	(ret, alignment) = parse_alignment(alignment_file, reference_chr_id, synteny_block_id,
+										contig_id, reference_start, 
+										reference_direction, assembly_direction)
+	
+	alignment = [AlignmentRecord(body=align, block_instance=inst) for (align, inst) in zip(alignment, instance)]
 	for file_name in (reference_block_file, assembly_block_file, alignment_file):
 		os.remove(file_name)
-	return ret
+	return (ret, alignment)
 
 def get_size(record):
 	return abs(record.end - record.start) + 1
@@ -299,6 +311,10 @@ def depict_coverage(block_seq, reference_seq, assembly_seq, base_cover):
 					
 def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num):	
 	os.chdir(directory)
+	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
+	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
+	blocks_coords, seq_id_num = unzip_list([parse_blocks_coords(coords_file) for coords_file in coords_file_list])
+	seq_id_num = seq_id_num[0]
 	block_seq = dict()	
 	for record in parse_fasta_file(BLOCKS_FILE):
 		header = parse_header(record.description)
@@ -306,10 +322,10 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 		strand = header['Strand']
 		block_id = int(header['Block_id'])
 		start = int(header['Start'])
-		end = int(header['End'])		 
+		end = int(header['End'])
 		if block_id not in block_seq:
 			block_seq[block_id] = []
-		block = SyntenyBlock(chr_id=chr_id, seq=record.seq, id=block_id, strand=strand, start=start, end=end)
+		block = SyntenyBlock(chr_id=chr_id, seq=record.seq, id=block_id, strand=strand, start=start, end=end, chr_num=seq_id_num[chr_id])
 		block_seq[block_id].append(block)
 
 	pool = multiprocessing.Pool(proc_num)
@@ -321,14 +337,11 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 				unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
 	
 	process_block = functools.partial(process_unique_block, unique_block)
-	result = pool.map_async(process_block, range(len(unique_block)))
-	variant = result.get()
+	result = pool.map_async(process_block, range(len(unique_block))).get()
+	variant, alignment = unzip_list(result)
 	pool.close()
 	pool.join()	
-	variant = [obj for obj in itertools.chain.from_iterable(variant)]
-	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
-	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
-	blocks_coords = (parse_blocks_coords(coords_file) for coords_file in coords_file_list)	
+	variant = [obj for obj in itertools.chain.from_iterable(variant)]		
 	all_cover = None
 	for stage in blocks_coords:
 		all_cover = depict_coverage(stage, reference_seq, assembly_seq, all_cover)
@@ -381,7 +394,7 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 			else:
 				i += 1
 	
-	return (variant, insertion)
+	return (variant, insertion, alignment)
 
 def generate_conventional_output(variant_list, handle):
 	for variant in variant_list:
@@ -418,6 +431,14 @@ def write_insertions_vcf(variant_list, reference_organism, handle):
 		end_record = [reference_chr, ref_pos, end_bnd, ref_allele, end_alt_allele, '.', '.', info]
 		for record in (start_record, end_record):
 			print >> handle, '\t'.join(record)
+			
+def write_alignments_xmfa(alignment_list, handle):
+	for group in alignment_list:
+		for alignment in group:
+			block = alignment.block_instance			
+			print >> handle, ">%i:%i-%i %s %s" % (block.chr_num, block.start, block.end, block.strand, block.chr_id)
+			write_wrapped_text(alignment.body, handle)
+			print >> handle, '='
 
 def write_insertions_text(variant_list, handle):
 	header = ['SEQ_ID', 'POS', 'FRAGMENT']
@@ -429,7 +450,9 @@ def write_insertions_text(variant_list, handle):
 def write_insertions_fasta(variant_list, file_name):
 	record = []	
 	for variant in variant_list:
-		description = 'Seq="' + variant.get_contig_id() + '",Start=' + str(variant.get_assembly_pos() + 1)
+		start = str(variant.get_assembly_pos() + 1)
+		end = str(variant.get_assembly_pos() + len(variant.get_assembly_allele()))
+		description = 'Seq="' + variant.get_contig_id() + '",Start=' + start + '",End=' + end
 		record.append(FastaRecord(seq=variant.get_assembly_allele(), id=description, description=description))
 	write_fasta_records(record, file_name)
 
@@ -444,8 +467,9 @@ parser.add_argument('-m', '--minblocksize', help='Minimum size of a synteny bloc
 parser.add_argument('-p', '--processcount', help='Number of running processes', type=int, default=1)
 parser.add_argument('-i', '--maxiterations', help='Maximum number of iterations during a stage of simplification',
 					default=4)
+parser.add_argument('-a', '--alignment', help='Output file for storing alignments in XMFA format')
 parser.add_argument('-v', '--variant', help='Output file with detected variants', default='variant.vcf')
-parser.add_argument('-u', '--unmapped', help='Name of the file to store unmapped insertions in text format', type=str)
+parser.add_argument('-u', '--unmapped', help='Output file for storing unmapped insertions in text format', type=str)
 parser.add_argument('--debug', help='Generate output in text files', action='store_true')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-t', '--tempdir', help='Directory for temporary files', default='.')
@@ -467,15 +491,21 @@ try:
 				'-i', str(args.maxiterations),
 				'-r']
 	print >> sys.stderr, "Calculating synteny blocks..."
+	
 	worker = subprocess.Popen(sibelia_cmd, stdout=None, stderr=subprocess.PIPE)
 	_, stderr = worker.communicate()
 	if worker.returncode != 0:
 		raise FailedStartException(stderr)
-	_, assembly_seq = get_seq(args.assembly)
-	reference_organism, reference_seq = get_seq(args.reference)
+		
+	reference =  parse_fasta_file(args.reference)
+	assembly = parse_fasta_file(args.assembly)
+	reference_seq = dict([(record.id, record.seq) for record in reference])
+	assembly_seq = dict([(record.id, record.seq) for record in assembly])
+	reference_organism = reference[0]	
+	
 	print >> sys.stderr, "Calling variants..."
-	variant_list, insertion_list = call_variants(temp_dir, reference_seq, assembly_seq,
-												 args.minblocksize, args.processcount)
+	variant_list, insertion_list, alignment_list = call_variants(temp_dir, reference_seq, assembly_seq,
+												 				args.minblocksize, args.processcount)
 	variant_list.sort(key=Variant.get_reference_pos)
 	vcf_file = args.variant if args.outdir is None else os.path.join(args.outdir, args.variant)			
 	vcf_output = open(vcf_file, 'w')
@@ -493,6 +523,12 @@ try:
 		generate_conventional_output(variant_list, conventional_handle)
 		generate_conventional_output(insertion_list, conventional_handle)
 		conventional_handle.close()
+		
+	if not args.alignment is None:
+		alignment_file = args.alignment if args.outdir is None else os.path.join(args.outdir, args.alignment)
+		alignment_handle = open(alignment_file, 'w')
+		write_alignments_xmfa(alignment_list, alignment_handle)
+		alignment_handle.close()
 			
 	if args.outdir is None:
 		shutil.rmtree(temp_dir)	
