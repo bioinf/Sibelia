@@ -517,7 +517,7 @@ try:
 		write_insertions_vcf(insertion_list, reference_organism, vcf_output)
 			
 	write_variants_vcf(variant_list, vcf_output)
-	if not args.debug is None:
+	if args.debug:
 		conventional_file = 'variant.txt' if args.outdir is None else os.path.join(args.outdir, 'variant.txt')
 		conventional_handle = open(conventional_file, 'w')
 		generate_conventional_output(variant_list, conventional_handle)
