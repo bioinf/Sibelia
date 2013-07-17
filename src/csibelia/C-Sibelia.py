@@ -378,6 +378,7 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 										common_char = reference_seq[chr_id][reference_pos - 1]
 										reference_allele = common_char
 										assembly_allele = common_char + assembly_allele
+										reference_chr_id = chr_id
 									else:
 										reference_pos = None							
 								
