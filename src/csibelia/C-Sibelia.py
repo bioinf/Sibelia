@@ -29,6 +29,13 @@ AlignmentRecord = collections.namedtuple('AlignmentRecord', ['body', 'block_inst
 class FailedStartException(Exception):
 	pass
 
+class DuplicatedSequenceIdException(Exception):
+	def __init__(self, id):
+		self._id = id
+		
+	def __str__(self):
+		return 'Found duplicated sequence id "%s"' % (self._id)
+
 def unzip_list(zipped_list):
 	return ([x for (x, _) in zipped_list], [y for (_, y) in zipped_list])
 
@@ -336,12 +343,17 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 			if (not reference_instance is None):
 				unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
 	
-	process_block = functools.partial(process_unique_block, unique_block)
-	result = pool.map_async(process_block, range(len(unique_block))).get()
-	variant, alignment = unzip_list(result)
-	pool.close()
-	pool.join()	
-	variant = [obj for obj in itertools.chain.from_iterable(variant)]		
+	if unique_block:		
+		process_block = functools.partial(process_unique_block, unique_block)
+		result = pool.map_async(process_block, range(len(unique_block))).get()
+		variant, alignment = unzip_list(result)
+		pool.close()
+		pool.join()
+		variant = [obj for obj in itertools.chain.from_iterable(variant)]
+	else:
+		variant = []
+		alignment = []	
+			
 	all_cover = None
 	for stage in blocks_coords:
 		all_cover = depict_coverage(stage, reference_seq, assembly_seq, all_cover)
@@ -456,6 +468,12 @@ def write_insertions_fasta(variant_list, file_name):
 		description = 'Seq="' + variant.get_contig_id() + '",Start=' + start + '",End=' + end
 		record.append(FastaRecord(seq=variant.get_assembly_allele(), id=description, description=description))
 	write_fasta_records(record, file_name)
+	
+def variant_key(variant):
+	return (variant.get_reference_chr_id(), variant.get_reference_pos())
+
+def handle_exception(e):
+	print 'An error occured:', e
 
 start = time.time()
 parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -501,13 +519,18 @@ try:
 	reference =  parse_fasta_file(args.reference)
 	assembly = parse_fasta_file(args.assembly)
 	reference_seq = dict([(record.id, record.seq) for record in reference])
-	assembly_seq = dict([(record.id, record.seq) for record in assembly])
-	reference_organism = reference[0]	
+	assembly_seq = dict([(record.id, record.seq) for record in assembly])		
+	reference_organism = reference[0]
+	all_seq = [record.id for record in reference] + [record.id for record in assembly]
+	all_seq.sort()
+	for i, id in enumerate(all_seq):
+		if i < len(all_seq) - 1 and all_seq[i] == all_seq[i + 1]:
+			raise DuplicatedSequenceIdException(id)
 	
 	print >> sys.stderr, "Calling variants..."
 	variant_list, insertion_list, alignment_list = call_variants(temp_dir, reference_seq, assembly_seq,
 												 				args.minblocksize, args.processcount)
-	variant_list.sort(key=Variant.get_reference_pos)
+	variant_list.sort(key=variant_key)
 	vcf_file = args.variant if args.outdir is None else os.path.join(args.outdir, args.variant)			
 	vcf_output = open(vcf_file, 'w')
 	write_vcf_header(reference_organism, vcf_output)	
@@ -533,9 +556,13 @@ try:
 			
 	if args.outdir is None:
 		shutil.rmtree(temp_dir)	
-		
+	
 except FailedStartException as e:
-	print 'An error occured:', e
+	handle_exception(e)
 except EnvironmentError as e:
-	print 'An error occured:', e
+	handle_exception(e)
+except DuplicatedSequenceIdException as e:
+	handle_exception(e)
+finally:
+	shutil.rmtree(temp_dir)
 
