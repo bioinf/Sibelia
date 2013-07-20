@@ -472,8 +472,9 @@ def write_insertions_fasta(variant_list, file_name):
 def variant_key(variant):
 	return (variant.get_reference_chr_id(), variant.get_reference_pos())
 
-def handle_exception(e):
+def handle_exception(e, temp_dir):
 	print 'An error occured:', e
+	shutil.rmtree(temp_dir)
 
 start = time.time()
 parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -558,11 +559,11 @@ try:
 		shutil.rmtree(temp_dir)	
 	
 except FailedStartException as e:
-	handle_exception(e)
+	handle_exception(e, temp_dir)
 except EnvironmentError as e:
-	handle_exception(e)
+	handle_exception(e, temp_dir)
 except DuplicatedSequenceIdException as e:
-	handle_exception(e)
-finally:
-	shutil.rmtree(temp_dir)
+	handle_exception(e, temp_dir)
+
+	
 
