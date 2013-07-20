@@ -4,7 +4,7 @@ In this manual it is assumed that "C-Sibelia" is properly installed and the
 directory with "C-Sibelia.py" is in your "PATH" environment variable or input
 files are in the same folder with "C-Sibelia.py".
 
-Please not that "C-Sibelia" is available for "Unix"-like OS only, use 
+Please note that "C-Sibelia" is available for "Unix"-like OS only, use 
 virtual machine or our web-server to run it:
 
 	http://etool.me/software/sibelia
@@ -16,8 +16,7 @@ of them are reported relative to the given reference. The easiest way to run
 	C-Sibelia.py <FASTA file with reference> <FASTA file with an assembly>
 
 For example, directory "examples/C-Sibelia/Staphylococcus_aureus" contains a
-set of two bacterial genomes. To run "C-Sibelia" on this dataset, type in the
-"build" directory:
+set of two bacterial genomes. To run "C-Sibelia" on this dataset, type:
 
 	C-Sibelia.py NCTC8325.fasta RN4220.fasta
 
