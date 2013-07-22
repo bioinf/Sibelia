@@ -35,7 +35,7 @@ namespace SyntenyFinder
 	#else
 		result = mkdir(path.c_str(), 0755);
 	#endif
-		if (result != 0)
+		if (result != 0 && errno != EEXIST)
 		{
 			throw std::runtime_error(("Cannot create dir " + path).c_str());
 		}
