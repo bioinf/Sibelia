@@ -27,7 +27,7 @@ namespace SyntenyFinder
 		#include <direct.h>
 	#endif
 
-	bool CreateOutDirectory(const std::string & path)
+	void CreateOutDirectory(const std::string & path)
 	{
 		int result = 0;
 	#ifdef _WIN32
@@ -35,7 +35,10 @@ namespace SyntenyFinder
 	#else
 		result = mkdir(path.c_str(), 0755);
 	#endif
-		return result == 0;
+		if (result != 0)
+		{
+			throw std::runtime_error(("Cannot create dir " + path).c_str());
+		}
 	}
 
 	std::map<std::string, FILE*> TempFile::register_;

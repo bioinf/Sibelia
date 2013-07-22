@@ -492,12 +492,22 @@ parser.add_argument('-v', '--variant', help='Output file with detected variants'
 parser.add_argument('-u', '--unmapped', help='Output file for storing unmapped insertions in text format', type=str)
 parser.add_argument('--debug', help='Generate output in text files', action='store_true')
 group = parser.add_mutually_exclusive_group()
-group.add_argument('-t', '--tempdir', help='Directory for temporary files', default='.')
+group.add_argument('-t', '--tempdir', help='Directory for temporary files')
 group.add_argument('-o', '--outdir', help='Directory for synteny block output files')
 args = parser.parse_args()
 
-try:	
-	temp_dir = tempfile.mkdtemp(dir=args.tempdir) if args.outdir is None else args.outdir
+try:
+	if args.outdir is None:
+		if args.tempdir is None:
+			try:
+				temp_dir = tempfile.mkdtemp(dir='.')
+			except EnvironmentError as e:
+				print e
+				exit(1)
+		else:
+			temp_dir = args.tempdir
+	else:
+		temp_dir = args.outdir	
 	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia'), 					
 				args.reference, args.assembly,
 				'-q', 

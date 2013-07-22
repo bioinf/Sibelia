@@ -12,7 +12,7 @@
 namespace SyntenyFinder
 {
 	std::vector<std::string> GetResourceDirs();
-	bool CreateOutDirectory(const std::string & path);
+	void CreateOutDirectory(const std::string & path);
 
 	class TempFile
 	{
