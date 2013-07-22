@@ -414,7 +414,7 @@ def generate_conventional_output(variant_list, handle):
 		print >> handle, variant
 
 def write_vcf_header(reference, handle):
-	vcf_header = ['##fileformat=VCFv4.1', '##source=Sibelia', '##reference=' + strip_chr_id(reference.id)]
+	vcf_header = ['##fileformat=VCFv4.1', '##source=C-Sibelia 3.0.1', '##reference=' + strip_chr_id(reference.id)]
 	table_header = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO']
 	print >> handle, '\n'.join(vcf_header)
 	print >> handle, '##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">'
@@ -474,7 +474,7 @@ def variant_key(variant):
 
 def handle_exception(e, temp_dir):
 	print 'An error occured:', e
-	shutil.rmtree(temp_dir)
+	shutil.rmtree(temp_dir, ignore_errors=True)
 
 start = time.time()
 parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -486,7 +486,7 @@ parser.add_argument('-s', '--parameters', help='Parameters set, used for the sim
 parser.add_argument('-m', '--minblocksize', help='Minimum size of a synteny block', type=int, default=500)
 parser.add_argument('-p', '--processcount', help='Number of running processes', type=int, default=1)
 parser.add_argument('-i', '--maxiterations', help='Maximum number of iterations during a stage of simplification',
-					default=4)
+					type=int, default=4)
 parser.add_argument('-a', '--alignment', help='Output file for storing alignments in XMFA format')
 parser.add_argument('-v', '--variant', help='Output file with detected variants', default='variant.vcf')
 parser.add_argument('-u', '--unmapped', help='Output file for storing unmapped insertions in text format', type=str)
