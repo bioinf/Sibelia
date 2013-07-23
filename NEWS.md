@@ -1,3 +1,8 @@
+Sibelia 3.0.2
+=============
+* Fixed a bug in FASTA parser caused by Windows line endings on Unix-like
+systems
+
 Sibelia 3.0.1
 =============
 * Fixed a bug in C-Sibelia: incorrect reporting of variants within synteny
