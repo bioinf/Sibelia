@@ -5,6 +5,7 @@
 //****************************************************************************
 
 #include "fasta.h"
+#include <boost/algorithm/string.hpp>
 
 namespace SyntenyFinder
 {	
@@ -32,6 +33,7 @@ namespace SyntenyFinder
 			while(!inputStream_.eof())
 			{
 				std::getline(inputStream_, buffer);
+				boost::algorithm::trim(buffer);
 
 				if (buffer.empty()) continue;
 
