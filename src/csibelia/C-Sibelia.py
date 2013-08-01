@@ -160,7 +160,7 @@ class Variant(object):
 		return self._assembly_allele
 	
 	def get_vcf_record(self):
-		data = [strip_chr_id(self.get_reference_chr_id()), str(self.get_reference_pos() + 1),
+		data = [strip_chr_id(self.get_reference_chr_id()), str(self.get_reference_pos()),
 			'.', self.get_reference_allele(), self.get_assembly_allele(), '.', '.', '.']
 		return '\t'.join(data)
 
