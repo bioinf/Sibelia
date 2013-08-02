@@ -1,6 +1,6 @@
 Sibelia 3.0.2
 
-Release date: 23.07.2013
+Release date: 03.08.2013
 
 Authors
 =======
@@ -25,7 +25,8 @@ represented either in finished form or as sets of contigs. It is able to detect
 SNPs/SNVs and indels of different scales. "C-Sibelia" works by locating synteny
 blocks between the input genomes and aligning different copies of a block.
 It considers only unique blocks, i.e. blocks having one copy in reference and
-one copy in another genome.
+one copy in another genome. It is also possible to get the alignments itself,
+in this case you will get the alignments of repeats within genomes as well.
 
 It also contains a script for annotation of variants found by "C-Sibelia" using
 the "snpEff" tool.

@@ -75,7 +75,8 @@ the "-a" flag:
 	-a <file name> or --alignment <file name>
 
 If you specify the "-o" option, then alignment file will be put in that
-directory. Alignments are listed in XMFA format.
+directory. Alignments are listed in XMFA format. Please note that these
+alignments may also indicate intergenomic repeats.
 
 Directory for synteny blocks output
 -----------------------------------
