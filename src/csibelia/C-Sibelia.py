@@ -4,6 +4,7 @@ import re
 import os
 import sys
 import time
+import glob
 import shutil
 import tempfile
 import argparse
@@ -234,7 +235,7 @@ def parse_alignment(alingment_file_name, reference_chr_id, synteny_block_id,
 			variant.append(Variant(reference_chr_id, variant_reference_start - shift, contig_id, None,
 								reference_allele, assembly_allele, reference_context, assembly_context,
 								synteny_block_id))				
-	return (variant, alignment)
+	return variant
 
 def get_seq(file_name):
 	all_seq = [record for record in parse_fasta_file(file_name)]
@@ -256,36 +257,38 @@ def find_instance(instance_list, reference_seq_id, in_reference):
 			return instance
 	return None
 
-def process_unique_block(unique_block, block_index):	
+def process_block(block, block_index):	
 	pid = str(os.getpid()) + '_'	
 	alignment_file = pid + 'align.fasta'
-	reference_block_file = pid + 'blockr.fasta'
-	assembly_block_file = pid + 'blocka.fasta'
-	lagan_cmd = ['perl', LAGAN_DIR + "/lagan.pl", reference_block_file, assembly_block_file, '-mfa']
-	alignment_handle = open(alignment_file, 'w')	
-	synteny_block_id, reference_instance, assembly_instance = unique_block[block_index]
-	reference_start = reference_instance.start
-	reference_chr_id = reference_instance.chr_id	
-	contig_id = assembly_instance.chr_id
-	instance = [reference_instance, assembly_instance]
-	file_name = [reference_block_file, assembly_block_file]
-	reference_direction = +1 if reference_instance.strand == '+' else -1
-	assembly_direction = +1 if reference_instance.strand == '+' else -1
-	for index, block in enumerate(instance):
+	unique, synteny_block_id, instance_list = block[block_index]
+	file_name = [pid + str(i) + 'block.fasta' for i, _ in enumerate(instance_list)]	
+	mlagan_cmd = [os.path.join(LAGAN_DIR, "mlagan")] + file_name
+	lagan_cmd = ['perl', os.path.join(LAGAN_DIR, "lagan.pl")] + file_name + ['-mfa']
+	alignment_handle = open(alignment_file, 'w')
+	for index, block in enumerate(instance_list):
 		write_fasta_records([FastaRecord(id=block.chr_id, description=block.chr_id, seq=block.seq)], file_name[index])
-	worker = subprocess.Popen(lagan_cmd, stdout=alignment_handle, stderr=subprocess.PIPE)
+	
+	cmd = lagan_cmd if unique else mlagan_cmd
+	worker = subprocess.Popen(cmd, stdout=alignment_handle, stderr=subprocess.PIPE)
 	_, stderr = worker.communicate()
 	if worker.returncode != 0:
 		raise FailedStartException(stderr)
-	alignment_handle.close()	
-	(ret, alignment) = parse_alignment(alignment_file, reference_chr_id, synteny_block_id,
-										contig_id, reference_start, 
-										reference_direction, assembly_direction)
-	
-	alignment = [AlignmentRecord(body=align, block_instance=inst) for (align, inst) in zip(alignment, instance)]
-	for file_name in (reference_block_file, assembly_block_file, alignment_file):
+	alignment_handle.close()
+	alignment = [record.seq for record in parse_fasta_file(alignment_file)]
+	alignment = [AlignmentRecord(body=align, block_instance=inst) for (align, inst) in zip(alignment, instance_list)]
+	ret = []
+	if unique:			
+		reference_instance, assembly_instance = instance_list
+		reference_start = reference_instance.start
+		reference_chr_id = reference_instance.chr_id	
+		contig_id = assembly_instance.chr_id				
+		reference_direction = +1 if reference_instance.strand == '+' else -1
+		assembly_direction = +1 if reference_instance.strand == '+' else -1
+		ret = parse_alignment(alignment_file, reference_chr_id, synteny_block_id,
+							contig_id, reference_start, reference_direction, assembly_direction)	
+	for file_name in [alignment_file] + file_name:
 		os.remove(file_name)
-	return (ret, alignment)
+	return (ret, alignment)		
 
 def get_size(record):
 	return abs(record.end - record.start) + 1
@@ -336,16 +339,19 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 		block_seq[block_id].append(block)
 
 	pool = multiprocessing.Pool(proc_num)
-	unique_block = []	
-	for synteny_block_id, instance_list in block_seq.items():		
+	annotated_block = []	
+	for synteny_block_id, instance_list in block_seq.items():
+		unique = False		
 		if len(instance_list) == 2:		
 			reference_instance, assembly_instance = determine_unique_block(instance_list, reference_seq, min_block_size)			
 			if (not reference_instance is None):
-				unique_block.append((synteny_block_id, reference_instance, assembly_instance))											
-	
-	if unique_block:		
-		process_block = functools.partial(process_unique_block, unique_block)
-		result = pool.map_async(process_block, range(len(unique_block))).get()
+				unique = True
+				instance_list = [reference_instance, assembly_instance]
+		annotated_block.append((unique, synteny_block_id, instance_list))
+															
+	if annotated_block:		
+		process_block_f = functools.partial(process_block, annotated_block)
+		result = pool.map_async(process_block_f, range(len(annotated_block))).get()
 		variant, alignment = unzip_list(result)
 		pool.close()
 		pool.join()
@@ -353,12 +359,15 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 	else:
 		variant = []
 		alignment = []	
-			
+	
+	for f in glob.glob('*block*block.anchors'):
+		os.unlink(f)
+	
 	all_cover = None
 	for stage in blocks_coords:
 		all_cover = depict_coverage(stage, reference_seq, assembly_seq, all_cover)
 	main_cover = depict_coverage(block_seq, reference_seq, assembly_seq, None)	
-	insertion = []	
+	insertion = []
 	os.chdir('..')	
 	for seq_id, cover in all_cover.items():
 		i = 0
@@ -521,12 +530,12 @@ try:
 				'-i', str(args.maxiterations),
 				'-r']
 	print >> sys.stderr, "Calculating synteny blocks..."
-	
+
 	worker = subprocess.Popen(sibelia_cmd, stdout=None, stderr=subprocess.PIPE)
 	_, stderr = worker.communicate()
 	if worker.returncode != 0:
 		raise FailedStartException(stderr)
-		
+
 	reference =  parse_fasta_file(args.reference)
 	assembly = parse_fasta_file(args.assembly)
 	reference_seq = dict([(record.id, record.seq) for record in reference])
