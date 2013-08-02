@@ -257,10 +257,12 @@ def find_instance(instance_list, reference_seq_id, in_reference):
 			return instance
 	return None
 
-def process_block(block, block_index):	
+def process_block(block, align, block_index):	
 	pid = str(os.getpid()) + '_'	
 	alignment_file = pid + 'align.fasta'
 	unique, synteny_block_id, instance_list = block[block_index]
+	if not align and not unique:
+		return ([], [])
 	file_name = [pid + str(i) + 'block.fasta' for i, _ in enumerate(instance_list)]	
 	mlagan_cmd = [os.path.join(LAGAN_DIR, "mlagan")] + file_name
 	lagan_cmd = ['perl', os.path.join(LAGAN_DIR, "lagan.pl")] + file_name + ['-mfa']
@@ -320,7 +322,7 @@ def depict_coverage(block_seq, reference_seq, assembly_seq, base_cover):
 				base_cover[instance.chr_id][start:end] = [block_id] * (end - start)
 	return base_cover	
 					
-def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num):	
+def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num, align):	
 	os.chdir(directory)
 	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
 	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
@@ -351,7 +353,7 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 		annotated_block.append((unique, synteny_block_id, instance_list))
 															
 	if annotated_block:		
-		process_block_f = functools.partial(process_block, annotated_block)
+		process_block_f = functools.partial(process_block, annotated_block, align)
 		result = pool.map_async(process_block_f, range(len(annotated_block))).get()
 		variant, alignment = unzip_list(result)
 		pool.close()
@@ -550,7 +552,8 @@ try:
 	
 	print >> sys.stderr, "Calling variants..."
 	variant_list, insertion_list, alignment_list = call_variants(temp_dir, reference_seq, assembly_seq,
-												 				args.minblocksize, args.processcount)
+												 				args.minblocksize, args.processcount, 
+												 				not args.alignment is None)
 	variant_list.sort(key=variant_key)
 	vcf_file = args.variant if args.outdir is None else os.path.join(args.outdir, args.variant)			
 	vcf_output = open(vcf_file, 'w')
