@@ -266,7 +266,8 @@ def process_block(block, block_index):
 	lagan_cmd = ['perl', os.path.join(LAGAN_DIR, "lagan.pl")] + file_name + ['-mfa']
 	alignment_handle = open(alignment_file, 'w')
 	for index, block in enumerate(instance_list):
-		write_fasta_records([FastaRecord(id=block.chr_id, description=block.chr_id, seq=block.seq)], file_name[index])
+		description = block.chr_id + str(block.start)
+		write_fasta_records([FastaRecord(id=block.chr_id, description=description, seq=block.seq)], file_name[index])
 	
 	cmd = lagan_cmd if unique else mlagan_cmd
 	worker = subprocess.Popen(cmd, stdout=alignment_handle, stderr=subprocess.PIPE)
