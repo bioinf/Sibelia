@@ -27,11 +27,16 @@ namespace SyntenyFinder
 		return ret;
 	}
 	
-	const char DNASequence::UNKNOWN_BASE = 'N';
-	const char DNASequence::SEPARATION_CHAR = '$';
-	const char DNASequence::DELETED_CHAR = -1;
+	const std::string DEFINITE_BASE = "ACGT";
 	const Pos DNASequence::DELETED_POS = -1;
-	const std::string DNASequence::complementary_(ConstructComplementarityTable());
+	const char DNASequence::DELETED_CHAR = -1;
+	const char DNASequence::SEPARATION_CHAR = '$';	
+	const std::string DNASequence::complementary_(ConstructComplementarityTable());	
+
+	bool IsDefiniteBase(char c)
+	{
+		return std::find(DEFINITE_BASE.begin(), DEFINITE_BASE.end(), c) != DEFINITE_BASE.end();
+	}
 
 	char DNASequence::Translate(char ch)
 	{

@@ -15,6 +15,8 @@
 
 namespace SyntenyFinder
 {
+	bool IsDefiniteBase(char c);
+
 	class DNASequence
 	{
 	public:

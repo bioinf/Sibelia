@@ -73,15 +73,15 @@ namespace SyntenyFinder
 		{
 			if(end - start > k)
 			{
-				if(str[start] == 'n')
+				if(!IsDefiniteBase(str[start]))
 				{
-					for(; start < str.size() && str[start] == 'n'; ++start);
+					for(; start < str.size() && !IsDefiniteBase(str[start]); ++start);
 					str[start - 1] = sepChar;
 				}
 
-				if(str[end - k] == 'n')
+				if(!IsDefiniteBase(str[end - k]))
 				{
-					for(; end - start > k && str[end - k] == 'n'; --end);
+					for(; end - start > k && !IsDefiniteBase(str[end - k]); --end);
 					str[end - k] = sepChar;
 				}
 			}
@@ -194,7 +194,7 @@ namespace SyntenyFinder
 		{
 			pos.assign(1, 0);
 			posFile->Read(&pos[0], sizeof(pos[0]), 1);
-			if(superGenome[pos[0]] == SEPARATION_CHAR || superGenome[pos[0]] == 'n')
+			if(superGenome[pos[0]] == SEPARATION_CHAR || !IsDefiniteBase(superGenome[pos[0]]))
 			{
 				start++;
 				continue;
@@ -304,7 +304,7 @@ namespace SyntenyFinder
 		std::vector<std::pair<DNASequence::Direction, BifurcationInstance> > candidate;
 		for(size_t start = 0; start < superGenome.size(); )
 		{
-			if(superGenome[order[start]] == SEPARATION_CHAR  || superGenome[order[start]] == 'n')
+			if(superGenome[order[start]] == SEPARATION_CHAR  || !IsDefiniteBase(superGenome[order[start]]))
 			{
 				start++;
 				continue;
