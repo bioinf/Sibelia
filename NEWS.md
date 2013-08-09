@@ -1,7 +1,7 @@
 Sibelia 3.0.3
 =============
 * Updated snpEff to version 3.3f
-* C-Sibelia now produce alignments of repeats within genomes
+* C-Sibelia now produces alignments of repeats within genomes
 
 Sibelia 3.0.2
 =============
