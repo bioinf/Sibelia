@@ -1,3 +1,7 @@
+Sibelia 3.0.4
+=============
+* Fixed bug with FASTA files with large amount of 'N' characters
+
 Sibelia 3.0.3
 =============
 * Updated snpEff to version 3.3f

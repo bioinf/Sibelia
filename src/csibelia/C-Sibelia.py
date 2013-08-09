@@ -426,7 +426,7 @@ def generate_conventional_output(variant_list, handle):
 		print >> handle, variant
 
 def write_vcf_header(reference, handle):
-	vcf_header = ['##fileformat=VCFv4.1', '##source=C-Sibelia 3.0.3', '##reference=' + strip_chr_id(reference.id)]
+	vcf_header = ['##fileformat=VCFv4.1', '##source=C-Sibelia 3.0.4', '##reference=' + strip_chr_id(reference.id)]
 	table_header = ['#CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO']
 	print >> handle, '\n'.join(vcf_header)
 	print >> handle, '##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">'
