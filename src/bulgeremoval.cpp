@@ -10,6 +10,8 @@ namespace SyntenyFinder
 {
 	namespace
 	{
+		const char EMPTY = ' ';
+
 		bool CmpSizePair(const std::pair<size_t, size_t> & a, const std::pair<size_t, size_t> & b)
 		{
 			return a.first == b.first && a.second == b.second;
@@ -166,7 +168,7 @@ namespace SyntenyFinder
 			boost::unordered_map<size_t, BranchData> visit;
 			for(size_t i = 0; i < startKMer.size(); i++)
 			{
-				if(endChar[i] != ' ')
+				if(endChar[i] != EMPTY)
 				{
 					StrandIterator kmer = *startKMer[i];
 					size_t start = bifStorage.GetBifurcation(kmer);
@@ -335,7 +337,7 @@ namespace SyntenyFinder
 			return ret;
 		}
 
-		std::vector<char> endChar(startKMer.size(), ' ');
+		std::vector<char> endChar(startKMer.size(), EMPTY);
 		for(size_t i = 0; i < startKMer.size(); i++)
 		{
 			if(ProperKMer(*startKMer[i], k + 1))
