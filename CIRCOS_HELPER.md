@@ -1,4 +1,14 @@
-This folder contains auxiliary scripts for postprocessing Sibelia output.
+Postprocessing of circos pictures
+---------------------------------
+It is possible to improve readability of the diagrams by reordering sequences
+to minimize interconnections, see "sortsequences.py" section.
+
+If you analyze unfinished assemblies, you could assess the detailed picture
+of rearrangements by filtering out perfectly mapped contigs.
+
+Scripts are put in the folder <INSTALL_PREFIX/share/utils> on "Linux" and
+<INSTALL_DIR/utils> utils on "Windows". Scripts are supposet to be run under
+Python 2.
 
 sortsequences.py
 ----------------
@@ -15,7 +25,9 @@ chromosomes are ordered. By default the config is written in:
 	<Sibelia generated files>/circos/sorted.circos.conf
 
 If you want to generate the picture with ordered chromosomes, you should run
-circos with "--conf" option set.
+circos with "--conf" option set. Please note tha for large amount of sequences
+sorting could run very long. In such a case try you may try to increase minimum
+block threshold to decrease number of blocks and interconnections.
 
 hidemappedcontigs.py
 --------------------
