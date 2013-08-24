@@ -28,6 +28,7 @@ namespace SyntenyFinder
 		std::set<size_t> referenceSequenceId_;
 		std::vector<std::vector<BlockInstance> > history_;
 		size_t minBlockSize_;
+		size_t correctionRange_;
 		const BlockInstance* PreviousBlock(const BlockInstance & block, const std::vector<BlockInstance> & blockList);
 		const BlockInstance* NextBlock(const BlockInstance & block, const std::vector<BlockInstance> & blockList);
 		std::pair<size_t, size_t> DetermineLeftProbableBoundaries(std::vector<BlockInstance> & blockList, size_t block);

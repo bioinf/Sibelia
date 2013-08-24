@@ -12,6 +12,8 @@ namespace SyntenyFinder
 {
 	namespace
 	{
+		const size_t MAX_CORRECTION_RANGE = 1 << 10;
+
 		struct Stripe
 		{
 			int firstBlock;
@@ -154,7 +156,7 @@ namespace SyntenyFinder
 	typedef std::vector<BlockInstance>::const_iterator BLCIterator;
 
 	Postprocessor::Postprocessor(const std::vector<FASTARecord> & chr, size_t minBlockSize):
-		chr_(&chr), minBlockSize_(minBlockSize)
+		chr_(&chr), minBlockSize_(minBlockSize), correctionRange_(std::min(minBlockSize, MAX_CORRECTION_RANGE))
 	{
 	}
 
@@ -199,16 +201,16 @@ namespace SyntenyFinder
 		std::pair<size_t, size_t> ret;
 		BlockInstance & block = blockList[blockid];
 		size_t nowStart = block.GetStart();		
-		ret.second = block.GetStart() + minBlockSize_;
+		ret.second = block.GetStart() + correctionRange_;
 		const BlockInstance * previousBlock = PreviousBlock(block, blockList);
 		if(previousBlock != 0)
 		{	
 			size_t previousEnd = previousBlock->GetEnd();
-			ret.first = std::max(previousEnd, nowStart - minBlockSize_) + 1;			
+			ret.first = std::max(previousEnd, nowStart - correctionRange_) + 1;			
 		}
 		else
 		{
-			ret.first = nowStart >= minBlockSize_ ? nowStart - minBlockSize_ + 1: 0;
+			ret.first = nowStart >= correctionRange_ ? nowStart - correctionRange_ + 1: 0;
 		}
 				
 		return ret;
@@ -219,17 +221,17 @@ namespace SyntenyFinder
 		std::pair<size_t, size_t> ret;
 		BlockInstance & block = blockList[blockid];
 		size_t nowEnd = block.GetEnd();
-		ret.first = block.GetEnd() - minBlockSize_ + 1;
+		ret.first = block.GetEnd() - correctionRange_ + 1;
 		const BlockInstance * nextBlock = NextBlock(block, blockList);
 		if(nextBlock != 0)
 		{			
 			size_t nextStart = nextBlock->GetStart();
-			ret.second = std::min(nextStart, nowEnd + minBlockSize_);
+			ret.second = std::min(nextStart, nowEnd + correctionRange_);
 		}
 		else
 		{
 			size_t chrSize = block.GetChrInstance().GetSequence().size();
-			ret.second = nowEnd + minBlockSize_ < chrSize ? nowEnd + minBlockSize_ : chrSize;
+			ret.second = nowEnd + correctionRange_ < chrSize ? nowEnd + correctionRange_ : chrSize;
 		}
 				
 		return ret;
@@ -267,7 +269,7 @@ namespace SyntenyFinder
 		resize(rows(align), 2); 
 		assignSource(row(align, 0), seq1);
 		assignSource(row(align, 1), seq2);
-		localAlignment(align, Score<int>(25, -75, -75));		
+		localAlignment(align, Score<int>(25, -75, -75));
 		coord1.first = clippedBeginPosition(row(align, 0));
 		coord1.second = clippedEndPosition(row(align, 0));
 		coord2.first = clippedBeginPosition(row(align, 1));
@@ -339,8 +341,8 @@ namespace SyntenyFinder
 					blockList[it->first].Reverse();
 					blockList[it->first + 1].Reverse();
 				}
-						
-				CorrectBlocksBoundaries(blockList, it->first, it->first + 1);						
+								
+				CorrectBlocksBoundaries(blockList, it->first, it->first + 1);				
 			}
 		}
 	}
