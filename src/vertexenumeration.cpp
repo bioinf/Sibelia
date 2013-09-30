@@ -75,10 +75,10 @@ namespace SyntenyFinder
 			{
 				if(!IsDefiniteBase(str[start]))
 				{
-					for(; start < str.size() && !IsDefiniteBase(str[start]); ++start);
+					for(; start < end && !IsDefiniteBase(str[start]); ++start);
 					str[start - 1] = sepChar;
 				}
-
+				
 				if(!IsDefiniteBase(str[end - k]))
 				{
 					for(; end - start > k && !IsDefiniteBase(str[end - k]); --end);
