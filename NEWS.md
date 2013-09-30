@@ -1,8 +1,7 @@
 Sibelia 3.0.4
 =============
-* Released postprocessing scripts for circos pictures. They allow to sort
-sequences to minimize crossing and filtering in case of unifinishied assemblies
-comparison
+* Released postprocessing scripts for circos pictures. They can sort sequences
+to minimize crossings and filter in case of unifinishied assemblies comparison
 * Fixed bug with FASTA files caused by large amount of 'N' characters
 * Fixed crash of C-Sibelia with large block size threshold
 
