@@ -1,6 +1,6 @@
 Sibelia 3.0.4
 
-Release date: TBD
+Release date: 1st October 2013
 
 Authors
 =======
