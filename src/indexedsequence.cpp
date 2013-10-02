@@ -25,9 +25,17 @@ namespace SyntenyFinder
 		Init(record, originalPos, k, tempDir, false);
 	}
 
-	void IndexedSequence::Init(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & originalPos, size_t k, const std::string & tempDir, bool clear)
+	void IndexedSequence::Init(std::vector<std::string> record, std::vector<std::vector<Pos> > & originalPos, size_t k, const std::string & tempDir, bool clear)
 	{
 		size_t maxId;
+		for(size_t i = 0; i < record.size(); i++)
+		{
+			for(size_t j = 0; j < record[i].size(); j++)
+			{
+				record[i][j] = IsDefiniteBase(record[i][j]) ? record[i][j] : DEFINITE_BASE[rand() % DEFINITE_BASE.size()];
+			}
+		}
+
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
 		if(tempDir.size() == 0)
 		{

@@ -41,7 +41,6 @@ namespace SyntenyFinder
 		BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir);
 		void SerializeGraph(size_t k, std::ostream & out);
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack());
-		void GenerateExtendedSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
 		void GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
 		void PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 	private:
