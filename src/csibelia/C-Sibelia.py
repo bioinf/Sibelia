@@ -490,8 +490,7 @@ def handle_exception(e, temp_dir):
 
 start = time.time()
 parser = argparse.ArgumentParser(description='A tool for comparing two microbial genomes.', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('reference', help='A multi-FASTA file with the reference genome')
-parser.add_argument('assembly', help='A multi-FASTA file with the assembly genome')
+parser.add_argument('genome', nargs='*', help='FASTA files')
 parser.add_argument('-s', '--parameters', help='Parameters set, used for the simplification. \
 					Option \"loose\" produces fewer blocks, but they are larger (\"fine\" is opposite).', 
 					default='fine')
@@ -507,6 +506,9 @@ group = parser.add_mutually_exclusive_group()
 group.add_argument('-t', '--tempdir', help='Directory for temporary files')
 group.add_argument('-o', '--outdir', help='Directory for synteny block output files')
 args = parser.parse_args()
+
+print args.genome
+exit(0)
 
 try:
 	if args.outdir is None:
