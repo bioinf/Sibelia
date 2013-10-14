@@ -257,12 +257,10 @@ def find_instance(instance_list, reference_seq_id, in_reference):
 			return instance
 	return None
 
-def process_block(block, align, block_index):	
+def process_block(block, block_index):	
 	pid = str(os.getpid()) + '_'	
 	alignment_file = pid + 'align.fasta'
 	unique, synteny_block_id, instance_list = block[block_index]
-	if not align and not unique:
-		return ([], [])
 	file_name = [pid + str(i) + 'block.fasta' for i, _ in enumerate(instance_list)]	
 	mlagan_cmd = [os.path.join(LAGAN_DIR, "mlagan")] + file_name
 	lagan_cmd = ['perl', os.path.join(LAGAN_DIR, "lagan.pl")] + file_name + ['-mfa']
@@ -348,7 +346,7 @@ def call_variants(directory, min_block_size, proc_num):
 		annotated_block.append((unique, synteny_block_id, instance_list))
 															
 	if annotated_block:		
-		process_block_f = functools.partial(process_block, annotated_block, align)
+		process_block_f = functools.partial(process_block, annotated_block)
 		result = pool.map_async(process_block_f, range(len(annotated_block))).get()
 		variant, alignment = unzip_list(result)
 		pool.close()
