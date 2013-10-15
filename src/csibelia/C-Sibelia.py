@@ -358,6 +358,7 @@ def call_variants(directory, min_block_size, proc_num):
 	for f in glob.glob('*block*block.anchors'):
 		os.unlink(f)
 	
+	os.chdir('..')
 	return alignment
 
 def generate_conventional_output(variant_list, handle):
@@ -444,9 +445,6 @@ group.add_argument('-t', '--tempdir', help='Directory for temporary files')
 group.add_argument('-o', '--outdir', help='Directory for synteny block output files')
 args = parser.parse_args()
 
-print args.genome
-exit(0)
-
 try:
 	if args.outdir is None:
 		if args.tempdir is None:
@@ -458,12 +456,10 @@ try:
 		else:
 			temp_dir = args.tempdir
 	else:
-		temp_dir = args.outdir	
+		temp_dir = args.outdir
 
-	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia'), 					
-				' '.join(args.genome),
+	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia')] + args.genome + [
 				'-q', 
-				'--correctboundaries',
 				'--nopostprocess',
 				'--allstages',
 				'--lastk', '30',
@@ -473,7 +469,6 @@ try:
 				'-i', str(args.maxiterations),
 				'-r']
 	print >> sys.stderr, "Calculating synteny blocks..."
-
 	worker = subprocess.Popen(sibelia_cmd, stdout=None, stderr=subprocess.PIPE)
 	_, stderr = worker.communicate()
 	if worker.returncode != 0:
@@ -485,7 +480,6 @@ try:
 	alignment_handle = open(alignment_file, 'w')
 	write_alignments_xmfa(alignment_list, alignment_handle)
 	alignment_handle.close()
-			
 	if args.outdir is None:
 		shutil.rmtree(temp_dir)	
 	
