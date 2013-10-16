@@ -39,6 +39,9 @@ class DuplicatedSequenceIdException(Exception):
 
 def unzip_list(zipped_list):
 	return ([x for (x, _) in zipped_list], [y for (_, y) in zipped_list])
+	
+def unzip_list3(zipped_list):
+	return ([x for (x, _, _) in zipped_list], [y for (_, y, _) in zipped_list], [z for (_, _, z) in zipped_list])
 
 def parse_blocks_coords(blocks_file):		
 	group = [[]]
@@ -327,8 +330,8 @@ def call_variants(directory, min_block_size, proc_num):
 	os.chdir(directory)
 	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
 	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
-	blocks_coords, seq_id_num, num_seq_size = unzip_list([parse_blocks_coords(coords_file) for coords_file in coords_file_list])
-	seq_id_num = seq_id_num[0]
+	blocks_coords, seq_id_num, num_seq_size = unzip_list3([parse_blocks_coords(coords_file) for coords_file in coords_file_list])
+	seq_id_num, num_seq_size = seq_id_num[0], num_seq_size[0]
 	block_seq = dict()	
 	for record in parse_fasta_file(BLOCKS_FILE):
 		header = parse_header(record.description)
@@ -412,9 +415,11 @@ def write_alignments_xmfa(alignment_list, handle):
 
 def write_alignments_maf(alignment_list, handle):
 	print >> handle, '##maf version=1'
-		for group in alignment_list:
-			print '\na'
-			print 's', block.chr_num, block.start, block.end - block.start, block.strand, block.chr_size, alignment.body
+	for group in alignment_list:
+		print >> handle, '\na'
+		for alignment in group:
+			block = alignment.block_instance
+			print >> handle, 's', block.chr_id, block.start, block.end - block.start, block.strand, block.chr_size, alignment.body
 
 def write_insertions_text(variant_list, handle):
 	header = ['SEQ_ID', 'POS', 'FRAGMENT']
