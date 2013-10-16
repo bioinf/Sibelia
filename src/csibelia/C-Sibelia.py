@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python                                                                                               
 
 import re
 import os
@@ -24,7 +24,7 @@ LAGAN_DIR = os.path.join(INSTALL_DIR, '..', 'lib', 'Sibelia', 'lagan')
 os.environ['LAGAN_DIR'] = LAGAN_DIR
 
 FastaRecord = collections.namedtuple('FastaRecord', ['seq', 'description', 'id'])
-SyntenyBlock = collections.namedtuple('SyntenyBlock', ['seq', 'chr_id', 'strand', 'id', 'start', 'end', 'chr_num'])
+SyntenyBlock = collections.namedtuple('SyntenyBlock', ['seq', 'chr_id', 'strand', 'id', 'start', 'end', 'chr_num', 'chr_size'])
 AlignmentRecord = collections.namedtuple('AlignmentRecord', ['body', 'block_instance'])
 
 class FailedStartException(Exception):
@@ -42,6 +42,7 @@ def unzip_list(zipped_list):
 
 def parse_blocks_coords(blocks_file):		
 	group = [[]]
+	num_seq_size = dict()
 	num_seq_id = dict()
 	seq_id_num = dict()
 	line = [l.strip() for l in open(blocks_file) if l.strip()]	
@@ -53,6 +54,7 @@ def parse_blocks_coords(blocks_file):
 	for l in group[0][1:]:	
 		l = l.split()
 		num_seq_id[l[0]] = l[2]
+		num_seq_size[int(l[0])] = int(l[1])
 		seq_id_num[l[2]] = int(l[0])		
 	ret = dict()
 	for g in [g for g in group[1:] if g]:		
@@ -64,8 +66,9 @@ def parse_blocks_coords(blocks_file):
 			start = int(l[2])
 			end = int(l[3])
 			chr_num = int(l[0])
-			ret[block_id].append(SyntenyBlock(seq='', chr_id=chr_id, strand=l[1], id=block_id, start=start, end=end, chr_num=chr_num))		
-	return (ret, seq_id_num)
+			ret[block_id].append(SyntenyBlock(seq='', chr_id=chr_id, strand=l[1], id=block_id, start=start, 
+							end=end, chr_num=chr_num, chr_size=num_seq_size[chr_num]))		
+	return (ret, seq_id_num, num_seq_size)
 
 def reverse_complementary(seq):
 	comp = dict()
@@ -324,7 +327,7 @@ def call_variants(directory, min_block_size, proc_num):
 	os.chdir(directory)
 	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
 	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
-	blocks_coords, seq_id_num = unzip_list([parse_blocks_coords(coords_file) for coords_file in coords_file_list])
+	blocks_coords, seq_id_num, num_seq_size = unzip_list([parse_blocks_coords(coords_file) for coords_file in coords_file_list])
 	seq_id_num = seq_id_num[0]
 	block_seq = dict()	
 	for record in parse_fasta_file(BLOCKS_FILE):
@@ -336,7 +339,9 @@ def call_variants(directory, min_block_size, proc_num):
 		end = int(header['End'])
 		if block_id not in block_seq:
 			block_seq[block_id] = []
-		block = SyntenyBlock(chr_id=chr_id, seq=record.seq, id=block_id, strand=strand, start=start, end=end, chr_num=seq_id_num[chr_id])
+		chr_num=seq_id_num[chr_id]
+		block = SyntenyBlock(chr_id=chr_id, seq=record.seq, id=block_id, strand=strand, start=start,
+				end=end, chr_num=chr_num, chr_size=num_seq_size[chr_num])
 		block_seq[block_id].append(block)
 
 	pool = multiprocessing.Pool(proc_num)
@@ -404,6 +409,12 @@ def write_alignments_xmfa(alignment_list, handle):
 			print >> handle, ">%i:%i-%i %s %s" % (block.chr_num, block.start, block.end, block.strand, block.chr_id)
 			write_wrapped_text(alignment.body, handle)
 		print >> handle, '='
+
+def write_alignments_maf(alignment_list, handle):
+	print >> handle, '##maf version=1'
+		for group in alignment_list:
+			print '\na'
+			print 's', block.chr_num, block.start, block.end - block.start, block.strand, block.chr_size, alignment.body
 
 def write_insertions_text(variant_list, handle):
 	header = ['SEQ_ID', 'POS', 'FRAGMENT']
@@ -478,7 +489,7 @@ try:
 	alignment_list = call_variants(temp_dir, args.minblocksize, args.processcount)
 	alignment_file = args.alignment if args.outdir is None else os.path.join(args.outdir, args.alignment)
 	alignment_handle = open(alignment_file, 'w')
-	write_alignments_xmfa(alignment_list, alignment_handle)
+	write_alignments_maf(alignment_list, alignment_handle)
 	alignment_handle.close()
 	if args.outdir is None:
 		shutil.rmtree(temp_dir)	
