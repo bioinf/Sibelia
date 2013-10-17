@@ -271,8 +271,10 @@ def process_block(block, block_index):
 	mlagan_cmd = [os.path.join(LAGAN_DIR, "mlagan")] + file_name
 	lagan_cmd = ['perl', os.path.join(LAGAN_DIR, "lagan.pl")] + file_name + ['-mfa']
 	alignment_handle = open(alignment_file, 'w')
+	alignment_block = dict()
 	for index, block in enumerate(instance_list):
 		description = block.chr_id + str(block.start)
+		alignment_block[description] = block
 		write_fasta_records([FastaRecord(id=block.chr_id, description=description, seq=block.seq)], file_name[index])
 	
 	cmd = lagan_cmd if unique else mlagan_cmd
@@ -281,18 +283,9 @@ def process_block(block, block_index):
 	if worker.returncode != 0:
 		raise FailedStartException(stderr)
 	alignment_handle.close()
-	alignment = [record.seq for record in parse_fasta_file(alignment_file)]
-	alignment = [AlignmentRecord(body=align, block_instance=inst) for (align, inst) in zip(alignment, instance_list)]
+	alignment = [record for record in parse_fasta_file(alignment_file)]
+	alignment = [AlignmentRecord(body=align.seq, block_instance=alignment_block[align.description]) for (align, inst) in zip(alignment, instance_list)]
 	ret = []
-	if unique:			
-		reference_instance, assembly_instance = instance_list
-		reference_start = reference_instance.start
-		reference_chr_id = reference_instance.chr_id	
-		contig_id = assembly_instance.chr_id				
-		reference_direction = +1 if reference_instance.strand == '+' else -1
-		assembly_direction = +1 if reference_instance.strand == '+' else -1
-		ret = parse_alignment(alignment_file, reference_chr_id, synteny_block_id,
-							contig_id, reference_start, reference_direction, assembly_direction)	
 	for file_name in [alignment_file] + file_name:
 		os.remove(file_name)
 	return (ret, alignment)		
@@ -413,13 +406,29 @@ def write_alignments_xmfa(alignment_list, handle):
 			write_wrapped_text(alignment.body, handle)
 		print >> handle, '='
 
-def write_alignments_maf(alignment_list, handle):
-	print >> handle, '##maf version=1'
+def is_paralog(group):
+	chr_num = []
+	for alignment in group:
+		block = alignment.block_instance
+		if block.chr_num in chr_num:
+			return True
+		chr_num.append(block.chr_num)
+	return False
+
+def write_alignments_maf(alignment_list, noparalog, handle):
+	print >> handle, '##maf version=1\n'
 	for group in alignment_list:
-		print >> handle, '\na'
+		if is_paralog(group) and noparalog:
+			continue
+		print >> handle, 'a'
 		for alignment in group:
 			block = alignment.block_instance
-			print >> handle, 's', block.chr_id, block.start, block.end - block.start, block.strand, block.chr_size, alignment.body
+			start = min(block.start, block.end) - 1
+			end = max(block.start, block.end)
+			if block.strand != '-':
+				start = block.chr_size - end
+			print >> handle, 's', block.chr_id, start, abs(block.end - block.start) + 1, block.strand, block.chr_size, alignment.body
+		print >> handle, ''
 
 def write_insertions_text(variant_list, handle):
 	header = ['SEQ_ID', 'POS', 'FRAGMENT']
@@ -454,7 +463,6 @@ parser.add_argument('-m', '--minblocksize', help='Minimum size of a synteny bloc
 parser.add_argument('-p', '--processcount', help='Number of running processes', type=int, default=1)
 parser.add_argument('-i', '--maxiterations', help='Maximum number of iterations during a stage of simplification',
 					type=int, default=4)
-parser.add_argument('-a', '--alignment', help='Output file for storing alignments in XMFA format', default="alignment.xmfa")
 parser.add_argument('--debug', help='Generate output in text files', action='store_true')
 group = parser.add_mutually_exclusive_group()
 group.add_argument('-t', '--tempdir', help='Directory for temporary files')
@@ -492,10 +500,9 @@ try:
 
 	print >> sys.stderr, "Performing alignment..."
 	alignment_list = call_variants(temp_dir, args.minblocksize, args.processcount)
-	alignment_file = args.alignment if args.outdir is None else os.path.join(args.outdir, args.alignment)
-	alignment_handle = open(alignment_file, 'w')
-	write_alignments_maf(alignment_list, alignment_handle)
-	alignment_handle.close()
+	for handle, paralog in zip((open('alignment.maf', 'w'), open('alignment_nop.maf', 'w')), (False, True)):
+		write_alignments_maf(alignment_list, paralog, handle)
+		handle.close()
 	if args.outdir is None:
 		shutil.rmtree(temp_dir)	
 	
