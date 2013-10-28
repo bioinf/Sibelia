@@ -405,16 +405,19 @@ namespace SyntenyFinder
 								size_t imlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerI], idata.distance);
 								size_t jmlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerJ], jdata.distance);
 								bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
-								if(iless)
+								if(imlp == 0 || jmlp == 0)
 								{
-									endChar[jdata.kmerId] = endChar[idata.kmerId];
-									CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, idata, jdata);
-								}
-								else
-								{
-									endChar[idata.kmerId] = endChar[jdata.kmerId];
-									CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, jdata, idata);
-									FillVisit(sequence, bifStorage, *startKMer[kmerI], minBranchSize, visit);
+									if(iless)
+									{
+										endChar[jdata.kmerId] = endChar[idata.kmerId];
+										CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, idata, jdata);
+									}
+									else
+									{
+										endChar[idata.kmerId] = endChar[jdata.kmerId];
+										CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, jdata, idata);
+										FillVisit(sequence, bifStorage, *startKMer[kmerI], minBranchSize, visit);
+									}
 								}
 
 								break;
