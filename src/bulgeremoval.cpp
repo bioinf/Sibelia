@@ -418,6 +418,7 @@ namespace SyntenyFinder
 										CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, jdata, idata);
 										FillVisit(sequence, bifStorage, *startKMer[kmerI], minBranchSize, visit);
 									}
+									}
 
 									break;
 								}
