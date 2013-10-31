@@ -1,4 +1,4 @@
-#!/usr/bin/python                                                                                               
+#!/usr/local/bin/python2.7                                                                                               
 
 import re
 import os
@@ -273,7 +273,7 @@ def process_block(block, block_index):
 	alignment_handle = open(alignment_file, 'w')
 	alignment_block = dict()
 	for index, block in enumerate(instance_list):
-		description = block.chr_id + str(block.start)
+		description = block.chr_id + str(block.start) + '_' + str(block.end)
 		alignment_block[description] = block
 		write_fasta_records([FastaRecord(id=block.chr_id, description=description, seq=block.seq)], file_name[index])
 	
@@ -284,7 +284,7 @@ def process_block(block, block_index):
 		raise FailedStartException(stderr)
 	alignment_handle.close()
 	alignment = [record for record in parse_fasta_file(alignment_file)]
-	alignment = [AlignmentRecord(body=align.seq, block_instance=alignment_block[align.description]) for (align, inst) in zip(alignment, instance_list)]
+	alignment = [AlignmentRecord(body=align.seq, block_instance=alignment_block[align.description]) for align in alignment]
 	ret = []
 	for file_name in [alignment_file] + file_name:
 		os.remove(file_name)
@@ -425,7 +425,7 @@ def write_alignments_maf(alignment_list, noparalog, handle):
 			block = alignment.block_instance
 			start = min(block.start, block.end) - 1
 			end = max(block.start, block.end)
-			if block.strand != '-':
+			if block.strand != '+':
 				start = block.chr_size - end
 			print >> handle, 's', block.chr_id, start, abs(block.end - block.start) + 1, block.strand, block.chr_size, alignment.body
 		print >> handle, ''
@@ -484,12 +484,10 @@ try:
 
 	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia')] + args.genome + [
 				'-q', 
-				'--nopostprocess',
 				'--allstages',
-				'--lastk', '30',
 				'-m', str(args.minblocksize), 
 				'-o', temp_dir,
-				'-s', args.parameters,
+				'-k', 'run.stage',
 				'-i', str(args.maxiterations),
 				'-r']
 	print >> sys.stderr, "Calculating synteny blocks..."
