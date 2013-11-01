@@ -231,6 +231,12 @@ int main(int argc, char * argv[])
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
 		SyntenyFinder::Postprocessor processor(chrList, minBlockSize.getValue());
+		size_t model[] = {0};
+		for(size_t i = 0; i < sizeof(model) / sizeof(model[0]); i++)
+		{
+		//	finder->PerformGraphSimplifications(16, 0, maxIterations.getValue(), PutProgressChr, model[i]);
+		}
+
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			trimK = std::min(trimK, stage[i].first);

@@ -11,36 +11,6 @@ namespace SyntenyFinder
 	const char IndexedSequence::SEPARATION_CHAR = '#';
 	namespace
 	{
-		class CharSet
-		{
-		public:
-			void Clear()
-			{
-				set.clear();
-			}
-
-			void Add(char ch)
-			{
-				if(std::find(set.begin(), set.end(), ch) == set.end())
-				{
-					set.push_back(ch);
-				}
-			}
-
-			bool In(char ch) const
-			{
-				return std::find(set.begin(), set.end(), ch) != set.end();
-			}
-
-			size_t Size() const
-			{
-				return set.size();
-			}
-
-		private:
-			std::string set;
-		};
-
 		void GetHeight(const std::string & str, const std::vector<saidx_t> & order, const std::vector<saidx_t> & pos, std::vector<Size> & height)
 		{
 			size_t n = pos.size();
@@ -63,30 +33,7 @@ namespace SyntenyFinder
 				}
 			}
 		}
-
-		bool Bifurcation(const CharSet & set)
-		{
-			return set.Size() > 1 || set.In(IndexedSequence::SEPARATION_CHAR);
-		}
-
-		void Flank(std::string & str, size_t start, size_t end, size_t k, char sepChar)
-		{
-			if(end - start > k)
-			{
-				if(!IsDefiniteBase(str[start]))
-				{
-					for(; start < end && !IsDefiniteBase(str[start]); ++start);
-					str[start - 1] = sepChar;
-				}
-				
-				if(!IsDefiniteBase(str[end - k]))
-				{
-					for(; end - start > k && !IsDefiniteBase(str[end - k]); --end);
-					str[end - k] = sepChar;
-				}
-			}
-		}
-
+		
 		size_t StupidLCP(const std::string & str, size_t suffix1, size_t suffix2)
 		{
 			size_t ret = 0;
@@ -169,7 +116,6 @@ namespace SyntenyFinder
 			cumSize.push_back(superGenome.size());
 			superGenome += data[chr];
 			superGenome += SEPARATION_CHAR;
-			Flank(superGenome, superGenome.size() - 1 - data[chr].size(), superGenome.size() - 1, k_, SEPARATION_CHAR);
 		}
 
 		for(size_t chr = 0; chr < data.size(); chr++)
@@ -179,7 +125,6 @@ namespace SyntenyFinder
 			std::string::const_reverse_iterator it2 = data[chr].rend();
 			superGenome.insert(superGenome.end(), CFancyIterator(it1, DNASequence::Translate, ' '), CFancyIterator(it2, DNASequence::Translate, ' '));
 			superGenome += SEPARATION_CHAR;
-			Flank(superGenome, superGenome.size() - 1 - data[chr].size(), superGenome.size() - 1, k_, SEPARATION_CHAR);
 		}
 		
 		std::vector<saidx_t> pos;
@@ -224,7 +169,7 @@ namespace SyntenyFinder
 			}
 			while(++match + start < superGenome.size() && lcp[match + start] >= static_cast<size_t>(k_));
 
-			if(Bifurcation(prev) || Bifurcation(next))
+			if(prev.Bifurcation() || next.Bifurcation())
 			{
 				candidate.clear();
 				bool terminal = false;
@@ -272,7 +217,6 @@ namespace SyntenyFinder
 			cumSize.push_back(superGenome.size());
 			superGenome += data[chr];
 			superGenome += SEPARATION_CHAR;
-			Flank(superGenome, superGenome.size() - 1 - data[chr].size(), superGenome.size() - 1, k_, SEPARATION_CHAR);
 		}
 
 		for(size_t chr = 0; chr < data.size(); chr++)
@@ -282,7 +226,6 @@ namespace SyntenyFinder
 			std::string::const_reverse_iterator it2 = data[chr].rend();
 			superGenome.insert(superGenome.end(), CFancyIterator(it1, DNASequence::Translate, ' '), CFancyIterator(it2, DNASequence::Translate, ' '));
 			superGenome += SEPARATION_CHAR;
-			Flank(superGenome, superGenome.size() - 1 - data[chr].size(), superGenome.size() - 1, k_, SEPARATION_CHAR);
 		}
 
 		std::vector<Size> lcp;
@@ -327,7 +270,7 @@ namespace SyntenyFinder
 			}
 			while(++end < superGenome.size() && lcp[end] >= k_);
 
-			if(Bifurcation(prev) || Bifurcation(next))
+			if(prev.Bifurcation() || next.Bifurcation())
 			{
 				candidate.clear();
 				bool terminal = false;

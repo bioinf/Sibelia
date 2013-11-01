@@ -405,7 +405,7 @@ namespace SyntenyFinder
 								size_t imlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerI], idata.distance);
 								size_t jmlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerJ], jdata.distance);
 								bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
-								if(imlp == 0 || jmlp == 0)
+								
 								{
 									if(iless)
 									{

@@ -8,12 +8,12 @@
 
 namespace SyntenyFinder
 {
-	IndexedSequence::IndexedSequence(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & originalPos, size_t k, const std::string & tempDir, bool clear): k_(k)
+	IndexedSequence::IndexedSequence(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & originalPos, size_t k, const std::string & tempDir, bool clear, size_t model): k_(k)
 	{
-		Init(record, originalPos, k, tempDir, clear);
+		Init(record, originalPos, k, tempDir, clear, model);
 	}
 
-	IndexedSequence::IndexedSequence(const std::vector<std::string> & record, size_t k, const std::string & tempDir): k_(k)
+	IndexedSequence::IndexedSequence(const std::vector<std::string> & record, size_t k, const std::string & tempDir, size_t model): k_(k)
 	{
 		std::vector<std::vector<Pos> > originalPos(record.size());
 		for(size_t i = 0; i < originalPos.size(); i++)
@@ -22,10 +22,10 @@ namespace SyntenyFinder
 			std::generate(originalPos[i].begin(), originalPos[i].end(), Counter<Pos>());
 		}
 
-		Init(record, originalPos, k, tempDir, false);
+		Init(record, originalPos, k, tempDir, false, model);
 	}
 
-	void IndexedSequence::Init(std::vector<std::string> record, std::vector<std::vector<Pos> > & originalPos, size_t k, const std::string & tempDir, bool clear)
+	void IndexedSequence::Init(std::vector<std::string> record, std::vector<std::vector<Pos> > & originalPos, size_t k, const std::string & tempDir, bool clear, size_t model)
 	{
 		size_t maxId;
 		for(size_t i = 0; i < record.size(); i++)
@@ -36,14 +36,21 @@ namespace SyntenyFinder
 			}
 		}
 
-		std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
-		if(tempDir.size() == 0)
+		std::vector<std::vector<BifurcationInstance> > bifurcation(2);
+		if(model == IndexedSequence::NO_MODEL)
 		{
-			maxId = EnumerateBifurcationsSArrayInRAM(record, bifurcation[0], bifurcation[1]);
+			if(tempDir.size() == 0)
+			{
+				maxId = EnumerateBifurcationsSArrayInRAM(record, bifurcation[0], bifurcation[1]);
+			}
+			else
+			{
+				maxId = EnumerateBifurcationsSArray(record, tempDir, bifurcation[0], bifurcation[1]);
+			}
 		}
 		else
 		{
-			maxId = EnumerateBifurcationsSArray(record, tempDir, bifurcation[0], bifurcation[1]);
+			//maxId = 
 		}
 
 		bifStorage_.reset(new BifurcationStorage(maxId));

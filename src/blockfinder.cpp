@@ -75,9 +75,9 @@ namespace SyntenyFinder
 		}
 	}
 
-	void BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
+	void BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f, size_t model)
 	{
-		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_, true);
+		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_, true, model);
 		iseq_ = &iseq;
 		DNASequence & sequence = iseq.Sequence();
 		BifurcationStorage & bifStorage = iseq.BifStorage();		
