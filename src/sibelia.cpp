@@ -4,6 +4,8 @@
 //* See file LICENSE for details.
 //****************************************************************************
 
+
+#include <bitset>
 #include <tclap/CmdLine.h>
 #include "postprocessor.h"
 #include "util.h"
@@ -40,8 +42,34 @@ private:
 	std::string typeDesc_;
 };
 
+size_t GenerateMask(size_t k, size_t weight)
+{
+	std::vector<size_t> a(k, 1);
+	while(weight < k)
+	{
+		size_t pos = (rand() % (k - 2)) + 1;
+		if(a[pos] == 1)
+		{
+			a[pos] = 0;
+			++weight;
+		}
+	}
+
+	size_t mask = 0;
+	for(size_t i = 0; i < k; i++)
+	{
+		if(a[i] == 1)
+		{
+			mask = mask | (3 << (i * 2));
+		}
+	}
+	
+	return mask;
+}
+
 int main(int argc, char * argv[])
-{	
+{
+	srand(time(0));
 	signal(SIGINT, SignalHandler);
 	signal(SIGABRT, SignalHandler);	
 	signal(SIGTERM, SignalHandler);
@@ -231,10 +259,11 @@ int main(int argc, char * argv[])
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
 		SyntenyFinder::Postprocessor processor(chrList, minBlockSize.getValue());
-		size_t model[] = {0};
-		for(size_t i = 0; i < sizeof(model) / sizeof(model[0]); i++)
+		for(size_t it = 0; it < 4; ++it)
 		{
-		//	finder->PerformGraphSimplifications(16, 0, maxIterations.getValue(), PutProgressChr, model[i]);
+			size_t k = 12;
+			size_t model = GenerateMask(k, 10);
+			finder->PerformGraphSimplifications(k, 14, maxIterations.getValue(), PutProgressChr, model);
 		}
 
 		for(size_t i = 0; i < stage.size(); i++)

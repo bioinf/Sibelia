@@ -78,6 +78,30 @@ namespace SyntenyFinder
 	void BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f, size_t model)
 	{
 		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_, true, model);
+		if(model != IndexedSequence::NO_MODEL)
+		{
+			std::ofstream out("out/kgraph.dot");
+			out << "digraph G" << std::endl << "{" << std::endl;
+			out << "rankdir=LR" << std::endl;
+			std::vector<Edge> edge;
+			ListEdges(iseq.Sequence(), iseq.BifStorage(), k, edge);
+			for(size_t i = 0; i < edge.size(); i++)
+			{
+				char buf[1 << 8];
+				std::string color = edge[i].GetDirection() == DNASequence::positive ? "blue" : "red";
+				int uchr = static_cast<int>(edge[i].GetChr());
+				int uorpos = static_cast<int>(edge[i].GetOriginalPosition());
+				int uorlength = static_cast<int>(edge[i].GetOriginalLength());
+				int upos = static_cast<int>(edge[i].GetActualPosition());
+				int ulength = static_cast<int>(edge[i].GetActualLength());
+				out << edge[i].GetStartVertex() << " -> " << edge[i].GetEndVertex();
+				sprintf(&buf[0], "[color=\"%s\", label=\"chr=%i pos=%i len=%i orpos=%i orlen=%i  ch='%c'\"];", color.c_str(), uchr, upos, ulength, uorpos, uorlength, edge[i].GetFirstChar());
+				out << " " << buf << std::endl;
+			}
+
+			out << "}" << std::endl;
+		}
+
 		iseq_ = &iseq;
 		DNASequence & sequence = iseq.Sequence();
 		BifurcationStorage & bifStorage = iseq.BifStorage();		

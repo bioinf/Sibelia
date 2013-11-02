@@ -50,7 +50,7 @@ namespace SyntenyFinder
 		}
 		else
 		{
-			//maxId = 
+			maxId = EnumerateBifurcationsModel(record, bifurcation[0], bifurcation[1], model);
 		}
 
 		bifStorage_.reset(new BifurcationStorage(maxId));

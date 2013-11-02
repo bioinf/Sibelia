@@ -29,7 +29,9 @@ namespace SyntenyFinder
 	const char BlockFinder::POS_OCCUPIED = 1;
 
 	bool BlockFinder::TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize)
-	{	
+	{
+		return false;
+
 		size_t pos = 0;
 		bool drop = false;		
 		std::vector<std::string> blockSeq(block.size());		

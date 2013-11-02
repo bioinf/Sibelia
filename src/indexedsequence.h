@@ -106,7 +106,8 @@ namespace SyntenyFinder
 		size_t GetMustBeBifurcation(StrandIterator it);
 		void Init(std::vector<std::string> record, std::vector<std::vector<Pos> > & original, size_t k, const std::string & tempDir, bool clear, size_t model);
 		size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, const std::string & tempDir, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
-		size_t EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);				
+		size_t EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
+		size_t EnumerateBifurcationsModel(const std::vector<std::string> & data, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation, size_t model);
 	};
 }
 

@@ -22,9 +22,9 @@ std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName)
 		throw std::runtime_error("cannot read stage file");
 	}
 
-	if(count < 0)
+	if(count <= 0)
 	{
-		throw std::runtime_error("number of stages must be nonnegative");
+		throw std::runtime_error("number of stages must be positive ");
 	}
 
 	std::vector<std::pair<int, int> > ret(count);
