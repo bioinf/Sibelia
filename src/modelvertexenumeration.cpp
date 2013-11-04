@@ -25,6 +25,7 @@ namespace SyntenyFinder
 			}
 
 			assert(false);
+			return 0;
 		}
 
 		size_t KMerToNumber(std::string::const_iterator it, size_t k)

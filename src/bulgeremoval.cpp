@@ -431,4 +431,68 @@ namespace SyntenyFinder
 		bifStorage.Cleanup();
 		return ret;
 	}
+
+	namespace
+	{
+		struct SuperBulge
+		{
+			size_t score;
+			size_t startId;
+			SuperBulge() {}
+			SuperBulge(size_t score, size_t startId): score(score), startId(startId) {}
+			bool operator < (const SuperBulge & b)
+			{
+				return score > b.score;
+			}
+		};
+
+		void FindSuperBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId, std::vector<SuperBulge> & ret)
+		{
+		}
+
+		void SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge)
+		{
+		}
+	}
+
+	size_t BlockFinder::SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
+	{
+		size_t count = 0;
+		size_t iterations = 0;
+		size_t totalProgress = 0;
+		bool anyChanges = true;
+		if(!callBack.empty())
+		{
+			callBack(totalProgress, start);
+		}
+
+		size_t threshold = (bifStorage.GetMaxId() * maxIterations * 2) / PROGRESS_STRIDE;
+		do
+		{
+			iterations++;
+			std::vector<SuperBulge> superBulge;
+			for(size_t id = 0; id <= bifStorage.GetMaxId(); id++)
+			{
+				std::vector<SuperBulge> nowSuperBulge;
+				FindSuperBulges(sequence, bifStorage, k, minBranchSize, id, nowSuperBulge);
+				superBulge.insert(superBulge.end(), nowSuperBulge.begin(), nowSuperBulge.end());
+				if(++count >= threshold && !callBack.empty())
+				{
+					count = 0;
+					totalProgress = std::min(totalProgress + 1, PROGRESS_STRIDE);
+					callBack(totalProgress, run);
+				}
+			}
+
+			std::sort(superBulge.begin(), superBulge.end());
+		}
+		while(iterations < maxIterations);
+
+		if(!callBack.empty())
+		{
+			callBack(PROGRESS_STRIDE, end);
+		}
+		
+		return 0;
+	}
 }

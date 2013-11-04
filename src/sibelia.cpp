@@ -259,12 +259,14 @@ int main(int argc, char * argv[])
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
 		SyntenyFinder::Postprocessor processor(chrList, minBlockSize.getValue());
+
+		/*
 		for(size_t it = 0; it < 4; ++it)
 		{
 			size_t k = 12;
 			size_t model = GenerateMask(k, 10);
 			finder->PerformGraphSimplifications(k, 14, maxIterations.getValue(), PutProgressChr, model);
-		}
+		}*/
 
 		for(size_t i = 0; i < stage.size(); i++)
 		{
@@ -280,7 +282,7 @@ int main(int argc, char * argv[])
 
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
-			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);			
+			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr, true);
 		}
 
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
