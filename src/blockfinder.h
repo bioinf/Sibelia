@@ -22,6 +22,22 @@ namespace SyntenyFinder
 		VisitData(size_t kmerId, size_t distance): kmerId(kmerId), distance(distance) {}
 	};
 
+	struct SuperBulge
+	{
+		size_t score;
+		size_t startId;
+		size_t endId;
+		std::vector<size_t> branch;
+		SuperBulge() {}
+		SuperBulge(size_t score, size_t startId, size_t endId, const std::vector<size_t> & branch):
+			score(score), startId(startId), endId(endId), branch(branch) {}
+
+		bool operator < (const SuperBulge & b)
+		{
+			return score > b.score;
+		}
+	};
+
 	typedef char Bool;	
 	typedef std::vector<BifurcationStorage::IteratorProxy> IteratorProxyVector;
 	
@@ -115,6 +131,7 @@ namespace SyntenyFinder
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		size_t SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData);
+		void SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId);
 		void UpdateBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,
 			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBack);
 		typedef std::vector<Bool> Indicator;

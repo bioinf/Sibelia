@@ -282,7 +282,7 @@ int main(int argc, char * argv[])
 
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
-			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr, true);
+			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, true);
 		}
 
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
