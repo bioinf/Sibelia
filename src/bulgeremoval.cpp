@@ -292,12 +292,12 @@ namespace SyntenyFinder
 		static size_t bulge = 0;
 		std::cerr << "Bulge #" << bulge++ << std::endl;
 		std::cerr << "Before: " << std::endl;
-		BlockFinder::PrintRaw(sequence, std::cerr);
+//		BlockFinder::PrintRaw(sequence, std::cerr);
 		std::cerr << "Source branch: " << std::endl;
 		BlockFinder::PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 		std::cerr << "Target branch: " << std::endl;
 		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
-		bifStorage.Dump(sequence, k, std::cerr);
+//		bifStorage.Dump(sequence, k, std::cerr);
 		iseq_->Test();
 	#endif
 		std::vector<std::pair<size_t, size_t> > lookForward;
@@ -315,12 +315,12 @@ namespace SyntenyFinder
 
 	#ifdef _DEBUG
 		std::cerr << "After: " << std::endl;
-		BlockFinder::PrintRaw(sequence, std::cerr);
+//		BlockFinder::PrintRaw(sequence, std::cerr);
 		std::cerr << "Source branch: " << std::endl;
 		BlockFinder::PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 		std::cerr << "Target branch: " << std::endl;
 		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
-		bifStorage.Dump(sequence, k, std::cerr);
+//		bifStorage.Dump(sequence, k, std::cerr);
 		iseq_->Test();
 		std::cerr << DELIMITER << std::endl;
 	#endif
@@ -567,17 +567,33 @@ namespace SyntenyFinder
 			size_t sum = 0;
 			std::set<char> startCharSet;
 			std::vector<size_t> branches;
+			std::vector<size_t> length;
 			for(std::map<size_t, size_t>::iterator it = pathLength.begin(); it != pathLength.end(); ++it)
 			{
 				sum += it->second;
 				startCharSet.insert(endChar[it->first]);
 				branches.push_back(it->first);
+				length.push_back(it->second);
 			}
 
 			sum *= pathLength.size() * pathLength.size();
+			for(size_t i = 0; i < branches.size(); i++)
+			{
+				for(size_t j = i + 1; j < branches.size(); j++)
+				{
+					VisitData idata(branches[i], length[i]);
+					VisitData jdata(branches[j], length[j]);				
+					if(Overlap(k, startKMer, idata, jdata))
+					{						
+						startCharSet.clear();
+						break;
+					}
+				}
+			}
+
 			if((sum > best.score || best.score == -1) && startCharSet.size() > 1)
 			{
-				best = SuperBulge(sum, bifId, point->first, branches);
+				best = SuperBulge(sum, bifId, point->first, branches, length, std::string(startCharSet.begin(), startCharSet.end()));
 			}
 		}
 
@@ -587,18 +603,19 @@ namespace SyntenyFinder
 		}
 	}		
 
-	void BlockFinder::SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId)
+	bool BlockFinder::SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId)
 	{			
 		IteratorProxyVector startKMer;
 		if(bifStorage.ListPositions(bulge.startId, std::back_inserter(startKMer)) < bulge.branch.size())
 		{
-			return;
+			return false;
 		}
 
 		std::vector<size_t> toDeprecate;
 		size_t maxRange = GetMaxRange(minBranchSize);
-		std::vector<size_t> range(bulge.branch.size());
+		std::vector<size_t> range(bulge.length);
 		std::vector<size_t> maxBifDegree(bulge.branch.size());
+		/*
 		for(size_t i = 0; i < bulge.branch.size(); i++)
 		{
 			bool found = false;
@@ -607,7 +624,7 @@ namespace SyntenyFinder
 			{
 				if(!it.AtValidPosition())
 				{
-					return;
+					return false;
 				}
 
 				size_t bifId = bifStorage.GetBifurcation(it);
@@ -615,7 +632,7 @@ namespace SyntenyFinder
 				{
 					if(deprecateId.count(bifId))
 					{
-						return;
+						return false;
 					}
 
 					toDeprecate.push_back(bifId);
@@ -632,18 +649,20 @@ namespace SyntenyFinder
 			 
 			if(!found)
 			{
-				return;
+				return false;
 			}
-		}
+		}*/
 			
-		size_t sample = std::max_element(maxBifDegree.begin(), maxBifDegree.end()) - maxBifDegree.begin();
+	//	size_t sample = std::max_element(maxBifDegree.begin(), maxBifDegree.end()) - maxBifDegree.begin();
+		size_t sample = 0;
 		VisitData sampleData(bulge.branch[sample], range[sample]);
 		StrandIterator it = *startKMer[bulge.branch[sample]];
 		std::string sampleString(it, AdvanceForward(it, range[sample]));
 //#ifdef _DEBUG
-		std::cerr << "Found a superbulge:" << std::endl;
+		std::cerr << "Found a superbulge #" << bulgeId++ << std::endl;
+		std::cerr << "Charset = " << bulge.charSet << std::endl;
 		for(size_t i = 0; i < bulge.branch.size(); i++)
-		{			
+		{						
 			StrandIterator it = *startKMer[bulge.branch[i]];
 			std::string nowString(it, AdvanceForward(it, range[i] + k));
 			std::cerr << nowString << std::endl;
@@ -655,12 +674,14 @@ namespace SyntenyFinder
 			StrandIterator it = *startKMer[bulge.branch[i]];
 			std::string nowString(it, AdvanceForward(it, range[i]));
 			if(i != sample && sampleString != nowString)
-			{				
+			{
+				std::cerr << "Overlap " << Overlap(k, startKMer, sampleData, idata) << std::endl;
 				CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, sampleData, idata);
 			}
 		}
 
 		deprecateId.insert(toDeprecate.begin(), toDeprecate.end());
+		return true;
 	}
 
 	size_t BlockFinder::SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
@@ -673,7 +694,9 @@ namespace SyntenyFinder
 		{
 			callBack(totalProgress, start);
 		}
-
+		
+		this->bulgeId = 0;
+		size_t totalBulges = 0;
 		size_t threshold = (bifStorage.GetMaxId() * maxIterations * 2) / PROGRESS_STRIDE;
 		do
 		{
@@ -694,9 +717,9 @@ namespace SyntenyFinder
 			std::sort(superBulge.begin(), superBulge.end());
 			for(size_t i = 0; i < superBulge.size(); i++)
 			{
-				if(deprecateId.count(superBulge[i].startId) == 0)
+				if(SimplifySuperBulge(sequence, bifStorage, k, minBranchSize, superBulge[i], deprecateId))
 				{
-					SimplifySuperBulge(sequence, bifStorage, k, minBranchSize, superBulge[i], deprecateId);
+					totalBulges++;
 					break;
 				}
 			}
@@ -708,6 +731,6 @@ namespace SyntenyFinder
 			callBack(PROGRESS_STRIDE, end);
 		}
 		
-		return 0;
+		return totalBulges;
 	}
 }

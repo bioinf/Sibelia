@@ -27,10 +27,12 @@ namespace SyntenyFinder
 		size_t score;
 		size_t startId;
 		size_t endId;
+		std::string charSet;
+		std::vector<size_t> length;
 		std::vector<size_t> branch;
 		SuperBulge() {}
-		SuperBulge(size_t score, size_t startId, size_t endId, const std::vector<size_t> & branch):
-			score(score), startId(startId), endId(endId), branch(branch) {}
+		SuperBulge(size_t score, size_t startId, size_t endId, const std::vector<size_t> & branch, const std::vector<size_t> & length, const std::string & charSet):
+			score(score), startId(startId), endId(endId), branch(branch), length(length), charSet(charSet) {}
 
 		bool operator < (const SuperBulge & b)
 		{
@@ -58,7 +60,7 @@ namespace SyntenyFinder
 		void SerializeGraph(size_t k, std::ostream & out);
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack());
 		void GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
-		void PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack(), size_t model = IndexedSequence::NO_MODEL, bool easy = false);
+		size_t PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack(), size_t model = IndexedSequence::NO_MODEL, bool easy = false);
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
 		typedef std::vector<Pos> PosVector;
@@ -72,6 +74,7 @@ namespace SyntenyFinder
 		static const char POS_FREE;
 		static const char POS_OCCUPIED;
 		static const size_t PROGRESS_STRIDE;
+		size_t bulgeId;
 
 		struct Edge
 		{
@@ -131,7 +134,7 @@ namespace SyntenyFinder
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		size_t SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData);
-		void SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId);
+		bool SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId);
 		void UpdateBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,
 			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBack);
 		typedef std::vector<Bool> Indicator;

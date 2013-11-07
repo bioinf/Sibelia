@@ -268,6 +268,7 @@ int main(int argc, char * argv[])
 			finder->PerformGraphSimplifications(k, 14, maxIterations.getValue(), PutProgressChr, model);
 		}*/
 
+		size_t totalBulges = 0;
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			trimK = std::min(trimK, stage[i].first);
@@ -282,7 +283,9 @@ int main(int argc, char * argv[])
 
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
-			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, true);
+			size_t bulges = finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, true);
+			std::cout << "Bulges = " << bulges << std::endl;
+			std::cerr << std::endl;
 		}
 
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
