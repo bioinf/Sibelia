@@ -439,9 +439,9 @@ namespace SyntenyFinder
 			for(size_t i = 0; i < minBranchSize && i < distLeft && it.AtValidPosition(); i++, ++it)
 			{
 				size_t bifId = bifStorage.GetBifurcation(it);
-				if(bifId != BifurcationStorage::NO_BIFURCATION)
+				if(bifId != BifurcationStorage::NO_BIFURCATION && i > 0)
 				{
-					if(bifId == startBifId && i > 0)
+					if(bifId == startBifId)
 					{
 						break;
 					}
@@ -503,59 +503,34 @@ namespace SyntenyFinder
 				bool fail = false;
 				while(counterI < maxRange && counterJ < maxRange && it.AtValidPosition() && jt.AtValidPosition() && !fail)
 				{
-					while(counterI < maxRange && counterJ < maxRange && it.AtValidPosition() && jt.AtValidPosition() && *it == *jt)
-					{
-						size_t ibif = bifStorage.GetBifurcation(it);
-						size_t jbif = bifStorage.GetBifurcation(jt);
-						if((ibif == bifId && counterI > 0) || (jbif == bifId && counterJ > 0))
-						{
-							fail = true;
-							break;
-						}
-
-						if(ibif != BifurcationStorage::NO_BIFURCATION && ibif == jbif && counterI > 0 && counterJ > 0)
-						{
-							visit[ibif].firstBranchId.push_back(i);
-							visit[ibif].secondBranchId.push_back(j);
-							visit[ibif].firstBranchLength.push_back(counterI);
-							visit[ibif].secondBranchLength.push_back(counterJ);
-							std::cout << 1 << std::endl << GetString(*startKMer[i], counterI + k) << std::endl << GetString(*startKMer[j], counterJ + k) << std::endl;
-						}
-
-						++it;
-						++jt;
-						counterI++;
-						counterJ++;
-						char ch1 = *it;
-						char ch2 = *jt;
-					}
-
-					if(fail)
-					{
-						break;
-					}
-						
+					counterI++;
+					counterJ++;
+					++it;
+					++jt;
 					std::map<size_t, size_t> nextIBif;
 					size_t nextCommonBif = BifurcationStorage::NO_BIFURCATION;
 					CollectBifurcations(bifStorage, it, minBranchSize, maxRange - counterI, nextIBif, bifId);
 					for(size_t jdist = 0; jdist < minBranchSize && jdist < maxRange - counterJ && jt.AtValidPosition(); ++jdist, ++jt)
 					{
 						size_t jbif = bifStorage.GetBifurcation(jt);
-						if(jbif == bifId && jdist > 0)
+						if(counterJ + jdist > 0)
 						{
-							break;
-						}
+							if(jbif == bifId)
+							{
+								break;
+							}
 
-						if(jbif != BifurcationStorage::NO_BIFURCATION && nextIBif.find(jbif) != nextIBif.end())
-						{
-							counterJ += jdist;
-							counterI += nextIBif[bifId];
-							it = AdvanceForward(it, nextIBif[bifId]);
-							visit[jbif].firstBranchId.push_back(i);
-							visit[jbif].secondBranchId.push_back(j);
-							visit[jbif].firstBranchLength.push_back(counterI);
-							visit[jbif].secondBranchLength.push_back(counterJ);
-							std::cout << 2 << std::endl << GetString(*startKMer[i], counterI + k) << std::endl << GetString(*startKMer[j], counterJ + k) << std::endl;
+							if(jbif != BifurcationStorage::NO_BIFURCATION && nextIBif.find(jbif) != nextIBif.end())
+							{
+								counterJ += jdist;
+								counterI += nextIBif[jbif];
+								it = AdvanceForward(it, nextIBif[jbif]);
+								visit[jbif].firstBranchId.push_back(i);
+								visit[jbif].secondBranchId.push_back(j);
+								visit[jbif].firstBranchLength.push_back(counterI);
+								visit[jbif].secondBranchLength.push_back(counterJ);
+								break;
+							}
 						}
 					}
 				}
@@ -665,12 +640,21 @@ namespace SyntenyFinder
 		VisitData sampleData(bulge.branch[sample], range[sample]);
 		StrandIterator it = *startKMer[bulge.branch[sample]];
 		std::string sampleString(it, AdvanceForward(it, range[sample]));
+//#ifdef _DEBUG
+		std::cerr << "Found a superbulge:" << std::endl;
+		for(size_t i = 0; i < bulge.branch.size(); i++)
+		{			
+			StrandIterator it = *startKMer[bulge.branch[i]];
+			std::string nowString(it, AdvanceForward(it, range[i] + k));
+			std::cerr << nowString << std::endl;
+		}
+//#endif
 		for(size_t i = 0; i < bulge.branch.size(); i++)
 		{
 			VisitData idata(bulge.branch[i], range[i]);
 			StrandIterator it = *startKMer[bulge.branch[i]];
 			std::string nowString(it, AdvanceForward(it, range[i]));
-			if(i != sample)
+			if(i != sample && sampleString != nowString)
 			{				
 				CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, sampleData, idata);
 			}

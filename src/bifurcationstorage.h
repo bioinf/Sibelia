@@ -62,9 +62,13 @@ namespace SyntenyFinder
 				size_t ret = 0;				
 				for(size_t strand = 0; strand < 2; strand++)
 				{
-					for(IteratorList::iterator it = bifurcationPos_[strand][inBifId].begin(); it != bifurcationPos_[strand][inBifId].end(); ++it, ++ret)
+					for(IteratorList::iterator it = bifurcationPos_[strand][inBifId].begin(); it != bifurcationPos_[strand][inBifId].end(); ++it)
 					{
-						*out++ = IteratorProxy(it, static_cast<DNASequence::Direction>(strand));
+						if((*it).get_padding_int() != NO_BIFURCATION)
+						{
+							++ret;
+							*out++ = IteratorProxy(it, static_cast<DNASequence::Direction>(strand));
+						}
 					}
 				}
 
