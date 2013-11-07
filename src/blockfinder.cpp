@@ -75,13 +75,13 @@ namespace SyntenyFinder
 		}
 	}
 
-	void BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
+	size_t BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
 	{
 		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_, true);
 		iseq_ = &iseq;
 		DNASequence & sequence = iseq.Sequence();
 		BifurcationStorage & bifStorage = iseq.BifStorage();		
-		SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
+		size_t ret = SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
 			originalPos_[chr].clear();
@@ -94,5 +94,6 @@ namespace SyntenyFinder
 			}
 		}
 
+		return ret;
 	}	
 }
