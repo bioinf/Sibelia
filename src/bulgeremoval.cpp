@@ -466,6 +466,11 @@ namespace SyntenyFinder
 			return minBranchSize * MLP_CONSTANT;
 		}
 
+		std::string GetString(StrandIterator it, size_t range)
+		{
+			return std::string(it, AdvanceForward(it, range));
+		}
+
 	}
 
 	void FindSuperBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId, std::vector<SuperBulge> & ret)
@@ -514,6 +519,7 @@ namespace SyntenyFinder
 							visit[ibif].secondBranchId.push_back(j);
 							visit[ibif].firstBranchLength.push_back(counterI);
 							visit[ibif].secondBranchLength.push_back(counterJ);
+							std::cout << 1 << std::endl << GetString(*startKMer[i], counterI + k) << std::endl << GetString(*startKMer[j], counterJ + k) << std::endl;
 						}
 
 						++it;
@@ -549,6 +555,7 @@ namespace SyntenyFinder
 							visit[jbif].secondBranchId.push_back(j);
 							visit[jbif].firstBranchLength.push_back(counterI);
 							visit[jbif].secondBranchLength.push_back(counterJ);
+							std::cout << 2 << std::endl << GetString(*startKMer[i], counterI + k) << std::endl << GetString(*startKMer[j], counterJ + k) << std::endl;
 						}
 					}
 				}
@@ -564,15 +571,20 @@ namespace SyntenyFinder
 			{
 				size_t branch[] = {point->second.firstBranchId[path], point->second.secondBranchId[path]};
 				size_t length[] = {point->second.firstBranchLength[path], point->second.secondBranchLength[path]};
-				for(size_t i = 0; i < 2; i++)
+				VisitData idata(branch[0], length[0]);
+				VisitData jdata(branch[1], length[1]);
+				if(!Overlap(k, startKMer, idata, jdata))
 				{
-					if(pathLength.count(branch[i]) == 0)
+					for(size_t i = 0; i < 2; i++)
 					{
-						pathLength[branch[i]] = length[i];
-					}
-					else
-					{
-						pathLength[branch[i]] = std::max(length[i], pathLength[branch[i]]);
+						if(pathLength.count(branch[i]) == 0)
+						{
+							pathLength[branch[i]] = length[i];
+						}
+						else
+						{
+							pathLength[branch[i]] = std::max(length[i], pathLength[branch[i]]);
+						}
 					}
 				}
 			}
@@ -655,11 +667,11 @@ namespace SyntenyFinder
 		std::string sampleString(it, AdvanceForward(it, range[sample]));
 		for(size_t i = 0; i < bulge.branch.size(); i++)
 		{
+			VisitData idata(bulge.branch[i], range[i]);
 			StrandIterator it = *startKMer[bulge.branch[i]];
 			std::string nowString(it, AdvanceForward(it, range[i]));
-			if(nowString != sampleString)
-			{
-				VisitData idata(bulge.branch[i], range[i]);
+			if(i != sample)
+			{				
 				CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, sampleData, idata);
 			}
 		}
