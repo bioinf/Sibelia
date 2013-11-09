@@ -36,7 +36,7 @@ else()
 endif()
 
 set(CPACK_NSIS_MODIFY_PATH "ON")
-set(CPACK_SOURCE_IGNORE_FILES "\\\\.git.*;/build/.+;${CPACK_SOURCE_IGNORE_FILES};/ext;")
+set(CPACK_SOURCE_IGNORE_FILES "\\\\.git.*;/build/.+;${CPACK_SOURCE_IGNORE_FILES};")
 set(CPACK_RESOURCE_FILE_LICENSE "${ROOT_DIR}/LICENSE.txt")
 set(CPACK_PACKAGE_NAME "Sibelia")
 set(CPACK_PACKAGE_VENDOR "Saint Petersburg Academical University")
