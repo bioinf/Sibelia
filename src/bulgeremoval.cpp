@@ -512,16 +512,18 @@ namespace SyntenyFinder
 					size_t nextCommonBif = BifurcationStorage::NO_BIFURCATION;
 					CollectBifurcations(bifStorage, it, minBranchSize, maxRange - counterI, nextIBif, bifId);
 					fail = true;
+					std::set<size_t> deprecate;
 					for(size_t jdist = 0; jdist < minBranchSize && jdist < maxRange - counterJ && jt.AtValidPosition(); ++jdist, ++jt)
 					{
 						size_t jbif = bifStorage.GetBifurcation(jt);
 						if(counterJ + jdist > 0)
 						{
-							if(jbif == bifId)
+							if(jbif == bifId && deprecate.count(jbif) == 0)
 							{
 								break;
-							}							
+							}
 
+						//	deprecate.count(jbif);
 							if(jbif != BifurcationStorage::NO_BIFURCATION && nextIBif.find(jbif) != nextIBif.end())
 							{
 								IteratorProxyVector startKMer2;
@@ -581,21 +583,7 @@ namespace SyntenyFinder
 				length.push_back(it->second);
 			}
 
-			sum *= pathLength.size() * pathLength.size();
-			for(size_t i = 0; i < branches.size(); i++)
-			{
-				for(size_t j = i + 1; j < branches.size(); j++)
-				{
-					VisitData idata(branches[i], length[i]);
-					VisitData jdata(branches[j], length[j]);				
-					if(Overlap(k, startKMer, idata, jdata))
-					{						
-						branchSet.clear();
-						break;
-					}
-				}
-			}
-
+			sum *= pathLength.size() * pathLength.size();			
 			if((sum > best.score || best.score == -1) && branchSet.size() > 1)
 			{
 				best = SuperBulge(sum, bifId, point->first, branches, length, branchSet);
@@ -611,16 +599,49 @@ namespace SyntenyFinder
 	bool BlockFinder::SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId)
 	{			
 		IteratorProxyVector startKMer;
-		if(bifStorage.ListPositions(bulge.startId, std::back_inserter(startKMer)) < bulge.branch.size())
+		bifStorage.ListPositions(bulge.startId, std::back_inserter(startKMer));
+		for(size_t i = 0; i < bulge.branch.size(); i++)
 		{
-			return false;
+			if(bulge.branch[i] >= startKMer.size())
+			{
+				return false;
+			}
+
+			StrandIterator it = *startKMer[bulge.branch[i]];
+			for(size_t j = 0; j < bulge.length[i]; j++, ++it)
+			{
+				if(!it.AtValidPosition())
+				{
+					return false;
+				}
+			}
+
+			if(bifStorage.GetBifurcation(it) != bulge.endId)
+			{
+				return false;
+			}
 		}
 
-		std::vector<size_t> range(bulge.length);
-		size_t sample = 0;
+		std::vector<size_t> degree(bulge.length);
+		std::vector<size_t> range(bulge.length);		
+		for(size_t i = 0; i < degree.size(); i++)
+		{
+			degree[i] = MaxBifurcationMultiplicity(bifStorage, *startKMer[bulge.branch[i]], bulge.length[i]);
+			for(size_t j = i + 1; j < bulge.branch.size(); j++)
+			{
+				VisitData idata(bulge.branch[i], bulge.length[i]);
+				VisitData jdata(bulge.branch[j], bulge.length[j]);				
+				if(Overlap(k, startKMer, idata, jdata))
+				{						
+					return false;
+				}
+			}
+		}
+
+		size_t sample = std::max_element(degree.begin(), degree.end()) - degree.begin();
 		VisitData sampleData(bulge.branch[sample], range[sample]);
 		StrandIterator it = *startKMer[bulge.branch[sample]];
-		std::string sampleString(it, AdvanceForward(it, range[sample]));
+		std::string sampleString(it, AdvanceForward(it, range[sample] + k));
 //#ifdef _DEBUG
 		std::cerr << "Found a superbulge #" << bulgeId++ << std::endl;
 		std::cerr << "Branch set:" << std::endl;
@@ -637,7 +658,7 @@ namespace SyntenyFinder
 		{
 			VisitData idata(bulge.branch[i], range[i]);
 			StrandIterator it = *startKMer[bulge.branch[i]];
-			std::string nowString(it, AdvanceForward(it, range[i] + k));
+			std::string nowString(it, AdvanceForward(it, range[i] + k));			
 			if(i != sample && sampleString != nowString)
 			{
 				CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, sampleData, idata);
@@ -657,9 +678,10 @@ namespace SyntenyFinder
 		{
 			callBack(totalProgress, start);
 		}
-		
+				
 		this->bulgeId = 0;
-		size_t totalBulges = 0;
+		bool simplify = false;
+		size_t totalBulges = 0;		
 		size_t threshold = (bifStorage.GetMaxId() * maxIterations * 2) / PROGRESS_STRIDE;
 		std::set<std::vector<std::string> > prevBulge;
 		do
@@ -676,20 +698,21 @@ namespace SyntenyFinder
 					callBack(totalProgress, run);
 				}
 			}
-
+			
+			bool simplify = false;
 			std::set<size_t> deprecateId;
 			std::sort(superBulge.begin(), superBulge.end());
 			for(size_t i = 0; i < superBulge.size(); i++)
 			{
-				if(prevBulge.find(superBulge[i].branchSet) == prevBulge.end() && SimplifySuperBulge(sequence, bifStorage, k, minBranchSize, superBulge[i], deprecateId))
+				if(SimplifySuperBulge(sequence, bifStorage, k, minBranchSize, superBulge[i], deprecateId))
 				{
 					totalBulges++;
+					simplify = true;
 					prevBulge.insert(superBulge[i].branchSet);
-					break;
 				}
 			}
 		}
-		while(iterations < maxIterations);
+		while(iterations < maxIterations && simplify);
 
 		if(!callBack.empty())
 		{
