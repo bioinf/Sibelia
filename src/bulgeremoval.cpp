@@ -451,15 +451,7 @@ namespace SyntenyFinder
 			}
 		}
 
-		struct BranchVisitData
-		{							
-			std::vector<size_t> firstBranchId;
-			std::vector<size_t> secondBranchId;
-			std::vector<size_t> firstBranchLength;
-			std::vector<size_t> secondBranchLength;
-		};
-
-		const size_t MLP_CONSTANT = 6;
+		const size_t MLP_CONSTANT = 100;
 
 		size_t GetMaxRange(size_t minBranchSize)
 		{
@@ -491,96 +483,65 @@ namespace SyntenyFinder
 		}
 
 		size_t maxRange = GetMaxRange(minBranchSize);
-		boost::unordered_map<size_t, BranchVisitData> visit;
 		for(size_t i = 0; i < startKMer.size(); i++)
 		{				
 			for(size_t j = i + 1; j < startKMer.size(); j++)
 			{
+				bool fail = false;
 				size_t counterJ = 0;
-				size_t counterI = 0;				
+				size_t counterI = 0;
 				StrandIterator it = *startKMer[i];
 				StrandIterator jt = *startKMer[j];
-				bool fail = false;
+				size_t nextCommonBif = BifurcationStorage::NO_BIFURCATION;
 				while(counterI < maxRange && counterJ < maxRange && it.AtValidPosition() && jt.AtValidPosition() && !fail)
 				{
-					counterI++;
-					counterJ++;
-					++it;
-					++jt;
-					std::map<size_t, size_t> nextIBif;
-					size_t nextCommonBif = BifurcationStorage::NO_BIFURCATION;
-					CollectBifurcations(bifStorage, it, minBranchSize, maxRange - counterI, nextIBif, bifId);
 					fail = true;
-					for(size_t jdist = 0; jdist < minBranchSize && jdist < maxRange - counterJ && jt.AtValidPosition(); ++jdist, ++jt)
+					std::map<size_t, size_t> nextIBif;
+					std::map<size_t, size_t> nextJBif;
+					CollectBifurcations(bifStorage, it, minBranchSize, maxRange - counterI, nextIBif, bifId);
+					CollectBifurcations(bifStorage, jt, minBranchSize, maxRange - counterJ, nextJBif, bifId);
+					for(std::map<size_t, size_t>::iterator bifIt = nextIBif.begin(); bifIt != nextIBif.end() && fail; ++bifIt)
 					{
-						size_t jbif = bifStorage.GetBifurcation(jt);
-						if(counterJ + jdist > 0)
+						if(nextJBif.count(bifIt->first) > 0)
 						{
-							if(jbif == bifId)
-							{
-								break;
-							}
-
-							if(jbif != BifurcationStorage::NO_BIFURCATION && nextIBif.find(jbif) != nextIBif.end())
-							{
-								IteratorProxyVector startKMer2;
-								bifStorage.ListPositions(jbif, std::back_inserter(startKMer2));
-								counterJ += jdist;
-								counterI += nextIBif[jbif];
-								it = AdvanceForward(it, nextIBif[jbif]);
-								visit[jbif].firstBranchId.push_back(i);
-								visit[jbif].secondBranchId.push_back(j);
-								visit[jbif].firstBranchLength.push_back(counterI);
-								visit[jbif].secondBranchLength.push_back(counterJ);
-								fail = false;
-								break;
-							}
+							fail = false;
+							nextCommonBif = bifIt->first;
+							counterI += nextIBif[nextCommonBif];
+							counterJ += nextJBif[nextCommonBif];
+							std::advance(it, nextIBif[nextCommonBif]);
+							std::advance(jt, nextJBif[nextCommonBif]);
 						}
 					}
 				}
-			}				
-		}
 
-		SuperBulge best;
-		best.score = -1;
-		for(boost::unordered_map<size_t, BranchVisitData>::iterator point = visit.begin(); point != visit.end(); ++point)
-		{
-			for(size_t path = 0; path < point->second.firstBranchId.size(); ++path)
-			{
-				size_t branch[] = {point->second.firstBranchId[path], point->second.secondBranchId[path]};
-				size_t length[] = {point->second.firstBranchLength[path], point->second.secondBranchLength[path]};
-				VisitData idata(branch[0], length[0]);
-				VisitData jdata(branch[1], length[1]);				
-				if(!Overlap(k, startKMer, idata, jdata))
+				VisitData idata(i, counterI);
+				VisitData jdata(j, counterJ);				
+				if(nextCommonBif != BifurcationStorage::NO_BIFURCATION && !Overlap(k, startKMer, idata, jdata))
 				{
-					size_t sum = 0;
-					std::set<std::string> branchSet;
-					std::vector<size_t> branchId;
-					std::vector<size_t> branchLength;
-					for(size_t l = 0; l < 2; l++)
-					{						
-						sum += length[l];
-						branchId.push_back(branch[l]);
-						branchLength.push_back(length[l]);
-						branchSet.insert(std::string(1, endChar[branch[l]]));
-					}
-
-					if((sum > best.score || best.score == -1) && branchSet.size() > 1)
-					{
-						best = SuperBulge(sum, bifId, point->first, branchId, branchLength, branchSet);
-					}	
+					std::vector<std::string> branchSet;
+					branchSet.push_back(GetString(*startKMer[i], counterI));
+					branchSet.push_back(GetString(*startKMer[j], counterJ));
+					ret.push_back(SuperBulge(counterI + counterJ, bifId, nextCommonBif, idata, jdata, branchSet));
 				}
-			}			
-		}
-
-		if(best.score != -1)
-		{
-			ret.push_back(best);
+			}				
 		}
 	}		
 
 	bool BlockFinder::SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId)
-	{			
+	{
+		IteratorProxyVector startKMer;
+		bifStorage.ListPositions(bulge.startId, std::back_inserter(startKMer));
+		std::cerr << "Found a superbulge #" << bulgeId++ << std::endl;
+		std::cerr << "Branches:" << std::endl;
+		VisitData data[] = {bulge.idata, bulge.jdata};
+		for(size_t i = 0; i < bulge.branchSet.size(); i++)
+		{						
+			StrandIterator it = *startKMer[data[i].kmerId];
+			std::string nowString(it, AdvanceForward(it, data[i].distance + k));
+			std::cerr << data[i].kmerId << ' ' << nowString << std::endl;
+		}
+		return true;
+		/*			
 		IteratorProxyVector startKMer;
 		bifStorage.ListPositions(bulge.startId, std::back_inserter(startKMer));
 		for(size_t i = 0; i < bulge.branch.size(); i++)
@@ -641,16 +602,16 @@ namespace SyntenyFinder
 		size_t counterI = 0;
 		size_t i = bulge.branch[0];
 		size_t j = bulge.branch[1];
-		StrandIterator it = *startKMer[i];
+		it = *startKMer[i];
 		StrandIterator jt = *startKMer[j];
 		size_t maxRange = GetMaxRange(minBranchSize);
 		bool fail = false;
 		while(counterI < maxRange && counterJ < maxRange && it.AtValidPosition() && jt.AtValidPosition() && !fail)
 		{
-			counterI++;
-			counterJ++;
 			++it;
 			++jt;
+			counterI++;
+			counterJ++;			
 			std::map<size_t, size_t> nextIBif;
 			size_t nextCommonBif = BifurcationStorage::NO_BIFURCATION;
 			CollectBifurcations(bifStorage, it, minBranchSize, maxRange - counterI, nextIBif, bulge.startId);
@@ -679,7 +640,7 @@ namespace SyntenyFinder
 			}
 		}
 
-		return true;
+		return true;*/
 	}
 
 	size_t BlockFinder::SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)

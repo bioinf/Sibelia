@@ -26,13 +26,13 @@ namespace SyntenyFinder
 	{
 		size_t score;
 		size_t startId;
-		size_t endId;		
-		std::vector<size_t> length;
-		std::vector<size_t> branch;
+		size_t endId;
+		VisitData idata;
+		VisitData jdata;
 		std::vector<std::string> branchSet;
 		SuperBulge() {}
-		SuperBulge(size_t score, size_t startId, size_t endId, const std::vector<size_t> & branch, const std::vector<size_t> & length, const std::set<std::string> & charSet):
-			score(score), startId(startId), endId(endId), branch(branch), length(length), branchSet(charSet.begin(), charSet.end()) {}
+		SuperBulge(size_t score, size_t startId, size_t endId, const VisitData & idata, const VisitData & jdata, const std::vector<std::string> & charSet):
+			score(score), startId(startId), endId(endId), idata(idata), jdata(jdata), branchSet(charSet.begin(), charSet.end()) {}
 
 		bool operator < (const SuperBulge & b) const
 		{
