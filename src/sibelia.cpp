@@ -286,11 +286,11 @@ int main(int argc, char * argv[])
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
 	//		if(stage[i].first < 10)
 			{
-				bulges = finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, true);
+	//			bulges = finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, true);
 			}
 	//		else
 			{
-	//			bulges = finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, false);
+				bulges = finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, false);
 			}
 
 			std::cout << "Bulges = " << bulges << std::endl;

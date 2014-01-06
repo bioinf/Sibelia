@@ -18,7 +18,6 @@ COVER = 1
 UNCOVER = 0
 LINE_LENGTH = 60
 MINIMUM_CONTEXT_SIZE = 30
-BLOCKS_FILE = 'blocks_sequences.fasta'
 INSTALL_DIR = os.path.dirname(os.path.abspath(__file__))
 LAGAN_DIR = os.path.join(INSTALL_DIR, '..', 'lib', 'Sibelia', 'lagan')
 os.environ['LAGAN_DIR'] = LAGAN_DIR
@@ -43,50 +42,6 @@ def unzip_list(zipped_list):
 def unzip_list3(zipped_list):
 	return ([x for (x, _, _) in zipped_list], [y for (_, y, _) in zipped_list], [z for (_, _, z) in zipped_list])
 
-def parse_blocks_coords(blocks_file):		
-	group = [[]]
-	num_seq_size = dict()
-	num_seq_id = dict()
-	seq_id_num = dict()
-	line = [l.strip() for l in open(blocks_file) if l.strip()]	
-	for l in line:
-		if l[0] == '-':
-			group.append([])
-		else:
-			group[-1].append(l)			
-	for l in group[0][1:]:	
-		l = l.split()
-		num_seq_id[l[0]] = l[2]
-		num_seq_size[int(l[0])] = int(l[1])
-		seq_id_num[l[2]] = int(l[0])		
-	ret = dict()
-	for g in [g for g in group[1:] if g]:		
-		block_id = int(g[0].split()[1][1:])
-		ret[block_id] = []	
-		for l in g[2:]:
-			l = l.split()
-			chr_id = num_seq_id[l[0]]
-			start = int(l[2])
-			end = int(l[3])
-			chr_num = int(l[0])
-			ret[block_id].append(SyntenyBlock(seq='', chr_id=chr_id, strand=l[1], id=block_id, start=start, 
-							end=end, chr_num=chr_num, chr_size=num_seq_size[chr_num]))		
-	return (ret, seq_id_num, num_seq_size)
-
-def reverse_complementary(seq):
-	comp = dict()
-	comp['A'] = 'T'
-	comp['T'] = 'A'
-	comp['C'] = 'G'
-	comp['G'] = 'C'
-	return ''.join([(comp[ch] if ch in comp else ch) for ch in seq[::-1]])
-
-def strip_chr_id(chr_id):
-	part = chr_id.split('|')
-	if len(part) == 5:
-		return part[-2].split('.')[0]
-	return chr_id
-
 def parse_fasta_file(file_name):	
 	handle = open(file_name)
 	line = [line.strip() for line in handle if line.strip() != '']
@@ -106,6 +61,61 @@ def parse_fasta_file(file_name):
 			i += 1		
 	handle.close()
 	return record
+
+def reverse_complementary(seq):
+	comp = dict()
+	comp['A'] = 'T'
+	comp['T'] = 'A'
+	comp['C'] = 'G'
+	comp['G'] = 'C'
+	return ''.join([(comp[ch] if ch in comp else ch) for ch in seq[::-1]])
+	
+def parse_blocks_coords(blocks_file, genomes_file):		
+	group = [[]]
+	num_seq_size = dict()
+	num_seq_id = dict()
+	seq_id_num = dict()
+	genome = parse_fasta_file(genomes_file)
+	line = [l.strip() for l in open(blocks_file) if l.strip()]	
+	for l in line:
+		if l[0] == '-':
+			group.append([])
+		else:
+			group[-1].append(l)		
+	for l in group[0][1:]:	
+		l = l.split()
+		num_seq_id[l[0]] = l[2]
+		num_seq_size[int(l[0])] = int(l[1])
+		seq_id_num[l[2]] = int(l[0])		
+	ret = dict()
+	for g in [g for g in group[1:] if g]:		
+		block_id = int(g[0].split()[1][1:])
+		ret[block_id] = []	
+		for l in g[2:]:
+			l = l.split()
+			chr_id = num_seq_id[l[0]]
+			start = int(l[2])
+			end = int(l[3])
+			chr_num = int(l[0])
+			strand = l[1]
+			if strand == '+':
+				true_start = start - 1
+				true_end = end
+			else:
+				true_start = end - 1
+				true_end = start
+			seq = genome[int(l[0]) - 1][true_start][true_end]
+			if strand == '-':
+				seq = reverse_complementary(seq)
+			ret[block_id].append(SyntenyBlock(seq=seq, chr_id=chr_id, strand=strand, id=block_id, start=start, 
+							end=end, chr_num=chr_num, chr_size=num_seq_size[chr_num]))		
+	return ret
+
+def strip_chr_id(chr_id):
+	part = chr_id.split('|')
+	if len(part) == 5:
+		return part[-2].split('.')[0]
+	return chr_id
 
 def write_wrapped_text(text, handle):
 	pos = 0
@@ -319,27 +329,12 @@ def depict_coverage(block_seq, reference_seq, assembly_seq, base_cover):
 				base_cover[instance.chr_id][start:end] = [block_id] * (end - start)
 	return base_cover	
 					
-def call_variants(directory, min_block_size, proc_num):
+def call_variants(directory, min_block_size, genomes, proc_num):
 	os.chdir(directory)
 	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
 	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
-	blocks_coords, seq_id_num, num_seq_size = unzip_list3([parse_blocks_coords(coords_file) for coords_file in coords_file_list])
-	seq_id_num, num_seq_size = seq_id_num[0], num_seq_size[0]
-	block_seq = dict()	
-	for record in parse_fasta_file(BLOCKS_FILE):
-		header = parse_header(record.description)
-		chr_id = header['Seq']
-		strand = header['Strand']
-		block_id = int(header['Block_id'])
-		start = int(header['Start'])
-		end = int(header['End'])
-		if block_id not in block_seq:
-			block_seq[block_id] = []
-		chr_num=seq_id_num[chr_id]
-		block = SyntenyBlock(chr_id=chr_id, seq=record.seq, id=block_id, strand=strand, start=start,
-				end=end, chr_num=chr_num, chr_size=num_seq_size[chr_num])
-		block_seq[block_id].append(block)
-
+	block_coords = [parse_blocks_coords(coords_file, genomes) for coords_file in coords_file_list]
+	block_seq = blocks_coords[-1]
 	pool = multiprocessing.Pool(proc_num)
 	annotated_block = []	
 	for synteny_block_id, instance_list in block_seq.items():
@@ -497,7 +492,7 @@ try:
 		raise FailedStartException(stderr)
 
 	print >> sys.stderr, "Performing alignment..."
-	alignment_list = call_variants(temp_dir, args.minblocksize, args.processcount)
+	alignment_list = call_variants(temp_dir, args.minblocksize, args.genome, args.processcount)
 	for handle, paralog in zip((open('alignment.maf', 'w'), open('alignment_nop.maf', 'w')), (False, True)):
 		write_alignments_maf(alignment_list, paralog, handle)
 		handle.close()
