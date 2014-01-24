@@ -70,12 +70,11 @@ def reverse_complementary(seq):
 	comp['G'] = 'C'
 	return ''.join([(comp[ch] if ch in comp else ch) for ch in seq[::-1]])
 	
-def parse_blocks_coords(blocks_file, genomes_file):		
+def parse_blocks_coords(blocks_file, genome):
 	group = [[]]
 	num_seq_size = dict()
 	num_seq_id = dict()
 	seq_id_num = dict()
-	genome = parse_fasta_file(genomes_file)
 	line = [l.strip() for l in open(blocks_file) if l.strip()]	
 	for l in line:
 		if l[0] == '-':
@@ -104,11 +103,12 @@ def parse_blocks_coords(blocks_file, genomes_file):
 			else:
 				true_start = end - 1
 				true_end = start
-			seq = genome[int(l[0]) - 1][true_start][true_end]
+			seq_num = int(l[0]) - 1
+			seq = genome[seq_num].seq[true_start:true_end]
 			if strand == '-':
 				seq = reverse_complementary(seq)
 			ret[block_id].append(SyntenyBlock(seq=seq, chr_id=chr_id, strand=strand, id=block_id, start=start, 
-							end=end, chr_num=chr_num, chr_size=num_seq_size[chr_num]))		
+							end=end, chr_num=chr_num, chr_size=num_seq_size[chr_num]))
 	return ret
 
 def strip_chr_id(chr_id):
@@ -273,10 +273,10 @@ def find_instance(instance_list, reference_seq_id, in_reference):
 			return instance
 	return None
 
-def process_block(block, block_index):	
+def process_block(block):	
 	pid = str(os.getpid()) + '_'	
 	alignment_file = pid + 'align.fasta'
-	unique, synteny_block_id, instance_list = block[block_index]
+	unique, synteny_block_id, instance_list = block
 	file_name = [pid + str(i) + 'block.fasta' for i, _ in enumerate(instance_list)]	
 	mlagan_cmd = [os.path.join(LAGAN_DIR, "mlagan")] + file_name
 	lagan_cmd = ['perl', os.path.join(LAGAN_DIR, "lagan.pl")] + file_name + ['-mfa']
@@ -331,19 +331,16 @@ def depict_coverage(block_seq, reference_seq, assembly_seq, base_cover):
 					
 def call_variants(directory, min_block_size, genomes, proc_num):
 	os.chdir(directory)
-	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
-	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
-	block_coords = [parse_blocks_coords(coords_file, genomes) for coords_file in coords_file_list]
-	block_seq = blocks_coords[-1]
+	block_seq = parse_blocks_coords('blocks_coords.txt', genomes)
 	pool = multiprocessing.Pool(proc_num)
 	annotated_block = []	
 	for synteny_block_id, instance_list in block_seq.items():
-		unique = False		
-		annotated_block.append((unique, synteny_block_id, instance_list))
+		unique = False
+		if len(instance_list) < 20:
+			annotated_block.append((unique, synteny_block_id, instance_list))
 															
 	if annotated_block:		
-		process_block_f = functools.partial(process_block, annotated_block)
-		result = pool.map_async(process_block_f, range(len(annotated_block))).get()
+		result = pool.map_async(process_block, annotated_block).get()
 		variant, alignment = unzip_list(result)
 		pool.close()
 		pool.join()
@@ -477,9 +474,9 @@ try:
 	else:
 		temp_dir = args.outdir
 
+	genomes = list(itertools.chain.from_iterable([parse_fasta_file(file_name) for file_name in args.genome]))
 	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia')] + args.genome + [
 				'-q', 
-				'--allstages',
 				'-m', str(args.minblocksize), 
 				'-o', temp_dir,
 				'-k', 'run.stage',
@@ -492,7 +489,7 @@ try:
 		raise FailedStartException(stderr)
 
 	print >> sys.stderr, "Performing alignment..."
-	alignment_list = call_variants(temp_dir, args.minblocksize, args.genome, args.processcount)
+	alignment_list = call_variants(temp_dir, args.minblocksize, genomes, args.processcount)
 	for handle, paralog in zip((open('alignment.maf', 'w'), open('alignment_nop.maf', 'w')), (False, True)):
 		write_alignments_maf(alignment_list, paralog, handle)
 		handle.close()
