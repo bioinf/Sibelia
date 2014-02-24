@@ -534,6 +534,59 @@ namespace SyntenyFinder
 
 	bool BlockFinder::SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId)
 	{
+		IteratorProxyVector startKMer;
+		VisitData branch[] = {bulge.idata, bulge.jdata};
+		bifStorage.ListPositions(bulge.startId, std::back_inserter(startKMer));
+		for(size_t i = 0; i < 2; i++)
+		{
+			if(branch[i].kmerId >= startKMer.size())
+			{
+				return false;
+			}
+
+			StrandIterator it = *startKMer[branch[i].kmerId];
+			for(size_t j = 0; j < branch[i].distance; j++, ++it)
+			{
+				if(!it.AtValidPosition())
+				{
+					return false;
+				}
+			}
+
+			if(bifStorage.GetBifurcation(it) != bulge.endId)
+			{
+				return false;
+			}
+		}
+
+		if(Overlap(k, startKMer, bulge.idata, bulge.jdata))
+		{						
+			return false;
+		}
+
+		std::vector<size_t> degree(2);
+		for(size_t i = 0; i < degree.size(); i++)
+		{
+			degree[i] = MaxBifurcationMultiplicity(bifStorage, *startKMer[branch[i].kmerId], branch[i].distance);
+		}
+
+		size_t sample = std::max_element(degree.begin(), degree.end()) - degree.begin();
+		VisitData sampleData(branch[sample]);
+		StrandIterator it = *startKMer[branch[sample].kmerId];
+		std::string sampleString(it, AdvanceForward(it, branch[sample].distance + k));
+		std::cerr << "Found a superbulge #" << bulgeId++ << std::endl;
+		std::cerr << "Branch set:" << std::endl;
+		std::copy(bulge.branchSet.begin(), bulge.branchSet.end(), std::ostream_iterator<std::string>(std::cerr, "\n"));
+		for(size_t i = 0; i < 2; i++)
+		{
+			VisitData idata(branch[i]);
+			StrandIterator it = *startKMer[branch[i].kmerId];
+			if(i != sample)
+			{
+				CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, sampleData, idata);
+			}
+		}
+
 		return true;
 	}
 
