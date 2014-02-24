@@ -58,10 +58,10 @@ namespace SyntenyFinder
 			const IteratorProxyVector  & startKMer,
 			VisitData targetData,
 			std::vector<std::pair<size_t, size_t> > & lookForward,
-			std::vector<std::pair<size_t, size_t> > & lookBack)
-		{
-			lookBack.clear();
+			std::vector<std::pair<size_t, size_t> > & lookBackward)
+		{			
 			lookForward.clear();
+			lookBackward.clear();
 			StrandIterator amer = AdvanceForward(*startKMer[targetData.kmerId], k).Invert();
 			StrandIterator bmer = AdvanceForward(*startKMer[targetData.kmerId], targetData.distance);
 			for(size_t i = 0; i < k; i++, ++amer, ++bmer)
@@ -70,7 +70,7 @@ namespace SyntenyFinder
 				if(bifId != BifurcationStorage::NO_BIFURCATION)
 				{
 					bifStorage.ErasePoint(amer);
-					lookBack.push_back(std::make_pair(i, bifId));
+					lookBackward.push_back(std::make_pair(i, bifId));
 				}
 
 				bifId = bifStorage.GetBifurcation(bmer);
@@ -242,7 +242,7 @@ namespace SyntenyFinder
 			VisitData sourceData,
 			VisitData targetData,
 			const std::vector<std::pair<size_t, size_t> > & lookForward,
-			const std::vector<std::pair<size_t, size_t> > & lookBack)
+			const std::vector<std::pair<size_t, size_t> > & lookBackward)
 	{
 		size_t anear = 0;
 		size_t bnear = 0;
@@ -250,9 +250,9 @@ namespace SyntenyFinder
 		StrandIterator bmer = AdvanceForward(*startKMer[targetData.kmerId], sourceData.distance);
 		for(size_t i = 0; i < k; i++, ++amer, ++bmer)
 		{
-			if(anear < lookBack.size() && i == lookBack[anear].first)
+			if(anear < lookBackward.size() && i == lookBackward[anear].first)
 			{
-				bifStorage.AddPoint(amer, lookBack[anear++].second);
+				bifStorage.AddPoint(amer, lookBackward[anear++].second);
 			}
 
 			if(bnear < lookForward.size() && i == lookForward[bnear].first)
@@ -301,8 +301,8 @@ namespace SyntenyFinder
 		iseq_->Test();
 	#endif
 		std::vector<std::pair<size_t, size_t> > lookForward;
-		std::vector<std::pair<size_t, size_t> > lookBack;
-		EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
+		std::vector<std::pair<size_t, size_t> > lookBackward;
+		EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBackward);
 		StrandIterator sourceIt = *startKMer[sourceData.kmerId];
 		StrandIterator targetIt = *startKMer[targetData.kmerId];
 		sequence.Replace(AdvanceForward(sourceIt, k),
@@ -311,7 +311,7 @@ namespace SyntenyFinder
 			targetData.distance,
 			boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(bifStorage), _1, _2),
 			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
-		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
+		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBackward);
 
 	#ifdef _DEBUG
 		std::cerr << "After: " << std::endl;
@@ -405,7 +405,6 @@ namespace SyntenyFinder
 								size_t imlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerI], idata.distance);
 								size_t jmlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerJ], jdata.distance);
 								bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
-								
 								{
 									if(iless)
 									{
@@ -529,118 +528,7 @@ namespace SyntenyFinder
 
 	bool BlockFinder::SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId)
 	{
-		IteratorProxyVector startKMer;
-		bifStorage.ListPositions(bulge.startId, std::back_inserter(startKMer));
-		std::cerr << "Found a superbulge #" << bulgeId++ << std::endl;
-		std::cerr << "Branches:" << std::endl;
-		VisitData data[] = {bulge.idata, bulge.jdata};
-		for(size_t i = 0; i < bulge.branchSet.size(); i++)
-		{						
-			StrandIterator it = *startKMer[data[i].kmerId];
-			std::string nowString(it, AdvanceForward(it, data[i].distance + k));
-			std::cerr << data[i].kmerId << ' ' << nowString << std::endl;
-		}
 		return true;
-		/*			
-		IteratorProxyVector startKMer;
-		bifStorage.ListPositions(bulge.startId, std::back_inserter(startKMer));
-		for(size_t i = 0; i < bulge.branch.size(); i++)
-		{
-			if(bulge.branch[i] >= startKMer.size())
-			{
-				return false;
-			}
-
-			StrandIterator it = *startKMer[bulge.branch[i]];
-			for(size_t j = 0; j < bulge.length[i]; j++, ++it)
-			{
-				if(!it.AtValidPosition())
-				{
-					return false;
-				}
-			}
-
-			if(bifStorage.GetBifurcation(it) != bulge.endId)
-			{
-				return false;
-			}
-		}
-
-		std::vector<size_t> degree(bulge.length);
-		std::vector<size_t> range(bulge.length);		
-		for(size_t i = 0; i < degree.size(); i++)
-		{
-			degree[i] = MaxBifurcationMultiplicity(bifStorage, *startKMer[bulge.branch[i]], bulge.length[i]);
-			for(size_t j = i + 1; j < bulge.branch.size(); j++)
-			{
-				VisitData idata(bulge.branch[i], bulge.length[i]);
-				VisitData jdata(bulge.branch[j], bulge.length[j]);				
-				if(Overlap(k, startKMer, idata, jdata))
-				{						
-					return false;
-				}
-			}
-		}
-
-		size_t sample = std::max_element(degree.begin(), degree.end()) - degree.begin();
-		VisitData sampleData(bulge.branch[sample], range[sample]);
-		StrandIterator it = *startKMer[bulge.branch[sample]];
-		std::string sampleString(it, AdvanceForward(it, range[sample] + k));
-//#ifdef _DEBUG
-		std::cerr << "Found a superbulge #" << bulgeId++ << std::endl;
-		std::cerr << "Branch set:" << std::endl;
-		std::copy(bulge.branchSet.begin(), bulge.branchSet.end(), std::ostream_iterator<std::string>(std::cerr, "\n"));
-		std::cerr << "Actual branches:" << std::endl;
-		for(size_t i = 0; i < bulge.branch.size(); i++)
-		{						
-			StrandIterator it = *startKMer[bulge.branch[i]];
-			std::string nowString(it, AdvanceForward(it, range[i] + k));
-			std::cerr << nowString << std::endl;
-		}
-//#endif
-		size_t counterJ = 0;
-		size_t counterI = 0;
-		size_t i = bulge.branch[0];
-		size_t j = bulge.branch[1];
-		it = *startKMer[i];
-		StrandIterator jt = *startKMer[j];
-		size_t maxRange = GetMaxRange(minBranchSize);
-		bool fail = false;
-		while(counterI < maxRange && counterJ < maxRange && it.AtValidPosition() && jt.AtValidPosition() && !fail)
-		{
-			++it;
-			++jt;
-			counterI++;
-			counterJ++;			
-			std::map<size_t, size_t> nextIBif;
-			size_t nextCommonBif = BifurcationStorage::NO_BIFURCATION;
-			CollectBifurcations(bifStorage, it, minBranchSize, maxRange - counterI, nextIBif, bulge.startId);
-			fail = true;
-			for(size_t jdist = 0; jdist < minBranchSize && jdist < maxRange - counterJ && jt.AtValidPosition(); ++jdist, ++jt)
-			{
-				size_t jbif = bifStorage.GetBifurcation(jt);
-				if(counterJ + jdist > 0)
-				{
-					if(jbif == bulge.startId)
-					{
-						break;
-					}
-
-					if(jbif != BifurcationStorage::NO_BIFURCATION && nextIBif.find(jbif) != nextIBif.end())
-					{
-						IteratorProxyVector startKMer2;
-						bifStorage.ListPositions(jbif, std::back_inserter(startKMer2));
-						counterJ += jdist;
-						counterI += nextIBif[jbif];
-						it = AdvanceForward(it, nextIBif[jbif]);
-						fail = false;
-						break;
-					}
-				}
-			}
-		}
-
-		return true;*/
 	}
 
 	size_t BlockFinder::SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
