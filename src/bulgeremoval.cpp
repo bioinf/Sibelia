@@ -218,6 +218,30 @@ namespace SyntenyFinder
 		}
 	}
 
+	void BlockFinder::ScanBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData,
+		std::vector<std::pair<size_t, size_t> > & lookForward, std::vector<std::pair<size_t, size_t> > & lookBackward)
+	{
+		size_t bifId;
+		lookForward.clear();
+		lookBackward.clear();
+		StrandIterator srcAMer = *startKMer[sourceData.kmerId];
+		StrandIterator srcBMer = AdvanceForward(*startKMer[sourceData.kmerId], sourceData.distance + k).Invert();
+		for(size_t i = 0; i < sourceData.distance + 1; i++, ++srcAMer, ++srcBMer)
+		{
+			bifId = bifStorage.GetBifurcation(srcAMer);
+			if(bifId != BifurcationStorage::NO_BIFURCATION)
+			{
+				lookForward.push_back(std::make_pair(i, bifId));
+			}
+
+			bifId = bifStorage.GetBifurcation(srcBMer);
+			if(bifId != BifurcationStorage::NO_BIFURCATION)
+			{
+				lookBackward.push_back(std::make_pair(i, bifId));
+			}
+		}
+	}
+
 	void BlockFinder::SpellBulges(const DNASequence & sequence, size_t k,
 			size_t bifStart,
 			size_t bifEnd,
@@ -235,7 +259,7 @@ namespace SyntenyFinder
 		std::cerr << DELIMITER << std::endl;
 	}
 
-	void BlockFinder::UpdateBifurcations(DNASequence & sequence,
+	void BlockFinder::RestoreCornerBifurcations(DNASequence & sequence,
 			BifurcationStorage & bifStorage,
 			size_t k,
 			const IteratorProxyVector & startKMer,
@@ -258,25 +282,6 @@ namespace SyntenyFinder
 			if(bnear < lookForward.size() && i == lookForward[bnear].first)
 			{
 				bifStorage.AddPoint(bmer, lookForward[bnear++].second);
-			}
-		}
-
-		amer = *startKMer[targetData.kmerId];
-		bmer = AdvanceForward(*startKMer[targetData.kmerId], sourceData.distance + k).Invert();
-		StrandIterator srcAMer = *startKMer[sourceData.kmerId];
-		StrandIterator srcBMer = AdvanceForward(*startKMer[sourceData.kmerId], sourceData.distance + k).Invert();
-		for(size_t i = 0; i < sourceData.distance + 1; i++, ++amer, ++bmer, ++srcAMer, ++srcBMer)
-		{
-			size_t bifId = bifStorage.GetBifurcation(srcAMer);
-			if(bifId != BifurcationStorage::NO_BIFURCATION)
-			{
-				bifStorage.AddPoint(amer, bifId);
-			}
-
-			bifId = bifStorage.GetBifurcation(srcBMer);
-			if(bifId != BifurcationStorage::NO_BIFURCATION)
-			{
-				bifStorage.AddPoint(bmer, bifId);
 			}
 		}
 	}
@@ -311,8 +316,9 @@ namespace SyntenyFinder
 			targetData.distance,
 			boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(bifStorage), _1, _2),
 			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
-		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBackward);
-
+		RestoreCornerBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBackward);
+		ScanBifurcations(sequence, bifStorage, k, startKMer, sourceData, lookForward, lookBackward);
+		RestoreMainBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBackward);
 	#ifdef _DEBUG
 		std::cerr << "After: " << std::endl;
 //		BlockFinder::PrintRaw(sequence, std::cerr);
@@ -530,6 +536,27 @@ namespace SyntenyFinder
 	{
 		return true;
 	}
+
+	void BlockFinder::RestoreMainBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,
+			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBackward)
+	{
+		size_t anear = 0;
+		size_t bnear = 0;
+		StrandIterator amer = *startKMer[targetData.kmerId];
+		StrandIterator bmer = AdvanceForward(*startKMer[targetData.kmerId], sourceData.distance + k).Invert();
+		for(size_t i = 0; i < sourceData.distance + 1; i++, ++amer, ++bmer)
+		{
+			if(anear < lookForward.size() && i == lookForward[anear].first)
+			{
+				bifStorage.AddPoint(amer, lookForward[anear++].second);
+			}
+
+			if(bnear < lookBackward.size() && i == lookBackward[bnear].first)
+			{
+				bifStorage.AddPoint(bmer, lookBackward[bnear++].second);
+			}
+		}			
+	}	
 
 	size_t BlockFinder::SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
 	{
