@@ -621,13 +621,12 @@ namespace SyntenyFinder
 		size_t count = 0;
 		size_t iterations = 0;
 		size_t totalProgress = 0;
-		bool anyChanges = true;
 		if(!callBack.empty())
 		{
 			callBack(totalProgress, start);
 		}
 				
-		this->bulgeId = 0;
+		bulgeId = 0;
 		bool simplify = false;
 		size_t totalBulges = 0;		
 		size_t threshold = (bifStorage.GetMaxId() * maxIterations * 2) / PROGRESS_STRIDE;
@@ -638,7 +637,6 @@ namespace SyntenyFinder
 			std::vector<SuperBulge> superBulge;
 			for(size_t id = 0; id <= bifStorage.GetMaxId(); id++)
 			{
-				std::cerr << id << '/' << bifStorage.GetMaxId() << std::endl;
 				FindSuperBulges(sequence, bifStorage, k, minBranchSize, id, superBulge);
 				if(++count >= threshold && !callBack.empty())
 				{
@@ -648,7 +646,7 @@ namespace SyntenyFinder
 				}
 			}
 			
-			bool simplify = false;
+			simplify = false;
 			std::set<size_t> deprecateId;
 			std::sort(superBulge.begin(), superBulge.end());
 			for(size_t i = 0; i < superBulge.size(); i++)
@@ -661,7 +659,7 @@ namespace SyntenyFinder
 				}
 			}
 		}
-		while(iterations < maxIterations && simplify);
+		while(simplify && iterations < maxIterations);
 
 		if(!callBack.empty())
 		{
