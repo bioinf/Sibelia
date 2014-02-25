@@ -524,9 +524,12 @@ namespace SyntenyFinder
 				if(nextCommonBif != BifurcationStorage::NO_BIFURCATION && !Overlap(k, startKMer, idata, jdata))
 				{
 					std::vector<std::string> branchSet;
-					branchSet.push_back(GetString(*startKMer[i], counterI));
-					branchSet.push_back(GetString(*startKMer[j], counterJ));
-					ret.push_back(SuperBulge(counterI + counterJ, bifId, nextCommonBif, idata, jdata, branchSet));
+					branchSet.push_back(GetString(*startKMer[i], counterI + k));
+					branchSet.push_back(GetString(*startKMer[j], counterJ + k));
+					if(branchSet[0] != branchSet[1])
+					{
+						ret.push_back(SuperBulge(counterI + counterJ, bifId, nextCommonBif, idata, jdata, branchSet));
+					}
 				}
 			}				
 		}
@@ -536,6 +539,7 @@ namespace SyntenyFinder
 	{
 		IteratorProxyVector startKMer;
 		VisitData branch[] = {bulge.idata, bulge.jdata};
+		std::vector<std::string> nowBranchSet;
 		bifStorage.ListPositions(bulge.startId, std::back_inserter(startKMer));
 		for(size_t i = 0; i < 2; i++)
 		{
@@ -553,13 +557,14 @@ namespace SyntenyFinder
 				}
 			}
 
+			nowBranchSet.push_back(GetString(*startKMer[branch[i].kmerId], branch[i].distance + k));
 			if(bifStorage.GetBifurcation(it) != bulge.endId)
 			{
 				return false;
 			}
 		}
 
-		if(Overlap(k, startKMer, bulge.idata, bulge.jdata))
+		if(Overlap(k, startKMer, bulge.idata, bulge.jdata) || bulge.branchSet != nowBranchSet)
 		{						
 			return false;
 		}
@@ -633,6 +638,7 @@ namespace SyntenyFinder
 			std::vector<SuperBulge> superBulge;
 			for(size_t id = 0; id <= bifStorage.GetMaxId(); id++)
 			{
+				std::cerr << id << '/' << bifStorage.GetMaxId() << std::endl;
 				FindSuperBulges(sequence, bifStorage, k, minBranchSize, id, superBulge);
 				if(++count >= threshold && !callBack.empty())
 				{
