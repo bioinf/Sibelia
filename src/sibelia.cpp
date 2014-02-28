@@ -77,7 +77,7 @@ int main(int argc, char * argv[])
 	std::stringstream parsets;		
 	const std::string parameterSetNameArray[] = {"loose", "fine"};
 	std::vector<std::string> parameterSetName(parameterSetNameArray, parameterSetNameArray + sizeof(parameterSetNameArray) / sizeof(parameterSetNameArray[0]));
-	std::map<std::string, std::vector<std::pair<int, int> > > defaultParameters;
+	std::map<std::string, std::vector<ParameterSet> > defaultParameters;
 	defaultParameters["loose"] = LooseStageFile();
 	defaultParameters["fine"] = FineStageFile();
 	GreaterIntegerConstraint greaterThanOne(1);
@@ -204,7 +204,7 @@ int main(int argc, char * argv[])
 
 		cmd.xorAdd(parameters, stageFile);
 		cmd.parse(argc, argv);
-		std::vector<std::pair<int, int> > stage;
+		std::vector<ParameterSet> stage;
 		if(parameters.isSet())
 		{
 			stage = defaultParameters[parameters.getValue()];
@@ -271,10 +271,10 @@ int main(int argc, char * argv[])
 		size_t totalBulges = 0;
 		for(size_t i = 0; i < stage.size(); i++)
 		{
-			trimK = std::min(trimK, stage[i].first);
+			trimK = std::min(trimK, stage[i].k);
 			if(hierarchy || allStages)
 			{
-				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
+				finder->GenerateSyntenyBlocks(stage[i].k, trimK, stage[i].k, history[i], sharedOnly.getValue());
 				if(!noPostProcessing)
 				{
 					processor.GlueStripes(history[i]);
@@ -285,7 +285,7 @@ int main(int argc, char * argv[])
 			bool easily = true;
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;			
-			bulges = finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, easily);
+			bulges = finder->PerformGraphSimplifications(stage[i].k, stage[i].maxBranchSize, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, easily);
 
 			std::cout << "Bulges = " << bulges << std::endl;
 			std::cerr << std::endl;
@@ -293,7 +293,7 @@ int main(int argc, char * argv[])
 
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
-		size_t lastK = lastKValue.isSet() ? lastKValue.getValue() : std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
+		size_t lastK = lastKValue.isSet() ? lastKValue.getValue() : std::min(stage.back().k, static_cast<int>(minBlockSize.getValue()));
 		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
 		if(!noPostProcessing)
 		{

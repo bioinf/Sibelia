@@ -10,10 +10,19 @@
 #include "blockfinder.h"
 #include "outputgenerator.h"
 
+struct ParameterSet
+{
+	int k;
+	int maxBranchSize;
+	int minPathLength;
+	ParameterSet() {}
+	ParameterSet(int k, int maxBranchSize, int minPathLength);
+};
+
 void SignalHandler(int sig);
-std::vector<std::pair<int, int> > FineStageFile();
-std::vector<std::pair<int, int> > LooseStageFile();
-std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName);
+std::vector<ParameterSet> FineStageFile();
+std::vector<ParameterSet> LooseStageFile();
+std::vector<ParameterSet> ReadStageFile(const std::string & fileName);
 void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state);
 
 #endif 

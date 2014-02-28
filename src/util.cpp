@@ -8,7 +8,12 @@
 
 const std::string DELIMITER(80, '-');
 
-std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName)
+ParameterSet::ParameterSet(int k, int maxBranchSize, int minPathLength):
+	k(k), maxBranchSize(maxBranchSize), minPathLength(minPathLength)
+{
+}
+
+std::vector<ParameterSet> ReadStageFile(const std::string & fileName)
 {
 	int count = 0;
 	std::ifstream stageFile(fileName.c_str());
@@ -27,51 +32,51 @@ std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName)
 		throw std::runtime_error("number of stages must be positive ");
 	}
 
-	std::vector<std::pair<int, int> > ret(count);
+	std::vector<ParameterSet> ret(count);
 	for(int i = 0; i < count; i++)
 	{
-		if(!(stageFile >> ret[i].first >> ret[i].second))
+		if(!(stageFile >> ret[i].k >> ret[i].maxBranchSize >> ret[i].minPathLength))
 		{
 			throw std::runtime_error("too few records in the stage file");
 		}
 
-		if(ret[i].first < 2)
+		if(ret[i].k < 2)
 		{
 			throw std::runtime_error("vertex size in stage record must be at least 2");
 		}
 
-		if(ret[i].second < 0)
+		if(ret[i].maxBranchSize < 0)
 		{
-			throw std::runtime_error("minimum branch size in stage record must be nonnegative");
+			throw std::runtime_error("maximum branch size in stage record must be nonnegative");
 		}
 	}
 
 	return ret;
 }
 
-std::vector<std::pair<int, int> > LooseStageFile()
+std::vector<ParameterSet> LooseStageFile()
 {
-	std::pair<int, int> stage[] = 
+	ParameterSet stage[] = 
 	{
-		std::make_pair(30, 150),
-		std::make_pair(100, 1000),
-		std::make_pair(1000, 5000),		
-		std::make_pair(5000, 15000)
+		ParameterSet(30, 150, 0),
+		ParameterSet(100, 1000, 0),
+		ParameterSet(1000, 5000, 0),
+		ParameterSet(5000, 15000, 0)		
 	};
 
-	return std::vector<std::pair<int, int> >(stage, stage + sizeof(stage) / sizeof(stage[0]));
+	return std::vector<ParameterSet>(stage, stage + sizeof(stage) / sizeof(stage[0]));
 }
 
-std::vector<std::pair<int, int> > FineStageFile()
+std::vector<ParameterSet> FineStageFile()
 {
-	std::pair<int, int> stage[] = 
+	ParameterSet stage[] = 
 	{
-		std::make_pair(30, 150),
-		std::make_pair(100, 500),
-		std::make_pair(500, 1500),		
+		ParameterSet(30, 150, 0),
+		ParameterSet(100, 500, 0),
+		ParameterSet(500, 1500, 0)
 	};
 
-	return std::vector<std::pair<int, int> >(stage, stage + sizeof(stage) / sizeof(stage[0]));
+	return std::vector<ParameterSet>(stage, stage + sizeof(stage) / sizeof(stage[0]));
 }
 
 void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)

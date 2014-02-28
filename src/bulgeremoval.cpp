@@ -478,7 +478,6 @@ namespace SyntenyFinder
 			return;
 		}
 
-		size_t maxRange = GetMaxRange(minBranchSize);
 		std::vector<char> endChar(startKMer.size(), EMPTY);
 		for(size_t i = 0; i < startKMer.size(); i++)
 		{
@@ -488,73 +487,53 @@ namespace SyntenyFinder
 			}
 		}
 
-		BulgedBranches bulges;
-		if(!AnyBulges(sequence, bifStorage, k, startKMer, endChar, bulges, minBranchSize))
-		{
-			return;
-		}
-
-		for (size_t numBulge = 0; numBulge < bulges.size(); ++numBulge)
-		{
-			for (size_t  idI = 0; idI < bulges[numBulge].size(); ++idI)
+		size_t maxRange = GetMaxRange(minBranchSize);
+		for(size_t i = 0; i < startKMer.size(); i++)
+		{				
+			for(size_t j = i + 1; j < startKMer.size(); j++)
 			{
-				size_t kmerI = bulges[numBulge][idI];
-				if(!startKMer[kmerI].Valid())
+				bool fail = false;
+				size_t counterJ = 0;
+				size_t counterI = 0;
+				StrandIterator it = *startKMer[i];
+				StrandIterator jt = *startKMer[j];
+				size_t nextCommonBif = BifurcationStorage::NO_BIFURCATION;
+				while(counterI < maxRange && counterJ < maxRange && it.AtValidPosition() && jt.AtValidPosition() && !fail)
 				{
-					continue;
-				}
-
-				for(size_t  idJ = idI + 1; idJ < bulges[numBulge].size(); ++idJ)
-				{
-					size_t kmerJ = bulges[numBulge][idJ];
-					if(!startKMer[kmerJ].Valid() || endChar[kmerI] == endChar[kmerJ])
+					fail = true;
+					std::map<size_t, size_t> nextIBif;
+					std::map<size_t, size_t> nextJBif;
+					CollectBifurcations(bifStorage, it, minBranchSize, maxRange - counterI, nextIBif, bifId);
+					CollectBifurcations(bifStorage, jt, minBranchSize, maxRange - counterJ, nextJBif, bifId);
+					for(std::map<size_t, size_t>::iterator bifIt = nextIBif.begin(); bifIt != nextIBif.end() && fail; ++bifIt)
 					{
-						continue;
-					}
-		
-					bool fail = false;
-					size_t counterJ = 0;
-					size_t counterI = 0;
-					StrandIterator it = *startKMer[kmerI];
-					StrandIterator jt = *startKMer[kmerJ];
-					size_t nextCommonBif = BifurcationStorage::NO_BIFURCATION;
-					while(counterI < maxRange && counterJ < maxRange && it.AtValidPosition() && jt.AtValidPosition() && !fail)
-					{
-						fail = true;
-						std::map<size_t, size_t> nextIBif;
-						std::map<size_t, size_t> nextJBif;
-						CollectBifurcations(bifStorage, it, minBranchSize, maxRange - counterI, nextIBif, bifId);
-						CollectBifurcations(bifStorage, jt, minBranchSize, maxRange - counterJ, nextJBif, bifId);
-						for(std::map<size_t, size_t>::iterator bifIt = nextIBif.begin(); bifIt != nextIBif.end() && fail; ++bifIt)
+						if(nextJBif.count(bifIt->first) > 0)
 						{
-							if(nextJBif.count(bifIt->first) > 0)
-							{
-								fail = false;
-								nextCommonBif = bifIt->first;
-								counterI += nextIBif[nextCommonBif];
-								counterJ += nextJBif[nextCommonBif];
-								std::advance(it, nextIBif[nextCommonBif]);
-								std::advance(jt, nextJBif[nextCommonBif]);
-							}
-						}
-					}
-
-					VisitData idata(kmerI, counterI);
-					VisitData jdata(kmerJ, counterJ);				
-					if(nextCommonBif != BifurcationStorage::NO_BIFURCATION && !Overlap(k, startKMer, idata, jdata))
-					{
-						std::vector<std::string> branchSet;
-						branchSet.push_back(GetString(*startKMer[kmerI], counterI + k));
-						branchSet.push_back(GetString(*startKMer[kmerJ], counterJ + k));
-						if(branchSet[0] != branchSet[1])
-						{
-							ret.push_back(SuperBulge(counterI + counterJ, bifId, nextCommonBif, idata, jdata, branchSet));
+							fail = false;
+							nextCommonBif = bifIt->first;
+							counterI += nextIBif[nextCommonBif];
+							counterJ += nextJBif[nextCommonBif];
+							std::advance(it, nextIBif[nextCommonBif]);
+							std::advance(jt, nextJBif[nextCommonBif]);
 						}
 					}
 				}
-			}
+
+				VisitData idata(i, counterI);
+				VisitData jdata(j, counterJ);				
+				if(nextCommonBif != BifurcationStorage::NO_BIFURCATION && !Overlap(k, startKMer, idata, jdata))
+				{
+					std::vector<std::string> branchSet;
+					branchSet.push_back(GetString(*startKMer[i], counterI + k));
+					branchSet.push_back(GetString(*startKMer[j], counterJ + k));
+					if(branchSet[0] != branchSet[1])
+					{
+						ret.push_back(SuperBulge(counterI + counterJ, bifId, nextCommonBif, idata, jdata, branchSet));
+					}
+				}
+			}				
 		}
-	}		
+	}	
 
 	bool BlockFinder::SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId)
 	{
