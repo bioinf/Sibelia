@@ -60,7 +60,7 @@ namespace SyntenyFinder
 		void SerializeGraph(size_t k, std::ostream & out);
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack());
 		void GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
-		size_t PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack(), size_t model = IndexedSequence::NO_MODEL, bool easy = false);
+		size_t PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t minPathLength, size_t maxIterations, ProgressCallBack f = ProgressCallBack(), size_t model = IndexedSequence::NO_MODEL, bool easy = false);
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
 		typedef std::vector<Pos> PosVector;
@@ -132,7 +132,7 @@ namespace SyntenyFinder
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
 		bool TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize);
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
-		size_t SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
+		size_t SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t minPathSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData);
 		bool SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId);
 		void RestoreCornerBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,

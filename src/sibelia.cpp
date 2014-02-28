@@ -285,7 +285,7 @@ int main(int argc, char * argv[])
 			bool easily = true;
 			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
 			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;			
-			bulges = finder->PerformGraphSimplifications(stage[i].k, stage[i].maxBranchSize, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, easily);
+			bulges = finder->PerformGraphSimplifications(stage[i].k, stage[i].maxBranchSize, stage[i].minPathLength, maxIterations.getValue(), PutProgressChr, SyntenyFinder::IndexedSequence::NO_MODEL, easily);
 
 			std::cout << "Bulges = " << bulges << std::endl;
 			std::cerr << std::endl;

@@ -72,7 +72,7 @@ namespace SyntenyFinder
 		}
 	}
 
-	size_t BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f, size_t model, bool easy)
+	size_t BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t minPathLength, size_t maxIterations, ProgressCallBack f, size_t model, bool easy)
 	{
 		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_, true, model);
 		iseq_ = &iseq;
@@ -81,7 +81,7 @@ namespace SyntenyFinder
 		size_t bulges = 0;
 		if(easy)
 		{
-			bulges = SimplifyGraphEasily(sequence, bifStorage, k, minBranchSize, maxIterations, f);
+			bulges = SimplifyGraphEasily(sequence, bifStorage, k, minBranchSize, minPathLength, maxIterations, f);
 		}
 		else
 		{

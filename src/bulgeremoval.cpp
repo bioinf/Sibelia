@@ -470,7 +470,7 @@ namespace SyntenyFinder
 
 	}
 
-	void FindSuperBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId, std::vector<SuperBulge> & ret)
+	void FindSuperBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t minPathLength, size_t bifId, std::vector<SuperBulge> & ret)
 	{
 		IteratorProxyVector startKMer;
 		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
@@ -525,8 +525,8 @@ namespace SyntenyFinder
 				{
 					std::vector<std::string> branchSet;
 					branchSet.push_back(GetString(*startKMer[i], counterI + k));
-					branchSet.push_back(GetString(*startKMer[j], counterJ + k));
-					if(branchSet[0] != branchSet[1])
+					branchSet.push_back(GetString(*startKMer[j], counterJ + k));					
+					if(branchSet[0] != branchSet[1] && branchSet[0].size() + branchSet[1].size() >= 2 * minPathLength)
 					{
 						ret.push_back(SuperBulge(counterI + counterJ, bifId, nextCommonBif, idata, jdata, branchSet));
 					}
@@ -616,7 +616,7 @@ namespace SyntenyFinder
 		}			
 	}	
 
-	size_t BlockFinder::SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
+	size_t BlockFinder::SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t minPathSize, size_t maxIterations, ProgressCallBack callBack)
 	{
 		size_t count = 0;
 		size_t iterations = 0;
@@ -637,7 +637,7 @@ namespace SyntenyFinder
 			std::vector<SuperBulge> superBulge;
 			for(size_t id = 0; id <= bifStorage.GetMaxId(); id++)
 			{
-				FindSuperBulges(sequence, bifStorage, k, minBranchSize, id, superBulge);
+				FindSuperBulges(sequence, bifStorage, k, minBranchSize, minPathSize, id, superBulge);
 				if(++count >= threshold && !callBack.empty())
 				{
 					count = 0;
