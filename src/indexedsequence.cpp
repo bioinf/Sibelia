@@ -87,7 +87,7 @@ namespace SyntenyFinder
 	}
 
 	void IndexedSequence::Test()
-	{	
+	{			
 		for(size_t strand = 0; strand < 2; strand++)
 		{
 			for(size_t chr = 0; chr < sequence_->ChrNumber(); chr++)
