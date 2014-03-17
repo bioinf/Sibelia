@@ -141,6 +141,8 @@ namespace SyntenyFinder
 			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBackward);
 		void ScanBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData,
 			std::vector<std::pair<size_t, size_t> > & lookForward, std::vector<std::pair<size_t, size_t> > & lookBackward);
+		void ScanBifurcationsScale(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData copyData,
+			std::vector<std::pair<size_t, size_t> > & lookForward, std::vector<std::pair<size_t, size_t> > & lookBackward);
 		typedef std::vector<Bool> Indicator;
 		typedef std::vector<Edge>::iterator EdgeIterator;
 		

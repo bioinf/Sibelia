@@ -218,6 +218,32 @@ namespace SyntenyFinder
 		}
 	}
 
+	void BlockFinder::ScanBifurcationsScale(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData,
+		VisitData copyData, std::vector<std::pair<size_t, size_t> > & lookForward, std::vector<std::pair<size_t, size_t> > & lookBackward)
+	{
+		size_t bifId;
+		lookForward.clear();
+		lookBackward.clear();
+		StrandIterator srcAMer = ++(*startKMer[sourceData.kmerId]);
+		StrandIterator srcBMer = ++(AdvanceForward(*startKMer[sourceData.kmerId], sourceData.distance + k).Invert());
+		for(size_t i = 1; i < sourceData.distance; i++, ++srcAMer, ++srcBMer)
+		{
+			bifId = bifStorage.GetBifurcation(srcAMer);
+			if(bifId != BifurcationStorage::NO_BIFURCATION)
+			{
+				size_t pos = i * copyData.distance / sourceData.distance;
+				lookForward.push_back(std::make_pair(i, bifId));
+			}
+
+			bifId = bifStorage.GetBifurcation(srcBMer);
+			if(bifId != BifurcationStorage::NO_BIFURCATION)
+			{
+				size_t pos = i * copyData.distance / sourceData.distance;
+				lookBackward.push_back(std::make_pair(pos, bifId));
+			}
+		}
+	}
+
 	void BlockFinder::ScanBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData,
 		std::vector<std::pair<size_t, size_t> > & lookForward, std::vector<std::pair<size_t, size_t> > & lookBackward)
 	{
@@ -307,7 +333,10 @@ namespace SyntenyFinder
 	#endif
 		std::vector<std::pair<size_t, size_t> > lookForward;
 		std::vector<std::pair<size_t, size_t> > lookBackward;
+		std::vector<std::pair<size_t, size_t> > lookForwardTarget;
+		std::vector<std::pair<size_t, size_t> > lookBackwardTarget;
 		EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBackward);
+		ScanBifurcationsScale(sequence, bifStorage, k, startKMer, targetData, sourceData, lookForwardTarget, lookBackwardTarget);
 		StrandIterator sourceIt = *startKMer[sourceData.kmerId];
 		StrandIterator targetIt = *startKMer[targetData.kmerId];
 		sequence.Replace(AdvanceForward(sourceIt, k),
@@ -318,7 +347,10 @@ namespace SyntenyFinder
 			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
 		RestoreCornerBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBackward);
 		ScanBifurcations(sequence, bifStorage, k, startKMer, sourceData, lookForward, lookBackward);
+		VisitData newTargetData(targetData.kmerId, sourceData.distance);
 		RestoreMainBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBackward);
+		RestoreMainBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForwardTarget, lookBackwardTarget);
+		RestoreMainBifurcations(sequence, bifStorage, k, startKMer, sourceData, newTargetData, lookForwardTarget, lookBackwardTarget);
 	#ifdef _DEBUG
 		std::cerr << "After: " << std::endl;
 //		BlockFinder::PrintRaw(sequence, std::cerr);
