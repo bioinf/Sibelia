@@ -270,7 +270,7 @@ def process_block(block, align, block_index):
 	for index, block in enumerate(instance_list):
 		description = block.chr_id + str(block.start)
 		write_fasta_records([FastaRecord(id=block.chr_id, description=description, seq=block.seq)], file_name[index])
-	
+
 	cmd = lagan_cmd if unique else mlagan_cmd
 	worker = subprocess.Popen(cmd, stdout=alignment_handle, stderr=subprocess.PIPE)
 	_, stderr = worker.communicate()
@@ -291,7 +291,7 @@ def process_block(block, align, block_index):
 							contig_id, reference_start, reference_direction, assembly_direction)	
 	for file_name in [alignment_file] + file_name:
 		os.remove(file_name)
-	return (ret, alignment)		
+	return (ret, alignment)			
 
 def get_size(record):
 	return abs(record.end - record.start) + 1

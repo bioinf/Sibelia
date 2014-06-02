@@ -8,7 +8,7 @@
 #include "postprocessor.h"
 #include "util.h"
 
-const std::string VERSION("3.0.4");
+const std::string VERSION("3.0.5");
 
 class GreaterIntegerConstraint: public TCLAP::Constraint<int>
 {

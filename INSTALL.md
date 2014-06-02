@@ -4,6 +4,8 @@ Installation
 
 "Sibelia" is distributed both as binaries (Linux and OS X) and as source codes.
 If you build "Sibelia" from source codes, you have to install it before usage.
+However, if you download the binary distribution, you can use "Sibelia" without
+installing it.
 
 Building from the Source Code
 -----------------------------
