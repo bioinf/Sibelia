@@ -1,3 +1,13 @@
+Sibelia 3.0.5
+=============
+* Removed commandline options -a, --alignment
+* Added commandline options --maf, --xmfa
+* Changed permissions on LAGAN scripts to run on some platforms
+* Fixed structure of the directory "share"
+* Fixed a bug with misorder of aligned repeats 
+  (affected -a option of C-Sibelia only)
+* Fixed some compiler warnings yielded by LAGAN sources
+
 Sibelia 3.0.4
 =============
 * Released postprocessing scripts for circos pictures (see CIRCOS_HELPER.md)

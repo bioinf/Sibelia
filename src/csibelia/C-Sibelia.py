@@ -24,7 +24,7 @@ LAGAN_DIR = os.path.join(INSTALL_DIR, '..', 'lib', 'Sibelia', 'lagan')
 os.environ['LAGAN_DIR'] = LAGAN_DIR
 
 FastaRecord = collections.namedtuple('FastaRecord', ['seq', 'description', 'id'])
-SyntenyBlock = collections.namedtuple('SyntenyBlock', ['seq', 'chr_id', 'strand', 'id', 'start', 'end', 'chr_num'])
+SyntenyBlock = collections.namedtuple('SyntenyBlock', ['seq', 'chr_id', 'strand', 'id', 'start', 'end', 'chr_num', 'chr_size'])
 AlignmentRecord = collections.namedtuple('AlignmentRecord', ['body', 'block_instance'])
 
 class FailedStartException(Exception):
@@ -40,8 +40,9 @@ class DuplicatedSequenceIdException(Exception):
 def unzip_list(zipped_list):
 	return ([x for (x, _) in zipped_list], [y for (_, y) in zipped_list])
 
-def parse_blocks_coords(blocks_file):		
+def parse_blocks_coords(blocks_file, genome):
 	group = [[]]
+	num_seq_size = dict()
 	num_seq_id = dict()
 	seq_id_num = dict()
 	line = [l.strip() for l in open(blocks_file) if l.strip()]	
@@ -49,10 +50,11 @@ def parse_blocks_coords(blocks_file):
 		if l[0] == '-':
 			group.append([])
 		else:
-			group[-1].append(l)			
+			group[-1].append(l)		
 	for l in group[0][1:]:	
 		l = l.split()
 		num_seq_id[l[0]] = l[2]
+		num_seq_size[int(l[0])] = int(l[1])
 		seq_id_num[l[2]] = int(l[0])		
 	ret = dict()
 	for g in [g for g in group[1:] if g]:		
@@ -64,8 +66,20 @@ def parse_blocks_coords(blocks_file):
 			start = int(l[2])
 			end = int(l[3])
 			chr_num = int(l[0])
-			ret[block_id].append(SyntenyBlock(seq='', chr_id=chr_id, strand=l[1], id=block_id, start=start, end=end, chr_num=chr_num))		
-	return (ret, seq_id_num)
+			strand = l[1]
+			if strand == '+':
+				true_start = start - 1
+				true_end = end
+			else:
+				true_start = end - 1
+				true_end = start
+			seq_num = int(l[0]) - 1
+			seq = genome[seq_num].seq[true_start:true_end]
+			if strand == '-':
+				seq = reverse_complementary(seq)
+			ret[block_id].append(SyntenyBlock(seq=seq, chr_id=chr_id, strand=strand, id=block_id, start=start, 
+							end=end, chr_num=chr_num, chr_size=num_seq_size[chr_num]))
+	return ret
 
 def reverse_complementary(seq):
 	comp = dict()
@@ -465,6 +479,21 @@ def write_alignments_xmfa(alignment_list, handle):
 			write_wrapped_text(alignment.body, handle)
 		print >> handle, '='
 
+def write_alignments_maf(alignment_list, noparalog, handle):
+	print >> handle, '##maf version=1\n'
+	for group in alignment_list:
+		if is_paralog(group) and noparalog:
+			continue
+		print >> handle, 'a'
+		for alignment in group:
+			block = alignment.block_instance
+			start = min(block.start, block.end) - 1
+			end = max(block.start, block.end)
+			if block.strand != '+':
+				start = block.chr_size - end
+			print >> handle, 's', block.chr_id, start, abs(block.end - block.start) + 1, block.strand, block.chr_size, alignment.body
+		print >> handle, ''
+
 def write_insertions_text(variant_list, handle):
 	header = ['SEQ_ID', 'POS', 'FRAGMENT']
 	print >> handle, '\t'.join(header)
@@ -499,7 +528,8 @@ parser.add_argument('-m', '--minblocksize', help='Minimum size of a synteny bloc
 parser.add_argument('-p', '--processcount', help='Number of running processes', type=int, default=1)
 parser.add_argument('-i', '--maxiterations', help='Maximum number of iterations during a stage of simplification',
 					type=int, default=4)
-parser.add_argument('-a', '--alignment', help='Output file for storing alignments in XMFA format')
+parser.add_argument('--maf', help='Output file for storing alignments in MAF format')
+parser.add_argument('--xmfa', help='Output file for storing alignments in XMFA format')
 parser.add_argument('-v', '--variant', help='Output file with detected variants', default='variant.vcf')
 parser.add_argument('-u', '--unmapped', help='Output file for storing unmapped insertions in text format', type=str)
 parser.add_argument('--debug', help='Generate output in text files', action='store_true')
@@ -520,6 +550,7 @@ try:
 			temp_dir = args.tempdir
 	else:
 		temp_dir = args.outdir	
+
 	sibelia_cmd = [os.path.join(INSTALL_DIR, 'Sibelia'), 					
 				args.reference, args.assembly,
 				'-q', 
@@ -551,9 +582,8 @@ try:
 			raise DuplicatedSequenceIdException(id)
 	
 	print >> sys.stderr, "Calling variants..."
-	variant_list, insertion_list, alignment_list = call_variants(temp_dir, reference_seq, assembly_seq,
-												 				args.minblocksize, args.processcount, 
-												 				not args.alignment is None)
+	do_alignment = (not args.xmfa is None) or (not args.maf is None)
+	variant_list, insertion_list, alignment_list = call_variants(temp_dir, reference_seq, assembly_seq, args.minblocksize, args.processcount, do_alignment)
 	variant_list.sort(key=variant_key)
 	vcf_file = args.variant if args.outdir is None else os.path.join(args.outdir, args.variant)			
 	vcf_output = open(vcf_file, 'w')
@@ -571,12 +601,19 @@ try:
 		generate_conventional_output(variant_list, conventional_handle)
 		generate_conventional_output(insertion_list, conventional_handle)
 		conventional_handle.close()
-		
-	if not args.alignment is None:
-		alignment_file = args.alignment if args.outdir is None else os.path.join(args.outdir, args.alignment)
+			
+	if not args.xmfa is None:
+		alignment_file = args.xmfa if args.outdir is None else os.path.join(args.outdir, args.xmfa)
 		alignment_handle = open(alignment_file, 'w')
 		write_alignments_xmfa(alignment_list, alignment_handle)
 		alignment_handle.close()
+
+	if not args.maf is None:
+		alignment_file = args.maf if args.outdir is None else os.path.join(args.outdir, args.maf)
+		alignment_handle = open(alignment_file, 'w')
+		write_alignments_maf(alignment_list, alignment_handle)
+		alignment_handle.close()
+
 			
 	if args.outdir is None:
 		shutil.rmtree(temp_dir)	
