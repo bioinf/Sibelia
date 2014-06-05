@@ -338,23 +338,7 @@ def depict_coverage(block_seq, reference_seq, assembly_seq, base_cover):
 					
 def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num, align):	
 	os.chdir(directory)
-	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
-	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
-	blocks_coords, seq_id_num = unzip_list([parse_blocks_coords(coords_file) for coords_file in coords_file_list])
-	seq_id_num = seq_id_num[0]
-	block_seq = dict()	
-	for record in parse_fasta_file(BLOCKS_FILE):
-		header = parse_header(record.description)
-		chr_id = header['Seq']
-		strand = header['Strand']
-		block_id = int(header['Block_id'])
-		start = int(header['Start'])
-		end = int(header['End'])
-		if block_id not in block_seq:
-			block_seq[block_id] = []
-		block = SyntenyBlock(chr_id=chr_id, seq=record.seq, id=block_id, strand=strand, start=start, end=end, chr_num=seq_id_num[chr_id])
-		block_seq[block_id].append(block)
-
+	block_seq = parse_blocks_coords('blocks_coords.txt', reference_seq + assembly_seq)
 	pool = multiprocessing.Pool(proc_num)
 	annotated_block = []	
 	for synteny_block_id, instance_list in block_seq.items():
