@@ -336,12 +336,14 @@ def depict_coverage(block_seq, reference_seq, assembly_seq, base_cover):
 				base_cover[instance.chr_id][start:end] = [block_id] * (end - start)
 	return base_cover	
 					
-def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_num, align):	
+def call_variants(directory, genomes, reference_seq, assembly_seq, min_block_size, proc_num, align):	
 	os.chdir(directory)
-	block_seq = parse_blocks_coords('blocks_coords.txt', reference_seq + assembly_seq)
+	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
+	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]	
+	blocks_coords = [parse_blocks_coords(file_name, genomes) for file_name in coords_file_list]
 	pool = multiprocessing.Pool(proc_num)
 	annotated_block = []	
-	for synteny_block_id, instance_list in block_seq.items():
+	for synteny_block_id, instance_list in blocks_coords[-1].items():
 		unique = False		
 		if len(instance_list) == 2:		
 			reference_instance, assembly_instance = determine_unique_block(instance_list, reference_seq, min_block_size)			
@@ -367,6 +369,7 @@ def call_variants(directory, reference_seq, assembly_seq, min_block_size, proc_n
 	all_cover = None
 	for stage in blocks_coords:
 		all_cover = depict_coverage(stage, reference_seq, assembly_seq, all_cover)
+	block_seq = blocks_coords[-1]
 	main_cover = depict_coverage(block_seq, reference_seq, assembly_seq, None)	
 	insertion = []
 	os.chdir('..')	
@@ -463,11 +466,9 @@ def write_alignments_xmfa(alignment_list, handle):
 			write_wrapped_text(alignment.body, handle)
 		print >> handle, '='
 
-def write_alignments_maf(alignment_list, noparalog, handle):
+def write_alignments_maf(alignment_list, handle):
 	print >> handle, '##maf version=1\n'
 	for group in alignment_list:
-		if is_paralog(group) and noparalog:
-			continue
 		print >> handle, 'a'
 		for alignment in group:
 			block = alignment.block_instance
@@ -548,7 +549,7 @@ try:
 				'-i', str(args.maxiterations),
 				'-r']
 	print >> sys.stderr, "Calculating synteny blocks..."
-
+	genomes = parse_fasta_file(args.reference) + parse_fasta_file(args.assembly)
 	worker = subprocess.Popen(sibelia_cmd, stdout=None, stderr=subprocess.PIPE)
 	_, stderr = worker.communicate()
 	if worker.returncode != 0:
@@ -567,7 +568,7 @@ try:
 	
 	print >> sys.stderr, "Calling variants..."
 	do_alignment = (not args.xmfa is None) or (not args.maf is None)
-	variant_list, insertion_list, alignment_list = call_variants(temp_dir, reference_seq, assembly_seq, args.minblocksize, args.processcount, do_alignment)
+	variant_list, insertion_list, alignment_list = call_variants(temp_dir, genomes, reference_seq, assembly_seq, args.minblocksize, args.processcount, do_alignment)
 	variant_list.sort(key=variant_key)
 	vcf_file = args.variant if args.outdir is None else os.path.join(args.outdir, args.variant)			
 	vcf_output = open(vcf_file, 'w')
