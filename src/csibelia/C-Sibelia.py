@@ -271,18 +271,18 @@ def find_instance(instance_list, reference_seq_id, in_reference):
 			return instance
 	return None
 
-def process_block(block, align, block_index):	
+def process_block(block):	
 	pid = str(os.getpid()) + '_'	
 	alignment_file = pid + 'align.fasta'
-	unique, synteny_block_id, instance_list = block[block_index]
-	if not align and not unique:
-		return ([], [])
+	unique, synteny_block_id, instance_list = block
 	file_name = [pid + str(i) + 'block.fasta' for i, _ in enumerate(instance_list)]	
 	mlagan_cmd = [os.path.join(LAGAN_DIR, "mlagan")] + file_name
 	lagan_cmd = ['perl', os.path.join(LAGAN_DIR, "lagan.pl")] + file_name + ['-mfa']
 	alignment_handle = open(alignment_file, 'w')
+	alignment_block = dict()
 	for index, block in enumerate(instance_list):
-		description = block.chr_id + str(block.start)
+		description = block.chr_id + str(block.start) + '_' + str(block.end)
+		alignment_block[description] = block
 		write_fasta_records([FastaRecord(id=block.chr_id, description=description, seq=block.seq)], file_name[index])
 
 	cmd = lagan_cmd if unique else mlagan_cmd
@@ -291,18 +291,19 @@ def process_block(block, align, block_index):
 	if worker.returncode != 0:
 		raise FailedStartException(stderr)
 	alignment_handle.close()
-	alignment = [record.seq for record in parse_fasta_file(alignment_file)]
-	alignment = [AlignmentRecord(body=align, block_instance=inst) for (align, inst) in zip(alignment, instance_list)]
+	alignment = [record for record in parse_fasta_file(alignment_file)]
+	alignment = [AlignmentRecord(body=align.seq, block_instance=alignment_block[align.description]) for align in alignment]
 	ret = []
-	if unique:			
+	if unique:	
 		reference_instance, assembly_instance = instance_list
 		reference_start = reference_instance.start
 		reference_chr_id = reference_instance.chr_id	
-		contig_id = assembly_instance.chr_id				
+		contig_id = assembly_instance.chr_id	
 		reference_direction = +1 if reference_instance.strand == '+' else -1
 		assembly_direction = +1 if reference_instance.strand == '+' else -1
 		ret = parse_alignment(alignment_file, reference_chr_id, synteny_block_id,
-							contig_id, reference_start, reference_direction, assembly_direction)	
+		contig_id, reference_start, reference_direction, assembly_direction)	
+
 	for file_name in [alignment_file] + file_name:
 		os.remove(file_name)
 	return (ret, alignment)			
@@ -353,8 +354,7 @@ def call_variants(directory, genomes, reference_seq, assembly_seq, min_block_siz
 		annotated_block.append((unique, synteny_block_id, instance_list))
 															
 	if annotated_block:		
-		process_block_f = functools.partial(process_block, annotated_block, align)
-		result = pool.map_async(process_block_f, range(len(annotated_block))).get()
+		result = pool.map_async(process_block, annotated_block).get()
 		variant, alignment = unzip_list(result)
 		pool.close()
 		pool.join()
