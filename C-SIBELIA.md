@@ -69,14 +69,15 @@ directory.
 
 Alignment output
 ----------------
-You can also obtain alignment of obtained synteny blocks. To get this file, use
-the "-a" flag:
+You can also obtain alignment of obtained synteny blocks. You can use
+two options to get alignment either in MAF or XMFA formats respectively:
 	
-	-a <file name> or --alignment <file name>
+	--maf <file_name>
+	--xmfa <file name>
 
 If you specify the "-o" option, then alignment file will be put in that
-directory. Alignments are listed in XMFA format. Please note that these
-alignments may also indicate intergenomic repeats.
+directory. Please note that these alignments may also indicate intergenomic
+repeats.
 
 Directory for synteny blocks output
 -----------------------------------
