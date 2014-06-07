@@ -41,7 +41,7 @@ private:
 };
 
 int main(int argc, char * argv[])
-{	
+{
 	signal(SIGINT, SignalHandler);
 	signal(SIGABRT, SignalHandler);	
 	signal(SIGTERM, SignalHandler);

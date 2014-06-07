@@ -1,6 +1,6 @@
 CC = g++
 OPTFLAGS = 
-CFLAGS = $(OPTFLAGS) -O3
+CFLAGS = $(OPTFLAGS) -O3 -w
 CLINKER = g++ 
 # LIBDIR = -L/usr/local/lib
 MLIB =  -lm
