@@ -55,8 +55,20 @@ std::vector<std::pair<int, int> > LooseStageFile()
 	{
 		std::make_pair(30, 150),
 		std::make_pair(100, 1000),
-		std::make_pair(1000, 5000),		
+		std::make_pair(1000, 5000),
 		std::make_pair(5000, 15000)
+	};
+
+	return std::vector<std::pair<int, int> >(stage, stage + sizeof(stage) / sizeof(stage[0]));
+}
+
+std::vector<std::pair<int, int> > FarStageFile()
+{
+	std::pair<int, int> stage[] = 
+	{
+		std::make_pair(15, 120),
+		std::make_pair(100, 500),
+		std::make_pair(500, 1500)
 	};
 
 	return std::vector<std::pair<int, int> >(stage, stage + sizeof(stage) / sizeof(stage[0]));

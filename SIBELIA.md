@@ -19,8 +19,8 @@ try to change directory used for temporary files (see section "Directory for
 temporary files").
 
 Above commands will run "Sibelia" on the file "Helicobacter_pylori.fasta" with
-the "loose" simplification parameters. There is another simplification
-parameters set, called "fine". To run "Sibelia" on "Helicobacter_pylori.fasta"
+the "loose" simplification parameters. There are two another simplification
+parameters sets, called "fine" and "far". To run "Sibelia" on "Helicobacter_pylori.fasta"
 with "fine" parameters set, type:
 
 	Sibelia -s fine Helicobacter_pylori.fasta
@@ -31,6 +31,9 @@ fewer blocks, but longer. And it may lose some small synteny blocks
 and their coverage is worse. Usually "loose" is the best choice, but if you do
 not want to lose information about small-scale rearrangements,  use "fine". See
 also section "Output description" for detailed depiction of the output format.
+The "far" parameters set can be used for analysis of distantly-related genomes.
+However, usage of this set requires more computational time and space and may
+be not appropriate in case of many genomes.
 
 If you are not satisfied by the results (poor coverage, for example), try to set
 simplification parameters manually (see section "Fine tuning"). 
@@ -305,13 +308,13 @@ Parameters set
 --------------
 Default value = not set. To select the parameters set, use cmd parameter:
 
-	-s <loose|fine> or --parameters <loose|fine>
+	-s <loose|fine|far> or --parameters <loose|fine>
 
 This option is incompatible with "-k", you must specify one of these, not both.
 Approach used in "Sibelia" is parameter dependent. To understand the details,
 please see the next section and [1]. The "loose" option produces longer blocks
 and better coverage, while "fine" can capture small-scale rearrangements, for
-example, inversions of size < 15 000 BP. 
+example, inversions of size < 15 000 BP. The "far" set is for distant genomes.
 
 Custom parameters set
 ---------------------
@@ -373,6 +376,13 @@ The "fine" set consists of 3 stages and it's final values are less:
 | 100      | 500       |
 | 500      | 1500      |
 
+The "far" set is for distant genomes:
+
+| K        | D         |
+| :------- | --------: |
+| 15       | 120       |
+| 100      | 500       |
+| 500      | 1500      |
 
 As you can see, "loose" set is more aggressive -- at it's final stage it glues
 together 5000-mers that are separated from each other by at most 15000 symbols.

@@ -69,15 +69,14 @@ directory.
 
 Alignment output
 ----------------
-You can also obtain alignment of obtained synteny blocks. You can use
-two options to get alignment either in MAF or XMFA formats respectively:
+You can also obtain alignment of obtained synteny blocks:
 	
 	--maf <file_name>
-	--xmfa <file name>
 
 If you specify the "-o" option, then alignment file will be put in that
 directory. Please note that these alignments may also indicate intergenomic
-repeats.
+repeats. "C-Sibelia" output was verified by the validator from "mafTools"
+(https://github.com/dentearl/mafTools/).
 
 Directory for synteny blocks output
 -----------------------------------

@@ -32,7 +32,7 @@ public:
 
 	std::string description() const
 	{
-		return typeDesc_;   
+		return typeDesc_;
 	}
 
 private:
@@ -43,19 +43,20 @@ private:
 int main(int argc, char * argv[])
 {
 	signal(SIGINT, SignalHandler);
-	signal(SIGABRT, SignalHandler);	
+	signal(SIGABRT, SignalHandler);
 	signal(SIGTERM, SignalHandler);
 
-	std::stringstream parsets;		
-	const std::string parameterSetNameArray[] = {"loose", "fine"};
+	std::stringstream parsets;
+	const std::string parameterSetNameArray[] = {"loose", "fine", "far"};
 	std::vector<std::string> parameterSetName(parameterSetNameArray, parameterSetNameArray + sizeof(parameterSetNameArray) / sizeof(parameterSetNameArray[0]));
 	std::map<std::string, std::vector<std::pair<int, int> > > defaultParameters;
 	defaultParameters["loose"] = LooseStageFile();
 	defaultParameters["fine"] = FineStageFile();
+	defaultParameters["far"] = FarStageFile();
 	GreaterIntegerConstraint greaterThanOne(1);
 	GreaterIntegerConstraint greaterThanZero(0);
 	try
-	{  
+	{
 		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', VERSION);
 		TCLAP::ValueArg<int> maxIterations("i",
 			"maxiterations",
@@ -81,7 +82,7 @@ int main(int argc, char * argv[])
 			"gff",
 			"Use GFF format for reporting blocks coordinates",
 			cmd,
-			false);		
+			false);
 
 		TCLAP::SwitchArg allStagesFlag("",
 			"allstages",

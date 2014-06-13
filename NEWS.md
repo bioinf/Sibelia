@@ -1,7 +1,8 @@
 Sibelia 3.0.5
 =============
 * Removed commandline options -a, --alignment
-* Added commandline options --maf, --xmfa
+* Added commandline options --maf
+* Added third parameters set "far"
 * Changed permissions of LAGAN scripts to run on some platforms
 * Changed structure of the directory "share" (Linux platforms only)
 * Fixed a bug with misorder of aligned repeats 

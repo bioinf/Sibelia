@@ -514,7 +514,6 @@ parser.add_argument('-p', '--processcount', help='Number of running processes', 
 parser.add_argument('-i', '--maxiterations', help='Maximum number of iterations during a stage of simplification',
 					type=int, default=4)
 parser.add_argument('--maf', help='Output file for storing alignments in MAF format')
-parser.add_argument('--xmfa', help='Output file for storing alignments in XMFA format')
 parser.add_argument('-v', '--variant', help='Output file with detected variants', default='variant.vcf')
 parser.add_argument('-u', '--unmapped', help='Output file for storing unmapped insertions in text format', type=str)
 parser.add_argument('--debug', help='Generate output in text files', action='store_true')
@@ -567,7 +566,7 @@ try:
 			raise DuplicatedSequenceIdException(id)
 	
 	print >> sys.stderr, "Calling variants..."
-	do_alignment = (not args.xmfa is None) or (not args.maf is None)
+	do_alignment = (not args.maf is None)
 	variant_list, insertion_list, alignment_list = call_variants(temp_dir, genomes, reference_seq, assembly_seq, args.minblocksize, args.processcount, do_alignment)
 	variant_list.sort(key=variant_key)
 	vcf_file = args.variant if args.outdir is None else os.path.join(args.outdir, args.variant)			
@@ -586,12 +585,6 @@ try:
 		generate_conventional_output(variant_list, conventional_handle)
 		generate_conventional_output(insertion_list, conventional_handle)
 		conventional_handle.close()
-			
-	if not args.xmfa is None:
-		alignment_file = args.xmfa if args.outdir is None else os.path.join(args.outdir, args.xmfa)
-		alignment_handle = open(alignment_file, 'w')
-		write_alignments_xmfa(alignment_list, alignment_handle)
-		alignment_handle.close()
 
 	if not args.maf is None:
 		alignment_file = args.maf if args.outdir is None else os.path.join(args.outdir, args.maf)
