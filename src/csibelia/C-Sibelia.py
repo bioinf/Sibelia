@@ -335,19 +335,23 @@ def depict_coverage(block_seq, reference_seq, assembly_seq, base_cover):
 				start = min(instance.start, instance.end) - 1
 				end = max(instance.start, instance.end)
 				base_cover[instance.chr_id][start:end] = [block_id] * (end - start)
-	return base_cover	
-					
-def call_variants(directory, genomes, reference_seq, assembly_seq, min_block_size, proc_num, align):	
+	return base_cover
+
+def coords_key(file_name):
+	return int(file_name.split('.')[0][13:])
+
+def call_variants(directory, genomes, reference_seq, assembly_seq, min_block_size, proc_num, align):
 	os.chdir(directory)
-	coords_file_re = re.compile('blocks_coords[0-9]*.txt')	
-	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]	
+	coords_file_re = re.compile('blocks_coords[0-9]*.txt')
+	coords_file_list = [coords_file for coords_file in os.listdir('.') if coords_file_re.match(coords_file)]
+	coords_file_list.sort(key=coords_key)
 	blocks_coords = [parse_blocks_coords(file_name, genomes) for file_name in coords_file_list]
 	pool = multiprocessing.Pool(proc_num)
-	annotated_block = []	
+	annotated_block = []
 	for synteny_block_id, instance_list in blocks_coords[-1].items():
-		unique = False		
-		if len(instance_list) == 2:		
-			reference_instance, assembly_instance = determine_unique_block(instance_list, reference_seq, min_block_size)			
+		unique = False
+		if len(instance_list) == 2:
+			reference_instance, assembly_instance = determine_unique_block(instance_list, reference_seq, min_block_size)
 			if (not reference_instance is None):
 				unique = True
 				instance_list = [reference_instance, assembly_instance]
