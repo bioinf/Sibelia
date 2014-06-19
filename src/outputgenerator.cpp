@@ -333,7 +333,7 @@ namespace SyntenyFinder
 		TryOpenFile(outFile, config);
 		config << circosTemplate;		
 		WriteCircosLinks(outDir, "circos.segdup.txt", history.back());
-		WriteCircosKaryoType(outDir, "circos.sequences.txt", history.back());
+		WriteCircosKaryoType(outDir, "circos.sequences.txt", history);
 		config << "<highlights>\n\tfill_color = green" << std::endl;		
 		WriteCircosHighlight(outDir, "circos.highlight.txt", history.back(), 0, 0, true, config);		
 		for(std::vector<BlockList>::const_reverse_iterator it = ++history.rbegin(); it != history.rend(); ++it)
@@ -357,8 +357,8 @@ namespace SyntenyFinder
 		CreateOutDirectory(outDir);
 		TryOpenFile(outFile, config);
 		config << circosTemplate;		
-		WriteCircosLinks(outDir, "circos.segdup.txt", blockList);
-		WriteCircosKaryoType(outDir, "circos.sequences.txt", blockList);
+		WriteCircosLinks(outDir, "circos.segdup.txt", blockList);		
+		WriteCircosKaryoType(outDir, "circos.sequences.txt", std::vector<BlockList>(1, blockList));
 		config << "<highlights>\n\tfill_color = green" << std::endl;		
 		WriteCircosHighlight(outDir, "circos.highlight.txt", blockList, 0, 0, true, config);
 		config << "</highlights>" << std::endl;
@@ -455,14 +455,17 @@ namespace SyntenyFinder
 		config << "\t</highlight>" << std::endl;
 	}
 
-	void OutputGenerator::WriteCircosKaryoType(const std::string & outDir, const std::string & fileName, const BlockList & blockList) const
+	void OutputGenerator::WriteCircosKaryoType(const std::string & outDir, const std::string & fileName, const std::vector<BlockList> & history) const
 	{
 		std::ofstream karFile;		
 		TryOpenFile(outDir + "/" + fileName, karFile);
 		std::set<size_t> chrToShow;
-		for(BlockList::const_iterator it = blockList.begin(); it != blockList.end(); ++it)
+		for(std::vector<BlockList>::const_iterator jt = history.begin(); jt != history.end(); ++jt)
 		{
-			chrToShow.insert(it->GetChrId());
+			for(BlockList::const_iterator it = jt->begin(); it != jt->end(); ++it)
+			{
+				chrToShow.insert(it->GetChrId());
+			}
 		}
 
 		for (size_t i = 0; i < chrList_.size(); ++i)

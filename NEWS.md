@@ -8,6 +8,8 @@ Sibelia 3.0.5
 * Fixed a bug with misorder of aligned repeats 
   (affected -a option of C-Sibelia only)
 * Fixed some compiler warnings yielded by LAGAN sources
+* Fixed a bug in hierarchy circos output that resulted in uncompilable
+  configs for some datasets
 
 Sibelia 3.0.4
 =============
