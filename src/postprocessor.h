@@ -20,8 +20,8 @@ namespace SyntenyFinder
 	public:		
 		Postprocessor(const std::vector<FASTARecord> & chr, size_t minBlockSize);
 		void GlueStripes(std::vector<BlockInstance> & block);
-		void MatchRepeats(std::vector<BlockInstance> & block, const std::set<size_t> & referenceSequenceId);
-		void ImproveBlockBoundaries(std::vector<BlockInstance> & block, const std::set<size_t> & referenceSequenceId);
+		bool ImproveBlockBoundaries(std::vector<BlockInstance> & block);
+		void MatchRepeats(std::vector<BlockInstance> & block, const std::set<size_t> & referenceSequenceId);		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(Postprocessor);
 		const std::vector<FASTARecord> * chr_;
@@ -29,6 +29,7 @@ namespace SyntenyFinder
 		std::vector<std::vector<BlockInstance> > history_;
 		size_t minBlockSize_;
 		size_t correctionRange_;
+		void ImprovePairwiseBlockBoundaries(std::vector<BlockInstance> & block);
 		const BlockInstance* PreviousBlock(const BlockInstance & block, const std::vector<BlockInstance> & blockList);
 		const BlockInstance* NextBlock(const BlockInstance & block, const std::vector<BlockInstance> & blockList);
 		std::pair<size_t, size_t> DetermineLeftProbableBoundaries(std::vector<BlockInstance> & blockList, size_t block);

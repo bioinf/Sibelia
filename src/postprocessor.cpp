@@ -269,7 +269,7 @@ namespace SyntenyFinder
 		resize(rows(align), 2); 
 		assignSource(row(align, 0), seq1);
 		assignSource(row(align, 1), seq2);
-		localAlignment(align, Score<int>(25, -75, -75));
+		localAlignment(align, Score<int>(38, -25, -25));
 		coord1.first = clippedBeginPosition(row(align, 0));
 		coord1.second = clippedEndPosition(row(align, 0));
 		coord2.first = clippedBeginPosition(row(align, 1));
@@ -314,37 +314,35 @@ namespace SyntenyFinder
 		UpdateBlockBoundaries(blockList[assemblyBlock], assemblyLeftBoundaries, assemblyRightBoundaries, assemblyStartCoord, assemblyEndCoord);
 	}
 
-	void Postprocessor::ImproveBlockBoundaries(std::vector<BlockInstance> & blockList, const std::set<size_t> & referenceSequenceId)
+	bool Postprocessor::ImproveBlockBoundaries(std::vector<BlockInstance> & blockList)
 	{
-		referenceSequenceId_ = referenceSequenceId;
+		bool ret = false;
 		std::vector<IndexPair> group;
-		GroupBy(blockList, compareById, std::back_inserter(group));
+		std::vector<BlockInstance> newBlockList(blockList);
+		GroupBy(blockList, compareById, std::back_inserter(group));		
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
-		{
-			size_t inReference = 0;
-			size_t inAssembly = 0;
-			for(size_t i = it->first; i < it->second; i++) 
+		{		
+			for(size_t i = it->first; i < it->second; i++)
 			{
-				inReference += referenceSequenceId_.count(blockList[i].GetChrId()) > 0 ? 1 : 0;
-				inAssembly += referenceSequenceId_.count(blockList[i].GetChrId()) == 0 ? 1 : 0;
-			}
-				
-			if(inReference == 1 && inAssembly == 1)
-			{
-				if(referenceSequenceId_.count(blockList[it->first].GetChrId()) == 0)
+				std::vector<BlockInstance> tempBlock(2, blockList[i]);
+				for(size_t j = it->first; j < it->second; j++)
 				{
-					std::swap(blockList[it->first], blockList[it->first + 1]);
+					if(i != j)
+					{
+						tempBlock[1] = blockList[j];
+						CorrectBlocksBoundaries(tempBlock, 0, 1);
+						if(tempBlock[0].GetLength() > newBlockList[i].GetLength())
+						{
+							ret = true;
+							newBlockList[i] = tempBlock[0];
+						}
+					}
 				}
-
-				if(blockList[it->first].GetDirection() != DNASequence::positive)
-				{					
-					blockList[it->first].Reverse();
-					blockList[it->first + 1].Reverse();
-				}
-								
-				CorrectBlocksBoundaries(blockList, it->first, it->first + 1);				
 			}
 		}
+
+		blockList = newBlockList;
+		return true;
 	}
 
 	void Postprocessor::MatchRepeats(std::vector<BlockInstance> & blockList, const std::set<size_t> & referenceSequenceId)

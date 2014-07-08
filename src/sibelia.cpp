@@ -221,10 +221,11 @@ int main(int argc, char * argv[])
 		bool hierarchy = hierarchyPicture.isSet();
 		bool noPostProcessing = noPostProcessingFlag.isSet();
 		bool correctBoundaries = correctBoundariesFlag.isSet();
+		/*
 		if(correctBoundaries && (fileName.end() - fileName.begin()) != 2)
 		{
 			throw std::runtime_error("In correction mode only two FASTA files are acceptable");
-		}
+		}*/
 
 		std::vector<SyntenyFinder::FASTARecord> chrList;
 		for(std::vector<std::string>::const_iterator it = fileName.begin(); it != fileName.end(); it++)
@@ -302,7 +303,7 @@ int main(int argc, char * argv[])
 
 		if(correctBoundaries)
 		{			
-			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
+			processor.ImproveBlockBoundaries(history.back());
 		}
 
 		bool oldFormat = !GFFFormatFlag.isSet();
