@@ -22,27 +22,9 @@ namespace SyntenyFinder
 		VisitData(size_t kmerId, size_t distance): kmerId(kmerId), distance(distance) {}
 	};
 
-	struct SuperBulge
-	{
-		size_t score;
-		size_t startId;
-		size_t endId;
-		VisitData idata;
-		VisitData jdata;
-		std::vector<std::string> branchSet;
-		SuperBulge() {}
-		SuperBulge(size_t score, size_t startId, size_t endId, const VisitData & idata, const VisitData & jdata, const std::vector<std::string> & charSet):
-			score(score), startId(startId), endId(endId), idata(idata), jdata(jdata), branchSet(charSet.begin(), charSet.end()) {}
-
-		bool operator < (const SuperBulge & b) const
-		{
-			return score > b.score;
-		}
-	};
-
 	typedef char Bool;	
 	typedef std::vector<BifurcationStorage::IteratorProxy> IteratorProxyVector;
-	
+
 	class BlockFinder
 	{
 	public:
@@ -60,7 +42,7 @@ namespace SyntenyFinder
 		void SerializeGraph(size_t k, std::ostream & out);
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack());
 		void GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
-		size_t PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t minPathLength, size_t maxIterations, ProgressCallBack f = ProgressCallBack(), size_t model = IndexedSequence::NO_MODEL, bool easy = false);
+		size_t PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
 		typedef std::vector<Pos> PosVector;
@@ -73,8 +55,6 @@ namespace SyntenyFinder
 		const std::vector<FASTARecord> * originalChrList_;
 		static const char POS_FREE;
 		static const char POS_OCCUPIED;
-		static const size_t PROGRESS_STRIDE;
-		size_t bulgeId;
 
 		struct Edge
 		{
@@ -126,26 +106,18 @@ namespace SyntenyFinder
 		void PrintRaw(const DNASequence & s, std::ostream & out);
 		void PrintPath(const DNASequence & s, StrandIterator e, size_t k, size_t distance, std::ostream & out);
 		void SpellBulges(const DNASequence & sequence, size_t k, size_t bifStart, size_t bifEnd, const std::vector<StrandIterator> & startKMer, const std::vector<VisitData> & visitData);
-		
+
 		void Init(const std::vector<FASTARecord> & chrList);		
 		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
 		bool TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize);
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
-		size_t SimplifyGraphEasily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t minPathSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 		void CollapseBulgeGreedily(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData);
-		bool SimplifySuperBulge(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, SuperBulge bulge, std::set<size_t> & deprecateId);
-		void RestoreCornerBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,
-			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBackward);
-		void RestoreMainBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,
-			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBackward);
-		void ScanBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData,
-			std::vector<std::pair<size_t, size_t> > & lookForward, std::vector<std::pair<size_t, size_t> > & lookBackward);
-		void ScanBifurcationsScale(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData copyData,
-			std::vector<std::pair<size_t, size_t> > & lookForward, std::vector<std::pair<size_t, size_t> > & lookBackward);
+		void UpdateBifurcations(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, const IteratorProxyVector & startKMer, VisitData sourceData, VisitData targetData,
+			const std::vector<std::pair<size_t, size_t> > & lookForward, const std::vector<std::pair<size_t, size_t> > & lookBack);
 		typedef std::vector<Bool> Indicator;
 		typedef std::vector<Edge>::iterator EdgeIterator;
-		
+
 		void ResolveOverlap(EdgeIterator start, EdgeIterator end, size_t minSize, std::vector<Indicator> & overlap, std::vector<Edge> & nowBlock) const;
 		void Extend(std::vector<StrandIterator> current, std::vector<size_t> & start, std::vector<size_t> & end, std::vector<Indicator> & overlap, std::set<ChrPos> & localOverlap, IndexedSequence & iseq, bool forward);
 	};

@@ -8,7 +8,10 @@
 
 namespace SyntenyFinder
 {
-	const size_t BlockFinder::PROGRESS_STRIDE = 50;
+	namespace
+	{
+		const size_t PROGRESS_STRIDE = 50;
+	}
 
 	size_t BlockFinder::SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
 	{
@@ -43,10 +46,10 @@ namespace SyntenyFinder
 		{
 			callBack(PROGRESS_STRIDE, end);
 		}
-		
+
 		return totalBulges;
 	}
-	
+
 	BlockFinder::BlockFinder(const std::vector<FASTARecord> & chrList):
 		originalChrList_(&chrList)
 	{
@@ -72,22 +75,13 @@ namespace SyntenyFinder
 		}
 	}
 
-	size_t BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t minPathLength, size_t maxIterations, ProgressCallBack f, size_t model, bool easy)
+	size_t BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
 	{
-		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_, true, model);
+		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_, true);
 		iseq_ = &iseq;
 		DNASequence & sequence = iseq.Sequence();
-		BifurcationStorage & bifStorage = iseq.BifStorage();
-		size_t bulges = 0;
-		if(easy)
-		{
-			bulges = SimplifyGraphEasily(sequence, bifStorage, k, minBranchSize, minPathLength, maxIterations, f);
-		}
-		else
-		{
-			bulges = SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
-		}
-
+		BifurcationStorage & bifStorage = iseq.BifStorage();		
+		size_t ret = SimplifyGraph(sequence, bifStorage, k, minBranchSize, maxIterations, f);
 		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 		{
 			originalPos_[chr].clear();
@@ -100,6 +94,6 @@ namespace SyntenyFinder
 			}
 		}
 
-		return bulges;
+		return ret;
 	}	
 }
