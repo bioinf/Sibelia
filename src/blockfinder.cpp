@@ -22,35 +22,6 @@ namespace SyntenyFinder
 			callBack(totalProgress, start);
 		}
 
-		std::vector<size_t> segment;
-		for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
-		{
-			size_t nowSegment = 0;
-			std::set<size_t> passedBifId;			
-			StrandIterator end = sequence.End(DNASequence::positive, chr);
-			for(StrandIterator it = sequence.Begin(DNASequence::positive, chr); it != end; ++it)
-			{
-				size_t bifId = bifStorage.GetBifurcation(it);
-				if(bifId != BifurcationStorage::NO_BIFURCATION)
-				{
-					if(passedBifId.count(bifId) > 0)
-					{
-						segment.push_back(nowSegment);
-						nowSegment = 0;
-					}
-
-					passedBifId.insert(bifId);
-				}
-
-				nowSegment++;
-			}
-
-			segment.push_back(nowSegment);
-		}
-
-		std::cout << "Segments:" << std::endl;
-		std::copy(segment.begin(), segment.end(), std::ostream_iterator<size_t>(std::cout, " "));
-
 		size_t threshold = (bifStorage.GetMaxId() * maxIterations) / PROGRESS_STRIDE;
 		do
 		{
