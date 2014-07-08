@@ -318,8 +318,8 @@ namespace SyntenyFinder
 	{
 		bool ret = false;
 		std::vector<IndexPair> group;
+		GroupBy(blockList, compareById, std::back_inserter(group));
 		std::vector<BlockInstance> newBlockList(blockList);
-		GroupBy(blockList, compareById, std::back_inserter(group));		
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{		
 			for(size_t i = it->first; i < it->second; i++)
