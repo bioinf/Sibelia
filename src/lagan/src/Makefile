@@ -1,6 +1,6 @@
 CC = gcc $(CFLAGS)
 CPP = g++ $(CFLAGS)
-CFLAGS = -O3 # -Wall -W
+CFLAGS = -O3 -w
 TRGT_DIR = ..
 
 all: ../anchors ../chaos ../order ../mlagan ../prolagan ../utils/bin2mf ../utils/bin2bl ../utils/cextract ../utils/cstat ../utils/contigorder ../utils/getbounds ../utils/getlength ../utils/getoverlap ../utils/rc ../utils/seqmerge ../utils/scorealign ../utils/scorecontigs ../utils/getcontigpos ../utils/fa2xfa ../utils/Glue ../utils/dotplot ../utils/overlay
