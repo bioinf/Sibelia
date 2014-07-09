@@ -99,13 +99,7 @@ int main(int argc, char * argv[])
 			false,
 			0,
 			"int",
-			cmd);
-
-		TCLAP::SwitchArg ("",
-			"correctboundaries",
-			"",
-			cmd,
-			false);
+			cmd);		
 
 		TCLAP::SwitchArg noPostProcessingFlag("",
 			"nopostprocess",
