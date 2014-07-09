@@ -98,6 +98,7 @@ int main(int argc, char * argv[])
 			"Correction boundaries of unique synteny blocks, number of iterations.",
 			false,
 			0,
+			"int",
 			cmd);
 
 		TCLAP::SwitchArg ("",
@@ -227,7 +228,7 @@ int main(int argc, char * argv[])
 		bool allStages = allStagesFlag.isSet();		
 		bool hierarchy = hierarchyPicture.isSet();
 		bool noPostProcessing = noPostProcessingFlag.isSet();
-		int correctBoundaries = correctBoundariesFlag.isSet();
+		int correctBoundaries = correctBoundariesFlag.getValue();
 
 		std::vector<SyntenyFinder::FASTARecord> chrList;
 		for(std::vector<std::string>::const_iterator it = fileName.begin(); it != fileName.end(); it++)
@@ -294,7 +295,7 @@ int main(int argc, char * argv[])
 			processor.GlueStripes(history.back());
 		}
 
-		for(size_t i = 0; i < correctBoundaries.getValue() && processor.ImproveBlockBoundaries(history.back()); i++);
+		for(size_t i = 0; i < correctBoundaries && processor.ImproveBlockBoundaries(history.back()); i++);
 
 		bool oldFormat = !GFFFormatFlag.isSet();
 		SyntenyFinder::OutputGenerator generator(chrList);
