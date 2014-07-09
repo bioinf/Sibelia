@@ -480,6 +480,7 @@ try:
 				'-m', str(args.minblocksize), 
 				'-o', temp_dir,
 				'-k', 'run.stage',
+				'--correctboundaries',
 				'-i', str(args.maxiterations),
 				'-r']
 	print >> sys.stderr, "Calculating synteny blocks..."
