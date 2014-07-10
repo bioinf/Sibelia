@@ -32,6 +32,23 @@ namespace SyntenyFinder
 			std::string::const_reverse_iterator it2 = str.rend();
 			return std::string(CFancyIterator(it1, DNASequence::Translate, ' '), CFancyIterator(it2, DNASequence::Translate, ' '));
 		}
+		/*
+		void PrintBlockDebug(BlockInstance & block, size_t id, bool before)
+		{
+			if(block.GetBlockId() == id || id == -1)
+			{
+				std::cout << (before ? "Before" : "After") << " " << block.GetBlockId() << " " << block.GetStart() << " " << block.GetEnd() << " " << block.GetLength() << std::endl;
+			}
+		}
+
+		void AssertBoundaries(std::pair<size_t, size_t> p, std::string msg)
+		{
+			if(p.first > p.second)
+			{
+				std::cout << "WARN " << msg << std::endl;
+				abort();
+			}
+		}*/
 	}
 
 	void Postprocessor::GlueStripes(std::vector<BlockInstance> & block)
@@ -282,13 +299,19 @@ namespace SyntenyFinder
 		{
 			size_t newStart = leftBoundaries.first + startAlignmentCoords.first;
 			size_t newEnd = rightBoundaries.first + endAlignmentCoords.second;
-			block = BlockInstance(block.GetSignedBlockId(), &block.GetChrInstance(), newStart, newEnd);
+			if(newEnd > newStart)
+			{
+				block = BlockInstance(block.GetSignedBlockId(), &block.GetChrInstance(), newStart, newEnd);	
+			}			
 		}
 		else
 		{			
 			size_t newStart = leftBoundaries.second - endAlignmentCoords.second;
-			size_t newEnd = rightBoundaries.second - startAlignmentCoords.first;
-			block = BlockInstance(block.GetSignedBlockId(), &block.GetChrInstance(), newStart, newEnd);
+			size_t newEnd = rightBoundaries.second - startAlignmentCoords.first;			
+			if(newEnd > newStart)
+			{
+				block = BlockInstance(block.GetSignedBlockId(), &block.GetChrInstance(), newStart, newEnd);
+			}
 		}
 	}
 
