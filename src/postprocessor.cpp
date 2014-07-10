@@ -269,7 +269,7 @@ namespace SyntenyFinder
 		resize(rows(align), 2); 
 		assignSource(row(align, 0), seq1);
 		assignSource(row(align, 1), seq2);
-		localAlignment(align, Score<int>(25, -25, -25));
+		localAlignment(align, Score<int>(25, -50, -50));
 		coord1.first = clippedBeginPosition(row(align, 0));
 		coord1.second = clippedEndPosition(row(align, 0));
 		coord2.first = clippedBeginPosition(row(align, 1));
