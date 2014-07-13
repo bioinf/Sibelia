@@ -213,10 +213,10 @@ namespace SyntenyFinder
 		return ret;
 	}
 	
-	std::pair<size_t, size_t> Postprocessor::DetermineLeftProbableBoundaries(std::vector<BlockInstance> & blockList, size_t blockid)
+	std::pair<size_t, size_t> Postprocessor::DetermineLeftProbableBoundaries(const std::vector<BlockInstance> & blockList, size_t blockid)
 	{
 		std::pair<size_t, size_t> ret;
-		BlockInstance & block = blockList[blockid];
+		const BlockInstance & block = blockList[blockid];
 		size_t nowStart = block.GetStart();		
 		ret.second = block.GetStart() + correctionRange_;
 		const BlockInstance * previousBlock = PreviousBlock(block, blockList);
@@ -233,10 +233,10 @@ namespace SyntenyFinder
 		return ret;
 	}
 
-	std::pair<size_t, size_t> Postprocessor::DetermineRightProbableBoundaries(std::vector<BlockInstance> & blockList, size_t blockid)
+	std::pair<size_t, size_t> Postprocessor::DetermineRightProbableBoundaries(const std::vector<BlockInstance> & blockList, size_t blockid)
 	{
 		std::pair<size_t, size_t> ret;
-		BlockInstance & block = blockList[blockid];
+		const BlockInstance & block = blockList[blockid];
 		size_t nowEnd = block.GetEnd();
 		ret.first = block.GetEnd() - correctionRange_ + 1;
 		const BlockInstance * nextBlock = NextBlock(block, blockList);
@@ -293,15 +293,16 @@ namespace SyntenyFinder
 		coord2.second = clippedEndPosition(row(align, 1));
 	}
 
-	void Postprocessor::UpdateBlockBoundaries(BlockInstance & block, std::pair<size_t, size_t> leftBoundaries, std::pair<size_t, size_t> rightBoundaries, std::pair<size_t, size_t> startAlignmentCoords, std::pair<size_t, size_t> endAlignmentCoords)
+	BlockInstance Postprocessor::UpdateBlockBoundaries(const BlockInstance & block, std::pair<size_t, size_t> leftBoundaries, std::pair<size_t, size_t> rightBoundaries, std::pair<size_t, size_t> startAlignmentCoords, std::pair<size_t, size_t> endAlignmentCoords)
 	{
+		BlockInstance ret;
 		if(block.GetDirection() == DNASequence::positive)
 		{
 			size_t newStart = leftBoundaries.first + startAlignmentCoords.first;
 			size_t newEnd = rightBoundaries.first + endAlignmentCoords.second;
 			if(newEnd > newStart)
 			{
-				block = BlockInstance(block.GetSignedBlockId(), &block.GetChrInstance(), newStart, newEnd);	
+				ret = BlockInstance(block.GetSignedBlockId(), &block.GetChrInstance(), newStart, newEnd);	
 			}			
 		}
 		else
@@ -310,12 +311,14 @@ namespace SyntenyFinder
 			size_t newEnd = rightBoundaries.second - startAlignmentCoords.first;			
 			if(newEnd > newStart)
 			{
-				block = BlockInstance(block.GetSignedBlockId(), &block.GetChrInstance(), newStart, newEnd);
+				ret = BlockInstance(block.GetSignedBlockId(), &block.GetChrInstance(), newStart, newEnd);
 			}
 		}
+
+		return ret;
 	}
 
-	void Postprocessor::CorrectBlocksBoundaries(std::vector<BlockInstance> & blockList, size_t referenceBlock, size_t assemblyBlock)
+	std::pair<BlockInstance, BlockInstance> Postprocessor::CorrectBlocksBoundaries(const std::vector<BlockInstance> & blockList, size_t referenceBlock, size_t assemblyBlock)
 	{		
 		std::pair<size_t, size_t> referenceStartCoord;
 		std::pair<size_t, size_t> referenceEndCoord;
@@ -333,8 +336,9 @@ namespace SyntenyFinder
 		GetBoundariesSequence(blockList[assemblyBlock], assemblyLeftBoundaries, assemblyRightBoundaries, assemblyStart, assemblyEnd);		
 		LocalAlignment(referenceStart, assemblyStart, referenceStartCoord, assemblyStartCoord);
 		LocalAlignment(referenceEnd, assemblyEnd, referenceEndCoord, assemblyEndCoord);
-		UpdateBlockBoundaries(blockList[referenceBlock], referenceLeftBoundaries, referenceRightBoundaries, referenceStartCoord, referenceEndCoord);
-		UpdateBlockBoundaries(blockList[assemblyBlock], assemblyLeftBoundaries, assemblyRightBoundaries, assemblyStartCoord, assemblyEndCoord);
+		BlockInstance first = UpdateBlockBoundaries(blockList[referenceBlock], referenceLeftBoundaries, referenceRightBoundaries, referenceStartCoord, referenceEndCoord);
+		BlockInstance second = UpdateBlockBoundaries(blockList[assemblyBlock], assemblyLeftBoundaries, assemblyRightBoundaries, assemblyStartCoord, assemblyEndCoord);
+		return std::make_pair(first, second);
 	}
 
 	bool Postprocessor::ImproveBlockBoundaries(std::vector<BlockInstance> & blockList)
@@ -342,29 +346,23 @@ namespace SyntenyFinder
 		bool ret = false;
 		std::vector<IndexPair> group;
 		GroupBy(blockList, compareById, std::back_inserter(group));
-		std::vector<BlockInstance> newBlockList(blockList);
 		for(std::vector<IndexPair>::iterator it = group.begin(); it != group.end(); ++it)
 		{		
 			for(size_t i = it->first; i < it->second; i++)
 			{
-				std::vector<BlockInstance> tempBlock(2, blockList[i]);
-				for(size_t j = it->first; j < it->second; j++)
+				for(size_t j = it->first + 1; j < it->second; j++)
 				{
-					if(i != j)
+					std::pair<BlockInstance, BlockInstance> corr = CorrectBlocksBoundaries(blockList, i, j);
+					if(corr.first.GetLength() + corr.second.GetLength() > blockList[i].GetLength() + blockList[j].GetLength())
 					{
-						tempBlock[1] = blockList[j];
-						CorrectBlocksBoundaries(tempBlock, 0, 1);
-						if(tempBlock[0].GetLength() > newBlockList[i].GetLength())
-						{
-							ret = true;
-							newBlockList[i] = tempBlock[0];
-						}
+						ret = true;
+						blockList[i] = corr.first;
+						blockList[j] = corr.second;
 					}
 				}
 			}
 		}
 
-		blockList = newBlockList;
 		return true;
 	}
 
