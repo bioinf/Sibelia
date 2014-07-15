@@ -295,7 +295,7 @@ namespace SyntenyFinder
 
 	BlockInstance Postprocessor::UpdateBlockBoundaries(const BlockInstance & block, std::pair<size_t, size_t> leftBoundaries, std::pair<size_t, size_t> rightBoundaries, std::pair<size_t, size_t> startAlignmentCoords, std::pair<size_t, size_t> endAlignmentCoords)
 	{
-		BlockInstance ret;
+		BlockInstance ret = block;
 		if(block.GetDirection() == DNASequence::positive)
 		{
 			size_t newStart = leftBoundaries.first + startAlignmentCoords.first;
@@ -341,6 +341,26 @@ namespace SyntenyFinder
 		return std::make_pair(first, second);
 	}
 
+	void CheckOverlap(const std::vector<BlockInstance> & blockList, size_t j, bool before)
+	{
+		for(size_t i = 0; i < blockList.size(); i++)
+		{
+			size_t a = blockList[i].GetStart();
+			size_t b = blockList[i].GetEnd() - 1;
+			size_t c = blockList[j].GetStart();
+			size_t d = blockList[j].GetEnd() - 1;
+			bool overlap = (a >= c && b < d) || (c >= a && d < b) || (a >= c && a < d) || (b >= c && b < d);
+			if(overlap && i != j && blockList[i].GetChrId() == blockList[j].GetChrId())
+			{
+				std::cout << (before ? "Before" : "After") << std::endl;
+				std::cout << "Chr: " << blockList[i].GetChrId() << ' ' << blockList[j].GetChrId() << std::endl;
+				std::cout << a << ' ' << b << std::endl << c << ' ' << d << std::endl;
+				std::cout << blockList[i].GetBlockId() << " " << blockList[j].GetBlockId() << std::endl;
+				std::cout.flush();
+			}
+		}
+	}
+
 	bool Postprocessor::ImproveBlockBoundaries(std::vector<BlockInstance> & blockList)
 	{
 		bool ret = false;
@@ -356,8 +376,12 @@ namespace SyntenyFinder
 					if(corr.first.GetLength() + corr.second.GetLength() > blockList[i].GetLength() + blockList[j].GetLength())
 					{
 						ret = true;
+				//		CheckOverlap(blockList, i, true);
+				//		CheckOverlap(blockList, j, true);
 						blockList[i] = corr.first;
 						blockList[j] = corr.second;
+				//		CheckOverlap(blockList, i, false);
+				//		CheckOverlap(blockList, j, false);
 					}
 				}
 			}
