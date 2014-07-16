@@ -172,8 +172,8 @@ namespace SyntenyFinder
 
 	typedef std::vector<BlockInstance>::const_iterator BLCIterator;
 
-	Postprocessor::Postprocessor(const std::vector<FASTARecord> & chr, size_t minBlockSize):
-		chr_(&chr), minBlockSize_(minBlockSize), correctionRange_(std::min(minBlockSize, MAX_CORRECTION_RANGE))
+	Postprocessor::Postprocessor(const std::vector<FASTARecord> & chr, size_t minBlockSize, bool overlap):
+		chr_(&chr), minBlockSize_(minBlockSize), correctionRange_(std::min(minBlockSize, MAX_CORRECTION_RANGE)), overlap_(overlap)
 	{
 	}
 
@@ -219,7 +219,7 @@ namespace SyntenyFinder
 		const BlockInstance & block = blockList[blockid];
 		size_t nowStart = block.GetStart();		
 		ret.second = block.GetStart() + correctionRange_;
-		const BlockInstance * previousBlock = PreviousBlock(block, blockList);
+		const BlockInstance * previousBlock = overlap_ ? 0 : PreviousBlock(block, blockList);
 		if(previousBlock != 0)
 		{	
 			size_t previousEnd = previousBlock->GetEnd();
@@ -239,7 +239,7 @@ namespace SyntenyFinder
 		const BlockInstance & block = blockList[blockid];
 		size_t nowEnd = block.GetEnd();
 		ret.first = block.GetEnd() - correctionRange_ + 1;
-		const BlockInstance * nextBlock = NextBlock(block, blockList);
+		const BlockInstance * nextBlock = overlap_ ? 0 : NextBlock(block, blockList);
 		if(nextBlock != 0)
 		{			
 			size_t nextStart = nextBlock->GetStart();

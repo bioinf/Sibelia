@@ -18,7 +18,7 @@ namespace SyntenyFinder
 	class Postprocessor
 	{
 	public:		
-		Postprocessor(const std::vector<FASTARecord> & chr, size_t minBlockSize);
+		Postprocessor(const std::vector<FASTARecord> & chr, size_t minBlockSize, bool overlap);
 		void GlueStripes(std::vector<BlockInstance> & block);
 		bool ImproveBlockBoundaries(std::vector<BlockInstance> & block);
 		void MatchRepeats(std::vector<BlockInstance> & block, const std::set<size_t> & referenceSequenceId);		
@@ -27,6 +27,7 @@ namespace SyntenyFinder
 		const std::vector<FASTARecord> * chr_;
 		std::set<size_t> referenceSequenceId_;
 		std::vector<std::vector<BlockInstance> > history_;
+		bool overlap_;
 		size_t minBlockSize_;
 		size_t correctionRange_;
 		void ImprovePairwiseBlockBoundaries(std::vector<BlockInstance> & block);

@@ -178,6 +178,20 @@ int main(int argc, char * argv[])
 			"integer",
 			cmd);
 
+		TCLAP::ValueArg<unsigned int> correctionRange("",
+			"correctionRange",
+			"Range of correction",
+			false,
+			0,
+			"integer",
+			cmd);
+
+		TCLAP::SwitchArg overlapCorrection("",
+			"overlapCorrection",
+			"Allow overlap for correction.",
+			cmd,
+			false);
+
 		TCLAP::SwitchArg sharedOnly("a",
 			"sharedonly",
 			"Output only blocks that occur exactly once in each input sequence.",			
@@ -256,7 +270,7 @@ int main(int argc, char * argv[])
 		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size() + 1);
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
-		SyntenyFinder::Postprocessor processor(chrList, minBlockSize.getValue());
+		SyntenyFinder::Postprocessor processor(chrList, correctionRange.getValue(), overlapCorrection.getValue());
 
 		size_t totalBulges = 0;
 		for(size_t i = 0; i < stage.size(); i++)
