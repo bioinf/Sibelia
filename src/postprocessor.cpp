@@ -32,7 +32,7 @@ namespace SyntenyFinder
 			std::string::const_reverse_iterator it2 = str.rend();
 			return std::string(CFancyIterator(it1, DNASequence::Translate, ' '), CFancyIterator(it2, DNASequence::Translate, ' '));
 		}
-		/*
+		
 		void PrintBlockDebug(BlockInstance & block, size_t id, bool before)
 		{
 			if(block.GetBlockId() == id || id == -1)
@@ -40,7 +40,7 @@ namespace SyntenyFinder
 				std::cout << (before ? "Before" : "After") << " " << block.GetBlockId() << " " << block.GetStart() << " " << block.GetEnd() << " " << block.GetLength() << std::endl;
 			}
 		}
-
+		/*
 		void AssertBoundaries(std::pair<size_t, size_t> p, std::string msg)
 		{
 			if(p.first > p.second)
@@ -341,6 +341,15 @@ namespace SyntenyFinder
 		return std::make_pair(first, second);
 	}
 
+	bool Overlap(BlockInstance i, BlockInstance j)
+	{
+		size_t a = i.GetStart();
+		size_t b = i.GetEnd() - 1;
+		size_t c = j.GetStart();
+		size_t d = j.GetEnd() - 1;
+		return (a >= c && b < d) || (c >= a && d < b) || (a >= c && a < d) || (b >= c && b < d);
+	}
+
 	void CheckOverlap(const std::vector<BlockInstance> & blockList, size_t j, bool before)
 	{
 		for(size_t i = 0; i < blockList.size(); i++)
@@ -351,12 +360,14 @@ namespace SyntenyFinder
 			size_t d = blockList[j].GetEnd() - 1;
 			bool overlap = (a >= c && b < d) || (c >= a && d < b) || (a >= c && a < d) || (b >= c && b < d);
 			if(overlap && i != j && blockList[i].GetChrId() == blockList[j].GetChrId())
-			{
+			{/*
 				std::cout << (before ? "Before" : "After") << std::endl;
 				std::cout << "Chr: " << blockList[i].GetChrId() << ' ' << blockList[j].GetChrId() << std::endl;
 				std::cout << a << ' ' << b << std::endl << c << ' ' << d << std::endl;
 				std::cout << blockList[i].GetBlockId() << " " << blockList[j].GetBlockId() << std::endl;
-				std::cout.flush();
+				std::cout.flush();*/
+				std::cout << "OHNO";
+				abort();
 			}
 		}
 	}
@@ -370,18 +381,17 @@ namespace SyntenyFinder
 		{		
 			for(size_t i = it->first; i < it->second; i++)
 			{
-				for(size_t j = it->first + 1; j < it->second; j++)
+				for(size_t j = i + 1; j < it->second; j++)
 				{
-					std::pair<BlockInstance, BlockInstance> corr = CorrectBlocksBoundaries(blockList, i, j);
-					if(corr.first.GetLength() + corr.second.GetLength() > blockList[i].GetLength() + blockList[j].GetLength())
+					if(i != j)
 					{
-						ret = true;
-				//		CheckOverlap(blockList, i, true);
-				//		CheckOverlap(blockList, j, true);
-						blockList[i] = corr.first;
-						blockList[j] = corr.second;
-				//		CheckOverlap(blockList, i, false);
-				//		CheckOverlap(blockList, j, false);
+						std::pair<BlockInstance, BlockInstance> corr = CorrectBlocksBoundaries(blockList, i, j);
+						if(corr.first.GetLength() + corr.second.GetLength() > blockList[i].GetLength() + blockList[j].GetLength() && !Overlap(corr.first, corr.second))
+						{
+							ret = true;
+							blockList[i] = corr.first;
+							blockList[j] = corr.second;
+						}
 					}
 				}
 			}
