@@ -7,7 +7,7 @@
 #include "blockfinder.h"
 
 namespace SyntenyFinder
-{
+{/*
 	namespace
 	{	
 		typedef unsigned long long ull;
@@ -135,5 +135,5 @@ namespace SyntenyFinder
 		}
 
 		out << "}" << std::endl;
-	}
+	}*/
 }

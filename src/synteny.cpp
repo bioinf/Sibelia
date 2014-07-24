@@ -10,6 +10,7 @@
 
 namespace SyntenyFinder
 {
+	/*
 	namespace
 	{
 		struct Stripe
@@ -283,5 +284,5 @@ namespace SyntenyFinder
 		}
 
 		std::sort(block.begin(), block.end(), CompareBlocksNaturally);
-	}
+	}*/
 }

@@ -157,7 +157,7 @@ namespace SyntenyFinder
 		}		
 	}
 
-	size_t IndexedSequence::EnumerateBifurcationsSArray(const std::vector<std::string> & data, const std::string & tempDir, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif)
+	size_t IndexedSequence::EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif)
 	{
 		positiveBif.clear();
 		negativeBif.clear();
@@ -260,7 +260,7 @@ namespace SyntenyFinder
 		return bifurcationCount;
 	}
 
-	size_t IndexedSequence::EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif)
+	size_t IndexedSequence::EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, size_t k_, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif)
 	{
 		positiveBif.clear();
 		negativeBif.clear();

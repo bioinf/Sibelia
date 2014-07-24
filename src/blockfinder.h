@@ -45,6 +45,8 @@ namespace SyntenyFinder
 		size_t PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
+
+		/*
 		typedef std::vector<Pos> PosVector;
 		typedef std::pair<size_t, size_t> ChrPos;
 		std::string tempDir_;
@@ -119,7 +121,7 @@ namespace SyntenyFinder
 		typedef std::vector<Edge>::iterator EdgeIterator;
 		
 		void ResolveOverlap(EdgeIterator start, EdgeIterator end, size_t minSize, std::vector<Indicator> & overlap, std::vector<Edge> & nowBlock) const;
-		void Extend(std::vector<StrandIterator> current, std::vector<size_t> & start, std::vector<size_t> & end, std::vector<Indicator> & overlap, std::set<ChrPos> & localOverlap, IndexedSequence & iseq, bool forward);
+		void Extend(std::vector<StrandIterator> current, std::vector<size_t> & start, std::vector<size_t> & end, std::vector<Indicator> & overlap, std::set<ChrPos> & localOverlap, IndexedSequence & iseq, bool forward);*/
 	};
 }
 

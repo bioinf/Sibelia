@@ -39,11 +39,11 @@ namespace SyntenyFinder
 		std::vector<std::vector<BifurcationInstance> > bifurcation(2);	
 		if(tempDir.size() == 0)
 		{
-			maxId = EnumerateBifurcationsSArrayInRAM(record, bifurcation[0], bifurcation[1]);
+			maxId = EnumerateBifurcationsSArrayInRAM(record, k_, bifurcation[0], bifurcation[1]);
 		}
 		else
 		{
-			maxId = EnumerateBifurcationsSArray(record, tempDir, bifurcation[0], bifurcation[1]);
+			maxId = EnumerateBifurcationsSArray(record, k_, tempDir, bifurcation[0], bifurcation[1]);
 		}
 
 		bifStorage_.reset(new BifurcationStorage(maxId));

@@ -12,7 +12,7 @@ namespace SyntenyFinder
 	{
 		const size_t PROGRESS_STRIDE = 50;
 	}
-
+	/*
 	size_t BlockFinder::SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
 	{
 		size_t count = 0;
@@ -95,5 +95,5 @@ namespace SyntenyFinder
 		}
 
 		return ret;
-	}	
+	}*/	
 }

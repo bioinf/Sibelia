@@ -29,7 +29,24 @@ namespace SyntenyFinder
 		IndexedSequence(const std::vector<std::string> & record, size_t k, const std::string & tempDir);
 		IndexedSequence(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & original, size_t k, const std::string & tempDir, bool clear = false);
 		static bool StrandIteratorPosGEqual(StrandIterator a, StrandIterator b);		
-		static size_t StrandIteratorDistance(StrandIterator start, StrandIterator end);		
+		static size_t StrandIteratorDistance(StrandIterator start, StrandIterator end);
+
+		struct BifurcationInstance
+		{
+			Size bifId;
+			Size chr;
+			Size pos;
+			BifurcationInstance() {}
+			BifurcationInstance(Size bifId, Size chr, Size pos): bifId(bifId), chr(chr), pos(pos) {}
+			bool operator < (const BifurcationInstance & toCompare) const
+			{
+				return std::make_pair(chr, pos) < std::make_pair(toCompare.chr, toCompare.pos);
+			}
+		};
+
+		static size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
+		static size_t EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, size_t k_, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
+
 	private:
 		DISALLOW_COPY_AND_ASSIGN(IndexedSequence);
 		typedef std::pair<StrandIterator, size_t> IteratorChrPair;
@@ -52,25 +69,10 @@ namespace SyntenyFinder
 
 	#ifdef _DEBUG
 		KMerBifMap idMap_;
-	#endif
-
-		struct BifurcationInstance
-		{
-			Size bifId;
-			Size chr;
-			Size pos;
-			BifurcationInstance() {}
-			BifurcationInstance(Size bifId, Size chr, Size pos): bifId(bifId), chr(chr), pos(pos) {}
-			bool operator < (const BifurcationInstance & toCompare) const
-			{
-				return std::make_pair(chr, pos) < std::make_pair(toCompare.chr, toCompare.pos);
-			}
-		};
+	#endif		
 
 		size_t GetMustBeBifurcation(StrandIterator it);
-		void Init(std::vector<std::string> record, std::vector<std::vector<Pos> > & original, size_t k, const std::string & tempDir, bool clear);
-		size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, const std::string & tempDir, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
-		size_t EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);				
+		void Init(std::vector<std::string> record, std::vector<std::vector<Pos> > & original, size_t k, const std::string & tempDir, bool clear);		
 	};
 }
 

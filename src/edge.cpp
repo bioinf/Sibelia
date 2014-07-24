@@ -7,7 +7,7 @@
 #include "blockfinder.h"
 
 namespace SyntenyFinder
-{
+{/*
 	BlockFinder::Edge::Edge(size_t chr, DNASequence::Direction direction, size_t startVertex, size_t endVertex, size_t actualPosition, size_t actualLength, size_t originalPosition, size_t originalLength, char firstChar):
 		chr(chr), direction(direction), startVertex(startVertex), endVertex(endVertex), actualPosition(actualPosition), actualLength(actualLength), originalPosition(originalPosition), originalLength(originalLength), firstChar(firstChar) {}
 
@@ -86,5 +86,5 @@ namespace SyntenyFinder
 	bool BlockFinder::Edge::operator < (const Edge & edge)
 	{
 		return std::make_pair(GetChr(), GetActualPosition()) < std::make_pair(edge.GetChr(), edge.GetActualPosition());
-	}
+	}*/
 }

@@ -7,7 +7,7 @@
 #include "blockfinder.h"
 
 namespace SyntenyFinder
-{
+{/*
 	namespace
 	{
 		const char EMPTY = ' ';
@@ -205,12 +205,12 @@ namespace SyntenyFinder
 				if (kt->second.branchIds.size() > 1)
 				{
 					bulges.push_back(kt->second.branchIds);
-					/*std::cerr << "[";
-					for (size_t i = 0; i < kt->second.branchIds.size(); ++i)
-					{
-						std::cerr << kt->second.branchIds[i] << ",";
-					}
-					std::cerr << "]";*/
+//					std::cerr << "[";
+//					for (size_t i = 0; i < kt->second.branchIds.size(); ++i)
+//					{
+//						std::cerr << kt->second.branchIds[i] << ",";
+//					}
+//					std::cerr << "]";
 				}
 			}
 			//std::cerr << std::endl;
@@ -428,4 +428,5 @@ namespace SyntenyFinder
 		bifStorage.Cleanup();
 		return ret;
 	}
+	*/	
 }
