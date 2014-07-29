@@ -61,7 +61,35 @@ namespace SyntenyFinder
 			}
 
 			return token.size() == 5 ? token[3] : description;
-		}
+		}		
+
+		enum Direction
+		{
+			positive,
+			negative
+		};
+
+		class Iterator
+		{
+		public:			
+			Iterator& operator++();
+			Iterator& operator--();
+			Iterator operator++(int);
+			Iterator operator--(int);
+			size_t GetPosition() const;			
+			Direction GetDirection() const;
+			const FASTARecord GetSequence() const;
+			Iterator operator + (size_t shift) const;
+			Iterator operator - (size_t shift) const;			
+		private:
+			const FASTARecord * chr;
+			size_t pos;
+			Direction dir;			
+		};
+
+
+		Iterator Begin(Direction dir) const;
+		Iterator End(Direction dir) const;
 
 	private:
 		size_t id_;

@@ -48,33 +48,10 @@ namespace SyntenyFinder
 		}
 		
 		return totalBulges;
-	}
+	}*/
 	
-	BlockFinder::BlockFinder(const std::vector<FASTARecord> & chrList):
-		originalChrList_(&chrList)
-	{
-		Init(chrList);
-	}
 
-	BlockFinder::BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir):
-		originalChrList_(&chrList), tempDir_(tempDir)
-	{
-		Init(chrList);
-	}
-
-	void BlockFinder::Init(const std::vector<FASTARecord> & chrList)
-	{
-		rawSeq_.resize(chrList.size());
-		originalPos_.resize(chrList.size());
-		for(size_t i = 0; i < originalPos_.size(); i++)
-		{
-			rawSeq_[i] = chrList[i].GetSequence();
-			originalSize_.push_back(rawSeq_[i].size());
-			originalPos_[i].resize(chrList[i].GetSequence().size());
-			std::generate(originalPos_[i].begin(), originalPos_[i].end(), Counter<Pos>());
-		}
-	}
-
+	/*
 	size_t BlockFinder::PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
 	{
 		IndexedSequence iseq(rawSeq_, originalPos_, k, tempDir_, true);

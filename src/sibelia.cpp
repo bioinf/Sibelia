@@ -42,6 +42,7 @@ private:
 
 int main(int argc, char * argv[])
 {
+	
 	signal(SIGINT, SignalHandler);
 	signal(SIGABRT, SignalHandler);
 	signal(SIGTERM, SignalHandler);
@@ -56,7 +57,7 @@ int main(int argc, char * argv[])
 	GreaterIntegerConstraint greaterThanOne(1);
 	GreaterIntegerConstraint greaterThanZero(0);
 	try
-	{
+	{/*
 		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', VERSION);
 		TCLAP::ValueArg<int> maxIterations("i",
 			"maxiterations",
@@ -198,7 +199,7 @@ int main(int argc, char * argv[])
 		{
 			throw std::runtime_error("In correction mode only two FASTA files are acceptable");
 		}
-
+		
 		std::vector<SyntenyFinder::FASTARecord> chrList;
 		for(std::vector<std::string>::const_iterator it = fileName.begin(); it != fileName.end(); it++)
 		{
@@ -230,29 +231,16 @@ int main(int argc, char * argv[])
 		
 		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size() + 1);
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
-		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
+		SyntenyFinder::DeBruijnGraph g(chrList, stage[0].first, inRAM.isSet() ? "" : tempDir);
+		SyntenyFinder::SimplifyGraph(g, stage[0].second);
+		history.back() = SyntenyFinder::GenerateSyntenyBlocks(g);
 		SyntenyFinder::Postprocessor processor(chrList, minBlockSize.getValue());
-		for(size_t i = 0; i < stage.size(); i++)
-		{
-			trimK = std::min(trimK, stage[i].first);
-			if(hierarchy || allStages)
-			{
-				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
-				if(!noPostProcessing)
-				{
-					processor.GlueStripes(history[i]);
-				}
-			}
-
-			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
-			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
-			finder->PerformGraphSimplifications(stage[i].first, stage[i].second, maxIterations.getValue(), PutProgressChr);			
-		}
+		
 
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		size_t lastK = lastKValue.isSet() ? lastKValue.getValue() : std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
-		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
+		//finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
 		if(!noPostProcessing)
 		{
 			processor.GlueStripes(history.back());
@@ -262,7 +250,7 @@ int main(int argc, char * argv[])
 		{			
 			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
 		}
-
+		
 		bool oldFormat = !GFFFormatFlag.isSet();
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateOutDirectory(outFileDir.getValue());
@@ -311,13 +299,13 @@ int main(int argc, char * argv[])
 		if(graphFile.isSet())
 		{
 			std::stringstream buffer;
-			finder->SerializeCondensedGraph(lastK, buffer, PutProgressChr);
+//			finder->SerializeCondensedGraph(lastK, buffer, PutProgressChr);
 			generator.OutputBuffer(defaultGraphFile, buffer.str());
 		}
 
 		std::cout.setf(std::cout.fixed);
 		std::cout.precision(2);
-	//	std::cout << "Time elapsed: " << double(clock()) / CLOCKS_PER_SEC << " seconds" << std::endl;
+	//	std::cout << "Time elapsed: " << double(clock()) / CLOCKS_PER_SEC << " seconds" << std::endl;*/
 	} 
 	catch (TCLAP::ArgException &e)
 	{

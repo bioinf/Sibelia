@@ -8,7 +8,7 @@
 #define _BLOCK_FINDER_H_
 
 #include "blockinstance.h"
-#include "indexedsequence.h"
+#include "debruijnindex.h"
 
 namespace SyntenyFinder
 {
@@ -35,10 +35,10 @@ namespace SyntenyFinder
 			end
 		};
 
+		
 		static const char SEPARATION_CHAR;
 		typedef boost::function<void(size_t, State)> ProgressCallBack;
-		BlockFinder(const std::vector<FASTARecord> & chrList);
-		BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir);
+		
 		void SerializeGraph(size_t k, std::ostream & out);
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack());
 		void GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
@@ -46,15 +46,20 @@ namespace SyntenyFinder
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
 
+		std::string tempDir_;
+		const std::vector<FASTARecord> * originalChrList_;
+		
+		
+		
 		/*
 		typedef std::vector<Pos> PosVector;
 		typedef std::pair<size_t, size_t> ChrPos;
-		std::string tempDir_;
+		
 		IndexedSequence * iseq_;		
 		std::vector<std::string> rawSeq_;	
 		std::vector<size_t> originalSize_;
 		std::vector<PosVector> originalPos_;		
-		const std::vector<FASTARecord> * originalChrList_;
+		
 		static const char POS_FREE;
 		static const char POS_OCCUPIED;
 
