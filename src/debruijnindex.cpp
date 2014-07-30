@@ -10,7 +10,7 @@ namespace SyntenyFinder
 {
 	const uint32_t DeBruijnIndex::NO_BIFURCATION = -1;
 	/*
-	DeBruijnGraph::DeBruijnGraph(const std::vector<FASTARecord> & chrList, size_t k, const std::string & tempDir)
+	DeBruijnGraph::DeBruijnGraph(const std::vector<FastaRecord> & chrList, size_t k, const std::string & tempDir)
 	{
 	}
 	*/

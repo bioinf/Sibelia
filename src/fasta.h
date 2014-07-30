@@ -11,11 +11,11 @@
 
 namespace SyntenyFinder
 {	
-	struct FASTARecord
+	struct FastaRecord
 	{
 	public:
-		FASTARecord() {}
-		FASTARecord(const std::string & sequence, const std::string & description, size_t id):
+		FastaRecord() {}
+		FastaRecord(const std::string & sequence, const std::string & description, size_t id):
 			description_(description), id_(id), sequence_(sequence)
 		{
 			//sequence_.assign(CFancyIterator(sequence.begin(), toupper, ' '), CFancyIterator(sequence.end(), toupper, ' '));
@@ -76,15 +76,15 @@ namespace SyntenyFinder
 			Iterator& operator--();
 			Iterator operator++(int);
 			Iterator operator--(int);
-			size_t GetPosition() const;			
+			size_t GetPosition() const;	
 			Direction GetDirection() const;
-			const FASTARecord GetSequence() const;
+			const FastaRecord* GetSequence() const;
 			Iterator operator + (size_t shift) const;
 			Iterator operator - (size_t shift) const;			
 		private:
-			const FASTARecord * chr;
-			size_t pos;
-			Direction dir;			
+			const FastaRecord * chr_;
+			size_t pos_;
+			Direction dir_;			
 		};
 
 
@@ -97,16 +97,16 @@ namespace SyntenyFinder
 		std::string description_;		
 	};
 
-	class FASTAReader
+	class FastaReader
 	{
 	public:
-		explicit FASTAReader(const std::string & fileName): 
+		explicit FastaReader(const std::string & fileName): 
 			inputStream_(fileName.c_str()),
 			fileName_(fileName) {}
-		size_t 	GetSequences(std::vector<FASTARecord>& record);
+		size_t 	GetSequences(std::vector<FastaRecord>& record);
 		bool 	IsOk() const;
 	private:
-		DISALLOW_COPY_AND_ASSIGN(FASTAReader);
+		DISALLOW_COPY_AND_ASSIGN(FastaReader);
 
 		void ValidateSequence(std::string & sequence);
 		void ValidateHeader(std::string & header);
@@ -116,9 +116,9 @@ namespace SyntenyFinder
 	};
 
 
-	typedef std::vector<FASTARecord> ChrList;
+	typedef std::vector<FastaRecord> ChrList;
 
-	class FASTAWriter
+	class FastaWriter
 	{
 	public:
 		static void WriteSequence(const std::string & fileName, const std::string & header, const std::string & sequence)

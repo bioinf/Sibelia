@@ -155,7 +155,7 @@ namespace SyntenyFinder
 
 	typedef std::vector<BlockInstance>::const_iterator BLCIterator;
 
-	Postprocessor::Postprocessor(const std::vector<FASTARecord> & chr, size_t minBlockSize):
+	Postprocessor::Postprocessor(const std::vector<FastaRecord> & chr, size_t minBlockSize):
 		chr_(&chr), minBlockSize_(minBlockSize), correctionRange_(std::min(minBlockSize, MAX_CORRECTION_RANGE))
 	{
 	}

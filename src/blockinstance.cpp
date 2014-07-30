@@ -36,7 +36,7 @@ namespace SyntenyFinder
 		return Abs(id_);
 	}
 
-	const FASTARecord& BlockInstance::GetChrInstance() const
+	const FastaRecord& BlockInstance::GetChrInstance() const
 	{
 		return *chr_;
 	}

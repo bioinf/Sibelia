@@ -21,12 +21,12 @@ namespace SyntenyFinder
 	{
 	public:
 		BlockInstance() {}
-		BlockInstance(int id, const FASTARecord * chr, size_t start, size_t end): id_(id), chr_(chr), start_(start), end_(end) {}
+		BlockInstance(int id, const FastaRecord * chr, size_t start, size_t end): id_(id), chr_(chr), start_(start), end_(end) {}
 		void Reverse();
 		int GetSignedBlockId() const;
 		DNASequence::Direction GetDirection() const;
 		int GetBlockId() const;
-		const FASTARecord& GetChrInstance() const;
+		const FastaRecord& GetChrInstance() const;
 		int GetSign() const;
 		size_t GetChrId() const;
 		size_t GetStart() const;
@@ -42,7 +42,7 @@ namespace SyntenyFinder
 		int id_;		
 		size_t start_;
 		size_t end_;
-		const FASTARecord * chr_;
+		const FastaRecord * chr_;
 	};
 
 	template<class F>

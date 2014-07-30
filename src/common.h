@@ -35,6 +35,7 @@
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/container/slist.hpp>
+
 #include <signal.h>
 #include <divsufsort.h>
 

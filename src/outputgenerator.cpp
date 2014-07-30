@@ -297,7 +297,7 @@ namespace SyntenyFinder
 			{
 				size_t length = blockList[block].GetLength();
 				char strand = blockList[block].GetSignedBlockId() > 0 ? '+' : '-';
-				const FASTARecord & chr = blockList[block].GetChrInstance();
+				const FastaRecord & chr = blockList[block].GetChrInstance();
 				out << ">Seq=\"" << chr.GetDescription() << "\",Strand='" << strand << "',";
 				out << "Block_id=" << blockList[block].GetBlockId() << ",Start=" ;
 				out << blockList[block].GetConventionalStart() << ",End=" << blockList[block].GetConventionalEnd() << std::endl;

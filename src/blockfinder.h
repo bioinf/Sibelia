@@ -47,7 +47,7 @@ namespace SyntenyFinder
 		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
 
 		std::string tempDir_;
-		const std::vector<FASTARecord> * originalChrList_;
+		const std::vector<FastaRecord> * originalChrList_;
 		
 		
 		
@@ -114,7 +114,7 @@ namespace SyntenyFinder
 		void PrintPath(const DNASequence & s, StrandIterator e, size_t k, size_t distance, std::ostream & out);
 		void SpellBulges(const DNASequence & sequence, size_t k, size_t bifStart, size_t bifEnd, const std::vector<StrandIterator> & startKMer, const std::vector<VisitData> & visitData);
 		
-		void Init(const std::vector<FASTARecord> & chrList);		
+		void Init(const std::vector<FastaRecord> & chrList);		
 		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
 		bool TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize);

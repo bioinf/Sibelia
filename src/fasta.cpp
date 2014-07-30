@@ -20,7 +20,7 @@ namespace SyntenyFinder
 		};
 	}
 
-	size_t FASTAReader::GetSequences(std::vector<FASTARecord> & record)
+	size_t FastaReader::GetSequences(std::vector<FastaRecord> & record)
 	{
 		std::string buffer;
 		std::string sequence;
@@ -43,7 +43,7 @@ namespace SyntenyFinder
 					{
 						if (sequence.empty()) throw ParseException("empty sequence");
 
-						record.push_back(FASTARecord(sequence, header, seqId));
+						record.push_back(FastaRecord(sequence, header, seqId));
 						++seqId;
 						sequence.clear();
 						header.clear();
@@ -61,7 +61,7 @@ namespace SyntenyFinder
 			}
 			
 			if (sequence.empty()) throw ParseException("empty sequence");
-			record.push_back(FASTARecord(sequence, header, seqId));
+			record.push_back(FastaRecord(sequence, header, seqId));
 		}
 		catch (ParseException & e)
 		{
@@ -73,7 +73,7 @@ namespace SyntenyFinder
 		return record.size();
 	}
 
-	void FASTAReader::ValidateHeader(std::string & header)
+	void FastaReader::ValidateHeader(std::string & header)
 	{
 		size_t delim = header.find(' ');
 		if (delim == std::string::npos)
@@ -89,7 +89,7 @@ namespace SyntenyFinder
 		if (header.empty()) throw ParseException("empty header");
 	}
 
-	void FASTAReader::ValidateSequence(std::string & sequence)
+	void FastaReader::ValidateSequence(std::string & sequence)
 	{
 		const std::string VALID_CHARS = "ACGTURYKMSWBDHWNX-";
 		for (size_t i = 0; i < sequence.length(); ++i)
@@ -103,8 +103,13 @@ namespace SyntenyFinder
 		}
 	}
 
-	bool FASTAReader::IsOk() const
+	bool FastaReader::IsOk() const
 	{
 		return inputStream_.good();
+	}
+	 
+	size_t FastaRecord::Iterator::GetPosition() const
+	{
+		return pos_;
 	}
 }

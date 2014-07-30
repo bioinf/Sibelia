@@ -200,10 +200,10 @@ int main(int argc, char * argv[])
 			throw std::runtime_error("In correction mode only two FASTA files are acceptable");
 		}
 		
-		std::vector<SyntenyFinder::FASTARecord> chrList;
+		std::vector<SyntenyFinder::FastaRecord> chrList;
 		for(std::vector<std::string>::const_iterator it = fileName.begin(); it != fileName.end(); it++)
 		{
-			SyntenyFinder::FASTAReader reader(*it);
+			SyntenyFinder::FastaReader reader(*it);
 			if(!reader.IsOk())
 			{
 				throw std::runtime_error(("Cannot open file " + *it).c_str());
