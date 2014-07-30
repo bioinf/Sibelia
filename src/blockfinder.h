@@ -34,7 +34,6 @@ namespace SyntenyFinder
 			run,
 			end
 		};
-
 		
 		static const char SEPARATION_CHAR;
 		typedef boost::function<void(size_t, State)> ProgressCallBack;

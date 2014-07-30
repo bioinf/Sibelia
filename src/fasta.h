@@ -11,14 +11,14 @@
 
 namespace SyntenyFinder
 {	
-	struct FastaRecord
+	class FastaRecord
 	{
 	public:
 		FastaRecord() {}
 		FastaRecord(const std::string & sequence, const std::string & description, size_t id):
 			description_(description), id_(id), sequence_(sequence)
 		{
-			//sequence_.assign(CFancyIterator(sequence.begin(), toupper, ' '), CFancyIterator(sequence.end(), toupper, ' '));
+			sequence_.assign(CFancyIterator(sequence.begin(), toupper, ' '), CFancyIterator(sequence.end(), toupper, ' '));
 		}
 
 		size_t GetId() const
@@ -71,7 +71,8 @@ namespace SyntenyFinder
 
 		class Iterator
 		{
-		public:			
+		public:
+			Iterator();
 			Iterator& operator++();
 			Iterator& operator--();
 			Iterator operator++(int);
@@ -80,8 +81,10 @@ namespace SyntenyFinder
 			Direction GetDirection() const;
 			const FastaRecord* GetSequence() const;
 			Iterator operator + (size_t shift) const;
-			Iterator operator - (size_t shift) const;			
+			Iterator operator - (size_t shift) const;
 		private:
+			Iterator(const FastaRecord * chr, size_t pos, Direction dir);
+			friend class FastaRecord;
 			const FastaRecord * chr_;
 			size_t pos_;
 			Direction dir_;			

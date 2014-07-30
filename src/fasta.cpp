@@ -112,4 +112,65 @@ namespace SyntenyFinder
 	{
 		return pos_;
 	}
+
+	FastaRecord::Iterator& FastaRecord::Iterator::operator++()
+	{
+		pos_++;
+		return *this;
+	}
+
+	
+	FastaRecord::Iterator& FastaRecord::Iterator::operator--()
+	{
+		pos_--;
+		return *this;
+	}
+	
+	FastaRecord::Iterator FastaRecord::Iterator::operator++(int)
+	{
+		Iterator ret(*this);
+		++(*this);
+		return ret;
+	}
+
+	FastaRecord::Iterator::Iterator(const FastaRecord * chr, size_t pos, Direction dir)
+	{
+	}
+
+	FastaRecord::Iterator FastaRecord::Iterator::operator--(int)
+	{
+		Iterator ret(*this);
+		--(*this);
+		return ret;
+	}
+	
+	FastaRecord::Direction FastaRecord::Iterator::GetDirection() const
+	{
+		return dir_;
+	}
+	
+	const FastaRecord* FastaRecord::Iterator::GetSequence() const
+	{
+		return chr_;
+	}
+	
+	FastaRecord::Iterator FastaRecord::Iterator::operator + (size_t shift) const
+	{
+		return Iterator(chr_, pos_ + shift, dir_);
+	}
+	
+	FastaRecord::Iterator FastaRecord::Iterator::operator - (size_t shift) const
+	{
+		return Iterator(chr_, pos_ - shift, dir_);
+	}
+
+	FastaRecord::Iterator FastaRecord::Begin(Direction dir) const
+	{
+		return Iterator(this, 0, dir);
+	}
+
+	FastaRecord::Iterator FastaRecord::End(Direction dir) const
+	{
+		return Iterator(this, sequence_.size(), dir);
+	}
 }
