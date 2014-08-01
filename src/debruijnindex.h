@@ -13,35 +13,27 @@
 namespace SyntenyFinder
 {	
 	class DeBruijnIndex
-	{
+	{	
 	public:
 		static const size_t NO_BIFURCATION;
 		static const size_t MAX_POSITION;
 		static const size_t MAX_BIFURCATION_ID;		
-		static const size_t MAX_SEQUENCE_NUMBER;
-		DeBruijnIndex(DeBruijnIndex & g, size_t k);
-		DeBruijnIndex(const std::vector<FastaRecord> & chrList, size_t k, const std::string & tempDir);
-		size_t GetBifurcationId(FastaRecord::Iterator it) const;
-		void GetBifurcationPositions(size_t bifId, std::vector<FastaRecord::Iterator> & pos) const;
-		void RemoveEdge(size_t chrId, size_t pos, FastaRecord::Direction dir);
-		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark);
+		static const size_t MAX_SEQUENCE_NUMBER;		
 
-		class DeBruijnEdge
-		{
-		public:
-			char GetMark() const;
-			FastaRecord GetPosition() const;
-		private:
-			char mark_;
-			FastaRecord::Iterator pos_;
-		};
+		class Edge;		
+
+		Edge GetEdgeAtPosition(FastaRecord::Iterator it) const;
+		DeBruijnIndex(size_t chrNumber, size_t bifNumber);
+		void RemoveEdge(Edge edge, FastaRecord::Direction dir);
+		void GetEdgesFromVertex(size_t bifId, std::vector<Edge> & pos) const;		
+		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark);		
 
 	private:
-		class Edge
+		class EdgeData
 		{
 		public:
-			Edge() {}
-			Edge(size_t pos, char mark);
+			EdgeData() {}
+			EdgeData(size_t pos, char mark);
 			char GetMark() const;
 			size_t GetPositon() const;
 		private:
@@ -63,9 +55,22 @@ namespace SyntenyFinder
 		};
 
 		typedef std::vector<Location> LocationVector;
-		typedef boost::unordered_map<uint32_t, Edge> PositionEdgeMap;
+		typedef boost::unordered_map<uint32_t, EdgeData> PositionEdgeMap;
 		std::vector<PositionEdgeMap> positionEdge_[2];
-		std::vector<LocationVector> bifurcationPosition;
+		std::vector<LocationVector> bifurcationPosition_;
+
+	public:
+
+		class Edge: public EdgeData, public Location
+		{
+		public:
+			Edge() {};
+			size_t GetBifurcationId() const;
+		private:			
+			friend class DeBruijnIndex;
+			Edge(size_t bifId, EdgeData data, Location location);
+			size_t bifId_;
+		};
 		
 	};
 
