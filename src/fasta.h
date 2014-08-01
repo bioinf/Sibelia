@@ -77,9 +77,10 @@ namespace SyntenyFinder
 			Iterator& operator--();
 			Iterator operator++(int);
 			Iterator operator--(int);
-			size_t GetPosition() const;	
+			Iterator Invert() const;
+			size_t GetPosition() const;			
 			Direction GetDirection() const;
-			const FastaRecord* GetSequence() const;
+			const FastaRecord* GetSequence() const;			
 			Iterator operator + (size_t shift) const;
 			Iterator operator - (size_t shift) const;
 		private:

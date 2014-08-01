@@ -15,10 +15,13 @@ namespace SyntenyFinder
 	class DeBruijnIndex
 	{
 	public:
-		static const uint32_t NO_BIFURCATION;		
+		static const size_t NO_BIFURCATION;
+		static const size_t MAX_POSITION;
+		static const size_t MAX_BIFURCATION_ID;		
+		static const size_t MAX_SEQUENCE_NUMBER;
 		DeBruijnIndex(DeBruijnIndex & g, size_t k);
 		DeBruijnIndex(const std::vector<FastaRecord> & chrList, size_t k, const std::string & tempDir);
-		uint32_t GetBifurcationId(FastaRecord::Iterator it) const;
+		size_t GetBifurcationId(FastaRecord::Iterator it) const;
 		void GetBifurcationPositions(size_t bifId, std::vector<FastaRecord::Iterator> & pos) const;
 		void RemoveEdge(size_t chrId, size_t pos, FastaRecord::Direction dir);
 		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark);
@@ -38,17 +41,19 @@ namespace SyntenyFinder
 		{
 		public:
 			Edge() {}
-			Edge(uint32_t pos, char mark);
+			Edge(size_t pos, char mark);
 			char GetMark() const;
-			uint32_t GetPositon() const;
+			size_t GetPositon() const;
 		private:
-			uint32_t data_;
+			char mark_;
+			uint32_t pos_;
 		};
 
 		class Location
 		{
 		public:
 			Location() {}
+			Location(size_t pos, size_t chrId, FastaRecord::Direction dir);
 			size_t GetPosition() const;
 			size_t GetChromosomeId() const;
 			FastaRecord::Direction GetDirection() const;
