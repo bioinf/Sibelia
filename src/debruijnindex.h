@@ -14,31 +14,30 @@ namespace SyntenyFinder
 {	
 	class DeBruijnIndex
 	{	
-	public:
-		static const size_t NO_BIFURCATION;
+	public:		
 		static const size_t MAX_POSITION;
 		static const size_t MAX_BIFURCATION_ID;		
 		static const size_t MAX_SEQUENCE_NUMBER;		
 
 		class Edge;		
-
-		Edge GetEdgeAtPosition(FastaRecord::Iterator it) const;
+		
 		DeBruijnIndex(size_t chrNumber, size_t bifNumber);
 		void RemoveEdge(Edge edge, FastaRecord::Direction dir);
+		Edge GetEdgeAtPosition(FastaRecord::Iterator it) const;
 		void GetEdgesFromVertex(size_t bifId, std::vector<Edge> & pos) const;		
-		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark);		
+		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark);
 
 	private:
 		class EdgeData
 		{
 		public:
 			EdgeData() {}
-			EdgeData(size_t pos, char mark);
+			EdgeData(size_t bifId, char mark);
 			char GetMark() const;
-			size_t GetPositon() const;
+			size_t GetBifurcationId() const;
 		private:
 			char mark_;
-			uint32_t pos_;
+			uint32_t bifId_;
 		};
 
 		class Location
@@ -60,16 +59,16 @@ namespace SyntenyFinder
 		std::vector<LocationVector> bifurcationPosition_;
 
 	public:
+		static const size_t NO_BIFURCATION;
 
 		class Edge: public EdgeData, public Location
 		{
 		public:
 			Edge() {};
-			size_t GetBifurcationId() const;
+			bool Valid() const;
 		private:			
 			friend class DeBruijnIndex;
-			Edge(size_t bifId, EdgeData data, Location location);
-			size_t bifId_;
+			Edge(EdgeData data, Location location);
 		};
 		
 	};
