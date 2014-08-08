@@ -21,10 +21,10 @@ namespace SyntenyFinder
 
 		class Edge;		
 		
-		DeBruijnIndex(size_t chrNumber, size_t bifNumber);
+		DeBruijnIndex(const std::vector<FastaRecord> * chr, size_t bifNumber);
 		void RemoveEdge(Edge edge, FastaRecord::Direction dir);
 		Edge GetEdgeAtPosition(FastaRecord::Iterator it) const;
-		void GetEdgesFromVertex(size_t bifId, std::vector<Edge> & pos) const;		
+		void GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const;		
 		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark);
 
 	private:
@@ -55,8 +55,9 @@ namespace SyntenyFinder
 
 		typedef std::vector<Location> LocationVector;
 		typedef boost::unordered_map<uint32_t, EdgeData> PositionEdgeMap;
+		const std::vector<FastaRecord> * chr_;
 		std::vector<PositionEdgeMap> positionEdge_[2];
-		std::vector<LocationVector> bifurcationPosition_;
+		std::vector<LocationVector> bifurcationPosition_;		
 
 	public:
 		static const size_t NO_BIFURCATION;
@@ -70,6 +71,8 @@ namespace SyntenyFinder
 			friend class DeBruijnIndex;
 			Edge(EdgeData data, Location location);
 		};
+
+		static size_t GetStrand(FastaRecord::Direction dir);
 		
 	};
 
