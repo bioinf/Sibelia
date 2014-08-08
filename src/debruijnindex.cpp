@@ -31,9 +31,9 @@ namespace SyntenyFinder
 		return abs(chrId_);
 	}
 
-	bool DeBruijnIndex::Location::operator == (const Location & data) const
+	bool DeBruijnIndex::Location::EquivalentLocation(const Location & a, const Location & b)
 	{
-		return data.GetChromosomeId() == GetChromosomeId() && data.GetDirection() == GetDirection() && data.GetPosition() == GetPosition();
+		return a.GetChromosomeId() == b.GetChromosomeId() && a.GetDirection() == b.GetDirection() && a.GetPosition() == b.GetPosition();
 	}
 	
 	FastaRecord::Direction DeBruijnIndex::Location::GetDirection() const
@@ -49,11 +49,22 @@ namespace SyntenyFinder
 	size_t DeBruijnIndex::EdgeData::GetProjection() const
 	{
 		return projection_;
-	}	
+	}
 
-	DeBruijnIndex::EdgeData::EdgeData(size_t bifId, char mark, size_t projection):
-		bifId_(static_cast<uint32_t>(bifId)), mark_(mark), projection_(static_cast<uint32_t>(projection))
+	DeBruijnIndex::EdgeData::EdgeData(size_t pos):
+		pos_(static_cast<uint32_t>(pos))
 	{
+	}
+
+	DeBruijnIndex::EdgeData::EdgeData(size_t pos, size_t bifId, char mark, size_t projection):
+		pos_(static_cast<uint32_t>(pos)), bifId_(static_cast<uint32_t>(bifId)), mark_(mark),
+		projection_(static_cast<uint32_t>(projection))
+	{
+	}
+
+	size_t DeBruijnIndex::EdgeDataKey::operator () (const EdgeData & data) const
+	{
+		return data.GetVirtualPosition();
 	}
 
 	char DeBruijnIndex::EdgeData::GetMark() const
@@ -78,9 +89,14 @@ namespace SyntenyFinder
 		positionEdge_[1].resize(chr->size());
 	}
 
+	size_t DeBruijnIndex::EdgeData::GetVirtualPosition() const
+	{
+		return pos_;
+	}
+
 	void DeBruijnIndex::AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark, size_t projection) 
 	{		
-		positionEdge_[GetStrand(dir)][chrId].insert(std::make_pair(static_cast<uint32_t>(pos), EdgeData(bifId, mark, projection)));
+		positionEdge_[GetStrand(dir)][chrId].insert(EdgeData(pos, bifId, mark, projection));
 		bifurcationPosition_[bifId].push_back(Location(chrId, pos, dir));
 	}
 
@@ -89,13 +105,14 @@ namespace SyntenyFinder
 		LocationVector & v = bifurcationPosition_[edge.GetBifurcationId()];
 		positionEdge_[GetStrand(edge.GetDirection())][edge.GetChromosomeId()].erase(static_cast<uint32_t>(edge.GetPosition())) ;
 		Location location(edge.GetChromosomeId(), edge.GetPosition(), edge.GetDirection());
-		LocationVector::iterator it = std::find(v.begin(), v.end(), location);
+		LocationVector::iterator it = std::find_if(v.begin(), v.end(), boost::bind(Location::EquivalentLocation, location, _1));
 		v.erase(it);
 	}
 	
 	DeBruijnIndex::Edge DeBruijnIndex::GetEdgeAtPosition(FastaRecord::Iterator it) const
 	{
-		EdgeData data = positionEdge_[GetStrand(it.GetDirection())][it.GetSequence()->GetId()].find(static_cast<uint32_t>(it.GetPosition()))->second;
+		EdgeData lookUp(it.GetPosition());
+		EdgeData data = *positionEdge_[GetStrand(it.GetDirection())][it.GetSequence()->GetId()].find(lookUp);
 		Location location(it.GetSequence()->GetId(), it.GetPosition(), it.GetDirection());
 		return Edge(data, location);
 	}
@@ -109,5 +126,10 @@ namespace SyntenyFinder
 			FastaRecord::Iterator it = (*chr_)[location.GetChromosomeId()].Begin(location.GetDirection());
 			e.push_back(GetEdgeAtPosition(it + location.GetPosition()));
 		}
+	}
+
+	bool DeBruijnIndex::EdgeDataEquivalence::operator () (const EdgeData & a, const EdgeData & b) const
+	{
+		return a.GetVirtualPosition() == b.GetVirtualPosition();
 	}
 }

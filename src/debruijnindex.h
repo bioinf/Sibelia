@@ -32,13 +32,16 @@ namespace SyntenyFinder
 		{
 		public:
 			EdgeData() {}
-			EdgeData(size_t bifId, char mark, size_t projection);
-			char GetMark() const;
+			EdgeData(size_t pos);
+			EdgeData(size_t pos, size_t bifId, char mark, size_t projection);
+			char GetMark() const;			
 			size_t GetProjection() const;
-			size_t GetBifurcationId() const;			
+			size_t GetBifurcationId() const;
+			size_t GetVirtualPosition() const;
 		private:
-			char mark_;			
+			uint32_t pos_;			
 			uint32_t bifId_;
+			char mark_;
 			uint32_t projection_;
 		};
 
@@ -50,14 +53,26 @@ namespace SyntenyFinder
 			size_t GetPosition() const;
 			size_t GetChromosomeId() const;
 			FastaRecord::Direction GetDirection() const;
-			bool operator == (const Location & data) const;
+			static bool EquivalentLocation(const Location & a, const Location & b);
 		private:
 			int32_t chrId_;
 			uint32_t pos_;
 		};
 
+		class EdgeDataKey
+		{
+		public:
+			size_t operator () (const EdgeData & data) const;
+		};
+
+		class EdgeDataEquivalence
+		{
+		public:
+			bool operator () (const EdgeData & a, const EdgeData & b) const;
+		};
+
 		typedef std::vector<Location> LocationVector;
-		typedef boost::unordered_map<uint32_t, EdgeData> PositionEdgeMap;
+		typedef boost::unordered_set<EdgeData, EdgeDataKey, EdgeDataEquivalence> PositionEdgeMap;
 		const std::vector<FastaRecord> * chr_;
 		std::vector<PositionEdgeMap> positionEdge_[2];
 		std::vector<LocationVector> bifurcationPosition_;		
@@ -73,7 +88,7 @@ namespace SyntenyFinder
 		private:			
 			friend class DeBruijnIndex;
 			Edge(EdgeData data, Location location);
-		};
+		};		
 
 		static size_t GetStrand(FastaRecord::Direction dir);
 		
