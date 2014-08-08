@@ -30,6 +30,11 @@ namespace SyntenyFinder
 	{
 		return abs(chrId_);
 	}
+
+	bool DeBruijnIndex::Location::operator == (const Location & data) const
+	{
+		return data.GetChromosomeId() == GetChromosomeId() && data.GetDirection() == GetDirection() && data.GetPosition() == GetPosition();
+	}
 	
 	FastaRecord::Direction DeBruijnIndex::Location::GetDirection() const
 	{
@@ -41,7 +46,13 @@ namespace SyntenyFinder
 		return bifId_;
 	}
 
-	DeBruijnIndex::EdgeData::EdgeData(size_t bifId, char mark): bifId_(static_cast<uint32_t>(bifId)), mark_(mark)
+	size_t DeBruijnIndex::EdgeData::GetProjection() const
+	{
+		return projection_;
+	}	
+
+	DeBruijnIndex::EdgeData::EdgeData(size_t bifId, char mark, size_t projection):
+		bifId_(static_cast<uint32_t>(bifId)), mark_(mark), projection_(static_cast<uint32_t>(projection))
 	{
 	}
 
@@ -67,15 +78,19 @@ namespace SyntenyFinder
 		positionEdge_[1].resize(chr->size());
 	}
 
-	void DeBruijnIndex::AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark)
+	void DeBruijnIndex::AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark, size_t projection) 
 	{		
-		positionEdge_[GetStrand(dir)][chrId].insert(std::make_pair(static_cast<uint32_t>(pos), EdgeData(bifId, mark)));
+		positionEdge_[GetStrand(dir)][chrId].insert(std::make_pair(static_cast<uint32_t>(pos), EdgeData(bifId, mark, projection)));
 		bifurcationPosition_[bifId].push_back(Location(chrId, pos, dir));
 	}
 
-	void  DeBruijnIndex::RemoveEdge(Edge edge, FastaRecord::Direction dir)
+	void DeBruijnIndex::RemoveEdge(Edge edge, FastaRecord::Direction dir)
 	{
-	
+		LocationVector & v = bifurcationPosition_[edge.GetBifurcationId()];
+		positionEdge_[GetStrand(edge.GetDirection())][edge.GetChromosomeId()].erase(static_cast<uint32_t>(edge.GetPosition())) ;
+		Location location(edge.GetChromosomeId(), edge.GetPosition(), edge.GetDirection());
+		LocationVector::iterator it = std::find(v.begin(), v.end(), location);
+		v.erase(it);
 	}
 	
 	DeBruijnIndex::Edge DeBruijnIndex::GetEdgeAtPosition(FastaRecord::Iterator it) const

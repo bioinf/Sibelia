@@ -25,19 +25,21 @@ namespace SyntenyFinder
 		void RemoveEdge(Edge edge, FastaRecord::Direction dir);
 		Edge GetEdgeAtPosition(FastaRecord::Iterator it) const;
 		void GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const;		
-		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark);
+		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark, size_t projection);
 
 	private:
 		class EdgeData
 		{
 		public:
 			EdgeData() {}
-			EdgeData(size_t bifId, char mark);
+			EdgeData(size_t bifId, char mark, size_t projection);
 			char GetMark() const;
-			size_t GetBifurcationId() const;
+			size_t GetProjection() const;
+			size_t GetBifurcationId() const;			
 		private:
-			char mark_;
+			char mark_;			
 			uint32_t bifId_;
+			uint32_t projection_;
 		};
 
 		class Location
@@ -48,6 +50,7 @@ namespace SyntenyFinder
 			size_t GetPosition() const;
 			size_t GetChromosomeId() const;
 			FastaRecord::Direction GetDirection() const;
+			bool operator == (const Location & data) const;
 		private:
 			int32_t chrId_;
 			uint32_t pos_;
