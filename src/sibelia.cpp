@@ -218,16 +218,6 @@ int main(int argc, char * argv[])
 			}
 		}
 		
-		for(size_t i = 0; i < chrList.size(); i++)
-		{
-			totalSize += chrList[i].GetSequence().size();
-		}
-
-		if(totalSize > SyntenyFinder::MAX_INPUT_SIZE)
-		{
-			throw std::runtime_error("Input is larger than 1 GB, can't proceed");
-		}
-		
 		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size() + 1);
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		SyntenyFinder::DeBruijnGraph g(chrList, stage[0].first, inRAM.isSet() ? "" : tempDir);

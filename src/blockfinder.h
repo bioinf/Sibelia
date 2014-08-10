@@ -13,7 +13,7 @@
 namespace SyntenyFinder
 {
 	#define NEW_ENUMERATION
-
+	
 	struct VisitData
 	{
 		size_t kmerId;
@@ -44,13 +44,10 @@ namespace SyntenyFinder
 		size_t PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockFinder);
-
+		/*
 		std::string tempDir_;
 		const std::vector<FastaRecord> * originalChrList_;
 		
-		
-		
-		/*
 		typedef std::vector<Pos> PosVector;
 		typedef std::pair<size_t, size_t> ChrPos;
 		

@@ -95,7 +95,7 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 		std::cout << '.';
 		std::cout.flush();
 	}
-
+	
 	switch(state)
 	{
 	case SyntenyFinder::BlockFinder::start:

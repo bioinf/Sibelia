@@ -21,13 +21,14 @@ namespace SyntenyFinder
 
 		class Edge;		
 		
-		DeBruijnIndex(const std::vector<FastaRecord> * chr, size_t bifNumber);
+		DeBruijnIndex(size_t chrNumber, size_t bifNumber);
 		void RemoveEdge(Edge edge, FastaRecord::Direction dir);
-		Edge GetEdgeAtPosition(FastaRecord::Iterator it) const;
-		void GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const;		
+		void GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const;
+		Edge GetEdgeAtPosition(size_t chrId, size_t pos, FastaRecord::Direction dir) const;
 		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark, size_t projection);
 
 	private:
+		DISALLOW_COPY_AND_ASSIGN(DeBruijnIndex);
 		class EdgeData
 		{
 		public:
@@ -93,9 +94,6 @@ namespace SyntenyFinder
 		static size_t GetStrand(FastaRecord::Direction dir);
 		
 	};
-
-	void SimplifyGraph(DeBruijnIndex & g, size_t minBranchSize);	
-	std::vector<BlockInstance> GenerateSyntenyBlocks(const DeBruijnIndex & g);
 }
 
 #endif

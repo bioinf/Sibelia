@@ -8,6 +8,7 @@
 #define _UTIL_H_
 
 #include "blockfinder.h"
+#include "blockbuilder.h"
 #include "outputgenerator.h"
 
 void SignalHandler(int sig);
