@@ -87,7 +87,7 @@ namespace SyntenyFinder
 				{
 					if((*it).get_padding_int() != NO_BIFURCATION)
 					{
-						StrandIterator jt(*it, static_cast<DNASequence::Direction>(strand));
+						StrandIterator jt(*it, static_cast<FastaRecord::Direction>(strand));
 						size_t pos = sequence.GlobalIndex(jt);
 						out << " {" << bifId << ", " << pos << ", ";
 						CopyN(jt, k, std::ostream_iterator<char>(out));
@@ -99,7 +99,7 @@ namespace SyntenyFinder
 			out << std::endl << strandName[strand] << ", pos:" ;
 			for(IteratorMap::const_iterator it = posBifurcation_[strand].begin(); it != posBifurcation_[strand].end(); ++it)
 			{
-				StrandIterator jt(**it, static_cast<DNASequence::Direction>(strand));
+				StrandIterator jt(**it, static_cast<FastaRecord::Direction>(strand));
 				size_t pos = sequence.GlobalIndex(jt);
 				out << " {" << pos << ", ";
 				CopyN(jt, k, std::ostream_iterator<char>(out));
@@ -115,7 +115,7 @@ namespace SyntenyFinder
 		BifurcationId bifId = static_cast<BifurcationId>(inBifId);
 		if(GetBifurcation(it) == NO_BIFURCATION && inBifId != NO_BIFURCATION)
 		{
-			size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
+			size_t strand = it.GetDirection() == FastaRecord::positive ? 0 : 1;
 			it.SetInfoBit(strand, true);
 			BaseIterator newIt = it.Base();
 			newIt.get_padding_int() = bifId;
@@ -129,7 +129,7 @@ namespace SyntenyFinder
 	BifurcationStorage::BifurcationId BifurcationStorage::ErasePointInternal(DNASequence::StrandIterator it, IteratorPtr & ret)
 	{				
 		BifurcationId bifId = NO_BIFURCATION;
-		size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
+		size_t strand = it.GetDirection() == FastaRecord::positive ? 0 : 1;
 		IteratorMap::iterator kt = LookUp(it);
 		if(kt != posBifurcation_[strand].end())
 		{
@@ -147,7 +147,7 @@ namespace SyntenyFinder
 		size_t bifId = ErasePointInternal(it, buf);
 		if(bifId != NO_BIFURCATION)
 		{				
-			size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
+			size_t strand = it.GetDirection() == FastaRecord::positive ? 0 : 1;
 			it.SetInfoBit(strand, false);
 			(*buf).get_padding_int() = NO_BIFURCATION;
 			toClear_.push_back(std::make_pair(&bifurcationPos_[strand][bifId], buf));
@@ -156,7 +156,7 @@ namespace SyntenyFinder
 	
 	size_t BifurcationStorage::GetBifurcation(DNASequence::StrandIterator it) const
 	{
-		size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;		
+		size_t strand = it.GetDirection() == FastaRecord::positive ? 0 : 1;		
 		IteratorMap::const_iterator kt = LookUp(it);
 		return kt == posBifurcation_[strand].end() ? NO_BIFURCATION : (**kt).get_padding_int();
 	}
@@ -185,7 +185,7 @@ namespace SyntenyFinder
 		{
 			if(record < invalid_[nowInvalid_].size() && invalid_[nowInvalid_][record].pos == pos)
 			{
-				size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
+				size_t strand = it.GetDirection() == FastaRecord::positive ? 0 : 1;
 				BifurcationId bifId = invalid_[nowInvalid_][record].bifId;
 				IteratorPtr jt = invalid_[nowInvalid_][record].ptrIt;				
 				BaseIterator newIt = it.Base();
@@ -207,7 +207,7 @@ namespace SyntenyFinder
 		dict.clear();
 		for(size_t dir = 0; dir < 2; dir++)
 		{
-			DNASequence::Direction type = static_cast<DNASequence::Direction>(dir);
+			FastaRecord::Direction type = static_cast<FastaRecord::Direction>(dir);
 			for(ListVector::const_iterator it = bifurcationPos_[dir].begin(); it != bifurcationPos_[dir].end(); ++it)
 			{
 				for(IteratorList::const_iterator jt = it->begin(); jt != it->end(); ++jt)
@@ -222,7 +222,7 @@ namespace SyntenyFinder
 
 	BifurcationStorage::IteratorMap::const_iterator BifurcationStorage::LookUp(StrandIterator it) const
 	{
-		size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
+		size_t strand = it.GetDirection() == FastaRecord::positive ? 0 : 1;
 		if(it.GetInfoBit(strand))
 		{
 			IteratorList temp(1, it.Base());
@@ -236,7 +236,7 @@ namespace SyntenyFinder
 
 	BifurcationStorage::IteratorMap::iterator BifurcationStorage::LookUp(StrandIterator it)
 	{
-		size_t strand = it.GetDirection() == DNASequence::positive ? 0 : 1;
+		size_t strand = it.GetDirection() == FastaRecord::positive ? 0 : 1;
 		if(it.GetInfoBit(strand))
 		{
 			IteratorList temp(1, it.Base());

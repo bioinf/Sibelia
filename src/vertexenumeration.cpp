@@ -8,7 +8,7 @@
 
 namespace SyntenyFinder
 {
-	const char IndexedSequence::SEPARATION_CHAR = '#';
+	const char SEPARATION_CHAR = '#';
 	namespace
 	{
 		class CharSet
@@ -66,22 +66,22 @@ namespace SyntenyFinder
 
 		bool Bifurcation(const CharSet & set)
 		{
-			return set.Size() > 1 || set.In(IndexedSequence::SEPARATION_CHAR);
+			return set.Size() > 1 || set.In(SEPARATION_CHAR);
 		}
 
 		void Flank(std::string & str, size_t start, size_t end, size_t k, char sepChar)
 		{
 			if(end - start > k)
 			{
-				if(!IsDefiniteBase(str[start]))
+				if(!FastaRecord::IsDefiniteBase(str[start]))
 				{
-					for(; start < end && !IsDefiniteBase(str[start]); ++start);
+					for(; start < end && !FastaRecord::IsDefiniteBase(str[start]); ++start);
 					str[start - 1] = sepChar;
 				}
 				
-				if(!IsDefiniteBase(str[end - k]))
+				if(!FastaRecord::IsDefiniteBase(str[end - k]))
 				{
-					for(; end - start > k && !IsDefiniteBase(str[end - k]); --end);
+					for(; end - start > k && !FastaRecord::IsDefiniteBase(str[end - k]); --end);
 					str[end - k] = sepChar;
 				}
 			}
@@ -177,7 +177,7 @@ namespace SyntenyFinder
 			cumSize.push_back(superGenome.size());
 			std::string::const_reverse_iterator it1 = data[chr].rbegin();
 			std::string::const_reverse_iterator it2 = data[chr].rend();
-			superGenome.insert(superGenome.end(), CFancyIterator(it1, DNASequence::Translate, ' '), CFancyIterator(it2, DNASequence::Translate, ' '));
+			superGenome.insert(superGenome.end(), CFancyIterator(it1, FastaRecord::Translate, ' '), CFancyIterator(it2, FastaRecord::Translate, ' '));
 			superGenome += SEPARATION_CHAR;
 			Flank(superGenome, superGenome.size() - 1 - data[chr].size(), superGenome.size() - 1, k_, SEPARATION_CHAR);
 		}
@@ -189,12 +189,12 @@ namespace SyntenyFinder
 		CharSet prev;
 		CharSet next;
 		std::vector<BifurcationInstance> * ret[] = {&positiveBif, &negativeBif};
-		std::vector<std::pair<DNASequence::Direction, BifurcationInstance> > candidate;
+		std::vector<std::pair<FastaRecord::Direction, BifurcationInstance> > candidate;
 		for(size_t start = 0; start < superGenome.size(); )
 		{
 			pos.assign(1, 0);
 			posFile->Read(&pos[0], sizeof(pos[0]), 1);
-			if(superGenome[pos[0]] == SEPARATION_CHAR || !IsDefiniteBase(superGenome[pos[0]]))
+			if(superGenome[pos[0]] == SEPARATION_CHAR || !FastaRecord::IsDefiniteBase(superGenome[pos[0]]))
 			{
 				start++;
 				continue;
@@ -232,7 +232,7 @@ namespace SyntenyFinder
 				{
 					size_t suffix = pos[i];
 					size_t chr = std::upper_bound(cumSize.begin(), cumSize.end(), suffix) - cumSize.begin() - 1;
-					DNASequence::Direction strand = chr < data.size() ? DNASequence::positive : DNASequence::negative;
+					FastaRecord::Direction strand = chr < data.size() ? FastaRecord::positive : FastaRecord::negative;
 					size_t pos = suffix - cumSize[chr];
 					chr = chr < data.size() ? chr : chr - data.size();
 					if(pos + k_ <= data[chr].size())
@@ -247,7 +247,7 @@ namespace SyntenyFinder
 					bifurcationCount++;
 					for(size_t i = 0; i < candidate.size(); i++)
 					{
-						ret[candidate[i].first == DNASequence::positive ? 0 : 1]->push_back(candidate[i].second);
+						ret[candidate[i].first == FastaRecord::positive ? 0 : 1]->push_back(candidate[i].second);
 					}
 				}
 			}
@@ -280,7 +280,7 @@ namespace SyntenyFinder
 			cumSize.push_back(superGenome.size());
 			std::string::const_reverse_iterator it1 = data[chr].rbegin();
 			std::string::const_reverse_iterator it2 = data[chr].rend();
-			superGenome.insert(superGenome.end(), CFancyIterator(it1, DNASequence::Translate, ' '), CFancyIterator(it2, DNASequence::Translate, ' '));
+			superGenome.insert(superGenome.end(), CFancyIterator(it1, FastaRecord::Translate, ' '), CFancyIterator(it2, FastaRecord::Translate, ' '));
 			superGenome += SEPARATION_CHAR;
 			Flank(superGenome, superGenome.size() - 1 - data[chr].size(), superGenome.size() - 1, k_, SEPARATION_CHAR);
 		}
@@ -301,10 +301,10 @@ namespace SyntenyFinder
 		CharSet prev;
 		CharSet next;
 		std::vector<BifurcationInstance> * ret[] = {&positiveBif, &negativeBif};
-		std::vector<std::pair<DNASequence::Direction, BifurcationInstance> > candidate;
+		std::vector<std::pair<FastaRecord::Direction, BifurcationInstance> > candidate;
 		for(size_t start = 0; start < superGenome.size(); )
 		{
-			if(superGenome[order[start]] == SEPARATION_CHAR  || !IsDefiniteBase(superGenome[order[start]]))
+			if(superGenome[order[start]] == SEPARATION_CHAR  || !FastaRecord::IsDefiniteBase(superGenome[order[start]]))
 			{
 				start++;
 				continue;
@@ -335,7 +335,7 @@ namespace SyntenyFinder
 				{
 					size_t suffix = order[i];
 					size_t chr = std::upper_bound(cumSize.begin(), cumSize.end(), suffix) - cumSize.begin() - 1;
-					DNASequence::Direction strand = chr < data.size() ? DNASequence::positive : DNASequence::negative;
+					FastaRecord::Direction strand = chr < data.size() ? FastaRecord::positive : FastaRecord::negative;
 					size_t pos = suffix - cumSize[chr];
 					chr = chr < data.size() ? chr : chr - data.size();
 					if(pos + k_ <= data[chr].size())
@@ -350,7 +350,7 @@ namespace SyntenyFinder
 					bifurcationCount++;
 					for(size_t i = 0; i < candidate.size(); i++)
 					{
-						ret[candidate[i].first == DNASequence::positive ? 0 : 1]->push_back(candidate[i].second);
+						ret[candidate[i].first == FastaRecord::positive ? 0 : 1]->push_back(candidate[i].second);
 					}
 				}
 			}

@@ -13,12 +13,11 @@
 
 namespace SyntenyFinder
 {
-	typedef DNASequence::StrandIterator StrandIterator;
 
 	class IndexedSequence
 	{
 	public:
-		static const char SEPARATION_CHAR;
+/*		static const char SEPARATION_CHAR;
 		void Test();
 		DNASequence& Sequence();
 		const DNASequence& Sequence() const;
@@ -29,7 +28,7 @@ namespace SyntenyFinder
 		IndexedSequence(const std::vector<std::string> & record, size_t k, const std::string & tempDir);
 		IndexedSequence(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & original, size_t k, const std::string & tempDir, bool clear = false);
 		static bool StrandIteratorPosGEqual(StrandIterator a, StrandIterator b);		
-		static size_t StrandIteratorDistance(StrandIterator start, StrandIterator end);
+		static size_t StrandIteratorDistance(StrandIterator start, StrandIterator end);*/
 
 		struct BifurcationInstance
 		{
@@ -49,7 +48,7 @@ namespace SyntenyFinder
 
 	private:
 		DISALLOW_COPY_AND_ASSIGN(IndexedSequence);
-		typedef std::pair<StrandIterator, size_t> IteratorChrPair;
+	/*	typedef std::pair<StrandIterator, size_t> IteratorChrPair;
 		size_t k_;
 		std::auto_ptr<DNASequence> sequence_;
 		std::auto_ptr<BifurcationStorage> bifStorage_;
@@ -72,7 +71,7 @@ namespace SyntenyFinder
 	#endif		
 
 		size_t GetMustBeBifurcation(StrandIterator it);
-		void Init(std::vector<std::string> record, std::vector<std::vector<Pos> > & original, size_t k, const std::string & tempDir, bool clear);		
+		void Init(std::vector<std::string> record, std::vector<std::vector<Pos> > & original, size_t k, const std::string & tempDir, bool clear);		*/
 	};
 }
 

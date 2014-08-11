@@ -17,7 +17,7 @@ namespace SyntenyFinder
 			out << " -> ";
 			CopyN(++StrandIterator(it), k, std::ostream_iterator<char>(out));
 			char buf[1 << 8];
-			std::string color = it.GetDirection() == DNASequence::positive ? "blue" : "red";			
+			std::string color = it.GetDirection() == FastaRecord::positive ? "blue" : "red";			
 			sprintf(&buf[0], "[color=\"%s\", label=\"(%i, %i)\"];", color.c_str(), static_cast<int>(chr), static_cast<int>(pos));
 			out << " " << buf << std::endl;
 		}
@@ -47,7 +47,7 @@ namespace SyntenyFinder
 
 	void BlockFinder::PrintPath(const DNASequence & s, StrandIterator e, size_t k, size_t distance, std::ostream & out)
 	{
-		out << (e.GetDirection() == DNASequence::positive ? "+" : "-") << s.GlobalIndex(e) << ' ';
+		out << (e.GetDirection() == FastaRecord::positive ? "+" : "-") << s.GlobalIndex(e) << ' ';
 		CopyN(e, distance + k, std::ostream_iterator<char>(out));
 		std::cerr << std::endl;
 	}
@@ -60,8 +60,8 @@ namespace SyntenyFinder
 			for(size_t chr = 0; chr < sequence.ChrNumber(); chr++)
 			{
 				size_t pos = 0;				
-				StrandIterator start = sequence.Begin((DNASequence::Direction)strand, chr);
-				StrandIterator end = sequence.End((DNASequence::Direction)strand, chr);				
+				StrandIterator start = sequence.Begin((FastaRecord::Direction)strand, chr);
+				StrandIterator end = sequence.End((FastaRecord::Direction)strand, chr);				
 				size_t prevVertex = bifStorage.GetBifurcation(start);
 				size_t length = std::distance(start, end);
 				for(; start != end; )
@@ -94,7 +94,7 @@ namespace SyntenyFinder
 		for(size_t i = 0; i < edge.size(); i++)
 		{
 			char buf[1 << 8];
-			std::string color = edge[i].GetDirection() == DNASequence::positive ? "blue" : "red";
+			std::string color = edge[i].GetDirection() == FastaRecord::positive ? "blue" : "red";
 			int uchr = static_cast<int>(edge[i].GetChr());
 			int uorpos = static_cast<int>(edge[i].GetOriginalPosition());
 			int uorlength = static_cast<int>(edge[i].GetOriginalLength());

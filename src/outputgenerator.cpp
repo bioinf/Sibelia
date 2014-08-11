@@ -309,7 +309,7 @@ namespace SyntenyFinder
 				else
 				{
 					std::string::const_reverse_iterator it(chr.GetSequence().begin() + blockList[block].GetEnd());
-					OutputLines(CFancyIterator(it, DNASequence::Translate, ' '), length, out);
+					OutputLines(CFancyIterator(it, FastaRecord::Translate, ' '), length, out);
 				}
 
 				out << std::endl;
@@ -433,7 +433,7 @@ namespace SyntenyFinder
 			}
 			else
 			{
-				highlightFile << " fill_color=" << (itBlock->GetDirection() == DNASequence::positive ? "green" : "red")  << "_a0";
+				highlightFile << " fill_color=" << (itBlock->GetDirection() == FastaRecord::positive ? "green" : "red")  << "_a0";
 			}
 
 			highlightFile << std::endl;
@@ -621,7 +621,7 @@ namespace SyntenyFinder
 				IntToStr(start),
 				IntToStr(end),
 				".",
-				(it->GetDirection() == DNASequence::positive ? "+" : "-"),
+				(it->GetDirection() == FastaRecord::positive ? "+" : "-"),
 				".",
 				IntToStr(static_cast<size_t>(it->GetBlockId()))
 			};

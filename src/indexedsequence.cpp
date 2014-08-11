@@ -7,7 +7,7 @@
 #include "indexedsequence.h"
 
 namespace SyntenyFinder
-{
+{/*
 	IndexedSequence::IndexedSequence(const std::vector<std::string> & record, std::vector<std::vector<Pos> > & originalPos, size_t k, const std::string & tempDir, bool clear): k_(k)
 	{
 		Init(record, originalPos, k, tempDir, clear);
@@ -51,7 +51,7 @@ namespace SyntenyFinder
 		for(size_t strand = 0; strand < 2; strand++)
 		{
 			size_t nowBif = 0;
-			DNASequence::Direction dir = static_cast<DNASequence::Direction>(strand);
+			FastaRecord::Direction dir = static_cast<FastaRecord::Direction>(strand);
 			for(size_t chr = 0; chr < sequence_->ChrNumber(); chr++)
 			{
 				size_t pos = 0;
@@ -85,8 +85,8 @@ namespace SyntenyFinder
 		{
 			for(size_t chr = 0; chr < sequence_->ChrNumber(); chr++)
 			{
-				StrandIterator begin = sequence_->Begin((DNASequence::Direction)strand, chr);
-				StrandIterator end = sequence_->End((DNASequence::Direction)strand, chr);
+				StrandIterator begin = sequence_->Begin((FastaRecord::Direction)strand, chr);
+				StrandIterator end = sequence_->End((FastaRecord::Direction)strand, chr);
 				SlidingWindow<StrandIterator> window(begin, end, k_);
 				for(; window.Valid(); window.Move())
 				{
@@ -146,12 +146,12 @@ namespace SyntenyFinder
 
 	bool IndexedSequence::StrandIteratorPosGEqual(StrandIterator a, StrandIterator b)
 	{
-		if(a.GetDirection() == DNASequence::positive && b.GetDirection() == DNASequence::positive)
+		if(a.GetDirection() == FastaRecord::positive && b.GetDirection() == FastaRecord::positive)
 		{
 			return a.GetOriginalPosition() >= b.GetOriginalPosition();
 		}
 
-		if(a.GetDirection() == DNASequence::negative && b.GetDirection() == DNASequence::negative)
+		if(a.GetDirection() == FastaRecord::negative && b.GetDirection() == FastaRecord::negative)
 		{
 			return a.GetOriginalPosition() <= b.GetOriginalPosition();
 		}
@@ -164,5 +164,5 @@ namespace SyntenyFinder
 		size_t min = std::min(start.GetOriginalPosition(), end.GetOriginalPosition());
 		size_t max = std::max(start.GetOriginalPosition(), end.GetOriginalPosition());
 		return max - min;
-	}
+	}*/
 }

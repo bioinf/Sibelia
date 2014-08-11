@@ -30,7 +30,7 @@ namespace SyntenyFinder
 		{
 			std::string::const_reverse_iterator it1 = str.rbegin();
 			std::string::const_reverse_iterator it2 = str.rend();
-			return std::string(CFancyIterator(it1, DNASequence::Translate, ' '), CFancyIterator(it2, DNASequence::Translate, ' '));
+			return std::string(CFancyIterator(it1, FastaRecord::Translate, ' '), CFancyIterator(it2, FastaRecord::Translate, ' '));
 		}
 	}
 
@@ -240,7 +240,7 @@ namespace SyntenyFinder
 	void Postprocessor::GetBoundariesSequence(const BlockInstance & block, std::pair<size_t, size_t> leftBoundaries, std::pair<size_t, size_t> rightBoundaries, std::string & start, std::string & end)
 	{		
 		const std::string::const_iterator & chr = block.GetChrInstance().GetSequence().begin();
-		if(block.GetDirection() == DNASequence::positive)
+		if(block.GetDirection() == FastaRecord::positive)
 		{			
 			start.assign(chr + leftBoundaries.first, chr + leftBoundaries.second);
 			end.assign(chr + rightBoundaries.first, chr + rightBoundaries.second);
@@ -278,7 +278,7 @@ namespace SyntenyFinder
 
 	void Postprocessor::UpdateBlockBoundaries(BlockInstance & block, std::pair<size_t, size_t> leftBoundaries, std::pair<size_t, size_t> rightBoundaries, std::pair<size_t, size_t> startAlignmentCoords, std::pair<size_t, size_t> endAlignmentCoords)
 	{
-		if(block.GetDirection() == DNASequence::positive)
+		if(block.GetDirection() == FastaRecord::positive)
 		{
 			size_t newStart = leftBoundaries.first + startAlignmentCoords.first;
 			size_t newEnd = rightBoundaries.first + endAlignmentCoords.second;
@@ -336,7 +336,7 @@ namespace SyntenyFinder
 					std::swap(blockList[it->first], blockList[it->first + 1]);
 				}
 
-				if(blockList[it->first].GetDirection() != DNASequence::positive)
+				if(blockList[it->first].GetDirection() != FastaRecord::positive)
 				{					
 					blockList[it->first].Reverse();
 					blockList[it->first + 1].Reverse();

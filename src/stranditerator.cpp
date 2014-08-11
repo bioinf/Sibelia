@@ -7,7 +7,7 @@
 #include "dnasequence.h"
 
 namespace SyntenyFinder
-{
+{/*
 	namespace
 	{
 		typedef boost::uint64_t uint64;
@@ -184,7 +184,7 @@ namespace SyntenyFinder
 		return ret;
 	}
 
-	DNASequence::Direction DNASequence::StrandIterator::GetDirection() const
+	FastaRecord::Direction DNASequence::StrandIterator::GetDirection() const
 	{
 		return direction_;
 	}
@@ -207,5 +207,5 @@ namespace SyntenyFinder
 		}
 
 		return complementary_[it_->actual];
-	}	
+	}	*/
 }

@@ -270,7 +270,7 @@ namespace SyntenyFinder
 			{
 				for(size_t i = 0; i < nowBlock.size(); i++)
 				{
-					int strand = nowBlock[i].GetDirection() == DNASequence::positive ? +1 : -1;
+					int strand = nowBlock[i].GetDirection() == FastaRecord::positive ? +1 : -1;
 					size_t start = nowBlock[i].GetOriginalPosition();
 					size_t end = start + nowBlock[i].GetOriginalLength();
 					Indicator::iterator it = overlap[nowBlock[i].GetChr()].begin();

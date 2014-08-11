@@ -96,7 +96,7 @@ namespace SyntenyFinder
 
 		Iterator Begin(Direction dir) const;
 		Iterator End(Direction dir) const;
-		static char TranslateChar(char ch);
+		static char Translate(char ch);
 		static bool FastaRecord::IsDefiniteBase(char c);		
 	private:
 		size_t id_;

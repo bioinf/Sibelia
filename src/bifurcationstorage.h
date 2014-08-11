@@ -45,14 +45,14 @@ namespace SyntenyFinder
 		{
 		public:
 			IteratorProxy() {}
-			IteratorProxy(IteratorPtr ptr, DNASequence::Direction direction): ptr_(ptr), direction_(direction)
+			IteratorProxy(IteratorPtr ptr, FastaRecord::Direction direction): ptr_(ptr), direction_(direction)
 			{
 			}
 
 			bool Valid() const;
 			StrandIterator operator * () const;
 		private:
-			DNASequence::Direction direction_;
+			FastaRecord::Direction direction_;
 			IteratorPtr ptr_;			
 		};
 
@@ -64,7 +64,7 @@ namespace SyntenyFinder
 				{
 					for(IteratorList::iterator it = bifurcationPos_[strand][inBifId].begin(); it != bifurcationPos_[strand][inBifId].end(); ++it, ++ret)
 					{
-						*out++ = IteratorProxy(it, static_cast<DNASequence::Direction>(strand));
+						*out++ = IteratorProxy(it, static_cast<FastaRecord::Direction>(strand));
 					}
 				}
 

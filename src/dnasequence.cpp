@@ -43,22 +43,22 @@ namespace SyntenyFinder
 		return complementary_[ch];
 	}
 
-	DNASequence::StrandIterator DNASequence::PositiveBegin(size_t chr) const
+	DNASequence::StrandIterator FastaRecord::positiveBegin(size_t chr) const
 	{
 		return StrandIterator(posBegin_[chr], positive);
 	}
 
-	DNASequence::StrandIterator DNASequence::PositiveEnd(size_t chr) const
+	DNASequence::StrandIterator FastaRecord::positiveEnd(size_t chr) const
 	{
 		return StrandIterator(posEnd_[chr], positive);
 	}
 
-	DNASequence::StrandIterator DNASequence::NegativeBegin(size_t chr) const
+	DNASequence::StrandIterator FastaRecord::negativeBegin(size_t chr) const
 	{
 		return PositiveEnd(chr).Invert();
 	}
 
-	DNASequence::StrandIterator DNASequence::NegativeEnd(size_t chr) const
+	DNASequence::StrandIterator FastaRecord::negativeEnd(size_t chr) const
 	{
 		return PositiveBegin(chr).Invert();
 	}

@@ -37,7 +37,7 @@ namespace SyntenyFinder
 			for(size_t strand = 0; strand < 2; strand++)
 			{
 				size_t nowBif = 0;
-				DNASequence::Direction dir = static_cast<DNASequence::Direction>(strand);
+				FastaRecord::Direction dir = static_cast<FastaRecord::Direction>(strand);
 				for(size_t chr = 0; chr < sequence_->ChrNumber(); chr++)
 				{
 					size_t pos = 0;
