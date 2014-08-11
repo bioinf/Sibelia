@@ -47,6 +47,11 @@ namespace SyntenyFinder
 		return complementary_[ch];
 	}
 
+	bool FastaRecord::IsMaskedBase(char c)
+	{
+		return islower(c);
+	}
+
 	bool FastaRecord::IsDefiniteBase(char c)
 	{
 		return std::find(DEFINITE_BASE.begin(), DEFINITE_BASE.end(), c) != DEFINITE_BASE.end();

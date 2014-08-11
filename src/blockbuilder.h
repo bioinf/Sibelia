@@ -30,7 +30,7 @@ namespace SyntenyFinder
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockBuilder);
 		size_t lastK_;
-		DeBruijnIndex * index_;		
+		std::auto_ptr<DeBruijnIndex> index_;		
 		const std::vector<FastaRecord> * originalChr_;
 		std::string tempDir_;
 	};
