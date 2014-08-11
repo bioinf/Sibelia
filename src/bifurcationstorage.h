@@ -11,7 +11,7 @@
 #include "dnasequence.h"
 
 namespace SyntenyFinder
-{
+{/*
 	typedef DNASequence::StrandIterator StrandIterator;
 
 	class BifurcationStorage
@@ -117,7 +117,7 @@ namespace SyntenyFinder
 
 		IteratorMap::iterator LookUp(StrandIterator it);
 		IteratorMap::const_iterator LookUp(StrandIterator it) const;
-	};
+	};*/
 }
 
 #endif

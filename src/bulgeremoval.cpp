@@ -4,7 +4,6 @@
 //* See file LICENSE for details.
 //****************************************************************************
 
-#include "blockfinder.h"
 
 namespace SyntenyFinder
 {/*

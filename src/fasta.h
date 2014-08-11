@@ -21,6 +21,8 @@ namespace SyntenyFinder
 			sequence_.assign(CFancyIterator(sequence.begin(), toupper, ' '), CFancyIterator(sequence.end(), toupper, ' '));
 		}
 
+		static const std::string FastaRecord::DEFINITE_BASE;
+
 		size_t GetId() const
 		{
 			return id_;
@@ -94,11 +96,13 @@ namespace SyntenyFinder
 
 		Iterator Begin(Direction dir) const;
 		Iterator End(Direction dir) const;
-
+		static char TranslateChar(char ch);
+		static bool FastaRecord::IsDefiniteBase(char c);		
 	private:
 		size_t id_;
 		std::string sequence_;
-		std::string description_;		
+		std::string description_;
+		static const std::string complementary_;
 	};
 
 	class FastaReader

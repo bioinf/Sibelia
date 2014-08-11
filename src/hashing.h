@@ -8,7 +8,7 @@
 #define _HASHING_H_
 
 #include "dnasequence.h"
-
+/*
 namespace SyntenyFinder
 {
 	template<class Iterator>
@@ -155,5 +155,5 @@ namespace SyntenyFinder
 		const SlidingWindow<DNASequence::StrandIterator> & window_;
 	};
 }
-
+*/
 #endif

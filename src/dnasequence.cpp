@@ -7,7 +7,7 @@
 #include "dnasequence.h"
 
 namespace SyntenyFinder
-{
+{/*
 	inline std::string ConstructComplementarityTable()
 	{
 		std::string ret(1 << (sizeof(char) * 8), ' ');
@@ -270,4 +270,5 @@ namespace SyntenyFinder
 	{
 		return std::distance(++(const_cast<DNASequence*>(this)->sequence_.begin()), it.Base());
 	}
+	*/
 }

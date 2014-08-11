@@ -86,7 +86,7 @@ std::vector<std::pair<int, int> > FineStageFile()
 	return std::vector<std::pair<int, int> >(stage, stage + sizeof(stage) / sizeof(stage[0]));
 }
 
-void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
+void PutProgressChr(size_t progress, SyntenyFinder::BlockBuilder::State state)
 {
 	static size_t prev = 0;
 	while(prev < progress)
@@ -98,14 +98,14 @@ void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state)
 	
 	switch(state)
 	{
-	case SyntenyFinder::BlockFinder::start:
+	case SyntenyFinder::BlockBuilder::start:
 		prev = 0;
 		std::cout << '[';
 		break;
-	case SyntenyFinder::BlockFinder::end:
+	case SyntenyFinder::BlockBuilder::end:
 		std::cout << "]" << std::endl;
 		break;
-	case SyntenyFinder::BlockFinder::run:
+	case SyntenyFinder::BlockBuilder::run:
 		;
 	}
 }

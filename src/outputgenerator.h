@@ -9,7 +9,6 @@
 
 #include "util.h"
 #include "resource.h"
-#include "blockfinder.h"
 
 namespace SyntenyFinder
 {	

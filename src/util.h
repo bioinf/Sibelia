@@ -7,7 +7,6 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
-#include "blockfinder.h"
 #include "blockbuilder.h"
 #include "outputgenerator.h"
 
@@ -16,6 +15,6 @@ std::vector<std::pair<int, int> > FarStageFile();
 std::vector<std::pair<int, int> > FineStageFile();
 std::vector<std::pair<int, int> > LooseStageFile();
 std::vector<std::pair<int, int> > ReadStageFile(const std::string & fileName);
-void PutProgressChr(size_t progress, SyntenyFinder::BlockFinder::State state);
+void PutProgressChr(size_t progress, SyntenyFinder::BlockBuilder::State state);
 
 #endif

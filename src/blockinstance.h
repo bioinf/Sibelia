@@ -24,7 +24,7 @@ namespace SyntenyFinder
 		BlockInstance(int id, const FastaRecord * chr, size_t start, size_t end): id_(id), chr_(chr), start_(start), end_(end) {}
 		void Reverse();
 		int GetSignedBlockId() const;
-		DNASequence::Direction GetDirection() const;
+		FastaRecord::Direction GetDirection() const;
 		int GetBlockId() const;
 		const FastaRecord& GetChrInstance() const;
 		int GetSign() const;

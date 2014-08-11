@@ -56,7 +56,7 @@ int main(int argc, char * argv[])
 	GreaterIntegerConstraint greaterThanOne(1);
 	GreaterIntegerConstraint greaterThanZero(0);
 	try
-	{/*
+	{
 		TCLAP::CmdLine cmd("Program for finding syteny blocks in closely related genomes", ' ', VERSION);
 		TCLAP::ValueArg<int> maxIterations("i",
 			"maxiterations",
@@ -217,18 +217,26 @@ int main(int argc, char * argv[])
 				}
 			}
 		}
-		
+				
 		std::vector<std::vector<SyntenyFinder::BlockInstance> > history(stage.size() + 1);
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
-		SyntenyFinder::DeBruijnGraph g(chrList, stage[0].first, inRAM.isSet() ? "" : tempDir);
-		SyntenyFinder::SimplifyGraph(g, stage[0].second);
-		history.back() = SyntenyFinder::GenerateSyntenyBlocks(g);
-		SyntenyFinder::Postprocessor processor(chrList, minBlockSize.getValue());
-		
+		SyntenyFinder::BlockBuilder builder(&chrList, tempDir);
 
+		for(size_t i = 0; i < stage.size(); i++)
+		{
+			trimK = std::min(trimK, stage[i].first);			
+			std::cout << "Simplification stage " << i + 1 << " of " << stage.size() << std::endl;
+			std::cout << "Enumerating vertices of the graph, then performing bulge removal..." << std::endl;
+			builder.ConstructIndex(stage[i].first);
+			builder.Simplify(stage[i].second, maxIterations.getValue(), PutProgressChr);
+		}
+
+		SyntenyFinder::Postprocessor processor(chrList, minBlockSize.getValue());
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		size_t lastK = lastKValue.isSet() ? lastKValue.getValue() : std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
+		builder.ConstructIndex(lastK);
+		builder.GenerateBlocks(history.back(), minBlockSize.getValue());
 		//finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
 		if(!noPostProcessing)
 		{

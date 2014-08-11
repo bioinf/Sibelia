@@ -6,7 +6,6 @@
 #pragma GCC diagnostic ignored "-Wpragmas"
 #pragma GCC diagnostic ignored "-Wc++11-extensions"
 
-#include "blockfinder.h"
 
 namespace SyntenyFinder
 {

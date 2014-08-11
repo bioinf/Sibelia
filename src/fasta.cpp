@@ -18,6 +18,38 @@ namespace SyntenyFinder
 				std::runtime_error(what)
 			{}
 		};
+
+		inline std::string ConstructComplementarityTable()
+		{
+			std::string ret(1 << (sizeof(char) * 8), ' ');
+			for(size_t i = 0; i < ret.size(); i++)
+			{
+				ret[i] = static_cast<char>(i);
+			}
+
+			ret['a'] = 't';
+			ret['t'] = 'a';
+			ret['g'] = 'c';
+			ret['c'] = 'g';
+			ret['A'] = 'T';
+			ret['T'] = 'A';
+			ret['G'] = 'C';
+			ret['C'] = 'G';
+			return ret;
+		}
+	}	
+		
+	const std::string FastaRecord::DEFINITE_BASE = "ACGT";
+	const std::string FastaRecord::complementary_(ConstructComplementarityTable());	
+
+	char FastaRecord::Translate(char ch)
+	{
+		return complementary_[ch];
+	}
+
+	bool FastaRecord::IsDefiniteBase(char c)
+	{
+		return std::find(DEFINITE_BASE.begin(), DEFINITE_BASE.end(), c) != DEFINITE_BASE.end();
 	}
 
 	size_t FastaReader::GetSequences(std::vector<FastaRecord> & record)

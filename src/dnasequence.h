@@ -14,7 +14,7 @@
 #pragma warning(disable:4355)
 
 namespace SyntenyFinder
-{
+{/*
 	bool IsDefiniteBase(char c);
 	extern const std::string DEFINITE_BASE;
 
@@ -162,7 +162,7 @@ namespace SyntenyFinder
 		}
 
 		return true;
-	}
+	}*/
 }
 
 #endif

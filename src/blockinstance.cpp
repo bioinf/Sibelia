@@ -21,9 +21,9 @@ namespace SyntenyFinder
 		return id_;
 	}
 
-	DNASequence::Direction BlockInstance::GetDirection() const
+	FastaRecord::Direction BlockInstance::GetDirection() const
 	{
-		return id_ > 0 ? DNASequence::positive : DNASequence::negative;
+		return id_ > 0 ? FastaRecord::positive : FastaRecord::negative;
 	}
 
 	int BlockInstance::GetSign() const
@@ -58,7 +58,7 @@ namespace SyntenyFinder
 
 	size_t BlockInstance::GetConventionalStart() const
 	{
-		if(GetDirection() == DNASequence::positive)
+		if(GetDirection() == FastaRecord::positive)
 		{
 			return start_ + 1;
 		}
@@ -68,7 +68,7 @@ namespace SyntenyFinder
 
 	size_t BlockInstance::GetConventionalEnd() const
 	{
-		if(GetDirection() == DNASequence::positive)
+		if(GetDirection() == FastaRecord::positive)
 		{
 			return end_;
 		}

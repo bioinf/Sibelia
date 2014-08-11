@@ -14,15 +14,25 @@ namespace SyntenyFinder
 	class BlockBuilder
 	{
 	public:
-		BlockBuilder(const std::vector<FastaRecord> * originalChr);
-		void ConstructIndex(size_t k);
-		void Simplify(size_t minBranchSize, size_t maxIterations);
-		void GenerateBlocks(std::vector<BlockInstance> & ret) const;
+		enum State
+		{
+			start,
+			run,
+			end
+		};
+
+		typedef boost::function<void(size_t, State)> ProgressCallBack;
+
+		BlockBuilder(const std::vector<FastaRecord> * originalChr, const std::string & tempDir);
+		void ConstructIndex(size_t k);		
+		void GenerateBlocks(std::vector<BlockInstance> & ret, size_t minBlockSize) const;
+		void Simplify(size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockBuilder);
 		size_t lastK_;
 		DeBruijnIndex * index_;		
 		const std::vector<FastaRecord> * originalChr_;
+		std::string tempDir_;
 	};
 }
 

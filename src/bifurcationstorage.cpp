@@ -6,7 +6,7 @@
 
 #include "bifurcationstorage.h"
 namespace SyntenyFinder
-{
+{/*
 	const size_t BifurcationStorage::POSITIVE_BIT = 0;
 	const size_t BifurcationStorage::NEGATIVE_BIT = 1;
 	const BifurcationStorage::BifurcationId BifurcationStorage::NO_BIFURCATION = -1;	
@@ -246,5 +246,5 @@ namespace SyntenyFinder
 		}
 
 		return posBifurcation_[strand].end();
-	}
+	}*/
 }
