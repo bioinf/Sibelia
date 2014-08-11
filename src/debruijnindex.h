@@ -4,6 +4,7 @@
 //* See file LICENSE for details.
 //****************************************************************************
 
+#include "fasta.h"
 #include "blockinstance.h"
 #include "indexedsequence.h"
 

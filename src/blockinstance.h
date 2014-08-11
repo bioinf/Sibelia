@@ -8,7 +8,6 @@
 #define _BLOCK_INSTANCE_H_
 
 #include "common.h"
-#include "dnasequence.h"
 
 namespace SyntenyFinder
 {

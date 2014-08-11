@@ -9,11 +9,9 @@
 
 #include "hashing.h"
 #include "platform.h"
-#include "bifurcationstorage.h"
 
 namespace SyntenyFinder
 {
-
 	class IndexedSequence
 	{
 	public:

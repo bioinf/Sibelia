@@ -4,6 +4,7 @@
 //* See file LICENSE for details.
 //****************************************************************************
 
+#include "fasta.h"
 #include "indexedsequence.h"
 
 namespace SyntenyFinder
