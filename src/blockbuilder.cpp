@@ -9,6 +9,8 @@
 
 namespace SyntenyFinder
 {
+	const size_t BlockBuilder::PROGRESS_STRIDE = 50;
+
 	BlockBuilder::BlockBuilder(const std::vector<FastaRecord> * originalChr, const std::string & tempDir):
 		originalChr_(originalChr), tempDir_(tempDir)
 	{
@@ -113,9 +115,142 @@ namespace SyntenyFinder
 		out << "}" << std::endl;
 	}
 
-	void BlockBuilder::Simplify(size_t minBranchSize, size_t maxIterations, ProgressCallBack f)
-	{
+	size_t BlockBuilder::Simplify(size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
+	{				
+		size_t totalProgress = 0;
+		bool anyChanges = true;
+		if(!callBack.empty())
+		{
+			callBack(totalProgress, start);
+		}
 
+		size_t count = 0;
+		size_t totalBulges;
+		size_t iterations = 0;
+		size_t threshold = (index_->GetBifurcationsNumber() * maxIterations) / PROGRESS_STRIDE;
+		do
+		{
+			iterations++;
+			totalBulges = 0;
+			for(size_t bifId = 0; bifId < index_->GetBifurcationsNumber(); bifId++)
+			{			
+				totalBulges += RemoveBulges(minBranchSize, bifId);
+				if(++count >= threshold && !callBack.empty())
+				{
+					count = 0;
+					totalProgress = std::min(totalProgress + 1, PROGRESS_STRIDE);
+					callBack(totalProgress, run);
+				}
+			}
+		}
+		while((totalBulges > 0) && iterations < maxIterations);
+
+		if(!callBack.empty())
+		{
+			callBack(PROGRESS_STRIDE, end);
+		}
+		
+		return totalBulges;
+	}
+
+	size_t BlockBuilder::RemoveBulges(size_t minBranchSize, size_t bifId)
+	{
+		size_t ret = 0;
+	/*	IteratorProxyVector startKMer;
+		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
+		{
+			return ret;
+		}
+
+		std::vector<char> endChar(startKMer.size(), EMPTY);
+		for(size_t i = 0; i < startKMer.size(); i++)
+		{
+			if(ProperKMer(*startKMer[i], k + 1))
+			{
+				endChar[i] = *AdvanceForward(*startKMer[i], k);
+			}
+		}
+
+		//std::vector<bool> isBulge(startKMer.size(), false);
+		BulgedBranches bulges;
+		if(!AnyBulges(sequence, bifStorage, k, startKMer, endChar, bulges, minBranchSize))
+		{
+			return ret;
+		}
+
+		std::vector<BifurcationMark> visit;
+		for (size_t numBulge = 0; numBulge < bulges.size(); ++numBulge)
+		{
+
+			//for(size_t kmerI = 0; kmerI < startKMer.size(); kmerI++)
+			for (size_t  idI = 0; idI < bulges[numBulge].size(); ++idI)
+			{
+				size_t kmerI = bulges[numBulge][idI];
+				//if(!startKMer[kmerI].Valid() || !isBulge[kmerI])
+				if(!startKMer[kmerI].Valid())
+				{
+					//if (!isBulge[kmerI]) std::cerr << "optimised!\n";
+					continue;
+				}
+
+				FillVisit(sequence, bifStorage, *startKMer[kmerI], minBranchSize, visit);
+				//for(size_t kmerJ = kmerI + 1; kmerJ < startKMer.size(); kmerJ++)
+				for(size_t  idJ = idI + 1; idJ < bulges[numBulge].size(); ++idJ)
+				{
+					size_t kmerJ = bulges[numBulge][idJ];
+					//if(!startKMer[kmerJ].Valid() || endChar[kmerI] == endChar[kmerJ] || !isBulge[kmerJ])
+					if(!startKMer[kmerJ].Valid() || endChar[kmerI] == endChar[kmerJ])
+					{
+						//if (!isBulge[kmerJ]) std::cerr << "optimised!\n";
+						continue;
+					}
+
+					StrandIterator kmer = ++StrandIterator(*startKMer[kmerJ]);
+					for(size_t step = 1; kmer.AtValidPosition() && step < minBranchSize; ++kmer, step++)
+					{
+						size_t nowBif = bifStorage.GetBifurcation(kmer);
+						if(nowBif != BifurcationStorage::NO_BIFURCATION)
+						{
+							if(nowBif == bifId)
+							{
+								break;
+							}
+
+							std::vector<BifurcationMark>::iterator vt = std::lower_bound(visit.begin(), visit.end(), BifurcationMark(nowBif, 0));
+							if(vt != visit.end() && vt->bifId == nowBif)
+							{
+								VisitData jdata(kmerJ, step);
+								VisitData idata(kmerI, vt->distance);
+								if(Overlap(k, startKMer, idata, jdata) || nowBif == bifId)
+								{
+									break;
+								}
+
+								++ret;
+								size_t imlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerI], idata.distance);
+								size_t jmlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerJ], jdata.distance);
+								bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
+								if(iless)
+								{
+									endChar[jdata.kmerId] = endChar[idata.kmerId];
+									CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, idata, jdata);
+								}
+								else
+								{
+									endChar[idata.kmerId] = endChar[jdata.kmerId];
+									CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, jdata, idata);
+									FillVisit(sequence, bifStorage, *startKMer[kmerI], minBranchSize, visit);
+								}
+
+								break;
+							}
+						}
+					}
+				}
+			}
+		}*/
+
+		return ret;
 	}
 
 	void BlockBuilder::GenerateBlocks(std::vector<BlockInstance> & ret, size_t minBlockSize) const

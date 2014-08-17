@@ -141,8 +141,8 @@ namespace SyntenyFinder
 		return a.GetVirtualPosition() == b.GetVirtualPosition();
 	}
 
-	size_t DeBruijnIndex::GetVirtualChrSize(size_t chrId) const
+	size_t DeBruijnIndex::GetBifurcationsNumber() const
 	{
-		return virtualChrSize_[chrId];
+		return bifurcationPosition_.size();
 	}
 }

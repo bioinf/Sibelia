@@ -23,18 +23,22 @@ namespace SyntenyFinder
 
 		typedef boost::function<void(size_t, State)> ProgressCallBack;
 
+		static const size_t PROGRESS_STRIDE;
+
 		BlockBuilder(const std::vector<FastaRecord> * originalChr, const std::string & tempDir);
 		void ConstructIndex(size_t k);
 		void WriteIndexToDot(std::ostream & out) const;
 		void GenerateBlocks(std::vector<BlockInstance> & ret, size_t minBlockSize) const;
-		void Simplify(size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
+		size_t Simplify(size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack = ProgressCallBack());
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockBuilder);
 		size_t lastK_;
 		std::auto_ptr<DeBruijnIndex> index_;
 		std::vector<size_t> virtualChrSize_;
 		const std::vector<FastaRecord> * originalChr_;
-		std::string tempDir_;		
+		std::string tempDir_;
+
+		size_t RemoveBulges(size_t minBranchSize, size_t bifId);
 	};
 }
 

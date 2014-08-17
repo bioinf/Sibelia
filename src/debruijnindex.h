@@ -23,7 +23,7 @@ namespace SyntenyFinder
 		class Edge;
 		
 		DeBruijnIndex(size_t chrNumber, size_t bifNumber);
-		size_t GetVirtualChrSize(size_t chrId) const;
+		size_t GetBifurcationsNumber() const;
 		void RemoveEdge(Edge edge, FastaRecord::Direction dir);
 		void GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const;
 		Edge GetEdgeAtPosition(size_t chrId, size_t pos, FastaRecord::Direction dir) const;
@@ -79,8 +79,7 @@ namespace SyntenyFinder
 
 		typedef std::vector<Location> LocationVector;
 		typedef boost::unordered_set<EdgeData, EdgeDataKey, EdgeDataEquivalence> PositionEdgeMap;
-		const std::vector<FastaRecord> * chr_;
-		std::vector<size_t> virtualChrSize_;
+		const std::vector<FastaRecord> * chr_;		
 		std::vector<PositionEdgeMap> positionEdge_[2];
 		std::vector<LocationVector> bifurcationPosition_;		
 	public:
