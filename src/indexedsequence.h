@@ -15,8 +15,8 @@ namespace SyntenyFinder
 	class IndexedSequence
 	{
 	public:
-/*		static const char SEPARATION_CHAR;
-		void Test();
+		static const char SEPARATION_CHAR;
+/*		void Test();
 		DNASequence& Sequence();
 		const DNASequence& Sequence() const;
 		BifurcationStorage& BifStorage();

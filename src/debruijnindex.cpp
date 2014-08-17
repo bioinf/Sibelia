@@ -8,7 +8,7 @@
 
 namespace SyntenyFinder
 {
-	const size_t DeBruijnIndex::NO_BIFURCATION = -1;
+	const uint32_t DeBruijnIndex::EdgeData::NO_BIFURCATION = -1;
 
 	size_t DeBruijnIndex::GetStrand(FastaRecord::Direction dir)
 	{
@@ -51,6 +51,10 @@ namespace SyntenyFinder
 		return projection_;
 	}
 
+	DeBruijnIndex::EdgeData::EdgeData(): bifId_(NO_BIFURCATION)
+	{
+	}
+
 	DeBruijnIndex::EdgeData::EdgeData(size_t pos):
 		pos_(static_cast<uint32_t>(pos))
 	{
@@ -72,7 +76,7 @@ namespace SyntenyFinder
 		return mark_;
 	}
 
-	bool DeBruijnIndex::Edge::Valid() const
+	bool DeBruijnIndex::EdgeData::Valid() const
 	{
 		return GetBifurcationId() != NO_BIFURCATION;
 	}
@@ -130,5 +134,10 @@ namespace SyntenyFinder
 	bool DeBruijnIndex::EdgeDataEquivalence::operator () (const EdgeData & a, const EdgeData & b) const
 	{
 		return a.GetVirtualPosition() == b.GetVirtualPosition();
+	}
+
+	size_t DeBruijnIndex::GetVirtualChrSize(size_t chrId) const
+	{
+		return virtualChrSize_[chrId];
 	}
 }

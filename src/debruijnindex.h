@@ -20,21 +20,22 @@ namespace SyntenyFinder
 		static const size_t MAX_BIFURCATION_ID;		
 		static const size_t MAX_SEQUENCE_NUMBER;		
 
-		class Edge;		
+		class Edge;
 		
 		DeBruijnIndex(size_t chrNumber, size_t bifNumber);
+		size_t GetVirtualChrSize(size_t chrId) const;
 		void RemoveEdge(Edge edge, FastaRecord::Direction dir);
 		void GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const;
 		Edge GetEdgeAtPosition(size_t chrId, size_t pos, FastaRecord::Direction dir) const;
-		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark, size_t projection);
-
+		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark, size_t projection);		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DeBruijnIndex);
 		class EdgeData
 		{
 		public:
-			EdgeData() {}
-			EdgeData(size_t pos);
+			EdgeData();
+			bool Valid() const;
+			EdgeData(size_t pos);			
 			EdgeData(size_t pos, size_t bifId, char mark, size_t projection);
 			char GetMark() const;			
 			size_t GetProjection() const;
@@ -45,6 +46,7 @@ namespace SyntenyFinder
 			uint32_t bifId_;
 			char mark_;
 			uint32_t projection_;
+			static const uint32_t NO_BIFURCATION;
 		};
 
 		class Location
@@ -73,27 +75,23 @@ namespace SyntenyFinder
 			bool operator () (const EdgeData & a, const EdgeData & b) const;
 		};
 
+		static size_t GetStrand(FastaRecord::Direction dir);
+
 		typedef std::vector<Location> LocationVector;
 		typedef boost::unordered_set<EdgeData, EdgeDataKey, EdgeDataEquivalence> PositionEdgeMap;
 		const std::vector<FastaRecord> * chr_;
+		std::vector<size_t> virtualChrSize_;
 		std::vector<PositionEdgeMap> positionEdge_[2];
 		std::vector<LocationVector> bifurcationPosition_;		
-
 	public:
-		static const size_t NO_BIFURCATION;
-
 		class Edge: public EdgeData, public Location
 		{
 		public:
-			Edge() {};
-			bool Valid() const;
+			Edge() {};			
 		private:			
 			friend class DeBruijnIndex;
 			Edge(EdgeData data, Location location);
-		};		
-
-		static size_t GetStrand(FastaRecord::Direction dir);
-		
+		};				
 	};
 }
 

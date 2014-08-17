@@ -9,7 +9,7 @@
 
 namespace SyntenyFinder
 {
-	const char SEPARATION_CHAR = '#';
+	const char IndexedSequence::SEPARATION_CHAR = '#';
 	namespace
 	{
 		class CharSet
@@ -67,7 +67,7 @@ namespace SyntenyFinder
 
 		bool Bifurcation(const CharSet & set)
 		{
-			return set.Size() > 1 || set.In(SEPARATION_CHAR);
+			return set.Size() > 1 || set.In(IndexedSequence::SEPARATION_CHAR);
 		}
 
 		void Flank(std::string & str, size_t start, size_t end, size_t k, char sepChar)
