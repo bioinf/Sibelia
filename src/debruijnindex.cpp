@@ -115,10 +115,15 @@ namespace SyntenyFinder
 	
 	DeBruijnIndex::Edge DeBruijnIndex::GetEdgeAtPosition(size_t chrId, size_t pos, FastaRecord::Direction dir) const
 	{
+		Edge ret;
 		EdgeData lookUp(pos);
-		EdgeData data = *positionEdge_[dir][chrId].find(lookUp);
-		Location location(chrId, pos, dir);
-		return Edge(data, location);
+		PositionEdgeMap::const_iterator it = positionEdge_[dir][chrId].find(lookUp);
+		if(it != positionEdge_[dir][chrId].end())
+		{
+			ret = Edge(*it, Location(chrId, pos, dir));
+		}
+		
+		return ret;
 	}
 	
 	void DeBruijnIndex::GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const

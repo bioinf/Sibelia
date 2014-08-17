@@ -26,8 +26,9 @@ namespace SyntenyFinder
 				virtualChrSize_.push_back(record[i].size());
 				for(size_t j = 0; j < record[i].size(); j++)
 				{
-					bool change = !FastaRecord::IsDefiniteBase(record[i][j]) || FastaRecord::IsMaskedBase(record[i][j]);
-					record[i][j] = change ? FastaRecord::DEFINITE_BASE[rand() % FastaRecord::DEFINITE_BASE.size()] : record[i][j];
+					char ch = (*originalChr_)[i].GetSequence()[j];
+					bool change = !FastaRecord::IsDefiniteBase(ch) || FastaRecord::IsMaskedBase(ch);
+					record[i][j] = change ? FastaRecord::DEFINITE_BASE[rand() % FastaRecord::DEFINITE_BASE.size()] : ch;
 				}
 			}
 
@@ -45,11 +46,38 @@ namespace SyntenyFinder
 						if(nowBif < bifurcation[strand].size() && chr == bifurcation[strand][nowBif].chr && pos == bifurcation[strand][nowBif].pos)
 						{
 							char mark = pos + k < record[chr].size() ? record[chr][pos + k] : IndexedSequence::SEPARATION_CHAR;
-							index_->AddEdge(chr, pos, dir, nowBif++, mark, pos);
+							index_->AddEdge(chr, pos, dir, bifurcation[strand][nowBif++].bifId, mark, pos);
 						}
 					}
 				}
 			}
+
+		#ifdef _DEBUG
+			for(size_t strand = 0; strand < 2; strand++)
+			{
+				size_t nowBif = 0;
+				FastaRecord::Direction dir = static_cast<FastaRecord::Direction>(strand);
+				std::vector<std::map<size_t, size_t> > posBif(originalChr_->size());				
+				for(size_t chr = 0; chr < virtualChrSize_.size(); chr++)
+				{
+					for(size_t i = 0; i < bifurcation[strand].size(); i++)
+					{
+						posBif[chr][bifurcation[strand][i].pos] = bifurcation[strand][i].bifId;
+					}
+				}
+
+				for(size_t chr = 0; chr < virtualChrSize_.size(); chr++)
+				{
+					for(size_t pos = 0; pos < virtualChrSize_[chr]; pos++)
+					{
+						DeBruijnIndex::Edge e = index_->GetEdgeAtPosition(chr, pos, dir);
+						std::map<size_t, size_t>::const_iterator it = posBif[chr].find(pos);
+						assert((e.Valid() && e.GetBifurcationId() == posBif[chr][pos]) || (!e.Valid() && it == posBif[chr].end()));
+					}
+				}
+			}
+		#endif
+
 		}
 		else
 		{
@@ -66,7 +94,7 @@ namespace SyntenyFinder
 			{
 				FastaRecord::Direction dir = static_cast<FastaRecord::Direction>(strand);
 				DeBruijnIndex::Edge prevEdge = index_->GetEdgeAtPosition(chr, 0, dir);
-				for(size_t pos = 1; pos < virtualChrSize_.size(); ++pos)
+				for(size_t pos = 1; pos < virtualChrSize_[chr]; ++pos)
 				{
 					DeBruijnIndex::Edge nowEdge = index_->GetEdgeAtPosition(chr, pos, dir);
 					if(nowEdge.Valid())

@@ -296,7 +296,7 @@ int main(int argc, char * argv[])
 		if(graphFile.isSet())
 		{
 			std::stringstream buffer;
-//			finder->SerializeCondensedGraph(lastK, buffer, PutProgressChr);
+			builder.WriteIndexToDot(buffer);
 			generator.OutputBuffer(defaultGraphFile, buffer.str());
 		}
 
