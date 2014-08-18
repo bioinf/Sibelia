@@ -24,8 +24,9 @@ namespace SyntenyFinder
 		
 		DeBruijnIndex(size_t chrNumber, size_t bifNumber);
 		size_t GetBifurcationsNumber() const;
+		size_t CountEdges(size_t bifId) const;
 		void RemoveEdge(Edge edge, FastaRecord::Direction dir);
-		void GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const;
+		size_t GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const;
 		Edge GetEdgeAtPosition(size_t chrId, size_t pos, FastaRecord::Direction dir) const;
 		void AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark, size_t projection);		
 	private:

@@ -153,27 +153,219 @@ namespace SyntenyFinder
 		return totalBulges;
 	}
 
-	size_t BlockBuilder::RemoveBulges(size_t minBranchSize, size_t bifId)
+	namespace
 	{
-		size_t ret = 0;
-	/*	IteratorProxyVector startKMer;
-		if(bifStorage.ListPositions(bifId, std::back_inserter(startKMer)) < 2)
+		const char EMPTY = ' ';
+
+		struct BranchData
 		{
+			BranchData() {}
+			BranchData(char ch): endChar(ch) {}
+			char endChar;
+			std::vector<size_t> branchIds;
+		};
+
+		struct VisitData
+		{
+			size_t kmerId;
+			size_t distance;
+			VisitData() {}
+			VisitData(size_t kmerId, size_t distance): kmerId(kmerId), distance(distance) {}
+		};
+
+		struct BifurcationMark
+		{
+			size_t bifId;
+			size_t distance;
+			BifurcationMark() {}
+			BifurcationMark(size_t bifId, size_t distance): bifId(bifId),
+				distance(distance) {}
+
+			bool operator < (const BifurcationMark & compare) const
+			{
+				if(bifId != compare.bifId)
+				{
+					return bifId < compare.bifId;
+				}
+
+				return distance < compare.distance;
+			}
+		};
+
+		void FillVisit(const DeBruijnIndex & index, DeBruijnIndex::Edge e, size_t minBranchSize, std::vector<BifurcationMark> & visit)
+		{
+			visit.clear();
+			size_t start = e.GetBifurcationId();			
+			for(size_t step = 1; step < minBranchSize; step++)
+			{
+				DeBruijnIndex::Edge nowEdge = index.GetEdgeAtPosition(e.GetChromosomeId(), e.GetPosition() + step, e.GetDirection());
+				if(nowEdge.Valid())
+				{
+					size_t bifId = nowEdge.GetBifurcationId();
+					if(bifId == start)
+					{
+						break;
+					}
+
+					visit.push_back(BifurcationMark(bifId, step));
+				}
+			}
+
+			std::sort(visit.begin(), visit.end());
+		}
+		
+		size_t MaxBifurcationMultiplicity(const DeBruijnIndex & index, DeBruijnIndex::Edge e, size_t distance)
+		{
+			size_t ret = 0;
+			for(size_t step = 1; step < distance - 1; step++)
+			{
+				size_t pos = e.GetPosition() + step;
+				DeBruijnIndex::Edge nowEdge = index.GetEdgeAtPosition(e.GetChromosomeId(), pos, e.GetDirection());
+				if(nowEdge.Valid())
+				{
+					ret = std::max(ret, index.CountEdges(nowEdge.GetBifurcationId()));
+				}
+			}
+
 			return ret;
 		}
 
-		std::vector<char> endChar(startKMer.size(), EMPTY);
-		for(size_t i = 0; i < startKMer.size(); i++)
+		typedef std::vector< std::vector<size_t> > BulgedBranches;
+		
+		bool AnyBulges(const DeBruijnIndex & index,
+			std::vector<DeBruijnIndex::Edge> & edge,			
+			BulgedBranches & bulges,
+			size_t minBranchSize)
 		{
-			if(ProperKMer(*startKMer[i], k + 1))
+			
+			bulges.clear();
+			boost::unordered_map<size_t, BranchData> visit;
+			for(size_t i = 0; i < edge.size(); i++)
 			{
-				endChar[i] = *AdvanceForward(*startKMer[i], k);
+				size_t start = edge[i].GetBifurcationId();
+				for(size_t step = 1; step < minBranchSize; step++)
+				{
+					size_t pos = edge[i].GetPosition() + step;
+					DeBruijnIndex::Edge nowEdge = index.GetEdgeAtPosition(edge[i].GetChromosomeId(), pos, edge[i].GetDirection()); 
+					if(!nowEdge.Valid())
+					{
+						continue;
+					}
+
+					size_t bifId = nowEdge.GetBifurcationId();
+					if(bifId == start)
+					{
+						break;
+					}
+
+					boost::unordered_map<size_t, BranchData>::iterator kt = visit.find(bifId);
+					if(kt == visit.end())
+					{
+						BranchData bData(edge[i].GetMark());
+						bData.branchIds.push_back(i);
+						visit[bifId] = bData;
+					}
+					else if(kt->second.endChar != edge[i].GetMark())
+					{
+						kt->second.branchIds.push_back(i);
+						break;
+					}
+				}
 			}
+
+			for (boost::unordered_map<size_t, BranchData>::iterator kt = visit.begin(); kt !=visit.end(); ++kt)
+			{
+				if (kt->second.branchIds.size() > 1)
+				{
+					bulges.push_back(kt->second.branchIds);					
+				}
+			}
+			
+			return !bulges.empty();
 		}
 
-		//std::vector<bool> isBulge(startKMer.size(), false);
+		void CollapseBulgeGreedily(DeBruijnIndex & index, 
+			size_t k,
+			std::vector<DeBruijnIndex::Edge> & edge,
+			VisitData sourceData,
+			VisitData targetData)
+		{/*
+		#ifdef _DEBUG
+			static size_t bulge = 0;
+			std::cerr << "Bulge #" << bulge++ << std::endl;
+			std::cerr << "Before: " << std::endl;
+			BlockFinder::PrintRaw(sequence, std::cerr);
+			std::cerr << "Source branch: " << std::endl;
+			BlockFinder::PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+			std::cerr << "Target branch: " << std::endl;
+			BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
+			bifStorage.Dump(sequence, k, std::cerr);
+			iseq_->Test();
+		#endif
+			std::vector<std::pair<size_t, size_t> > lookForward;
+			std::vector<std::pair<size_t, size_t> > lookBack;
+			EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
+			StrandIterator sourceIt = *startKMer[sourceData.kmerId];
+			StrandIterator targetIt = *startKMer[targetData.kmerId];
+			sequence.Replace(AdvanceForward(sourceIt, k),
+				sourceData.distance,
+				AdvanceForward(targetIt, k),
+				targetData.distance,
+				boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(bifStorage), _1, _2),
+				boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
+			UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
+
+		#ifdef _DEBUG
+			std::cerr << "After: " << std::endl;
+			BlockFinder::PrintRaw(sequence, std::cerr);
+			std::cerr << "Source branch: " << std::endl;s
+			BlockFinder::PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+			std::cerr << "Target branch: " << std::endl;
+			BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
+			bifStorage.Dump(sequence, k, std::cerr);
+			iseq_->Test();
+			std::cerr << DELIMITER << std::endl;
+		#endif*/
+		}
+
+		bool Overlap(const DeBruijnIndex & index,
+			const std::vector<DeBruijnIndex::Edge> & edge,
+			size_t k,
+			VisitData sourceData,
+			VisitData targetData)
+		{/*
+			std::vector<size_t> occur;
+			StrandIterator it = *startKMer[sourceData.kmerId];
+			for(size_t i = 0; i < sourceData.distance + k; i++, ++it)
+			{
+				occur.push_back(it.GetElementId());
+			}
+
+			it = *startKMer[targetData.kmerId];
+			std::sort(occur.begin(), occur.end());
+			for(size_t i = 0; i < targetData.distance + k; i++, ++it)
+			{
+				if(std::binary_search(occur.begin(), occur.end(), it.GetElementId()))
+				{
+					return true;
+				}
+			}
+			*/
+			return false;
+		}
+	}
+
+	size_t BlockBuilder::RemoveBulges(size_t minBranchSize, size_t bifId)
+	{
+		size_t ret = 0;
+		std::vector<DeBruijnIndex::Edge> edge;
+		if(index_->GetEdgesOfVertex(bifId, edge) < 2)
+		{
+			return ret;
+		}
+		
 		BulgedBranches bulges;
-		if(!AnyBulges(sequence, bifStorage, k, startKMer, endChar, bulges, minBranchSize))
+		if(!AnyBulges(*index_, edge, bulges, minBranchSize))
 		{
 			return ret;
 		}
@@ -181,36 +373,25 @@ namespace SyntenyFinder
 		std::vector<BifurcationMark> visit;
 		for (size_t numBulge = 0; numBulge < bulges.size(); ++numBulge)
 		{
-
-			//for(size_t kmerI = 0; kmerI < startKMer.size(); kmerI++)
 			for (size_t  idI = 0; idI < bulges[numBulge].size(); ++idI)
 			{
 				size_t kmerI = bulges[numBulge][idI];
-				//if(!startKMer[kmerI].Valid() || !isBulge[kmerI])
-				if(!startKMer[kmerI].Valid())
-				{
-					//if (!isBulge[kmerI]) std::cerr << "optimised!\n";
-					continue;
-				}
-
-				FillVisit(sequence, bifStorage, *startKMer[kmerI], minBranchSize, visit);
-				//for(size_t kmerJ = kmerI + 1; kmerJ < startKMer.size(); kmerJ++)
+				FillVisit(*index_, edge[kmerI], minBranchSize, visit);
 				for(size_t  idJ = idI + 1; idJ < bulges[numBulge].size(); ++idJ)
 				{
 					size_t kmerJ = bulges[numBulge][idJ];
-					//if(!startKMer[kmerJ].Valid() || endChar[kmerI] == endChar[kmerJ] || !isBulge[kmerJ])
-					if(!startKMer[kmerJ].Valid() || endChar[kmerI] == endChar[kmerJ])
+					if(edge[kmerI].GetMark() == edge[kmerJ].GetMark())
 					{
-						//if (!isBulge[kmerJ]) std::cerr << "optimised!\n";
 						continue;
 					}
-
-					StrandIterator kmer = ++StrandIterator(*startKMer[kmerJ]);
-					for(size_t step = 1; kmer.AtValidPosition() && step < minBranchSize; ++kmer, step++)
+					
+					for(size_t step = 1; step < minBranchSize; step++)
 					{
-						size_t nowBif = bifStorage.GetBifurcation(kmer);
-						if(nowBif != BifurcationStorage::NO_BIFURCATION)
+						size_t pos = edge[kmerJ].GetPosition() + step;
+						DeBruijnIndex::Edge nowEdge = index_->GetEdgeAtPosition(edge[kmerJ].GetChromosomeId(), pos, edge[kmerJ].GetDirection());
+						if(nowEdge.Valid())
 						{
+							size_t nowBif = nowEdge.GetBifurcationId();
 							if(nowBif == bifId)
 							{
 								break;
@@ -221,25 +402,27 @@ namespace SyntenyFinder
 							{
 								VisitData jdata(kmerJ, step);
 								VisitData idata(kmerI, vt->distance);
-								if(Overlap(k, startKMer, idata, jdata) || nowBif == bifId)
+								if(Overlap(*index_, edge, lastK_, idata, jdata) || nowBif == bifId)
 								{
 									break;
 								}
 
 								++ret;
-								size_t imlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerI], idata.distance);
-								size_t jmlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerJ], jdata.distance);
+								size_t imlp = MaxBifurcationMultiplicity(*index_, edge[kmerI], idata.distance);
+								size_t jmlp = MaxBifurcationMultiplicity(*index_, edge[kmerI], idata.distance);
 								bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
 								if(iless)
 								{
-									endChar[jdata.kmerId] = endChar[idata.kmerId];
-									CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, idata, jdata);
+									DeBruijnIndex::Edge & replace = edge[jdata.kmerId];
+									CollapseBulgeGreedily(*index_, lastK_, edge, idata, jdata);
+									replace = index_->GetEdgeAtPosition(replace.GetChromosomeId(), replace.GetPosition(), replace.GetDirection());
 								}
 								else
 								{
-									endChar[idata.kmerId] = endChar[jdata.kmerId];
-									CollapseBulgeGreedily(sequence, bifStorage, k, startKMer, jdata, idata);
-									FillVisit(sequence, bifStorage, *startKMer[kmerI], minBranchSize, visit);
+									DeBruijnIndex::Edge & replace = edge[idata.kmerId];
+									CollapseBulgeGreedily(*index_, lastK_, edge, jdata, idata);										
+									replace = index_->GetEdgeAtPosition(replace.GetChromosomeId(), replace.GetPosition(), replace.GetDirection());
+									FillVisit(*index_, edge[kmerI], minBranchSize, visit);
 								}
 
 								break;
@@ -248,7 +431,7 @@ namespace SyntenyFinder
 					}
 				}
 			}
-		}*/
+		}
 
 		return ret;
 	}

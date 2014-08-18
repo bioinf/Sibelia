@@ -125,8 +125,13 @@ namespace SyntenyFinder
 		
 		return ret;
 	}
+
+	size_t DeBruijnIndex::CountEdges(size_t bifId) const
+	{
+		return bifurcationPosition_[bifId].size();
+	}
 	
-	void DeBruijnIndex::GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const
+	size_t DeBruijnIndex::GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const
 	{
 		e.clear();
 		for(size_t i = 0; i < bifurcationPosition_[bifId].size(); i++)
@@ -134,6 +139,8 @@ namespace SyntenyFinder
 			Location location = bifurcationPosition_[bifId][i];
 			e.push_back(GetEdgeAtPosition(location.GetChromosomeId(), location.GetPosition(), location.GetDirection()));
 		}
+
+		return e.size();
 	}
 
 	bool DeBruijnIndex::EdgeDataEquivalence::operator () (const EdgeData & a, const EdgeData & b) const
