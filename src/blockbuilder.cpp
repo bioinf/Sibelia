@@ -333,24 +333,30 @@ namespace SyntenyFinder
 			size_t k,
 			VisitData sourceData,
 			VisitData targetData)
-		{/*
-			std::vector<size_t> occur;
-			StrandIterator it = *startKMer[sourceData.kmerId];
-			for(size_t i = 0; i < sourceData.distance + k; i++, ++it)
+		{
+			DeBruijnIndex::Edge sourceEdge = edge[sourceData.kmerId];
+			DeBruijnIndex::Edge targetEdge = edge[targetData.kmerId];
+			if(sourceEdge.GetChromosomeId() != targetEdge.GetChromosomeId())
 			{
-				occur.push_back(it.GetElementId());
+				return false;
 			}
 
-			it = *startKMer[targetData.kmerId];
-			std::sort(occur.begin(), occur.end());
-			for(size_t i = 0; i < targetData.distance + k; i++, ++it)
+			std::vector<size_t> occur;			
+			for(size_t i = 0; i < sourceData.distance + k; i++)
 			{
-				if(std::binary_search(occur.begin(), occur.end(), it.GetElementId()))
+				occur.push_back(sourceEdge.GetPosition());
+			}
+			
+			std::sort(occur.begin(), occur.end());
+			for(size_t i = 0; i < targetData.distance + k; i++)
+			{
+				size_t pos = targetEdge.GetPosition() + i;
+				if(std::binary_search(occur.begin(), occur.end(), pos))
 				{
 					return true;
 				}
 			}
-			*/
+			
 			return false;
 		}
 	}
