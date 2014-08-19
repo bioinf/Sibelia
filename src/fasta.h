@@ -82,6 +82,7 @@ namespace SyntenyFinder
 			Iterator Invert() const;
 			size_t GetPosition() const;			
 			Direction GetDirection() const;
+			char operator * () const;
 			const FastaRecord* GetSequence() const;			
 			Iterator operator + (size_t shift) const;
 			Iterator operator - (size_t shift) const;

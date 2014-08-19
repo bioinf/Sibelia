@@ -21,21 +21,25 @@ namespace SyntenyFinder
 		if(index_.get() == 0)
 		{
 			lastK_ = k;
-			std::vector<std::string> record(originalChr_->size());
-			for(size_t i = 0; i < record.size(); i++)
+			size_t bifCount;
+			std::vector<IndexedSequence::BifurcationInstance> bifurcation[2];
 			{
-				record[i].resize((*originalChr_)[i].GetSequence().size());
-				virtualChrSize_.push_back(record[i].size());
-				for(size_t j = 0; j < record[i].size(); j++)
+				std::vector<std::string> record(originalChr_->size());
+				for(size_t i = 0; i < record.size(); i++)
 				{
-					char ch = (*originalChr_)[i].GetSequence()[j];
-					bool change = !FastaRecord::IsDefiniteBase(ch) || FastaRecord::IsMaskedBase(ch);
-					record[i][j] = change ? FastaRecord::DEFINITE_BASE[rand() % FastaRecord::DEFINITE_BASE.size()] : ch;
+					record[i].resize((*originalChr_)[i].GetSequence().size());
+					virtualChrSize_.push_back(record[i].size());
+					for(size_t j = 0; j < record[i].size(); j++)
+					{
+						char ch = (*originalChr_)[i].GetSequence()[j];
+						bool change = !FastaRecord::IsDefiniteBase(ch) || FastaRecord::IsMaskedBase(ch);
+						record[i][j] = change ? FastaRecord::DEFINITE_BASE[rand() % FastaRecord::DEFINITE_BASE.size()] : ch;
+					}
 				}
+			
+				bifCount = IndexedSequence::EnumerateBifurcationsSArray(record, k, tempDir_, bifurcation[0], bifurcation[1]);
 			}
 
-			std::vector<IndexedSequence::BifurcationInstance> bifurcation[2];
-			size_t bifCount = IndexedSequence::EnumerateBifurcationsSArray(record, k, tempDir_, bifurcation[0], bifurcation[1]);
 			index_.reset(new DeBruijnIndex(originalChr_->size(), bifCount));
 			for(size_t strand = 0; strand < 2; strand++)
 			{
@@ -43,11 +47,12 @@ namespace SyntenyFinder
 				FastaRecord::Direction dir = static_cast<FastaRecord::Direction>(strand);
 				for(size_t chr = 0; chr < originalChr_->size(); chr++)
 				{
-					for(size_t pos = 0; pos < (*originalChr_)[chr].GetSequence().size(); ++pos)
+					const std::string & seq = (*originalChr_)[chr].GetSequence();
+					for(size_t pos = 0; pos < seq.size(); ++pos)
 					{
 						if(nowBif < bifurcation[strand].size() && chr == bifurcation[strand][nowBif].chr && pos == bifurcation[strand][nowBif].pos)
 						{
-							char mark = pos + k < record[chr].size() ? record[chr][pos + k] : IndexedSequence::SEPARATION_CHAR;
+							char mark = pos + k < seq.size() ? seq[pos + k] : IndexedSequence::SEPARATION_CHAR;
 							index_->AddEdge(chr, pos, dir, bifurcation[strand][nowBif++].bifId, mark, pos);
 						}
 					}
@@ -57,26 +62,30 @@ namespace SyntenyFinder
 		#ifdef _DEBUG
 			for(size_t strand = 0; strand < 2; strand++)
 			{
-				size_t nowBif = 0;
 				FastaRecord::Direction dir = static_cast<FastaRecord::Direction>(strand);
-				std::vector<std::map<size_t, size_t> > posBif(originalChr_->size());				
-				for(size_t chr = 0; chr < virtualChrSize_.size(); chr++)
+				for(size_t i = 0; i < bifurcation[strand].size(); i++)
 				{
-					for(size_t i = 0; i < bifurcation[strand].size(); i++)
+					std::string kmer;
+					IndexedSequence::BifurcationInstance bif = bifurcation[strand][i];
+					const std::string & seq = (*originalChr_)[bif.chr].GetSequence();					
+					if(dir == FastaRecord::positive)
 					{
-						posBif[chr][bifurcation[strand][i].pos] = bifurcation[strand][i].bifId;
+						kmer.assign(seq.begin() + bif.pos, seq.begin() + bif.pos + lastK_);
 					}
+					else
+					{
+						kmer.assign(CFancyIterator(seq.rbegin() + bif.pos, FastaRecord::Translate, ' '),
+							CFancyIterator(seq.rbegin() + bif.pos + k, FastaRecord::Translate, ' '));
+					}
+					
+					debugIndex_[kmer] = bif.bifId;
 				}
+			}
 
-				for(size_t chr = 0; chr < virtualChrSize_.size(); chr++)
-				{
-					for(size_t pos = 0; pos < virtualChrSize_[chr]; pos++)
-					{
-						DeBruijnIndex::Edge e = index_->GetEdgeAtPosition(chr, pos, dir);
-						std::map<size_t, size_t>::const_iterator it = posBif[chr].find(pos);
-						assert((e.Valid() && e.GetBifurcationId() == posBif[chr][pos]) || (!e.Valid() && it == posBif[chr].end()));
-					}
-				}
+			virtualChr_.resize((*originalChr_).size());
+			for(size_t chr = 0; chr < virtualChr_.size(); chr++)
+			{
+				virtualChr_[chr] = (*originalChr_)[chr].GetSequence();
 			}
 		#endif
 
@@ -163,14 +172,6 @@ namespace SyntenyFinder
 			BranchData(char ch): endChar(ch) {}
 			char endChar;
 			std::vector<size_t> branchIds;
-		};
-
-		struct VisitData
-		{
-			size_t kmerId;
-			size_t distance;
-			VisitData() {}
-			VisitData(size_t kmerId, size_t distance): kmerId(kmerId), distance(distance) {}
 		};
 
 		struct BifurcationMark
@@ -277,32 +278,92 @@ namespace SyntenyFinder
 			{
 				if (kt->second.branchIds.size() > 1)
 				{
-					bulges.push_back(kt->second.branchIds);					
+					bulges.push_back(kt->second.branchIds);		
 				}
 			}
 			
 			return !bulges.empty();
+		}			
+	}
+
+	bool BlockBuilder::Overlap(const std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData) const
+	{
+		DeBruijnIndex::Edge sourceEdge = edge[sourceData.kmerId];
+		DeBruijnIndex::Edge targetEdge = edge[targetData.kmerId];
+		if(sourceEdge.GetChromosomeId() != targetEdge.GetChromosomeId())
+		{
+			return false;
 		}
 
-		void CollapseBulgeGreedily(DeBruijnIndex & index, 
-			size_t k,
-			std::vector<DeBruijnIndex::Edge> & edge,
-			VisitData sourceData,
-			VisitData targetData)
+		std::vector<size_t> occur;			
+		for(size_t i = 0; i < sourceData.distance + lastK_; i++)
+		{
+			size_t pos = sourceEdge.GetPosition() + i;
+			occur.push_back(sourceEdge.GetPosition());
+		}
+			
+		std::sort(occur.begin(), occur.end());
+		for(size_t i = 0; i < targetData.distance + lastK_; i++)
+		{
+			size_t pos = targetEdge.GetPosition() + i;
+			if(std::binary_search(occur.begin(), occur.end(), pos))
+			{
+				return true;
+			}
+		}
+			
+		return false;
+	}
+
+	#ifdef _DEBUG
+		void BlockBuilder::PrintRaw(size_t chr0, size_t chr1, std::ostream & out) const
 		{/*
+			size_t chrId[] = {chr0, chr1};
+			for(size_t i = 0; i < 2; i++)
+			{
+				size_t chr = chrId[i];
+				out << "Sequence #" << chr << std::endl;
+				std::string rcomp;				
+				for(size_t i = 0; i < virtualChr_[chr].size(); i++)
+				{
+					out << i % 10;
+				}
+
+				out << std::endl;
+				std::copy(sequence.PositiveBegin(chr), sequence.PositiveEnd(chr), std::ostream_iterator<char>(out));
+				out << std::endl;
+				std::copy(sequence.NegativeBegin(chr), sequence.NegativeEnd(chr), std::back_inserter(rcomp));
+				std::copy(rcomp.rbegin(), rcomp.rend(), std::ostream_iterator<char>(out));
+				out << std::endl;
+			}*/
+		}
+		
+		void BlockBuilder::PrintPath(DeBruijnIndex::Edge e, size_t k, size_t distance, std::ostream & out) const
+		{/*
+			out << (e.GetDirection() == DNASequence::positive ? "+" : "-") << s.GlobalIndex(e) << ' ';
+			CopyN(e, distance + k, std::ostream_iterator<char>(out));
+			std::cerr << std::endl;*/
+		}
+	#endif
+		
+		void BlockBuilder::CollapseBulgeGreedily(std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData)
+		{
+			DeBruijnIndex::Edge sourceEdge = edge[sourceData.kmerId];
+			DeBruijnIndex::Edge targetEdge = edge[targetData.kmerId];
 		#ifdef _DEBUG
+			/*
 			static size_t bulge = 0;
 			std::cerr << "Bulge #" << bulge++ << std::endl;
 			std::cerr << "Before: " << std::endl;
-			BlockFinder::PrintRaw(sequence, std::cerr);
+			PrintRaw(sourceEdge.GetChromosomeId(), targetEdge.GetChromosomeId(), std::cerr);
 			std::cerr << "Source branch: " << std::endl;
-			BlockFinder::PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+			PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
 			std::cerr << "Target branch: " << std::endl;
 			BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
 			bifStorage.Dump(sequence, k, std::cerr);
-			iseq_->Test();
+			iseq_->Test();*/
 		#endif
-			std::vector<std::pair<size_t, size_t> > lookForward;
+		/*	std::vector<std::pair<size_t, size_t> > lookForward;
 			std::vector<std::pair<size_t, size_t> > lookBack;
 			EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
 			StrandIterator sourceIt = *startKMer[sourceData.kmerId];
@@ -327,39 +388,6 @@ namespace SyntenyFinder
 			std::cerr << DELIMITER << std::endl;
 		#endif*/
 		}
-
-		bool Overlap(const DeBruijnIndex & index,
-			const std::vector<DeBruijnIndex::Edge> & edge,
-			size_t k,
-			VisitData sourceData,
-			VisitData targetData)
-		{
-			DeBruijnIndex::Edge sourceEdge = edge[sourceData.kmerId];
-			DeBruijnIndex::Edge targetEdge = edge[targetData.kmerId];
-			if(sourceEdge.GetChromosomeId() != targetEdge.GetChromosomeId())
-			{
-				return false;
-			}
-
-			std::vector<size_t> occur;			
-			for(size_t i = 0; i < sourceData.distance + k; i++)
-			{
-				occur.push_back(sourceEdge.GetPosition());
-			}
-			
-			std::sort(occur.begin(), occur.end());
-			for(size_t i = 0; i < targetData.distance + k; i++)
-			{
-				size_t pos = targetEdge.GetPosition() + i;
-				if(std::binary_search(occur.begin(), occur.end(), pos))
-				{
-					return true;
-				}
-			}
-			
-			return false;
-		}
-	}
 
 	size_t BlockBuilder::RemoveBulges(size_t minBranchSize, size_t bifId)
 	{
@@ -408,7 +436,7 @@ namespace SyntenyFinder
 							{
 								VisitData jdata(kmerJ, step);
 								VisitData idata(kmerI, vt->distance);
-								if(Overlap(*index_, edge, lastK_, idata, jdata) || nowBif == bifId)
+								if(Overlap(edge, idata, jdata) || nowBif == bifId)
 								{
 									break;
 								}
@@ -420,13 +448,13 @@ namespace SyntenyFinder
 								if(iless)
 								{
 									DeBruijnIndex::Edge & replace = edge[jdata.kmerId];
-									CollapseBulgeGreedily(*index_, lastK_, edge, idata, jdata);
+									CollapseBulgeGreedily(edge, idata, jdata);
 									replace = index_->GetEdgeAtPosition(replace.GetChromosomeId(), replace.GetPosition(), replace.GetDirection());
 								}
 								else
 								{
 									DeBruijnIndex::Edge & replace = edge[idata.kmerId];
-									CollapseBulgeGreedily(*index_, lastK_, edge, jdata, idata);										
+									CollapseBulgeGreedily(edge, jdata, idata);										
 									replace = index_->GetEdgeAtPosition(replace.GetChromosomeId(), replace.GetPosition(), replace.GetDirection());
 									FillVisit(*index_, edge[kmerI], minBranchSize, visit);
 								}
