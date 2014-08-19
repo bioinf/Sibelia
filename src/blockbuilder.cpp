@@ -9,6 +9,15 @@
 
 namespace SyntenyFinder
 {
+	namespace
+	{		
+		template<class T>
+			FancyIterator<T, char(*)(char), char> CompIterator(T it)
+			{
+				return CFancyIterator(it, FastaRecord::Translate, ' ');
+			}
+	}
+
 	const size_t BlockBuilder::PROGRESS_STRIDE = 50;
 
 	BlockBuilder::BlockBuilder(const std::vector<FastaRecord> * originalChr, const std::string & tempDir):
@@ -74,8 +83,7 @@ namespace SyntenyFinder
 					}
 					else
 					{
-						kmer.assign(CFancyIterator(seq.rbegin() + bif.pos, FastaRecord::Translate, ' '),
-							CFancyIterator(seq.rbegin() + bif.pos + k, FastaRecord::Translate, ' '));
+						kmer.assign(CompIterator(seq.rbegin()), CompIterator(seq.rbegin()));
 					}
 					
 					debugIndex_[kmer] = bif.bifId;
@@ -286,6 +294,7 @@ namespace SyntenyFinder
 		}			
 	}
 
+	//OPTIMIZE THIS!!!1111
 	bool BlockBuilder::Overlap(const std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData) const
 	{
 		DeBruijnIndex::Edge sourceEdge = edge[sourceData.kmerId];
@@ -317,32 +326,38 @@ namespace SyntenyFinder
 
 	#ifdef _DEBUG
 		void BlockBuilder::PrintRaw(size_t chr0, size_t chr1, std::ostream & out) const
-		{/*
+		{
 			size_t chrId[] = {chr0, chr1};
 			for(size_t i = 0; i < 2; i++)
 			{
 				size_t chr = chrId[i];
 				out << "Sequence #" << chr << std::endl;
-				std::string rcomp;				
 				for(size_t i = 0; i < virtualChr_[chr].size(); i++)
 				{
 					out << i % 10;
 				}
 
 				out << std::endl;
-				std::copy(sequence.PositiveBegin(chr), sequence.PositiveEnd(chr), std::ostream_iterator<char>(out));
+				std::copy(virtualChr_[chr].begin(), virtualChr_[chr].end(), std::ostream_iterator<char>(out));
+				out << std::endl;				
+				std::copy(CompIterator(virtualChr_[chr].begin()), CompIterator(virtualChr_[chr].end()), std::ostream_iterator<char>(out));
 				out << std::endl;
-				std::copy(sequence.NegativeBegin(chr), sequence.NegativeEnd(chr), std::back_inserter(rcomp));
-				std::copy(rcomp.rbegin(), rcomp.rend(), std::ostream_iterator<char>(out));
-				out << std::endl;
-			}*/
+			}
 		}
 		
 		void BlockBuilder::PrintPath(DeBruijnIndex::Edge e, size_t k, size_t distance, std::ostream & out) const
-		{/*
-			out << (e.GetDirection() == DNASequence::positive ? "+" : "-") << s.GlobalIndex(e) << ' ';
-			CopyN(e, distance + k, std::ostream_iterator<char>(out));
-			std::cerr << std::endl;*/
+		{
+			out << (e.GetDirection() == FastaRecord::positive ? "+" : "-") << e.GetPosition() << ' ';
+			if(e.GetDirection() == FastaRecord::positive)
+			{
+				CopyN(virtualChr_[e.GetChromosomeId()].begin() + e.GetPosition(), distance + k, std::ostream_iterator<char>(out));
+			}
+			else
+			{				
+				CopyN(CompIterator(virtualChr_[e.GetChromosomeId()].rbegin() + e.GetPosition()), distance + k, std::ostream_iterator<char>(out));
+			}
+
+			std::cerr << std::endl;
 		}
 	#endif
 		
