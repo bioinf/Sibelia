@@ -8,6 +8,8 @@
 #include "blockinstance.h"
 #include "indexedsequence.h"
 
+#include <sparsehash/sparse_hash_set>
+
 #ifndef _DE_BRUIJN_GRAPH_H_
 #define _DE_BRUIJN_GRAPH_H_
 
@@ -47,7 +49,8 @@ namespace SyntenyFinder
 			uint32_t bifId_;
 			char mark_;
 			uint32_t projection_;
-			static const uint32_t NO_BIFURCATION;
+			static const uint32_t NO_POSITION;
+			static const uint32_t NO_BIFURCATION;			
 		};
 
 		class Location
@@ -79,7 +82,7 @@ namespace SyntenyFinder
 		static size_t GetStrand(FastaRecord::Direction dir);
 
 		typedef std::vector<Location> LocationVector;
-		typedef boost::unordered_set<EdgeData, EdgeDataKey, EdgeDataEquivalence> PositionEdgeMap;
+		typedef google::sparse_hash_set<EdgeData, EdgeDataKey, EdgeDataEquivalence> PositionEdgeMap;
 		const std::vector<FastaRecord> * chr_;		
 		std::vector<PositionEdgeMap> positionEdge_[2];
 		std::vector<LocationVector> bifurcationPosition_;		

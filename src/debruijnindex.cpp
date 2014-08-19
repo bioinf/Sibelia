@@ -8,6 +8,7 @@
 
 namespace SyntenyFinder
 {
+	const uint32_t DeBruijnIndex::EdgeData::NO_POSITION = -1;
 	const uint32_t DeBruijnIndex::EdgeData::NO_BIFURCATION = -1;
 
 	size_t DeBruijnIndex::GetStrand(FastaRecord::Direction dir)
@@ -51,7 +52,7 @@ namespace SyntenyFinder
 		return projection_;
 	}
 
-	DeBruijnIndex::EdgeData::EdgeData(): bifId_(NO_BIFURCATION)
+	DeBruijnIndex::EdgeData::EdgeData(): pos_(NO_POSITION), bifId_(NO_BIFURCATION)
 	{
 	}
 
@@ -89,8 +90,14 @@ namespace SyntenyFinder
 	DeBruijnIndex::DeBruijnIndex(size_t chrNumber, size_t bifNumber):
 		bifurcationPosition_(bifNumber)
 	{
-		positionEdge_[0].resize(chrNumber);
-		positionEdge_[1].resize(chrNumber);
+		for(size_t strand = 0; strand < 2; strand++)
+		{			
+			positionEdge_[strand].resize(chrNumber);
+			for(size_t chr = 0; chr < chrNumber; chr++)
+			{
+				positionEdge_[strand][chr].set_deleted_key(EdgeData());
+			}
+		}		
 	}
 
 	size_t DeBruijnIndex::EdgeData::GetVirtualPosition() const
