@@ -54,7 +54,7 @@ namespace SyntenyFinder
 		std::vector<std::string> virtualChr_;
 		std::map<std::string, size_t> debugIndex_;
 		void PrintRaw(size_t chr0, size_t chr1, std::ostream & out) const;
-		void PrintPath(DeBruijnIndex::Edge e, size_t k, size_t distance, std::ostream & out) const;
+		void PrintPath(DeBruijnIndex::Edge e, size_t distance, std::ostream & out) const;
 	#endif
 	};
 }

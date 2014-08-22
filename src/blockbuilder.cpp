@@ -345,16 +345,16 @@ namespace SyntenyFinder
 			}
 		}
 		
-		void BlockBuilder::PrintPath(DeBruijnIndex::Edge e, size_t k, size_t distance, std::ostream & out) const
+		void BlockBuilder::PrintPath(DeBruijnIndex::Edge e, size_t distance, std::ostream & out) const
 		{
 			out << (e.GetDirection() == FastaRecord::positive ? "+" : "-") << e.GetPosition() << ' ';
 			if(e.GetDirection() == FastaRecord::positive)
 			{
-				CopyN(virtualChr_[e.GetChromosomeId()].begin() + e.GetPosition(), distance + k, std::ostream_iterator<char>(out));
+				CopyN(virtualChr_[e.GetChromosomeId()].begin() + e.GetPosition(), distance + lastK_, std::ostream_iterator<char>(out));
 			}
 			else
 			{				
-				CopyN(CompIterator(virtualChr_[e.GetChromosomeId()].rbegin() + e.GetPosition()), distance + k, std::ostream_iterator<char>(out));
+				CopyN(CompIterator(virtualChr_[e.GetChromosomeId()].rbegin() + e.GetPosition()), distance + lastK_, std::ostream_iterator<char>(out));
 			}
 
 			std::cerr << std::endl;
@@ -366,17 +366,17 @@ namespace SyntenyFinder
 			DeBruijnIndex::Edge sourceEdge = edge[sourceData.kmerId];
 			DeBruijnIndex::Edge targetEdge = edge[targetData.kmerId];
 		#ifdef _DEBUG
-			/*
+
 			static size_t bulge = 0;
 			std::cerr << "Bulge #" << bulge++ << std::endl;
 			std::cerr << "Before: " << std::endl;
 			PrintRaw(sourceEdge.GetChromosomeId(), targetEdge.GetChromosomeId(), std::cerr);
 			std::cerr << "Source branch: " << std::endl;
-			PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
+			PrintPath(sourceEdge, sourceData.distance, std::cerr);
 			std::cerr << "Target branch: " << std::endl;
-			BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, targetData.distance, std::cerr);
-			bifStorage.Dump(sequence, k, std::cerr);
-			iseq_->Test();*/
+			PrintPath(targetEdge, targetData.distance, std::cerr);
+			//bifStorage.Dump(sequence, k, std::cerr);
+			//iseq_->Test();
 		#endif
 		/*	std::vector<std::pair<size_t, size_t> > lookForward;
 			std::vector<std::pair<size_t, size_t> > lookBack;
@@ -390,8 +390,8 @@ namespace SyntenyFinder
 				boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(bifStorage), _1, _2),
 				boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
 			UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
-
-		#ifdef _DEBUG
+			*/
+		#ifdef _DEBUG/*
 			std::cerr << "After: " << std::endl;
 			BlockFinder::PrintRaw(sequence, std::cerr);
 			std::cerr << "Source branch: " << std::endl;s
@@ -400,8 +400,8 @@ namespace SyntenyFinder
 			BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
 			bifStorage.Dump(sequence, k, std::cerr);
 			iseq_->Test();
-			std::cerr << DELIMITER << std::endl;
-		#endif*/
+			std::cerr << DELIMITER << std::endl;*/
+		#endif
 		}
 
 	size_t BlockBuilder::RemoveBulges(size_t minBranchSize, size_t bifId)
