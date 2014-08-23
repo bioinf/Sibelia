@@ -5,7 +5,6 @@
 //****************************************************************************
 
 #include "blockbuilder.h"
-#include "indexedsequence.h"
 
 namespace SyntenyFinder
 {

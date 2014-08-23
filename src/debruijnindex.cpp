@@ -8,136 +8,95 @@
 
 namespace SyntenyFinder
 {
-	//const uint32_t DeBruijnIndex::EdgeData::NO_POSITION = -1;
-	//const uint32_t DeBruijnIndex::EdgeData::NO_BIFURCATION = -1;
+	const char DeBruijnIndex::SEPARATION_CHAR = '#';
 
-	//size_t DeBruijnIndex::GetStrand(FastaRecord::Direction dir)
-	//{
-	//	return dir == FastaRecord::positive ? 0 : 1;
-	//}
+	size_t DeBruijnIndex::GetStrand(FastaRecord::Direction dir)
+	{
+		return dir == FastaRecord::positive ? 0 : 1;
+	}
 
-	//DeBruijnIndex::Location::Location(size_t chrId, size_t pos, FastaRecord::Direction dir):
-	//	chrId_(dir == FastaRecord::positive ? static_cast<int32_t>(chrId) : -static_cast<int32_t>(chrId)),
-	//	pos_(static_cast<uint32_t>(pos))
-	//{
-	//}
+	DeBruijnIndex::Location::Location(size_t chrId, size_t index):
+		chrId_(static_cast<uint32_t>(chrId)), index_(static_cast<uint32_t>(index))
+	{
+	}
 
-	//size_t DeBruijnIndex::Location::GetPosition() const
-	//{
-	//	return pos_;
-	//}
-	//
-	//size_t DeBruijnIndex::Location::GetChromosomeId() const
-	//{
-	//	return abs(chrId_);
-	//}
+	size_t DeBruijnIndex::Location::GetIndex() const
+	{
+		return index_;
+	}
+	
+	size_t DeBruijnIndex::Location::GetChromosomeId() const
+	{
+		return chrId_;
+	}
 
-	//bool DeBruijnIndex::Location::EquivalentLocation(const Location & a, const Location & b)
-	//{
-	//	return a.GetChromosomeId() == b.GetChromosomeId() && a.GetDirection() == b.GetDirection() && a.GetPosition() == b.GetPosition();
-	//}
-	//
-	//FastaRecord::Direction DeBruijnIndex::Location::GetDirection() const
-	//{
-	//	return chrId_ > 0 ? FastaRecord::positive : FastaRecord::negative;
-	//}
+	size_t DeBruijnIndex::BifurcationData::GetBifurcationId() const
+	{
+		return bifId_;
+	}
 
-	//size_t DeBruijnIndex::EdgeData::GetBifurcationId() const
-	//{
-	//	return bifId_;
-	//}
+	size_t DeBruijnIndex::BifurcationData::GetProjection() const
+	{
+		return projection_;
+	}
 
-	//size_t DeBruijnIndex::EdgeData::GetProjection() const
-	//{
-	//	return projection_;
-	//}
+	DeBruijnIndex::BifurcationData::BifurcationData()
+	{
+	}
 
-	//DeBruijnIndex::EdgeData::EdgeData(): pos_(NO_POSITION), bifId_(NO_BIFURCATION)
-	//{
-	//}
+	DeBruijnIndex::BifurcationData::BifurcationData(size_t pos, size_t bifId, size_t projection, char inMark, char outMark):
+		pos_(static_cast<uint32_t>(pos)), bifId_(static_cast<uint32_t>(bifId)), projection_(static_cast<uint32_t>(projection)),
+		inMark_(inMark), outMark_(outMark)
+	{
+	}
 
-	//DeBruijnIndex::EdgeData::EdgeData(size_t pos):
-	//	pos_(static_cast<uint32_t>(pos))
-	//{
-	//}
+	char DeBruijnIndex::BifurcationData::GetInMark() const
+	{
+		return inMark_;
+	}
 
-	//DeBruijnIndex::EdgeData::EdgeData(size_t pos, size_t bifId, char mark, size_t projection):
-	//	pos_(static_cast<uint32_t>(pos)), bifId_(static_cast<uint32_t>(bifId)), mark_(mark),
-	//	projection_(static_cast<uint32_t>(projection))
-	//{
-	//}
+	char DeBruijnIndex::BifurcationData::GetOutMark() const
+	{
+		return outMark_;
+	}
 
-	//size_t DeBruijnIndex::EdgeDataKey::operator () (const EdgeData & data) const
-	//{
-	//	return data.GetVirtualPosition();
-	//}
+	bool DeBruijnIndex::BifurcationData::IsValid() const
+	{
+		return valid_;
+	}
 
-	//char DeBruijnIndex::EdgeData::GetMark() const
-	//{
-	//	return mark_;
-	//}
+	void DeBruijnIndex::BifurcationData::Invalidate()
+	{
+		valid_ = false;
+	}
 
-	//bool DeBruijnIndex::EdgeData::Valid() const
-	//{
-	//	return GetBifurcationId() != NO_BIFURCATION;
-	//}
+	size_t DeBruijnIndex::BifurcationData::GetPosition() const
+	{
+		return pos_;
+	}
 
-	//DeBruijnIndex::Edge::Edge(EdgeData data, Location location):
-	//	EdgeData(data), Location(location)
-	//{
-	//}
+	DeBruijnIndex::DeBruijnIndex(const std::vector<ChrBifVector> & bifurcation, const std::vector<std::string> & record, size_t k, size_t bifurcationNumber)
+	{
+		revCompDictionary_.resize(bifurcationNumber);
+		bifurcationData_.resize(bifurcation[0].size());
+		for(size_t chr = 0; chr < bifurcation[0].size(); chr++)
+		{
+			for(size_t i = 0; i < bifurcation[0][chr].size(); i++)
+			{
+				size_t j = bifurcation[0][chr].size() - i - 1;
+				size_t bifId = bifurcation[0][chr][i].GetId();
+				size_t revBifId = bifurcation[1][chr][j].GetId();
+				size_t bifPos = bifurcation[0][chr][i].GetPostion();
+				revCompDictionary_[bifId] = revBifId;
+				revCompDictionary_[revBifId] = bifId;
+				char inMark = bifPos == 0 ? SEPARATION_CHAR : record[chr][bifPos - 1];
+				char outMark = bifPos + k >= record[chr].size() ? SEPARATION_CHAR : record[chr][bifPos + 1];
+				bifurcationData_[chr].push_back(BifurcationData(bifPos, bifId, bifurcation[0][chr][i].GetProjection(), inMark, outMark));
+				bifurcationPlace_[bifId].push_back(Location(chr, i));
+			}
+		}
+	}
 
-	//DeBruijnIndex::DeBruijnIndex(size_t chrNumber, size_t bifNumber):
-	//	bifurcationPosition_(bifNumber)
-	//{
-	//	for(size_t strand = 0; strand < 2; strand++)
-	//	{			
-	//		positionEdge_[strand].resize(chrNumber);
-	//		for(size_t chr = 0; chr < chrNumber; chr++)
-	//		{
-	//			positionEdge_[strand][chr].set_deleted_key(EdgeData());
-	//		}
-	//	}		
-	//}
-
-	//size_t DeBruijnIndex::EdgeData::GetVirtualPosition() const
-	//{
-	//	return pos_;
-	//}
-
-	//void DeBruijnIndex::AddEdge(size_t chrId, size_t pos, FastaRecord::Direction dir, size_t bifId, char mark, size_t projection) 
-	//{		
-	//	positionEdge_[GetStrand(dir)][chrId].insert(EdgeData(pos, bifId, mark, projection));
-	//	bifurcationPosition_[bifId].push_back(Location(chrId, pos, dir));
-	//}
-
-	//void DeBruijnIndex::RemoveEdge(Edge edge, FastaRecord::Direction dir)
-	//{
-	//	LocationVector & v = bifurcationPosition_[edge.GetBifurcationId()];
-	//	positionEdge_[GetStrand(edge.GetDirection())][edge.GetChromosomeId()].erase(static_cast<uint32_t>(edge.GetPosition())) ;
-	//	Location location(edge.GetChromosomeId(), edge.GetPosition(), edge.GetDirection());
-	//	LocationVector::iterator it = std::find_if(v.begin(), v.end(), boost::bind(Location::EquivalentLocation, location, _1));
-	//	v.erase(it);
-	//}
-	//
-	//DeBruijnIndex::Edge DeBruijnIndex::GetEdgeAtPosition(size_t chrId, size_t pos, FastaRecord::Direction dir) const
-	//{
-	//	Edge ret;
-	//	EdgeData lookUp(pos);
-	//	PositionEdgeMap::const_iterator it = positionEdge_[dir][chrId].find(lookUp);
-	//	if(it != positionEdge_[dir][chrId].end())
-	//	{
-	//		ret = Edge(*it, Location(chrId, pos, dir));
-	//	}
-	//	
-	//	return ret;
-	//}
-
-	//size_t DeBruijnIndex::CountEdges(size_t bifId) const
-	//{
-	//	return bifurcationPosition_[bifId].size();
-	//}
-	//
 	//size_t DeBruijnIndex::GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const
 	//{
 	//	e.clear();
@@ -148,15 +107,5 @@ namespace SyntenyFinder
 	//	}
 
 	//	return e.size();
-	//}
-
-	//bool DeBruijnIndex::EdgeDataEquivalence::operator () (const EdgeData & a, const EdgeData & b) const
-	//{
-	//	return a.GetVirtualPosition() == b.GetVirtualPosition();
-	//}
-
-	//size_t DeBruijnIndex::GetBifurcationsNumber() const
-	//{
-	//	return bifurcationPosition_.size();
 	//}
 }

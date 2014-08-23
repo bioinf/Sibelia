@@ -6,7 +6,6 @@
 
 #include "fasta.h"
 #include "blockinstance.h"
-#include "indexedsequence.h"
 
 #ifndef _DE_BRUIJN_GRAPH_H_
 #define _DE_BRUIJN_GRAPH_H_
@@ -18,7 +17,8 @@ namespace SyntenyFinder
 	private:
 		class BifurcationData;
 		typedef std::vector<BifurcationData> BifurcationVector;
-	public:		
+	public:
+		static const char SEPARATION_CHAR;
 		static const size_t MAX_POSITION;
 		static const size_t MAX_BIFURCATION_ID;		
 		static const size_t MAX_SEQUENCE_NUMBER;		
@@ -29,6 +29,8 @@ namespace SyntenyFinder
 			BifurcationIterator();
 			bool IsValid() const;
 			bool HasNext() const;
+			char GetInMark() const;
+			char GetOutMark() const;
 			size_t GetProjection() const;
 			size_t GetBifurcationId() const;
 			BifurcationIterator& operator++();			
@@ -42,10 +44,44 @@ namespace SyntenyFinder
 			const DeBruijnIndex * parent_;
 			friend class DeBruijnIndex;
 		};
+
+		struct BifurcationInstance
+		{
+		public:
+			BifurcationInstance() {}
+			BifurcationInstance(size_t bifId, size_t pos, size_t proj): bifId_(bifId), pos_(pos), proj_(proj) {}
+			bool operator < (const BifurcationInstance & toCompare) const
+			{
+				return pos_ < toCompare.pos_;
+			}
+
+			size_t GetId() const
+			{
+				return bifId_;
+			}
+
+			size_t GetProjection() const
+			{
+				return proj_;
+			}
+
+			size_t GetPostion() const
+			{
+				return pos_;
+			}
+
+		private:
+			size_t bifId_;	
+			size_t pos_;
+			size_t proj_;
+		};
+
+		typedef std::vector<BifurcationInstance> BifVector;
+		typedef std::vector<BifVector> ChrBifVector;
 		
-		void ApplyChanges();
-		DeBruijnIndex(const std::vector<size_t> & revCompTable);
+		void ApplyChanges();		
 		void GetBifurcationInstances(size_t bifId, std::vector<BifurcationIterator> & ret) const;
+		DeBruijnIndex(const std::vector<ChrBifVector> & bifurcation, const std::vector<std::string> & record, size_t k, size_t bifurcationNumber);
 		void Replace(BifurcationIterator sourceStart, BifurcationIterator sourceEnd, BifurcationIterator targetStart, BifurcationIterator targetEnd);
 		
 	private:
@@ -56,21 +92,20 @@ namespace SyntenyFinder
 		public:
 			BifurcationData();						
 			BifurcationData(size_t pos, size_t bifId, size_t projection, char inMark, char outMark);
+			void Invalidate();
+			bool IsValid() const;
 			char GetInMark() const;
 			char GetOutMark() const;
+			size_t GetPosition() const;
 			size_t GetProjection() const;
-			size_t GetBifurcationId() const;
-			size_t GetShift() const;
-			bool IsValid() const;
-			void Invalidate();
+			size_t GetBifurcationId() const;			
 		private:
-			uint32_t shift_;
+			uint32_t pos_;
 			uint32_t bifId_;
 			uint32_t projection_;
 			char inMark_;
 			char outMark_;
-			bool valid_;
-			static const uint32_t NO_POSITION;
+			bool valid_;			
 		};
 		
 		class Location

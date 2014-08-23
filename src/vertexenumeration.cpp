@@ -4,12 +4,10 @@
 //* See file LICENSE for details.
 //****************************************************************************
 
-#include "fasta.h"
-#include "indexedsequence.h"
+#include "blockbuilder.h"
 
 namespace SyntenyFinder
 {
-	const char IndexedSequence::SEPARATION_CHAR = '#';
 	namespace
 	{
 		class CharSet
@@ -67,7 +65,7 @@ namespace SyntenyFinder
 
 		bool Bifurcation(const CharSet & set)
 		{
-			return set.Size() > 1 || set.In(IndexedSequence::SEPARATION_CHAR);
+			return set.Size() > 1 || set.In(DeBruijnIndex::SEPARATION_CHAR);
 		}
 
 		void Flank(std::string & str, size_t start, size_t end, size_t k, char sepChar)
@@ -158,18 +156,18 @@ namespace SyntenyFinder
 		}		
 	}
 
-	size_t IndexedSequence::EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<ChrBifVector> & ret)
+	size_t BlockBuilder::EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<DeBruijnIndex::ChrBifVector> & ret) const
 	{
-		ret.assign(2, ChrBifVector(data.size()));
+		ret.assign(2, DeBruijnIndex::ChrBifVector(data.size()));
 		Size bifurcationCount = 0;
 		std::vector<size_t> cumSize;
-		std::string superGenome(1, SEPARATION_CHAR);
+		std::string superGenome(1, DeBruijnIndex::SEPARATION_CHAR);
 		for(size_t chr = 0; chr < data.size(); chr++)
 		{
 			cumSize.push_back(superGenome.size());
 			superGenome += data[chr];
-			superGenome += SEPARATION_CHAR;
-			Flank(superGenome, superGenome.size() - 1 - data[chr].size(), superGenome.size() - 1, k_, SEPARATION_CHAR);
+			superGenome += DeBruijnIndex::SEPARATION_CHAR;
+			Flank(superGenome, superGenome.size() - 1 - data[chr].size(), superGenome.size() - 1, k_, DeBruijnIndex::SEPARATION_CHAR);
 		}
 
 		for(size_t chr = 0; chr < data.size(); chr++)
@@ -178,8 +176,8 @@ namespace SyntenyFinder
 			std::string::const_reverse_iterator it1 = data[chr].rbegin();
 			std::string::const_reverse_iterator it2 = data[chr].rend();
 			superGenome.insert(superGenome.end(), CFancyIterator(it1, FastaRecord::Translate, ' '), CFancyIterator(it2, FastaRecord::Translate, ' '));
-			superGenome += SEPARATION_CHAR;
-			Flank(superGenome, superGenome.size() - 1 - data[chr].size(), superGenome.size() - 1, k_, SEPARATION_CHAR);
+			superGenome += DeBruijnIndex::SEPARATION_CHAR;
+			Flank(superGenome, superGenome.size() - 1 - data[chr].size(), superGenome.size() - 1, k_, DeBruijnIndex::SEPARATION_CHAR);
 		}
 		
 		std::vector<saidx_t> pos;
@@ -188,15 +186,15 @@ namespace SyntenyFinder
 		FilePtr posFile = CalculateLCP(superGenome, lcp, tempDir);
 		CharSet prev;
 		CharSet next;
-		std::vector<size_t> candidateChr;
-		std::vector<BifurcationInstance> candidate;
+		std::vector<size_t> candidateChr;		
 		std::vector<FastaRecord::Direction> candidateDir;
+		std::vector<DeBruijnIndex::BifurcationInstance> candidate;
 		
 		for(size_t start = 0; start < superGenome.size(); )
 		{
 			pos.assign(1, 0);
 			posFile->Read(&pos[0], sizeof(pos[0]), 1);
-			if(superGenome[pos[0]] == SEPARATION_CHAR || !FastaRecord::IsDefiniteBase(superGenome[pos[0]]))
+			if(superGenome[pos[0]] == DeBruijnIndex::SEPARATION_CHAR || !FastaRecord::IsDefiniteBase(superGenome[pos[0]]))
 			{
 				start++;
 				continue;
@@ -239,8 +237,8 @@ namespace SyntenyFinder
 					chr = chr < data.size() ? chr : chr - data.size();
 					if(pos + k_ <= data[chr].size())
 					{
-						terminal = terminal || superGenome[suffix - 1] == SEPARATION_CHAR || superGenome[suffix + k_] == SEPARATION_CHAR;
-						candidate.push_back(BifurcationInstance(bifurcationCount, pos));
+						terminal = terminal || superGenome[suffix - 1] == DeBruijnIndex::SEPARATION_CHAR || superGenome[suffix + k_] == DeBruijnIndex::SEPARATION_CHAR;
+						candidate.push_back(DeBruijnIndex::BifurcationInstance(bifurcationCount, pos, pos));
 						candidateDir.push_back(strand);
 						candidateChr.push_back(chr);
 					}
