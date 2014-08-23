@@ -70,7 +70,7 @@ namespace SyntenyFinder
 			positive,
 			negative
 		};
-
+		/*
 		class Iterator
 		{
 		public:
@@ -96,7 +96,7 @@ namespace SyntenyFinder
 
 
 		Iterator Begin(Direction dir) const;
-		Iterator End(Direction dir) const;
+		Iterator End(Direction dir) const;*/
 		static char Translate(char ch);
 		static bool IsMaskedBase(char c);
 		static bool IsDefiniteBase(char c);

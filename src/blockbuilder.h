@@ -47,15 +47,10 @@ namespace SyntenyFinder
 		};
 
 		size_t RemoveBulges(size_t minBranchSize, size_t bifId);
-		bool Overlap(const std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData) const;
-		void CollapseBulgeGreedily(std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData);
+	//	bool Overlap(const std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData) const;
+	//	void CollapseBulgeGreedily(std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData);
 
-	#ifdef _DEBUG		
-		std::vector<std::string> virtualChr_;
-		std::map<std::string, size_t> debugIndex_;
-		void PrintRaw(size_t chr0, size_t chr1, std::ostream & out) const;
-		void PrintPath(DeBruijnIndex::Edge e, size_t distance, std::ostream & out) const;
-	#endif
+	
 	};
 }
 

@@ -42,7 +42,6 @@ namespace SyntenyFinder
 		};
 
 		static size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
-		static size_t EnumerateBifurcationsSArrayInRAM(const std::vector<std::string> & data, size_t k_, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
 
 	private:
 		DISALLOW_COPY_AND_ASSIGN(IndexedSequence);

@@ -145,7 +145,7 @@ namespace SyntenyFinder
 		return inputStream_.good();
 	}
 	 
-	size_t FastaRecord::Iterator::GetPosition() const
+/*	size_t FastaRecord::Iterator::GetPosition() const
 	{
 		return pos_;
 	}
@@ -209,5 +209,5 @@ namespace SyntenyFinder
 	FastaRecord::Iterator FastaRecord::End(Direction dir) const
 	{
 		return Iterator(this, sequence_.size(), dir);
-	}
+	}*/
 }
