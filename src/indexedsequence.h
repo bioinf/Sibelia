@@ -30,18 +30,34 @@ namespace SyntenyFinder
 
 		struct BifurcationInstance
 		{
-			Size bifId;
-			Size chr;
-			Size pos;
+		public:
+			
 			BifurcationInstance() {}
-			BifurcationInstance(Size bifId, Size chr, Size pos): bifId(bifId), chr(chr), pos(pos) {}
+			BifurcationInstance(size_t bifId, size_t pos): bifId_(bifId), pos_(pos) {}
 			bool operator < (const BifurcationInstance & toCompare) const
 			{
-				return std::make_pair(chr, pos) < std::make_pair(toCompare.chr, toCompare.pos);
+				return pos_ < toCompare.pos_;
 			}
+
+			size_t GetBifurcationId() const
+			{
+				return bifId_;
+			}
+
+			size_t GetBifurcationPostion() const
+			{
+				return pos_;
+			}
+
+		private:
+			size_t bifId_;	
+			size_t pos_;
 		};
 
-		static size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<BifurcationInstance> & posBifurcation, std::vector<BifurcationInstance> & negBifurcation);
+		typedef std::vector<BifurcationInstance> BifVector;
+		typedef std::vector<BifVector> ChrBifVector;
+
+		static size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<ChrBifVector> & ret);
 
 	private:
 		DISALLOW_COPY_AND_ASSIGN(IndexedSequence);

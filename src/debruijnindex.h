@@ -30,6 +30,7 @@ namespace SyntenyFinder
 			bool IsValid() const;
 			bool HasNext() const;
 			size_t GetProjection() const;
+			size_t GetBifurcationId() const;
 			BifurcationIterator& operator++();			
 			BifurcationIterator operator++(int);
 			bool operator == (const BifurcationIterator & it) const;			
@@ -43,7 +44,7 @@ namespace SyntenyFinder
 		};
 		
 		void ApplyChanges();
-		DeBruijnIndex(size_t chrNumber, size_t bifNumber);
+		DeBruijnIndex(const std::vector<size_t> & revCompTable);
 		void GetBifurcationInstances(size_t bifId, std::vector<BifurcationIterator> & ret) const;
 		void Replace(BifurcationIterator sourceStart, BifurcationIterator sourceEnd, BifurcationIterator targetStart, BifurcationIterator targetEnd);
 		

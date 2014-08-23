@@ -158,10 +158,9 @@ namespace SyntenyFinder
 		}		
 	}
 
-	size_t IndexedSequence::EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<BifurcationInstance> & positiveBif, std::vector<BifurcationInstance> & negativeBif)
+	size_t IndexedSequence::EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<ChrBifVector> & ret)
 	{
-		positiveBif.clear();
-		negativeBif.clear();
+		ret.assign(2, ChrBifVector(data.size()));
 		Size bifurcationCount = 0;
 		std::vector<size_t> cumSize;
 		std::string superGenome(1, SEPARATION_CHAR);
@@ -189,8 +188,10 @@ namespace SyntenyFinder
 		FilePtr posFile = CalculateLCP(superGenome, lcp, tempDir);
 		CharSet prev;
 		CharSet next;
-		std::vector<BifurcationInstance> * ret[] = {&positiveBif, &negativeBif};
-		std::vector<std::pair<FastaRecord::Direction, BifurcationInstance> > candidate;
+		std::vector<size_t> candidateChr;
+		std::vector<BifurcationInstance> candidate;
+		std::vector<FastaRecord::Direction> candidateDir;
+		
 		for(size_t start = 0; start < superGenome.size(); )
 		{
 			pos.assign(1, 0);
@@ -239,7 +240,9 @@ namespace SyntenyFinder
 					if(pos + k_ <= data[chr].size())
 					{
 						terminal = terminal || superGenome[suffix - 1] == SEPARATION_CHAR || superGenome[suffix + k_] == SEPARATION_CHAR;
-						candidate.push_back(std::make_pair(strand, BifurcationInstance(bifurcationCount, static_cast<Size>(chr), static_cast<Size>(pos))));
+						candidate.push_back(BifurcationInstance(bifurcationCount, pos));
+						candidateDir.push_back(strand);
+						candidateChr.push_back(chr);
 					}
 				}
 
@@ -248,16 +251,22 @@ namespace SyntenyFinder
 					bifurcationCount++;
 					for(size_t i = 0; i < candidate.size(); i++)
 					{
-						ret[candidate[i].first == FastaRecord::positive ? 0 : 1]->push_back(candidate[i].second);
+						ret[candidateDir[i] == FastaRecord::positive ? 0 : 1][candidateChr[i]].push_back(candidate[i]);
 					}
 				}
 			}
 			
 			start += pos.size();
 		}
-				
-		std::sort(positiveBif.begin(), positiveBif.end());
-		std::sort(negativeBif.begin(), negativeBif.end());
+		
+		for(size_t dir = 0; dir < 2; dir++)
+		{
+			for(size_t chr = 0; chr < ret[dir].size(); chr++)
+			{
+				std::sort(ret[dir][chr].begin(), ret[dir][chr].end());
+			}
+		}
+
 		return bifurcationCount;
 	}
 }
