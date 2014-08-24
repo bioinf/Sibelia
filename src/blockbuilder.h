@@ -30,7 +30,7 @@ namespace SyntenyFinder
 		void ConstructIndex(size_t k);
 		void WriteIndexToDot(std::ostream & out) const;
 		void GenerateBlocks(std::vector<BlockInstance> & ret, size_t minBlockSize) const;
-		size_t Simplify(size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack = ProgressCallBack());		
+		size_t Simplify(size_t maxBranchSize, size_t maxIterations, ProgressCallBack callBack = ProgressCallBack());		
 	private:
 		DISALLOW_COPY_AND_ASSIGN(BlockBuilder);
 		size_t lastK_;
@@ -47,10 +47,11 @@ namespace SyntenyFinder
 			VisitData(size_t kmerId, size_t distance): kmerId(kmerId), distance(distance) {}
 		};
 
-		size_t RemoveBulges(size_t minBranchSize, size_t bifId);
+		size_t RemoveBulges(size_t minBranchSize, size_t bifId);		
+		bool Overlap(const std::vector<DeBruijnIndex::BifurcationIterator> & bif, VisitData sourceData, VisitData targetData) const;
+		void CollapseBulge(const std::vector<DeBruijnIndex::BifurcationIterator> & edge, VisitData sourceData, VisitData targetData);
 		size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<DeBruijnIndex::ChrBifVector> & ret) const;
-	//	bool Overlap(const std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData) const;
-	//	void CollapseBulgeGreedily(std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData);
+		
 
 	
 	};

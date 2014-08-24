@@ -81,360 +81,265 @@ namespace SyntenyFinder
 		out << "}" << std::endl;
 	}
 
-	//size_t BlockBuilder::Simplify(size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
-	//{				
-	//	size_t totalProgress = 0;
-	//	bool anyChanges = true;
-	//	if(!callBack.empty())
-	//	{
-	//		callBack(totalProgress, start);
-	//	}
+	size_t BlockBuilder::Simplify(size_t maxBranchSize, size_t maxIterations, ProgressCallBack callBack)
+	{				
+		size_t totalProgress = 0;
+		bool anyChanges = true;
+		if(!callBack.empty())
+		{
+			callBack(totalProgress, start);
+		}
 
-	//	size_t count = 0;
-	//	size_t totalBulges;
-	//	size_t iterations = 0;
-	//	size_t threshold = (index_->GetBifurcationsNumber() * maxIterations) / PROGRESS_STRIDE;
-	//	do
-	//	{
-	//		iterations++;
-	//		totalBulges = 0;
-	//		for(size_t bifId = 0; bifId < index_->GetBifurcationsNumber(); bifId++)
-	//		{			
-	//			totalBulges += RemoveBulges(minBranchSize, bifId);
-	//			if(++count >= threshold && !callBack.empty())
-	//			{
-	//				count = 0;
-	//				totalProgress = std::min(totalProgress + 1, PROGRESS_STRIDE);
-	//				callBack(totalProgress, run);
-	//			}
-	//		}
-	//	}
-	//	while((totalBulges > 0) && iterations < maxIterations);
+		size_t count = 0;
+		size_t totalBulges;
+		size_t iterations = 0;
+		size_t threshold = (index_->GetBifurcationsNumber() * maxIterations) / PROGRESS_STRIDE;
+		do
+		{
+			iterations++;
+			totalBulges = 0;
+			for(size_t bifId = 0; bifId < index_->GetBifurcationsNumber(); bifId++)
+			{			
+				totalBulges += RemoveBulges(maxBranchSize, bifId);
+				if(++count >= threshold && !callBack.empty())
+				{
+					count = 0;
+					totalProgress = std::min(totalProgress + 1, PROGRESS_STRIDE);
+					callBack(totalProgress, run);
+				}
+			}
+		}
+		while((totalBulges > 0) && iterations < maxIterations);
 
-	//	if(!callBack.empty())
-	//	{
-	//		callBack(PROGRESS_STRIDE, end);
-	//	}
-	//	
-	//	return totalBulges;
-	//}
+		if(!callBack.empty())
+		{
+			callBack(PROGRESS_STRIDE, end);
+		}
+		
+		return totalBulges;
+	}
 
-	//namespace
-	//{
-	//	const char EMPTY = ' ';
+	namespace
+	{
+		struct BranchData
+		{
+			BranchData() {}
+			BranchData(char ch): endChar(ch) {}
+			char endChar;
+			std::vector<size_t> branchIds;
+		};
 
-	//	struct BranchData
-	//	{
-	//		BranchData() {}
-	//		BranchData(char ch): endChar(ch) {}
-	//		char endChar;
-	//		std::vector<size_t> branchIds;
-	//	};
+		struct BifurcationMark
+		{
+			size_t bifId;
+			size_t distance;
+			BifurcationMark() {}
+			BifurcationMark(size_t bifId, size_t distance): bifId(bifId),
+				distance(distance) {}
 
-	//	struct BifurcationMark
-	//	{
-	//		size_t bifId;
-	//		size_t distance;
-	//		BifurcationMark() {}
-	//		BifurcationMark(size_t bifId, size_t distance): bifId(bifId),
-	//			distance(distance) {}
+			bool operator < (const BifurcationMark & compare) const
+			{
+				if(bifId != compare.bifId)
+				{
+					return bifId < compare.bifId;
+				}
 
-	//		bool operator < (const BifurcationMark & compare) const
-	//		{
-	//			if(bifId != compare.bifId)
-	//			{
-	//				return bifId < compare.bifId;
-	//			}
+				return distance < compare.distance;
+			}
+		};
 
-	//			return distance < compare.distance;
-	//		}
-	//	};
+		void FillVisit(const DeBruijnIndex & index, DeBruijnIndex::BifurcationIterator it, size_t maxBranchSize, std::vector<BifurcationMark> & visit)
+		{
+			visit.clear();
+			if(it.IsValid())
+			{
+				size_t startPos = (++it).GetPosition();
+				size_t startId = it.GetBifurcationId();
+				for(size_t step = 1; it.HasNext(); ++it)
+				{
+					if(!it.IsValid())
+					{
+						break;
+					}
 
-	//	void FillVisit(const DeBruijnIndex & index, DeBruijnIndex::Edge e, size_t minBranchSize, std::vector<BifurcationMark> & visit)
-	//	{
-	//		visit.clear();
-	//		size_t start = e.GetBifurcationId();			
-	//		for(size_t step = 1; step < minBranchSize; step++)
-	//		{
-	//			DeBruijnIndex::Edge nowEdge = index.GetEdgeAtPosition(e.GetChromosomeId(), e.GetPosition() + step, e.GetDirection());
-	//			if(nowEdge.Valid())
-	//			{
-	//				size_t bifId = nowEdge.GetBifurcationId();
-	//				if(bifId == start)
-	//				{
-	//					break;
-	//				}
+					size_t bifId = it.GetBifurcationId();
+					if(bifId == startId || it.GetPosition() - startPos > maxBranchSize)
+					{
+						break;
+					}
 
-	//				visit.push_back(BifurcationMark(bifId, step));
-	//			}
-	//		}
+					visit.push_back(BifurcationMark(bifId, step));
+				}
 
-	//		std::sort(visit.begin(), visit.end());
-	//	}
-	//	
-	//	size_t MaxBifurcationMultiplicity(const DeBruijnIndex & index, DeBruijnIndex::Edge e, size_t distance)
-	//	{
-	//		size_t ret = 0;
-	//		for(size_t step = 1; step < distance - 1; step++)
-	//		{
-	//			size_t pos = e.GetPosition() + step;
-	//			DeBruijnIndex::Edge nowEdge = index.GetEdgeAtPosition(e.GetChromosomeId(), pos, e.GetDirection());
-	//			if(nowEdge.Valid())
-	//			{
-	//				ret = std::max(ret, index.CountEdges(nowEdge.GetBifurcationId()));
-	//			}
-	//		}
+				std::sort(visit.begin(), visit.end());
+			}			
+		}
+	
+		size_t MaxBifurcationMultiplicity(const DeBruijnIndex & index, DeBruijnIndex::BifurcationIterator it, size_t distance)
+		{
+			size_t ret = 0;
+			for(size_t step = 1; step < distance - 1; step++)
+			{
+				size_t pos = (++it).GetPosition() + step;
+				ret = std::max(ret, index.CountInstances(it.GetBifurcationId()));
+			}
 
-	//		return ret;
-	//	}
+			return ret;
+		}
 
-	//	typedef std::vector< std::vector<size_t> > BulgedBranches;
-	//	
-	//	bool AnyBulges(const DeBruijnIndex & index,
-	//		std::vector<DeBruijnIndex::Edge> & edge,			
-	//		BulgedBranches & bulges,
-	//		size_t minBranchSize)
-	//	{
-	//		
-	//		bulges.clear();
-	//		boost::unordered_map<size_t, BranchData> visit;
-	//		for(size_t i = 0; i < edge.size(); i++)
-	//		{
-	//			size_t start = edge[i].GetBifurcationId();
-	//			for(size_t step = 1; step < minBranchSize; step++)
-	//			{
-	//				size_t pos = edge[i].GetPosition() + step;
-	//				DeBruijnIndex::Edge nowEdge = index.GetEdgeAtPosition(edge[i].GetChromosomeId(), pos, edge[i].GetDirection()); 
-	//				if(!nowEdge.Valid())
-	//				{
-	//					continue;
-	//				}
+		typedef std::vector< std::vector<size_t> > BulgedBranches;
+		
+		bool AnyBulges(const DeBruijnIndex & index,
+			std::vector<DeBruijnIndex::BifurcationIterator> bif,
+			BulgedBranches & bulges,
+			size_t maxBranchSize)
+		{
+			
+			bulges.clear();
+			boost::unordered_map<size_t, BranchData> visit;
+			for(size_t i = 0; i < bif.size(); i++)
+			{
+				size_t startPos = (++bif[i]).GetPosition();
+				size_t startId = bif[i].GetBifurcationId();
+				for(size_t step = 1; ; step++, ++bif[i])
+				{
+					size_t pos = bif[i].GetPosition();
+					size_t bifId = bif[i].GetBifurcationId();
+					if(!bif[i].IsValid() || pos - startPos > maxBranchSize || bifId == startId)
+					{
+						break;
+					}
 
-	//				size_t bifId = nowEdge.GetBifurcationId();
-	//				if(bifId == start)
-	//				{
-	//					break;
-	//				}
+					boost::unordered_map<size_t, BranchData>::iterator kt = visit.find(bifId);
+					if(kt == visit.end())
+					{
+						BranchData bData(bif[i].GetOutMark());
+						bData.branchIds.push_back(i);
+						visit[bifId] = bData;
+					}
+					else if(kt->second.endChar != bif[i].GetOutMark())
+					{
+						kt->second.branchIds.push_back(i);
+						break;
+					}
+				}
+			}
 
-	//				boost::unordered_map<size_t, BranchData>::iterator kt = visit.find(bifId);
-	//				if(kt == visit.end())
-	//				{
-	//					BranchData bData(edge[i].GetMark());
-	//					bData.branchIds.push_back(i);
-	//					visit[bifId] = bData;
-	//				}
-	//				else if(kt->second.endChar != edge[i].GetMark())
-	//				{
-	//					kt->second.branchIds.push_back(i);
-	//					break;
-	//				}
-	//			}
-	//		}
+			for (boost::unordered_map<size_t, BranchData>::iterator kt = visit.begin(); kt !=visit.end(); ++kt)
+			{
+				if (kt->second.branchIds.size() > 1)
+				{
+					bulges.push_back(kt->second.branchIds);		
+				}
+			}
+			
+			return !bulges.empty();
+		}			
+	}
 
-	//		for (boost::unordered_map<size_t, BranchData>::iterator kt = visit.begin(); kt !=visit.end(); ++kt)
-	//		{
-	//			if (kt->second.branchIds.size() > 1)
-	//			{
-	//				bulges.push_back(kt->second.branchIds);		
-	//			}
-	//		}
-	//		
-	//		return !bulges.empty();
-	//	}			
-	//}
+	bool BlockBuilder::Overlap(const std::vector<DeBruijnIndex::BifurcationIterator> & bif, VisitData sourceData, VisitData targetData) const
+	{
+		DeBruijnIndex::BifurcationIterator srcIt = bif[sourceData.kmerId];
+		DeBruijnIndex::BifurcationIterator trgIt = bif[targetData.kmerId];
+		if(srcIt.GetChromosomeId() != trgIt.GetChromosomeId())
+		{
+			return false;
+		}
 
-	////OPTIMIZE THIS!!!1111
-	//bool BlockBuilder::Overlap(const std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData) const
-	//{
-	//	DeBruijnIndex::Edge sourceEdge = edge[sourceData.kmerId];
-	//	DeBruijnIndex::Edge targetEdge = edge[targetData.kmerId];
-	//	if(sourceEdge.GetChromosomeId() != targetEdge.GetChromosomeId())
-	//	{
-	//		return false;
-	//	}
+		std::pair<size_t, size_t> srcRange(srcIt.GetPositivePosition(), (srcIt + sourceData.distance).GetPositiveEndingPosition());
+		std::pair<size_t, size_t> trgRange(trgIt.GetPositivePosition(), (trgIt + sourceData.distance).GetPositiveEndingPosition());	
+		return RangesOverlap(srcRange, trgRange);
+	}
 
-	//	std::vector<size_t> occur;			
-	//	for(size_t i = 0; i < sourceData.distance + lastK_; i++)
-	//	{
-	//		size_t pos = sourceEdge.GetPosition() + i;
-	//		occur.push_back(sourceEdge.GetPosition());
-	//	}
-	//		
-	//	std::sort(occur.begin(), occur.end());
-	//	for(size_t i = 0; i < targetData.distance + lastK_; i++)
-	//	{
-	//		size_t pos = targetEdge.GetPosition() + i;
-	//		if(std::binary_search(occur.begin(), occur.end(), pos))
-	//		{
-	//			return true;
-	//		}
-	//	}
-	//		
-	//	return false;
-	//}
+	void BlockBuilder::CollapseBulge(const std::vector<DeBruijnIndex::BifurcationIterator> & bif, VisitData sourceData, VisitData targetData)
+	{
+		DeBruijnIndex::BifurcationIterator srcIt = bif[sourceData.kmerId];
+		DeBruijnIndex::BifurcationIterator trgIt = bif[targetData.kmerId];
+	#ifdef _DEBUG
+		/*
+		static size_t bulge = 0;
+		std::cerr << "Bulge #" << bulge++ << std::endl;
+		std::cerr << "Before: " << std::endl;
+		PrintRaw(sourceEdge.GetChromosomeId(), targetEdge.GetChromosomeId(), std::cerr);
+		std::cerr << "Source branch: " << std::endl;
+		PrintPath(sourceEdge, sourceData.distance, std::cerr);
+		std::cerr << "Target branch: " << std::endl;
+		PrintPath(targetEdge, targetData.distance, std::cerr);
+		//bifStorage.Dump(sequence, k, std::cerr);
+		//iseq_->Test();*/
+	#endif
+		index_->Replace(srcIt, srcIt + sourceData.distance, trgIt, trgIt + targetData.distance);
+	}
 
-	//#ifdef _DEBUG
-	//	void BlockBuilder::PrintRaw(size_t chr0, size_t chr1, std::ostream & out) const
-	//	{
-	//		size_t chrId[] = {chr0, chr1};
-	//		for(size_t i = 0; i < 2; i++)
-	//		{
-	//			size_t chr = chrId[i];
-	//			out << "Sequence #" << chr << std::endl;
-	//			for(size_t i = 0; i < virtualChr_[chr].size(); i++)
-	//			{
-	//				out << i % 10;
-	//			}
+	size_t BlockBuilder::RemoveBulges(size_t maxBranchSize, size_t bifId)
+	{
+		size_t ret = 0;
+		std::vector<DeBruijnIndex::BifurcationIterator> bif;
+		if(index_->GetBifurcationInstances(bifId, bif) < 2)
+		{
+			return ret;
+		}
+		
+		BulgedBranches bulges;
+		if(!AnyBulges(*index_, bif, bulges, maxBranchSize))
+		{
+			return ret;
+		}
 
-	//			out << std::endl;
-	//			std::copy(virtualChr_[chr].begin(), virtualChr_[chr].end(), std::ostream_iterator<char>(out));
-	//			out << std::endl;				
-	//			std::copy(CompIterator(virtualChr_[chr].begin()), CompIterator(virtualChr_[chr].end()), std::ostream_iterator<char>(out));
-	//			out << std::endl;
-	//		}
-	//	}
-	//	
-	//	void BlockBuilder::PrintPath(DeBruijnIndex::Edge e, size_t distance, std::ostream & out) const
-	//	{
-	//		out << (e.GetDirection() == FastaRecord::positive ? "+" : "-") << e.GetPosition() << ' ';
-	//		if(e.GetDirection() == FastaRecord::positive)
-	//		{
-	//			CopyN(virtualChr_[e.GetChromosomeId()].begin() + e.GetPosition(), distance + lastK_, std::ostream_iterator<char>(out));
-	//		}
-	//		else
-	//		{				
-	//			CopyN(CompIterator(virtualChr_[e.GetChromosomeId()].rbegin() + e.GetPosition()), distance + lastK_, std::ostream_iterator<char>(out));
-	//		}
+		std::vector<BifurcationMark> visit;
+		for (size_t numBulge = 0; numBulge < bulges.size(); ++numBulge)
+		{
+			for (size_t idI = 0; idI < bulges[numBulge].size(); ++idI)
+			{
+				size_t kmerI = bulges[numBulge][idI];
+				FillVisit(*index_, bif[kmerI], maxBranchSize, visit);
+				for(size_t idJ = idI + 1; idJ < bulges[numBulge].size() && bif[kmerI].IsValid(); ++idJ)
+				{
+					size_t kmerJ = bulges[numBulge][idJ];
+					if(bif[kmerI].GetOutMark() == bif[kmerJ].GetOutMark())
+					{
+						continue;
+					}
+					
+					std::vector<BifurcationMark> nowVisit;
+					FillVisit(*index_, bif[kmerJ], maxBranchSize, nowVisit);
+					for(size_t idNow = 0; idNow < nowVisit.size(); idNow++)
+					{
+						size_t nowBif = nowVisit[idNow].bifId;
+						std::vector<BifurcationMark>::iterator vt = std::lower_bound(visit.begin(), visit.end(), BifurcationMark(nowBif, 0));
+						if(vt != visit.end() && vt->bifId == nowBif)
+						{							
+							VisitData idata(kmerI, vt->distance);
+							VisitData jdata(kmerJ, nowVisit[idNow].distance);
+							if(Overlap(bif, idata, jdata))
+							{
+								continue;
+							}
 
-	//		std::cerr << std::endl;
-	//	}
-	//#endif
-	//	
-	//	void BlockBuilder::CollapseBulgeGreedily(std::vector<DeBruijnIndex::Edge> & edge, VisitData sourceData, VisitData targetData)
-	//	{
-	//		DeBruijnIndex::Edge sourceEdge = edge[sourceData.kmerId];
-	//		DeBruijnIndex::Edge targetEdge = edge[targetData.kmerId];
-	//	#ifdef _DEBUG
+							++ret;
+							size_t imlp = MaxBifurcationMultiplicity(*index_, bif[kmerI], idata.distance);
+							size_t jmlp = MaxBifurcationMultiplicity(*index_, bif[kmerI], idata.distance);
+							bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
+							if(iless)
+							{
+								CollapseBulge(bif, idata, jdata);
+							}
+							else
+							{
+								CollapseBulge(bif, jdata, idata);										
+							}
 
-	//		static size_t bulge = 0;
-	//		std::cerr << "Bulge #" << bulge++ << std::endl;
-	//		std::cerr << "Before: " << std::endl;
-	//		PrintRaw(sourceEdge.GetChromosomeId(), targetEdge.GetChromosomeId(), std::cerr);
-	//		std::cerr << "Source branch: " << std::endl;
-	//		PrintPath(sourceEdge, sourceData.distance, std::cerr);
-	//		std::cerr << "Target branch: " << std::endl;
-	//		PrintPath(targetEdge, targetData.distance, std::cerr);
-	//		//bifStorage.Dump(sequence, k, std::cerr);
-	//		//iseq_->Test();
-	//	#endif
-	//	/*	std::vector<std::pair<size_t, size_t> > lookForward;
-	//		std::vector<std::pair<size_t, size_t> > lookBack;
-	//		EraseBifurcations(sequence, bifStorage, k, startKMer, targetData, lookForward, lookBack);
-	//		StrandIterator sourceIt = *startKMer[sourceData.kmerId];
-	//		StrandIterator targetIt = *startKMer[targetData.kmerId];
-	//		sequence.Replace(AdvanceForward(sourceIt, k),
-	//			sourceData.distance,
-	//			AdvanceForward(targetIt, k),
-	//			targetData.distance,
-	//			boost::bind(&BifurcationStorage::NotifyBefore, boost::ref(bifStorage), _1, _2),
-	//			boost::bind(&BifurcationStorage::NotifyAfter, boost::ref(bifStorage), _1, _2));
-	//		UpdateBifurcations(sequence, bifStorage, k, startKMer, sourceData, targetData, lookForward, lookBack);
-	//		*/
-	//	#ifdef _DEBUG/*
-	//		std::cerr << "After: " << std::endl;
-	//		BlockFinder::PrintRaw(sequence, std::cerr);
-	//		std::cerr << "Source branch: " << std::endl;s
-	//		BlockFinder::PrintPath(sequence, *startKMer[sourceData.kmerId], k, sourceData.distance, std::cerr);
-	//		std::cerr << "Target branch: " << std::endl;
-	//		BlockFinder::PrintPath(sequence, *startKMer[targetData.kmerId], k, sourceData.distance, std::cerr);
-	//		bifStorage.Dump(sequence, k, std::cerr);
-	//		iseq_->Test();
-	//		std::cerr << DELIMITER << std::endl;*/
-	//	#endif
-	//	}
+							break;
+						}
+					}
+				}
+			}
+		}
 
-	//size_t BlockBuilder::RemoveBulges(size_t minBranchSize, size_t bifId)
-	//{
-	//	size_t ret = 0;
-	//	std::vector<DeBruijnIndex::Edge> edge;
-	//	if(index_->GetEdgesOfVertex(bifId, edge) < 2)
-	//	{
-	//		return ret;
-	//	}
-	//	
-	//	BulgedBranches bulges;
-	//	if(!AnyBulges(*index_, edge, bulges, minBranchSize))
-	//	{
-	//		return ret;
-	//	}
+		return ret;
+	}
 
-	//	std::vector<BifurcationMark> visit;
-	//	for (size_t numBulge = 0; numBulge < bulges.size(); ++numBulge)
-	//	{
-	//		for (size_t  idI = 0; idI < bulges[numBulge].size(); ++idI)
-	//		{
-	//			size_t kmerI = bulges[numBulge][idI];
-	//			FillVisit(*index_, edge[kmerI], minBranchSize, visit);
-	//			for(size_t  idJ = idI + 1; idJ < bulges[numBulge].size(); ++idJ)
-	//			{
-	//				size_t kmerJ = bulges[numBulge][idJ];
-	//				if(edge[kmerI].GetMark() == edge[kmerJ].GetMark())
-	//				{
-	//					continue;
-	//				}
-	//				
-	//				for(size_t step = 1; step < minBranchSize; step++)
-	//				{
-	//					size_t pos = edge[kmerJ].GetPosition() + step;
-	//					DeBruijnIndex::Edge nowEdge = index_->GetEdgeAtPosition(edge[kmerJ].GetChromosomeId(), pos, edge[kmerJ].GetDirection());
-	//					if(nowEdge.Valid())
-	//					{
-	//						size_t nowBif = nowEdge.GetBifurcationId();
-	//						if(nowBif == bifId)
-	//						{
-	//							break;
-	//						}
-
-	//						std::vector<BifurcationMark>::iterator vt = std::lower_bound(visit.begin(), visit.end(), BifurcationMark(nowBif, 0));
-	//						if(vt != visit.end() && vt->bifId == nowBif)
-	//						{
-	//							VisitData jdata(kmerJ, step);
-	//							VisitData idata(kmerI, vt->distance);
-	//							if(Overlap(edge, idata, jdata) || nowBif == bifId)
-	//							{
-	//								break;
-	//							}
-
-	//							++ret;
-	//							size_t imlp = MaxBifurcationMultiplicity(*index_, edge[kmerI], idata.distance);
-	//							size_t jmlp = MaxBifurcationMultiplicity(*index_, edge[kmerI], idata.distance);
-	//							bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
-	//							if(iless)
-	//							{
-	//								DeBruijnIndex::Edge & replace = edge[jdata.kmerId];
-	//								CollapseBulgeGreedily(edge, idata, jdata);
-	//								replace = index_->GetEdgeAtPosition(replace.GetChromosomeId(), replace.GetPosition(), replace.GetDirection());
-	//							}
-	//							else
-	//							{
-	//								DeBruijnIndex::Edge & replace = edge[idata.kmerId];
-	//								CollapseBulgeGreedily(edge, jdata, idata);										
-	//								replace = index_->GetEdgeAtPosition(replace.GetChromosomeId(), replace.GetPosition(), replace.GetDirection());
-	//								FillVisit(*index_, edge[kmerI], minBranchSize, visit);
-	//							}
-
-	//							break;
-	//						}
-	//					}
-	//				}
-	//			}
-	//		}
-	//	}
-
-	//	return ret;
-	//}
-
-	//void BlockBuilder::GenerateBlocks(std::vector<BlockInstance> & ret, size_t minBlockSize) const
-	//{
-	//}
+	void BlockBuilder::GenerateBlocks(std::vector<BlockInstance> & ret, size_t minBlockSize) const
+	{
+	}
 }

@@ -48,13 +48,18 @@ namespace SyntenyFinder
 		public:
 			BifurcationIterator();
 			bool IsValid() const;
+			bool HasNext() const;
 			char GetInMark() const;
-			char GetOutMark() const;
+			char GetOutMark() const;		
 			size_t GetPosition() const;
 			size_t GetProjection() const;
-			size_t GetBifurcationId() const;
+			size_t GetChromosomeId() const;
+			size_t GetBifurcationId() const;			
+			size_t GetPositivePosition() const;
+			size_t GetPositiveEndingPosition() const;
 			BifurcationIterator& operator++();
-			BifurcationIterator operator++(int);			
+			BifurcationIterator operator++(int);
+			BifurcationIterator operator + (size_t shift) const;
 			bool operator == (const BifurcationIterator & it) const;
 			bool operator != (const BifurcationIterator & it) const;
 		private:
@@ -101,7 +106,9 @@ namespace SyntenyFinder
 		typedef std::vector<BifVector> ChrBifVector;
 		
 		void ApplyChanges();		
-		void GetBifurcationInstances(size_t bifId, std::vector<BifurcationIterator> & ret) const;
+		size_t GetBifurcationsNumber() const;
+		size_t CountInstances(size_t bifId) const;
+		size_t GetBifurcationInstances(size_t bifId, std::vector<BifurcationIterator> & ret) const;
 		DeBruijnIndex(const std::vector<ChrBifVector> & bifurcation, const std::vector<std::string> & record, size_t k, size_t bifurcationNumber);
 		void Replace(BifurcationIterator sourceStart, BifurcationIterator sourceEnd, BifurcationIterator targetStart, BifurcationIterator targetEnd);
 		BifurcationIterator Begin(size_t chr, FastaRecord::Direction dir);
@@ -124,6 +131,7 @@ namespace SyntenyFinder
 		static size_t GetStrand(FastaRecord::Direction dir);
 		typedef std::vector<Location> LocationVector;		
 
+		size_t k_;
 		const std::vector<FastaRecord> * chr_;
 		std::vector<size_t> revCompDictionary_;		
 		std::vector<LocationVector> bifurcationPlace_;		

@@ -75,7 +75,8 @@ namespace SyntenyFinder
 		return pos_;
 	}
 
-	DeBruijnIndex::DeBruijnIndex(const std::vector<ChrBifVector> & bifurcation, const std::vector<std::string> & record, size_t k, size_t bifurcationNumber)
+	DeBruijnIndex::DeBruijnIndex(const std::vector<ChrBifVector> & bifurcation, const std::vector<std::string> & record, size_t k, size_t bifurcationNumber):
+		k_(k)
 	{
 		revCompDictionary_.resize(bifurcationNumber);
 		bifurcationData_.resize(bifurcation[0].size());
