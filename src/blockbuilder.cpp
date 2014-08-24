@@ -8,128 +8,78 @@
 
 namespace SyntenyFinder
 {
-	//namespace
-	//{		
-	//	template<class T>
-	//		FancyIterator<T, char(*)(char), char> CompIterator(T it)
-	//		{
-	//			return CFancyIterator(it, FastaRecord::Translate, ' ');
-	//		}
-	//}
+	namespace
+	{		
+		template<class T>
+			FancyIterator<T, char(*)(char), char> CompIterator(T it)
+			{
+				return CFancyIterator(it, FastaRecord::Translate, ' ');
+			}
+	}
 
-	//const size_t BlockBuilder::PROGRESS_STRIDE = 50;
+	const size_t BlockBuilder::PROGRESS_STRIDE = 50;
 
-	//BlockBuilder::BlockBuilder(const std::vector<FastaRecord> * originalChr, const std::string & tempDir):
-	//	originalChr_(originalChr), tempDir_(tempDir)
-	//{
-	//}
+	BlockBuilder::BlockBuilder(const std::vector<FastaRecord> * originalChr, const std::string & tempDir):
+		originalChr_(originalChr), tempDir_(tempDir)
+	{
+	}
 
-	//void BlockBuilder::ConstructIndex(size_t k)
-	//{
-	//	if(index_.get() == 0)
-	//	{
-	//		lastK_ = k;
-	//		size_t bifCount;
-	//		std::vector<IndexedSequence::BifurcationInstance> bifurcation[2];
-	//		{
-	//			std::vector<std::string> record(originalChr_->size());
-	//			for(size_t i = 0; i < record.size(); i++)
-	//			{
-	//				record[i].resize((*originalChr_)[i].GetSequence().size());
-	//				virtualChrSize_.push_back(record[i].size());
-	//				for(size_t j = 0; j < record[i].size(); j++)
-	//				{
-	//					char ch = (*originalChr_)[i].GetSequence()[j];
-	//					bool change = !FastaRecord::IsDefiniteBase(ch) || FastaRecord::IsMaskedBase(ch);
-	//					record[i][j] = change ? FastaRecord::DEFINITE_BASE[rand() % FastaRecord::DEFINITE_BASE.size()] : ch;
-	//				}
-	//			}
-	//		
-	//			bifCount = IndexedSequence::EnumerateBifurcationsSArray(record, k, tempDir_, bifurcation[0], bifurcation[1]);
-	//		}
+	void BlockBuilder::ConstructIndex(size_t k)
+	{
+		if(index_.get() == 0)
+		{
+			lastK_ = k;
+			size_t bifCount;
+			std::vector<DeBruijnIndex::ChrBifVector> bifurcation;
+			std::vector<std::string> record(originalChr_->size());
+			for(size_t i = 0; i < record.size(); i++)
+			{
+				record[i].resize((*originalChr_)[i].GetSequence().size());
+				virtualChrSize_.push_back(record[i].size());
+				for(size_t j = 0; j < record[i].size(); j++)
+				{
+					char ch = (*originalChr_)[i].GetSequence()[j];
+					bool change = !FastaRecord::IsDefiniteBase(ch) || FastaRecord::IsMaskedBase(ch);
+					record[i][j] = change ? FastaRecord::DEFINITE_BASE[rand() % FastaRecord::DEFINITE_BASE.size()] : ch;
+				}
+			}
+			
+			bifCount = EnumerateBifurcationsSArray(record, k, tempDir_, bifurcation);
+			index_.reset(new DeBruijnIndex(bifurcation, record, lastK_, bifCount));
+		}
+		else
+		{
+			//Reconstruct for new K
+		}
+	}
 
-	//		index_.reset(new DeBruijnIndex(originalChr_->size(), bifCount));
-	//		for(size_t strand = 0; strand < 2; strand++)
-	//		{
-	//			size_t nowBif = 0;
-	//			FastaRecord::Direction dir = static_cast<FastaRecord::Direction>(strand);
-	//			for(size_t chr = 0; chr < originalChr_->size(); chr++)
-	//			{
-	//				const std::string & seq = (*originalChr_)[chr].GetSequence();
-	//				for(size_t pos = 0; pos < seq.size(); ++pos)
-	//				{
-	//					if(nowBif < bifurcation[strand].size() && chr == bifurcation[strand][nowBif].chr && pos == bifurcation[strand][nowBif].pos)
-	//					{
-	//						char mark = pos + k < seq.size() ? seq[pos + k] : IndexedSequence::SEPARATION_CHAR;
-	//						index_->AddEdge(chr, pos, dir, bifurcation[strand][nowBif++].bifId, mark, pos);
-	//					}
-	//				}
-	//			}
-	//		}
+	void BlockBuilder::WriteIndexToDot(std::ostream & out) const
+	{
+		out << "digraph G\n{\nrankdir=LR" << std::endl;
+		for(size_t chr = 0; chr < originalChr_->size(); chr++)
+		{
+			for(size_t strand = 0; strand < 2; strand++)
+			{
+				FastaRecord::Direction dir = static_cast<FastaRecord::Direction>(strand);
+				DeBruijnIndex::BifurcationIterator jt = index_->Begin(chr, dir);
+				DeBruijnIndex::BifurcationIterator end = index_->End(chr, dir);
+				if(jt != end)
+				{
+					DeBruijnIndex::BifurcationIterator it = jt++;
+					for(; jt != end; ++it, ++jt)
+					{
+						out << it.GetBifurcationId() << " -> " << jt.GetBifurcationId() << "[";
+						out << "color=" << (strand == 0 ? "blue" : "red") << " label=\"chr=" << chr;
+						out << " pos=" << it.GetPosition() << ";" << jt.GetPosition();
+						out << " proj=" << it.GetProjection() << ";" << jt.GetProjection();
+						out << " mark=" << it.GetOutMark() << "\"]" << std::endl;
+					}
+				}
+			}
+		}
 
-	//	#ifdef _DEBUG
-	//		for(size_t strand = 0; strand < 2; strand++)
-	//		{
-	//			FastaRecord::Direction dir = static_cast<FastaRecord::Direction>(strand);
-	//			for(size_t i = 0; i < bifurcation[strand].size(); i++)
-	//			{
-	//				std::string kmer;
-	//				IndexedSequence::BifurcationInstance bif = bifurcation[strand][i];
-	//				const std::string & seq = (*originalChr_)[bif.chr].GetSequence();					
-	//				if(dir == FastaRecord::positive)
-	//				{
-	//					kmer.assign(seq.begin() + bif.pos, seq.begin() + bif.pos + lastK_);
-	//				}
-	//				else
-	//				{
-	//					kmer.assign(CompIterator(seq.rbegin()), CompIterator(seq.rbegin()));
-	//				}
-	//				
-	//				debugIndex_[kmer] = bif.bifId;
-	//			}
-	//		}
-
-	//		virtualChr_.resize((*originalChr_).size());
-	//		for(size_t chr = 0; chr < virtualChr_.size(); chr++)
-	//		{
-	//			virtualChr_[chr] = (*originalChr_)[chr].GetSequence();
-	//		}
-	//	#endif
-
-	//	}
-	//	else
-	//	{
-	//		//Reconstruct for new K
-	//	}
-	//}
-
-	//void BlockBuilder::WriteIndexToDot(std::ostream & out) const
-	//{
-	//	out << "digraph G\n{\nrankdir=LR" << std::endl;
-	//	for(size_t chr = 0; chr < originalChr_->size(); chr++)
-	//	{
-	//		for(size_t strand = 0; strand < 2; strand++)
-	//		{
-	//			FastaRecord::Direction dir = static_cast<FastaRecord::Direction>(strand);
-	//			DeBruijnIndex::Edge prevEdge = index_->GetEdgeAtPosition(chr, 0, dir);
-	//			for(size_t pos = 1; pos < virtualChrSize_[chr]; ++pos)
-	//			{
-	//				DeBruijnIndex::Edge nowEdge = index_->GetEdgeAtPosition(chr, pos, dir);
-	//				if(nowEdge.Valid())
-	//				{
-	//					out << prevEdge.GetBifurcationId() << " -> " << nowEdge.GetBifurcationId() << "[";
-	//					out << "color=" << (strand == 0 ? "blue" : "red") << " label=\"chr=" << chr;
-	//					out << " pos=" << prevEdge.GetVirtualPosition() << ";" << pos;
-	//					out << " proj=" << prevEdge.GetProjection() << ";" << nowEdge.GetProjection();
-	//					out << " mark=" << prevEdge.GetMark() << "\"]" << std::endl;
-	//					prevEdge = nowEdge;
-	//				}
-	//			}
-	//		}
-	//	}
-
-	//	out << "}" << std::endl;
-	//}
+		out << "}" << std::endl;
+	}
 
 	//size_t BlockBuilder::Simplify(size_t minBranchSize, size_t maxIterations, ProgressCallBack callBack)
 	//{				

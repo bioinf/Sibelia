@@ -81,6 +81,7 @@ namespace SyntenyFinder
 		bifurcationData_.resize(bifurcation[0].size());
 		for(size_t chr = 0; chr < bifurcation[0].size(); chr++)
 		{
+			bifurcationData_[chr].reserve(bifurcation[0][chr].size());
 			for(size_t i = 0; i < bifurcation[0][chr].size(); i++)
 			{
 				size_t j = bifurcation[0][chr].size() - i - 1;
