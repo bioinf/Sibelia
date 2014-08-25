@@ -15,9 +15,16 @@ namespace SyntenyFinder
 		return dir == FastaRecord::positive ? 0 : 1;
 	}
 
-	DeBruijnIndex::Location::Location(size_t chrId, size_t index):
-		chrId_(static_cast<uint32_t>(chrId)), index_(static_cast<uint32_t>(index))
+	DeBruijnIndex::Location::Location(size_t chrId, size_t index, FastaRecord::Direction dir):		
+		index_(static_cast<uint32_t>(index))
 	{
+		int32_t schrId = static_cast<int32_t>(chrId + 1);
+		chrId_ = dir == FastaRecord::positive ? schrId : -schrId;
+	}
+
+	FastaRecord::Direction DeBruijnIndex::Location::GetStrand() const
+	{
+		return chrId_ < 0 ? FastaRecord::positive : FastaRecord::negative;
 	}
 
 	size_t DeBruijnIndex::Location::GetIndex() const
@@ -27,7 +34,7 @@ namespace SyntenyFinder
 	
 	size_t DeBruijnIndex::Location::GetChromosomeId() const
 	{
-		return chrId_;
+		return (chrId_ < 0 ? -chrId_ : chrId_) - 1;
 	}
 
 	size_t DeBruijnIndex::BifurcationData::GetBifurcationId() const
@@ -90,6 +97,7 @@ namespace SyntenyFinder
 	{
 		revCompDictionary_.resize(bifurcationNumber);
 		bifurcationData_.resize(bifurcation[0].size());
+		replacement_.resize(bifurcationData_.size());
 		for(size_t chr = 0; chr < bifurcation[0].size(); chr++)
 		{
 			bifurcationData_[chr].reserve(bifurcation[0][chr].size());
@@ -104,7 +112,7 @@ namespace SyntenyFinder
 				char inMark = bifPos == 0 ? SEPARATION_CHAR : record[chr][bifPos - 1];
 				char outMark = bifPos + k >= record[chr].size() ? SEPARATION_CHAR : record[chr][bifPos + 1];
 				bifurcationData_[chr].push_back(BifurcationData(bifPos, bifId, bifurcation[0][chr][i].GetProjection(), inMark, outMark));
-				bifurcationPlace_[bifId].push_back(Location(chr, i));
+				bifurcationPlace_[bifId].push_back(Location(chr, i, FastaRecord::positive));
 			}
 		}
 	}
@@ -120,20 +128,42 @@ namespace SyntenyFinder
 		return bifurcationPlace_[bifId].size() + bifurcationPlace_[revBifId].size();
 	}
 
+	void DeBruijnIndex::Replace(BifurcationIterator sourceStart, BifurcationIterator sourceEnd, BifurcationIterator targetStart, BifurcationIterator targetEnd)
+	{
+		size_t chrId = targetStart.GetChromosomeId();
+		replacement_[chrId].push_back(Replacement());
+		Location srcLocStart(sourceStart.GetChromosomeId(), sourceStart.GetPositiveIndex(), sourceStart.GetStrand());
+		Location srcLocEnd(sourceEnd.GetBifurcationId(), sourceEnd.GetPositiveIndex(), sourceEnd.GetStrand());
+		Location trgLocStart(targetStart.GetChromosomeId(), targetStart.GetPositiveIndex(), targetStart.GetStrand());
+		Location trgLocEnd(targetEnd.GetChromosomeId(), targetEnd.GetPositiveIndex(), targetEnd.GetStrand());
+		replacement_[chrId].back().source = std::make_pair(srcLocStart, srcLocEnd);
+		replacement_[chrId].back().target = std::make_pair(trgLocStart, trgLocEnd);
+		for(BifurcationIterator it = targetStart; it != targetEnd; ++it)
+		{
+			const_cast<BifurcationData&>(it.MyData()).Invalidate();
+		}
+	}
+
 	size_t DeBruijnIndex::GetBifurcationInstances(size_t bifId, std::vector<BifurcationIterator> & ret) const
 	{
 		ret.clear();
 		for(size_t i = 0; i < bifurcationPlace_[bifId].size(); i++)
 		{
 			Location place = bifurcationPlace_[bifId][i];
-			ret.push_back(BifurcationIterator(this, place.GetChromosomeId(), place.GetIndex(), FastaRecord::positive));
+			if(bifurcationData_[place.GetChromosomeId()][place.GetIndex()].IsValid())
+			{
+				ret.push_back(BifurcationIterator(this, place.GetChromosomeId(), place.GetIndex(), FastaRecord::positive));
+			}
 		}
 
 		size_t revBifId = revCompDictionary_[bifId];
 		for(size_t i = 0; i < bifurcationPlace_[revBifId].size(); i++)
 		{
 			Location place = bifurcationPlace_[revBifId][i];
-			ret.push_back(BifurcationIterator(this, place.GetChromosomeId(), place.GetIndex(), FastaRecord::negative));
+			if(bifurcationData_[place.GetChromosomeId()][place.GetIndex()].IsValid())
+			{
+				ret.push_back(BifurcationIterator(this, place.GetChromosomeId(), place.GetIndex(), FastaRecord::negative));
+			}
 		}
 
 		return ret.size();
@@ -158,7 +188,7 @@ namespace SyntenyFinder
 	{
 	}
 
-	DeBruijnIndex::BifurcationData DeBruijnIndex::BifurcationIterator::MyData() const
+	const DeBruijnIndex::BifurcationData& DeBruijnIndex::BifurcationIterator::MyData() const
 	{
 		if(dir_ == FastaRecord::positive)
 		{
@@ -293,4 +323,13 @@ namespace SyntenyFinder
 		return !(*this == it);
 	}
 	
+	FastaRecord::Direction DeBruijnIndex::BifurcationIterator::GetStrand() const
+	{
+		return dir_;
+	}
+
+	size_t DeBruijnIndex::BifurcationIterator::GetPositiveIndex() const
+	{
+		return dir_ == FastaRecord::positive ? index_ : parent_->bifurcationData_[chrId_].size() - index_ - 1;
+	}
 }
