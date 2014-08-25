@@ -108,6 +108,8 @@ namespace SyntenyFinder
 					callBack(totalProgress, run);
 				}
 			}
+
+			index_->ApplyChanges();
 		}
 		while((totalBulges > 0) && iterations < maxIterations);
 
@@ -155,7 +157,7 @@ namespace SyntenyFinder
 			{
 				size_t startPos = (++it).GetPosition();
 				size_t startId = it.GetBifurcationId();
-				for(size_t step = 1; it.HasNext(); ++it)
+				for(size_t step = 1; !it.AtEnd(); ++it)
 				{
 					if(!it.IsValid())
 					{
@@ -234,7 +236,11 @@ namespace SyntenyFinder
 			}
 			
 			return !bulges.empty();
-		}			
+		}
+
+		void PrintBifurcation(DeBruijnIndex::BifurcationIterator it)
+		{
+		}
 	}
 
 	bool BlockBuilder::Overlap(const std::vector<DeBruijnIndex::BifurcationIterator> & bif, VisitData sourceData, VisitData targetData) const
@@ -256,17 +262,13 @@ namespace SyntenyFinder
 		DeBruijnIndex::BifurcationIterator srcIt = bif[sourceData.kmerId];
 		DeBruijnIndex::BifurcationIterator trgIt = bif[targetData.kmerId];
 	#ifdef _DEBUG
-		/*
 		static size_t bulge = 0;
 		std::cerr << "Bulge #" << bulge++ << std::endl;
 		std::cerr << "Before: " << std::endl;
-		PrintRaw(sourceEdge.GetChromosomeId(), targetEdge.GetChromosomeId(), std::cerr);
 		std::cerr << "Source branch: " << std::endl;
-		PrintPath(sourceEdge, sourceData.distance, std::cerr);
+		//std::for_each(srcIt, srcIt + sourceData.distance, PrintBifurcation);
 		std::cerr << "Target branch: " << std::endl;
-		PrintPath(targetEdge, targetData.distance, std::cerr);
-		//bifStorage.Dump(sequence, k, std::cerr);
-		//iseq_->Test();*/
+		//std::for_each(trgIt, trgIt + targetData.distance, PrintBifurcation);
 	#endif
 		index_->Replace(srcIt, srcIt + sourceData.distance, trgIt, trgIt + targetData.distance);
 	}

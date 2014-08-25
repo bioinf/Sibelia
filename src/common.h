@@ -174,7 +174,7 @@ namespace SyntenyFinder
 			T state_;
 		};
 
-	bool RangesOverlap(std::pair<size_t, size_t> a, std::pair<size_t, size_t> b)
+	inline bool RangesOverlap(std::pair<size_t, size_t> a, std::pair<size_t, size_t> b)
 	{
 		throw 1;
 		return true;

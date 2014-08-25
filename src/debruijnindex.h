@@ -47,9 +47,8 @@ namespace SyntenyFinder
 		{
 		public:
 			BifurcationIterator();
-			bool IsValid() const;
-			bool HasNext() const;
-			char GetInMark() const;
+			bool AtEnd() const;
+			bool IsValid() const;			
 			char GetOutMark() const;		
 			size_t GetPosition() const;
 			size_t GetProjection() const;
@@ -63,7 +62,7 @@ namespace SyntenyFinder
 			bool operator == (const BifurcationIterator & it) const;
 			bool operator != (const BifurcationIterator & it) const;
 		private:
-			BifurcationIterator(size_t chrId, size_t index, FastaRecord::Direction dir);
+			BifurcationIterator(const DeBruijnIndex * parent, size_t chrId, size_t index, FastaRecord::Direction dir);
 			size_t chrId_;
 			size_t index_;
 			FastaRecord::Direction dir_;

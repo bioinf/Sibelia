@@ -110,4 +110,114 @@ namespace SyntenyFinder
 
 	//	return e.size();
 	//}
+
+	
+	DeBruijnIndex::BifurcationIterator::BifurcationIterator(): parent_(0)
+	{
+	}
+
+	DeBruijnIndex::BifurcationIterator::BifurcationIterator(const DeBruijnIndex * parent, size_t chrId, size_t index, FastaRecord::Direction dir):
+		parent_(parent), chrId_(chrId), index_(index), dir_(dir)	
+	{
+	}
+
+	bool DeBruijnIndex::BifurcationIterator::IsValid() const
+	{
+		return parent_->bifurcationData_[chrId_][index_].IsValid();
+	}
+	
+	bool DeBruijnIndex::BifurcationIterator::AtEnd() const
+	{
+		return index_ == parent_->bifurcationData_[chrId_].size();
+	}
+	
+	char DeBruijnIndex::BifurcationIterator::GetOutMark() const
+	{
+		if(dir_ == FastaRecord::positive)
+		{
+			return parent_->bifurcationData_[chrId_][index_].GetOutMark();
+		}
+
+		return FastaRecord::Translate(parent_->bifurcationData_[chrId_][index_].GetInMark());
+	}
+		
+	size_t DeBruijnIndex::BifurcationIterator::GetPosition() const
+	{
+		size_t pos = parent_->bifurcationData_[chrId_][index_].GetPosition();
+		if(dir_ == FastaRecord::positive)
+		{
+			return pos;
+		}
+
+		return parent_->bifurcationData_[chrId_].back().GetPosition() - pos;
+	}
+
+	
+	//size_t DeBruijnIndex::BifurcationIterator::GetProjection() const;
+	
+	size_t DeBruijnIndex::BifurcationIterator::GetChromosomeId() const
+	{
+		return chrId_;
+	}
+
+	size_t DeBruijnIndex::BifurcationIterator::GetBifurcationId() const
+	{
+		size_t bifId = parent_->bifurcationData_[chrId_][index_].GetBifurcationId();
+		if(dir_ == FastaRecord::positive)
+		{
+			return bifId;
+		}
+
+		return parent_->revCompDictionary_[bifId];
+	}
+	
+	size_t DeBruijnIndex::BifurcationIterator::GetPositivePosition() const
+	{
+		size_t pos = parent_->bifurcationData_[chrId_][index_].GetPosition();
+		if(dir_ == FastaRecord::positive)
+		{
+			return pos;
+		}
+
+		return pos + parent_->k_ - 1;
+	}
+
+	size_t DeBruijnIndex::BifurcationIterator::GetPositiveEndingPosition() const
+	{
+		size_t pos = parent_->bifurcationData_[chrId_][index_].GetPosition();
+		if(dir_ == FastaRecord::positive)
+		{
+			return pos + parent_->k_ - 1;
+		}
+
+		return pos;
+	}
+
+	DeBruijnIndex::BifurcationIterator DeBruijnIndex::BifurcationIterator::operator + (size_t shift) const
+	{
+		return BifurcationIterator(parent_, chrId_, index_ + shift, dir_);
+	}
+
+	DeBruijnIndex::BifurcationIterator& DeBruijnIndex::BifurcationIterator::operator++()
+	{
+		index_++;
+		return *this;
+	}
+
+	DeBruijnIndex::BifurcationIterator DeBruijnIndex::BifurcationIterator::operator++(int)
+	{
+		BifurcationIterator ret(parent_, chrId_, index_++, dir_);
+		return ret;
+	}
+			
+	bool DeBruijnIndex::BifurcationIterator::operator == (const BifurcationIterator & it) const
+	{
+		return parent_ == it.parent_ && chrId_ == it.chrId_ && dir_ == it.dir_ && index_ == it.index_;
+	}
+	
+	bool DeBruijnIndex::BifurcationIterator::operator != (const BifurcationIterator & it) const
+	{
+		return !(*this == it);
+	}
+	
 }
