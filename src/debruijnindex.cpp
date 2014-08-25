@@ -40,8 +40,18 @@ namespace SyntenyFinder
 		return projection_;
 	}
 
+	bool DeBruijnIndex::BifurcationData::operator < (const BifurcationData & data) const
+	{
+		return pos_ < data.pos_;
+	}
+
 	DeBruijnIndex::BifurcationData::BifurcationData()
 	{
+	}
+
+	DeBruijnIndex::BifurcationData::BifurcationData(size_t pos): pos_(static_cast<uint32_t>(pos))
+	{
+
 	}
 
 	DeBruijnIndex::BifurcationData::BifurcationData(size_t pos, size_t bifId, size_t projection, char inMark, char outMark):
@@ -75,8 +85,8 @@ namespace SyntenyFinder
 		return pos_;
 	}
 
-	DeBruijnIndex::DeBruijnIndex(const std::vector<ChrBifVector> & bifurcation, const std::vector<std::string> & record, size_t k, size_t bifurcationNumber):
-		k_(k)
+	DeBruijnIndex::DeBruijnIndex(const std::vector<ChrBifVector> & bifurcation, const std::vector<std::string> & record,
+		size_t k, size_t bifurcationNumber, const std::vector<size_t> & originalChrSize): k_(k), originalChrSize_(originalChrSize)
 	{
 		revCompDictionary_.resize(bifurcationNumber);
 		bifurcationData_.resize(bifurcation[0].size());
@@ -148,9 +158,19 @@ namespace SyntenyFinder
 	{
 	}
 
+	DeBruijnIndex::BifurcationData DeBruijnIndex::BifurcationIterator::MyData() const
+	{
+		if(dir_ == FastaRecord::positive)
+		{
+			return *(parent_->bifurcationData_[chrId_].begin() + index_);
+		}
+
+		return *(parent_->bifurcationData_[chrId_].rbegin() + index_);
+	}
+
 	bool DeBruijnIndex::BifurcationIterator::IsValid() const
 	{
-		return parent_->bifurcationData_[chrId_][index_].IsValid();
+		return MyData().IsValid();
 	}
 	
 	bool DeBruijnIndex::BifurcationIterator::AtEnd() const
@@ -162,15 +182,15 @@ namespace SyntenyFinder
 	{
 		if(dir_ == FastaRecord::positive)
 		{
-			return parent_->bifurcationData_[chrId_][index_].GetOutMark();
+			return MyData().GetOutMark();
 		}
 
-		return FastaRecord::Translate(parent_->bifurcationData_[chrId_][index_].GetInMark());
+		return FastaRecord::Translate(MyData().GetInMark());
 	}
 		
 	size_t DeBruijnIndex::BifurcationIterator::GetPosition() const
 	{
-		size_t pos = parent_->bifurcationData_[chrId_][index_].GetPosition();
+		size_t pos = MyData().GetPosition();
 		if(dir_ == FastaRecord::positive)
 		{
 			return pos;
@@ -186,7 +206,7 @@ namespace SyntenyFinder
 
 	size_t DeBruijnIndex::BifurcationIterator::GetBifurcationId() const
 	{
-		size_t bifId = parent_->bifurcationData_[chrId_][index_].GetBifurcationId();
+		size_t bifId = MyData().GetBifurcationId();
 		if(dir_ == FastaRecord::positive)
 		{
 			return bifId;
@@ -197,7 +217,7 @@ namespace SyntenyFinder
 	
 	size_t DeBruijnIndex::BifurcationIterator::GetPositivePosition() const
 	{
-		size_t pos = parent_->bifurcationData_[chrId_][index_].GetPosition();
+		size_t pos = MyData().GetPosition();
 		if(dir_ == FastaRecord::positive)
 		{
 			return pos;
@@ -206,9 +226,38 @@ namespace SyntenyFinder
 		return pos + parent_->k_ - 1;
 	}
 
+	size_t DeBruijnIndex::BifurcationIterator::GetProjection() const
+	{
+		size_t proj = MyData().GetProjection();
+		if(dir_ == FastaRecord::positive)
+		{
+			return proj;
+		}
+
+		if(index_ == 0)
+		{
+			return parent_->originalChrSize_[chrId_];
+		}
+		
+		size_t pos = GetPositivePosition();
+		size_t index = parent_->bifurcationData_[chrId_].size() - index_ - 1;		
+		std::vector<BifurcationData>::const_iterator it = std::lower_bound(
+			parent_->bifurcationData_[chrId_].begin() + index + 1,
+			parent_->bifurcationData_[chrId_].end(),
+			BifurcationData(pos));
+
+		if(pos - (it - 1)->GetPosition() < it->GetPosition() - pos)
+		{
+			--it;
+		}
+
+		double coeff = double(it->GetPosition() - MyData().GetPosition()) / (it->GetProjection() - MyData().GetProjection());
+		return MyData().GetProjection() + static_cast<size_t>(parent_->k_ * coeff);
+	}
+
 	size_t DeBruijnIndex::BifurcationIterator::GetPositiveEndingPosition() const
 	{
-		size_t pos = parent_->bifurcationData_[chrId_][index_].GetPosition();
+		size_t pos = MyData().GetPosition();
 		if(dir_ == FastaRecord::positive)
 		{
 			return pos + parent_->k_ - 1;

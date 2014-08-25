@@ -30,10 +30,12 @@ namespace SyntenyFinder
 		{
 			lastK_ = k;
 			size_t bifCount;
+			std::vector<size_t> originalChrSize;
 			std::vector<DeBruijnIndex::ChrBifVector> bifurcation;
 			std::vector<std::string> record(originalChr_->size());
 			for(size_t i = 0; i < record.size(); i++)
 			{
+				originalChrSize.push_back(record[i].size());
 				record[i].resize((*originalChr_)[i].GetSequence().size());
 				virtualChrSize_.push_back(record[i].size());
 				for(size_t j = 0; j < record[i].size(); j++)
@@ -45,7 +47,7 @@ namespace SyntenyFinder
 			}
 			
 			bifCount = EnumerateBifurcationsSArray(record, k, tempDir_, bifurcation);
-			index_.reset(new DeBruijnIndex(bifurcation, record, lastK_, bifCount));
+			index_.reset(new DeBruijnIndex(bifurcation, record, lastK_, bifCount, originalChrSize));
 		}
 		else
 		{

@@ -18,7 +18,8 @@ namespace SyntenyFinder
 		class BifurcationData
 		{
 		public:
-			BifurcationData();						
+			BifurcationData();
+			BifurcationData(size_t pos);
 			BifurcationData(size_t pos, size_t bifId, size_t projection, char inMark, char outMark);
 			bool IsValid() const;
 			char GetInMark() const;
@@ -27,6 +28,7 @@ namespace SyntenyFinder
 			size_t GetProjection() const;
 			size_t GetBifurcationId() const;
 			void Invalidate();
+			bool operator < (const BifurcationData & data) const;
 		private:
 			uint32_t pos_;
 			uint32_t bifId_;
@@ -52,6 +54,7 @@ namespace SyntenyFinder
 			char GetOutMark() const;		
 			size_t GetPosition() const;
 			size_t GetProjection() const;
+			size_t GetEndingProjection() const;
 			size_t GetChromosomeId() const;
 			size_t GetBifurcationId() const;			
 			size_t GetPositivePosition() const;
@@ -62,6 +65,7 @@ namespace SyntenyFinder
 			bool operator == (const BifurcationIterator & it) const;
 			bool operator != (const BifurcationIterator & it) const;
 		private:
+			BifurcationData MyData() const;
 			BifurcationIterator(const DeBruijnIndex * parent, size_t chrId, size_t index, FastaRecord::Direction dir);
 			size_t chrId_;
 			size_t index_;
@@ -108,7 +112,8 @@ namespace SyntenyFinder
 		size_t GetBifurcationsNumber() const;
 		size_t CountInstances(size_t bifId) const;
 		size_t GetBifurcationInstances(size_t bifId, std::vector<BifurcationIterator> & ret) const;
-		DeBruijnIndex(const std::vector<ChrBifVector> & bifurcation, const std::vector<std::string> & record, size_t k, size_t bifurcationNumber);
+		DeBruijnIndex(const std::vector<ChrBifVector> & bifurcation, const std::vector<std::string> & record,
+			size_t k, size_t bifurcationNumber, const std::vector<size_t> & originalChrSize);
 		void Replace(BifurcationIterator sourceStart, BifurcationIterator sourceEnd, BifurcationIterator targetStart, BifurcationIterator targetEnd);
 		BifurcationIterator Begin(size_t chr, FastaRecord::Direction dir) const;
 		BifurcationIterator End(size_t chr, FastaRecord::Direction dir) const;
@@ -131,6 +136,7 @@ namespace SyntenyFinder
 		typedef std::vector<Location> LocationVector;		
 
 		size_t k_;
+		std::vector<size_t> originalChrSize_;
 		const std::vector<FastaRecord> * chr_;
 		std::vector<size_t> revCompDictionary_;		
 		std::vector<LocationVector> bifurcationPlace_;		
