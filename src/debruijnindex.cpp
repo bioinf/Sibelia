@@ -99,18 +99,45 @@ namespace SyntenyFinder
 		}
 	}
 
-	//size_t DeBruijnIndex::GetEdgesOfVertex(size_t bifId, std::vector<Edge> & e) const
-	//{
-	//	e.clear();
-	//	for(size_t i = 0; i < bifurcationPosition_[bifId].size(); i++)
-	//	{
-	//		Location location = bifurcationPosition_[bifId][i];
-	//		e.push_back(GetEdgeAtPosition(location.GetChromosomeId(), location.GetPosition(), location.GetDirection()));
-	//	}
+	size_t DeBruijnIndex::GetBifurcationsNumber() const
+	{
+		return revCompDictionary_.size();
+	}
+	
+	size_t DeBruijnIndex::CountInstances(size_t bifId) const
+	{
+		size_t revBifId = revCompDictionary_[bifId];
+		return bifurcationPlace_[bifId].size() + bifurcationPlace_[revBifId].size();
+	}
 
-	//	return e.size();
-	//}
+	size_t DeBruijnIndex::GetBifurcationInstances(size_t bifId, std::vector<BifurcationIterator> & ret) const
+	{
+		ret.clear();
+		for(size_t i = 0; i < bifurcationPlace_[bifId].size(); i++)
+		{
+			Location place = bifurcationPlace_[bifId][i];
+			ret.push_back(BifurcationIterator(this, place.GetChromosomeId(), place.GetIndex(), FastaRecord::positive));
+		}
 
+		size_t revBifId = revCompDictionary_[bifId];
+		for(size_t i = 0; i < bifurcationPlace_[revBifId].size(); i++)
+		{
+			Location place = bifurcationPlace_[revBifId][i];
+			ret.push_back(BifurcationIterator(this, place.GetChromosomeId(), place.GetIndex(), FastaRecord::negative));
+		}
+
+		return ret.size();
+	}
+
+	DeBruijnIndex::BifurcationIterator DeBruijnIndex::Begin(size_t chr, FastaRecord::Direction dir) const
+	{
+		return BifurcationIterator(this, chr, 0, dir);
+	}
+
+	DeBruijnIndex::BifurcationIterator DeBruijnIndex::End(size_t chr, FastaRecord::Direction dir) const
+	{
+		return BifurcationIterator(this, chr, bifurcationData_[chr].size(), dir);
+	}
 	
 	DeBruijnIndex::BifurcationIterator::BifurcationIterator(): parent_(0)
 	{
@@ -152,9 +179,6 @@ namespace SyntenyFinder
 		return parent_->bifurcationData_[chrId_].back().GetPosition() - pos;
 	}
 
-	
-	//size_t DeBruijnIndex::BifurcationIterator::GetProjection() const;
-	
 	size_t DeBruijnIndex::BifurcationIterator::GetChromosomeId() const
 	{
 		return chrId_;

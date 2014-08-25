@@ -48,7 +48,7 @@ namespace SyntenyFinder
 		public:
 			BifurcationIterator();
 			bool AtEnd() const;
-			bool IsValid() const;			
+			bool IsValid() const;
 			char GetOutMark() const;		
 			size_t GetPosition() const;
 			size_t GetProjection() const;
@@ -110,8 +110,8 @@ namespace SyntenyFinder
 		size_t GetBifurcationInstances(size_t bifId, std::vector<BifurcationIterator> & ret) const;
 		DeBruijnIndex(const std::vector<ChrBifVector> & bifurcation, const std::vector<std::string> & record, size_t k, size_t bifurcationNumber);
 		void Replace(BifurcationIterator sourceStart, BifurcationIterator sourceEnd, BifurcationIterator targetStart, BifurcationIterator targetEnd);
-		BifurcationIterator Begin(size_t chr, FastaRecord::Direction dir);
-		BifurcationIterator End(size_t chr, FastaRecord::Direction dir);
+		BifurcationIterator Begin(size_t chr, FastaRecord::Direction dir) const;
+		BifurcationIterator End(size_t chr, FastaRecord::Direction dir) const;
 	private:
 		DISALLOW_COPY_AND_ASSIGN(DeBruijnIndex);
 		
