@@ -51,7 +51,7 @@ namespace SyntenyFinder
 			BifurcationIterator();
 			bool AtEnd() const;
 			bool IsValid() const;
-			char GetOutMark() const;			
+			char GetOutMark() const;
 			size_t GetPosition() const;
 			size_t GetProjection() const;			
 			size_t GetChromosomeId() const;
@@ -60,6 +60,7 @@ namespace SyntenyFinder
 			size_t GetEndingProjection() const;
 			size_t GetPositiveEndingPosition() const;
 			FastaRecord::Direction GetStrand() const;
+			static void InvertRange(BifurcationIterator & start, BifurcationIterator & end);
 			BifurcationIterator& operator++();
 			BifurcationIterator operator++(int);
 			BifurcationIterator operator + (size_t shift) const;
@@ -140,6 +141,10 @@ namespace SyntenyFinder
 			//OPTIMIZE THIS!!!1111
 			std::pair<Location, Location> source;
 			std::pair<Location, Location> target;
+			bool operator < (const Replacement & r)
+			{
+				return target.first.GetIndex() < r.target.first.GetIndex();
+			}
 		};
 
 		static size_t GetStrand(FastaRecord::Direction dir);
@@ -153,7 +158,7 @@ namespace SyntenyFinder
 		std::vector<ReplacementVector> replacement_;
 		std::vector<LocationVector> bifurcationPlace_;		
 		std::vector<BifurcationVector> bifurcationData_;
-		friend class BifurcationIterator;		
+		friend class BifurcationIterator;
 	};
 }
 
