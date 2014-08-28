@@ -152,6 +152,17 @@ namespace SyntenyFinder
 			}
 		};
 
+		void PrintBranch(DeBruijnIndex::BifurcationIterator it, size_t distance, std::ostream & out)
+		{
+			out << (it.GetStrand() == FastaRecord::positive ? "+ " : "- ");
+			for(size_t i = 0; i < distance + 1; i++, ++it)
+			{
+				out << "{Id=", it.GetBifurcationId(), ", Pos=", it.GetPosition(), "} ";
+			}
+
+			out << std::endl;
+		}
+
 		void FillVisit(const DeBruijnIndex & index, DeBruijnIndex::BifurcationIterator it, size_t maxBranchSize, std::vector<BifurcationMark> & visit)
 		{
 			visit.clear();
@@ -238,11 +249,7 @@ namespace SyntenyFinder
 			}
 			
 			return !bulges.empty();
-		}
-
-		void PrintBifurcation(DeBruijnIndex::BifurcationIterator it)
-		{
-		}
+		}		
 	}
 
 	bool BlockBuilder::Overlap(const std::vector<DeBruijnIndex::BifurcationIterator> & bif, VisitData sourceData, VisitData targetData) const
@@ -268,9 +275,9 @@ namespace SyntenyFinder
 		std::cerr << "Bulge #" << bulge++ << std::endl;
 		std::cerr << "Before: " << std::endl;
 		std::cerr << "Source branch: " << std::endl;
-		//std::for_each(srcIt, srcIt + sourceData.distance, PrintBifurcation);
+		PrintBranch(srcIt, sourceData.distance, std::cerr);
 		std::cerr << "Target branch: " << std::endl;
-		//std::for_each(trgIt, trgIt + targetData.distance, PrintBifurcation);
+		PrintBranch(trgIt, targetData.distance, std::cerr);
 	#endif
 		index_->Replace(srcIt, srcIt + sourceData.distance, trgIt, trgIt + targetData.distance);
 	}

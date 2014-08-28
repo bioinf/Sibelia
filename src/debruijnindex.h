@@ -51,6 +51,7 @@ namespace SyntenyFinder
 			BifurcationIterator();
 			bool AtEnd() const;
 			bool IsValid() const;
+			char GetInMark() const;
 			char GetOutMark() const;
 			size_t GetPosition() const;
 			size_t GetProjection() const;			
@@ -64,6 +65,7 @@ namespace SyntenyFinder
 			BifurcationIterator& operator++();
 			BifurcationIterator operator++(int);
 			BifurcationIterator operator + (size_t shift) const;
+			BifurcationIterator operator - (size_t shift) const;
 			bool operator == (const BifurcationIterator & it) const;
 			bool operator != (const BifurcationIterator & it) const;
 		private:

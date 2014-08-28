@@ -185,17 +185,43 @@ namespace SyntenyFinder
 			std::sort(replacement_[chr].begin(), replacement_[chr].end());
 			size_t rep = 0;
 			int64_t shift = 0;
-			for(size_t i = 0; i < bifurcationData_[chr].size(); i++)
+			for(size_t i = 0; i < bifurcationData_[chr].size(); )
 			{
+				BifurcationData d = bifurcationData_[chr][i];
+				newData[chr].push_back(BifurcationData(shift + d.GetPosition(), d.GetBifurcationId(), d.GetProjection(), d.GetInMark(), d.GetOutMark()));
 				if(rep < replacement_[chr].size() && i == replacement_[chr][rep].target.first.GetIndex())
-				{
-					throw 1;
+				{					
+					Replacement now = replacement_[chr][rep];
+					BifurcationIterator srcStart(this, now.source.first.GetChromosomeId(), now.source.first.GetIndex(), now.source.first.GetStrand());
+					BifurcationIterator srcEnd(this, now.source.second.GetChromosomeId(), now.source.second.GetIndex(), now.source.second.GetStrand());
+					BifurcationIterator trgStart(this, now.target.first.GetChromosomeId(), now.target.first.GetIndex(), now.target.first.GetStrand());
+					BifurcationIterator trgEnd(this, now.target.second.GetChromosomeId(), now.target.second.GetIndex(), now.target.second.GetStrand());
+					double scaleCoeff = double(trgEnd.GetProjection() - trgStart.GetProjection() + 1) / (srcEnd.GetPosition() - srcStart.GetPosition() + 1);
+					int64_t srcLength = srcEnd.GetPosition() - srcStart.GetPosition() + 1;
+					int64_t trgLength = trgEnd.GetPosition() - trgStart.GetPosition() + 1;
+					size_t srcBasePos = srcStart.GetPosition();
+					size_t srcBaseProj = srcStart.GetProjection();
+					for(size_t prevTrgPos = (trgStart++).GetPosition(); trgStart != trgEnd; ++trgStart)
+					{
+						size_t bifId = trgStart.GetBifurcationId();
+						bifId = trgStart.GetStrand() == FastaRecord::positive ? bifId : revCompDictionary_[bifId];
+						char nowInMark = FastaRecord::positive ? trgStart.GetInMark() : FastaRecord::Translate(trgStart.GetOutMark());
+						char nowOutMark = FastaRecord::positive ? trgStart.GetOutMark() : FastaRecord::Translate(trgStart.GetInMark());
+						size_t trgShift = trgStart.GetPosition() - prevTrgPos;
+						size_t nowPos = srcBasePos + trgShift;
+						size_t nowProj = srcBaseProj + static_cast<size_t>(scaleCoeff * trgShift);
+						newData[chr].push_back(BifurcationData(nowPos, bifId, nowProj, nowInMark, nowOutMark));
+					}
+
+					shift += trgLength - srcLength;
+					size_t lastProj = trgStart.GetProjection() + static_cast<size_t>(srcLength * scaleCoeff);
+					newData[chr].push_back(BifurcationData(shift + trgEnd.GetPosition(), trgEnd.GetBifurcationId(), lastProj, srcEnd.GetInMark(), srcEnd.GetOutMark()));
+					i = now.target.second.GetIndex();
 					rep++;
 				}
 				else
 				{
-					BifurcationData d = bifurcationData_[chr][i];
-					newData[chr].push_back(BifurcationData(shift + d.GetPosition(), d.GetBifurcationId(), d.GetProjection(), d.GetInMark(), d.GetOutMark()));
+					++i;
 				}
 			}
 
@@ -371,6 +397,16 @@ namespace SyntenyFinder
 	FastaRecord::Direction DeBruijnIndex::BifurcationIterator::GetStrand() const
 	{
 		return dir_;
+	}
+
+	char DeBruijnIndex::BifurcationIterator::GetInMark() const
+	{
+		if(dir_ == FastaRecord::positive)
+		{
+			return MyData().GetInMark();
+		}
+
+		return FastaRecord::Translate(MyData().GetOutMark());
 	}
 
 	size_t DeBruijnIndex::BifurcationIterator::GetPositiveIndex() const
