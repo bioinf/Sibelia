@@ -18,7 +18,8 @@ namespace SyntenyFinder
 		FastaRecord(const std::string & sequence, const std::string & description, size_t id):
 			description_(description), id_(id), sequence_(sequence)
 		{
-			sequence_.assign(CFancyIterator(sequence.begin(), toupper, ' '), CFancyIterator(sequence.end(), toupper, ' '));
+			//sequence_.assign(CFancyIterator(sequence.begin(), toupper, ' '), CFancyIterator(sequence.end(), toupper, ' '));
+			sequence_.assign(sequence.begin(), sequence.end());
 		}
 
 		static const std::string FastaRecord::DEFINITE_BASE;

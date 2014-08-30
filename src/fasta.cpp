@@ -132,8 +132,8 @@ namespace SyntenyFinder
 		for (size_t i = 0; i < sequence.length(); ++i)
 		{
 			char orig = sequence[i];
-			sequence[i] = toupper(sequence[i]);
-			if (VALID_CHARS.find(sequence[i]) == std::string::npos) 
+			char now = toupper(sequence[i]);
+			if (VALID_CHARS.find(now) == std::string::npos) 
 			{
 				throw ParseException((std::string("illegal character: ") + orig).c_str());
 			}

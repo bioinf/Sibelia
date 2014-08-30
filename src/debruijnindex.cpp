@@ -98,6 +98,7 @@ namespace SyntenyFinder
 		revCompDictionary_.resize(bifurcationNumber);
 		bifurcationData_.resize(bifurcation[0].size());
 		replacement_.resize(bifurcationData_.size());
+		bifurcationPlace_.resize(bifurcationNumber);
 		for(size_t chr = 0; chr < bifurcation[0].size(); chr++)
 		{
 			bifurcationData_[chr].reserve(bifurcation[0][chr].size());
@@ -355,7 +356,7 @@ namespace SyntenyFinder
 			parent_->bifurcationData_[chrId_].end(),
 			BifurcationData(pos));
 
-		if(pos - (it - 1)->GetPosition() < it->GetPosition() - pos)
+		if(it == parent_->bifurcationData_[chrId_].end() || pos - (it - 1)->GetPosition() < it->GetPosition() - pos)
 		{
 			--it;
 		}

@@ -227,6 +227,8 @@ namespace SyntenyFinder
 			if(Bifurcation(prev) || Bifurcation(next))
 			{
 				candidate.clear();
+				candidateDir.clear();
+				candidateChr.clear();
 				bool terminal = false;
 				for(size_t i = 0; i < pos.size(); i++)
 				{
