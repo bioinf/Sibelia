@@ -229,6 +229,14 @@ namespace SyntenyFinder
 		}
 
 		bifurcationData_.swap(newData);
+		bifurcationPlace_.resize(bifurcationNumber);
+		for(size_t chr = 0; chr < bifurcationData_.size(); chr++)
+		{
+			for(size_t i = 0; i < bifurcationData_[chr].size(); i++)
+			{				
+				bifurcationPlace_[bifurcationData_[chr][i].GetBifurcationId()].push_back(Location(chr, i, FastaRecord::positive));
+			}
+		}
 	}
 
 	DeBruijnIndex::BifurcationIterator DeBruijnIndex::Begin(size_t chr, FastaRecord::Direction dir) const
