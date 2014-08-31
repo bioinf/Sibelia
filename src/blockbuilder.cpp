@@ -74,7 +74,7 @@ namespace SyntenyFinder
 						out << "color=" << (strand == 0 ? "blue" : "red") << " label=\"chr=" << chr;
 						out << " pos=" << it.GetPosition() << ";" << jt.GetPosition();
 						out << " proj=" << it.GetProjection() << ";" << jt.GetProjection();
-						out << " mark=" << it.GetOutMark() << "\"]" << std::endl;
+						out << " mark=" << it.GetOutMark() << ";" << jt.GetInMark() << "\"]" << std::endl;
 					}
 				}
 			}
@@ -154,10 +154,10 @@ namespace SyntenyFinder
 
 		void PrintBranch(DeBruijnIndex::BifurcationIterator it, size_t distance, std::ostream & out)
 		{
-			out << (it.GetStrand() == FastaRecord::positive ? "+ " : "- ");
+			out << (it.GetStrand() == FastaRecord::positive ? "+" : "-") << it.GetChromosomeId() << " ";
 			for(size_t i = 0; i < distance + 1; i++, ++it)
 			{
-				out << "{Id=", it.GetBifurcationId(), ", Pos=", it.GetPosition(), "} ";
+				out << "{Id=" << it.GetBifurcationId() << ", Pos=" << it.GetPosition() << "} ";
 			}
 
 			out << std::endl;
@@ -168,8 +168,8 @@ namespace SyntenyFinder
 			visit.clear();
 			if(it.IsValid())
 			{
-				size_t startPos = (++it).GetPosition();
 				size_t startId = it.GetBifurcationId();
+				size_t startPos = (it++).GetPosition();
 				for(size_t step = 1; !it.AtEnd(); ++it)
 				{
 					if(!it.IsValid())
@@ -211,13 +211,19 @@ namespace SyntenyFinder
 		{
 			
 			bulges.clear();
-			boost::unordered_map<size_t, BranchData> visit;
+			std::vector<char> startOutMark(bif.size());
 			for(size_t i = 0; i < bif.size(); i++)
 			{
-				size_t startPos = (++bif[i]).GetPosition();
+				startOutMark[i] = bif[i].GetOutMark();
+			}
+
+			boost::unordered_map<size_t, BranchData> visit;
+			for(size_t i = 0; i < bif.size(); i++)
+			{				
 				size_t startId = bif[i].GetBifurcationId();
-				for(size_t step = 1; ; step++, ++bif[i])
-				{
+				size_t startPos = (bif[i]++).GetPosition();
+				for(size_t step = 1; !bif[i].AtEnd(); step++, ++bif[i])
+				{					
 					size_t pos = bif[i].GetPosition();
 					size_t bifId = bif[i].GetBifurcationId();
 					if(!bif[i].IsValid() || pos - startPos > maxBranchSize || bifId == startId)
@@ -228,11 +234,11 @@ namespace SyntenyFinder
 					boost::unordered_map<size_t, BranchData>::iterator kt = visit.find(bifId);
 					if(kt == visit.end())
 					{
-						BranchData bData(bif[i].GetOutMark());
+						BranchData bData(startOutMark[i]);
 						bData.branchIds.push_back(i);
 						visit[bifId] = bData;
 					}
-					else if(kt->second.endChar != bif[i].GetOutMark())
+					else if(kt->second.endChar != startOutMark[i])
 					{
 						kt->second.branchIds.push_back(i);
 						break;

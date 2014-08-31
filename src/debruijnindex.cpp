@@ -24,7 +24,7 @@ namespace SyntenyFinder
 
 	FastaRecord::Direction DeBruijnIndex::Location::GetStrand() const
 	{
-		return chrId_ < 0 ? FastaRecord::positive : FastaRecord::negative;
+		return chrId_ > 0 ? FastaRecord::positive : FastaRecord::negative;		
 	}
 
 	size_t DeBruijnIndex::Location::GetIndex() const
@@ -111,7 +111,7 @@ namespace SyntenyFinder
 				revCompDictionary_[bifId] = revBifId;
 				revCompDictionary_[revBifId] = bifId;
 				char inMark = bifPos == 0 ? SEPARATION_CHAR : record[chr][bifPos - 1];
-				char outMark = bifPos + k >= record[chr].size() ? SEPARATION_CHAR : record[chr][bifPos + 1];
+				char outMark = bifPos + k >= record[chr].size() ? SEPARATION_CHAR : record[chr][bifPos + k];
 				bifurcationData_[chr].push_back(BifurcationData(bifPos, bifId, bifurcation[0][chr][i].GetProjection(), inMark, outMark));
 				bifurcationPlace_[bifId].push_back(Location(chr, i, FastaRecord::positive));
 			}
@@ -140,7 +140,7 @@ namespace SyntenyFinder
 		size_t chrId = targetStart.GetChromosomeId();
 		replacement_[chrId].push_back(Replacement());
 		Location srcLocStart(sourceStart.GetChromosomeId(), sourceStart.GetPositiveIndex(), sourceStart.GetStrand());
-		Location srcLocEnd(sourceEnd.GetBifurcationId(), sourceEnd.GetPositiveIndex(), sourceEnd.GetStrand());
+		Location srcLocEnd(sourceEnd.GetChromosomeId(), sourceEnd.GetPositiveIndex(), sourceEnd.GetStrand());
 		Location trgLocStart(targetStart.GetChromosomeId(), targetStart.GetPositiveIndex(), targetStart.GetStrand());
 		Location trgLocEnd(targetEnd.GetChromosomeId(), targetEnd.GetPositiveIndex(), targetEnd.GetStrand());
 		replacement_[chrId].back().source = std::make_pair(srcLocStart, srcLocEnd);
@@ -188,15 +188,15 @@ namespace SyntenyFinder
 			int64_t shift = 0;
 			for(size_t i = 0; i < bifurcationData_[chr].size(); )
 			{
-				BifurcationData d = bifurcationData_[chr][i];
-				newData[chr].push_back(BifurcationData(shift + d.GetPosition(), d.GetBifurcationId(), d.GetProjection(), d.GetInMark(), d.GetOutMark()));
+				BifurcationData d = bifurcationData_[chr][i];				
 				if(rep < replacement_[chr].size() && i == replacement_[chr][rep].target.first.GetIndex())
 				{					
-					Replacement now = replacement_[chr][rep];
+					Replacement now = replacement_[chr][rep];					
 					BifurcationIterator srcStart(this, now.source.first.GetChromosomeId(), now.source.first.GetIndex(), now.source.first.GetStrand());
 					BifurcationIterator srcEnd(this, now.source.second.GetChromosomeId(), now.source.second.GetIndex(), now.source.second.GetStrand());
 					BifurcationIterator trgStart(this, now.target.first.GetChromosomeId(), now.target.first.GetIndex(), now.target.first.GetStrand());
 					BifurcationIterator trgEnd(this, now.target.second.GetChromosomeId(), now.target.second.GetIndex(), now.target.second.GetStrand());
+					newData[chr].push_back(BifurcationData(shift + d.GetPosition(), d.GetBifurcationId(), d.GetProjection(), d.GetInMark(), srcStart.GetOutMark()));
 					double scaleCoeff = double(trgEnd.GetProjection() - trgStart.GetProjection() + 1) / (srcEnd.GetPosition() - srcStart.GetPosition() + 1);
 					int64_t srcLength = srcEnd.GetPosition() - srcStart.GetPosition() + 1;
 					int64_t trgLength = trgEnd.GetPosition() - trgStart.GetPosition() + 1;
@@ -216,12 +216,13 @@ namespace SyntenyFinder
 
 					shift += trgLength - srcLength;
 					size_t lastProj = trgStart.GetProjection() + static_cast<size_t>(srcLength * scaleCoeff);
-					newData[chr].push_back(BifurcationData(shift + trgEnd.GetPosition(), trgEnd.GetBifurcationId(), lastProj, srcEnd.GetInMark(), srcEnd.GetOutMark()));
-					i = now.target.second.GetIndex();
+					newData[chr].push_back(BifurcationData(shift + trgEnd.GetPosition(), trgEnd.GetBifurcationId(), lastProj, srcEnd.GetInMark(), trgEnd.GetOutMark()));
+					i = now.target.second.GetIndex() + 1;
 					rep++;
 				}
 				else
 				{
+					newData[chr].push_back(BifurcationData(shift + d.GetPosition(), d.GetBifurcationId(), d.GetProjection(), d.GetInMark(), d.GetOutMark()));
 					++i;
 				}
 			}
