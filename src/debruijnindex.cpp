@@ -169,7 +169,8 @@ namespace SyntenyFinder
 			Location place = bifurcationPlace_[revBifId][i];
 			if(bifurcationData_[place.GetChromosomeId()][place.GetIndex()].IsValid())
 			{
-				ret.push_back(BifurcationIterator(this, place.GetChromosomeId(), place.GetIndex(), FastaRecord::negative));
+				size_t index = bifurcationData_[place.GetChromosomeId()].size() - place.GetIndex() - 1;
+				ret.push_back(BifurcationIterator(this, place.GetChromosomeId(), index, FastaRecord::negative));
 			}
 		}
 
@@ -362,8 +363,7 @@ namespace SyntenyFinder
 
 		BifurcationData d = MyData();
 		double coeff = double(it->GetPosition() - MyData().GetPosition()) / (it->GetProjection() - MyData().GetProjection());
-		size_t ret = MyData().GetProjection() + static_cast<size_t>(parent_->k_ * coeff);
-		return ret;
+		return MyData().GetProjection() + static_cast<size_t>(parent_->k_ * coeff);
 	}
 
 	size_t DeBruijnIndex::BifurcationIterator::GetPositiveEndingPosition() const
