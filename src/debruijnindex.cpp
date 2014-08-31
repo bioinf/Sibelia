@@ -139,8 +139,8 @@ namespace SyntenyFinder
 
 		size_t chrId = targetStart.GetChromosomeId();
 		replacement_[chrId].push_back(Replacement());
-		Location srcLocStart(sourceStart.GetChromosomeId(), sourceStart.GetPositiveIndex(), sourceStart.GetStrand());
-		Location srcLocEnd(sourceEnd.GetChromosomeId(), sourceEnd.GetPositiveIndex(), sourceEnd.GetStrand());
+		Location srcLocStart(sourceStart.GetChromosomeId(), sourceStart.index_, sourceStart.GetStrand());
+		Location srcLocEnd(sourceEnd.GetChromosomeId(), sourceEnd.index_, sourceEnd.GetStrand());
 		Location trgLocStart(targetStart.GetChromosomeId(), targetStart.GetPositiveIndex(), targetStart.GetStrand());
 		Location trgLocEnd(targetEnd.GetChromosomeId(), targetEnd.GetPositiveIndex(), targetEnd.GetStrand());
 		replacement_[chrId].back().source = std::make_pair(srcLocStart, srcLocEnd);
@@ -255,8 +255,7 @@ namespace SyntenyFinder
 		std::swap(start, end);
 		end.index_ = end.parent_->bifurcationData_[end.chrId_].size() - end.index_ - 1;
 		start.index_ = start.parent_->bifurcationData_[start.chrId_].size() - start.index_ - 1;
-		end.dir_ = end.dir_ == FastaRecord::positive ? FastaRecord::negative : FastaRecord::positive;		
-		start.dir_ = start.dir_ == FastaRecord::positive ? FastaRecord::negative : FastaRecord::positive;
+		start.dir_ = end.dir_ = end.dir_ == FastaRecord::positive ? FastaRecord::negative : FastaRecord::positive;		
 	}
 	
 	DeBruijnIndex::BifurcationIterator::BifurcationIterator(): parent_(0)
