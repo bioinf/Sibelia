@@ -56,9 +56,12 @@ namespace SyntenyFinder
 			std::vector<VisitData> branch;
 		};
 
-		size_t RemoveBulges(size_t minBranchSize, size_t bifId);		
+		typedef std::vector< std::vector<VisitData> > BulgedBranches;
+
+		size_t RemoveBulges(size_t minBranchSize, size_t bifId);
+		bool AnyBulges(std::vector<DeBruijnIndex::BifurcationIterator> bif, BulgedBranches & bulges, size_t maxBranchSize) const;
 		bool Overlap(const std::vector<DeBruijnIndex::BifurcationIterator> & bif, VisitData sourceData, VisitData targetData) const;
-		void CollapseBulge(const std::vector<DeBruijnIndex::BifurcationIterator> & edge, VisitData sourceData, VisitData targetData);
+		void CollapseBulge(const std::vector<DeBruijnIndex::BifurcationIterator> & edge, VisitData sourceData, VisitData targetData);		
 		size_t EnumerateBifurcationsSArray(const std::vector<std::string> & data, size_t k_, const std::string & tempDir, std::vector<DeBruijnIndex::ChrBifVector> & ret) const;
 	};
 }

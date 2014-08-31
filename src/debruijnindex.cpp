@@ -182,10 +182,10 @@ namespace SyntenyFinder
 		bifurcationPlace_ = std::vector<LocationVector>();
 		std::vector<BifurcationVector> newData(bifurcationData_.size());
 		for(size_t chr = 0; chr < replacement_.size(); chr++)
-		{
-			std::sort(replacement_[chr].begin(), replacement_[chr].end());
+		{			
 			size_t rep = 0;
 			int64_t shift = 0;
+			std::sort(replacement_[chr].begin(), replacement_[chr].end());
 			for(size_t i = 0; i < bifurcationData_[chr].size(); )
 			{
 				BifurcationData d = bifurcationData_[chr][i];				
@@ -196,27 +196,25 @@ namespace SyntenyFinder
 					BifurcationIterator srcEnd(this, now.source.second.GetChromosomeId(), now.source.second.GetIndex(), now.source.second.GetStrand());
 					BifurcationIterator trgStart(this, now.target.first.GetChromosomeId(), now.target.first.GetIndex(), now.target.first.GetStrand());
 					BifurcationIterator trgEnd(this, now.target.second.GetChromosomeId(), now.target.second.GetIndex(), now.target.second.GetStrand());
+
 					newData[chr].push_back(BifurcationData(shift + d.GetPosition(), d.GetBifurcationId(), d.GetProjection(), d.GetInMark(), srcStart.GetOutMark()));
-					double scaleCoeff = double(trgEnd.GetProjection() - trgStart.GetProjection() + 1) / (srcEnd.GetPosition() - srcStart.GetPosition() + 1);
+					double scaleCoeff = double(trgEnd.GetProjection() - trgStart.GetProjection() + 1) / (srcEnd.GetPosition() - srcStart.GetPosition() + 1); //UPDATE COEFFICIENTS!
 					int64_t srcLength = srcEnd.GetPosition() - srcStart.GetPosition() + 1;
 					int64_t trgLength = trgEnd.GetPosition() - trgStart.GetPosition() + 1;
-					size_t srcBasePos = srcStart.GetPosition();
-					size_t srcBaseProj = srcStart.GetProjection();
-					for(size_t prevTrgPos = (trgStart++).GetPosition(); trgStart != trgEnd; ++trgStart)
+					size_t trgBasePos = trgStart.GetPosition();
+					size_t trgBaseProj = trgStart.GetProjection();
+					for(size_t prevSrcPos = (srcStart++).GetPosition(); srcStart != srcEnd; ++srcStart)
 					{
-						size_t bifId = trgStart.GetBifurcationId();
-						bifId = trgStart.GetStrand() == FastaRecord::positive ? bifId : revCompDictionary_[bifId];
-						char nowInMark = FastaRecord::positive ? trgStart.GetInMark() : FastaRecord::Translate(trgStart.GetOutMark());
-						char nowOutMark = FastaRecord::positive ? trgStart.GetOutMark() : FastaRecord::Translate(trgStart.GetInMark());
-						size_t trgShift = trgStart.GetPosition() - prevTrgPos;
-						size_t nowPos = srcBasePos + trgShift;
-						size_t nowProj = srcBaseProj + static_cast<size_t>(scaleCoeff * trgShift);
-						newData[chr].push_back(BifurcationData(nowPos, bifId, nowProj, nowInMark, nowOutMark));
+						size_t bifId = srcStart.GetBifurcationId();
+						size_t srcShift = srcStart.GetPosition() - prevSrcPos;
+						prevSrcPos = srcStart.GetPosition();
+						size_t nowPos = trgBasePos + srcShift;
+						size_t nowProj = trgBaseProj + static_cast<size_t>(scaleCoeff * srcShift);
+						newData[chr].push_back(BifurcationData(nowPos, bifId, nowProj, srcStart.GetInMark(), srcStart.GetOutMark()));						
 					}
 
-					shift += trgLength - srcLength;
-					size_t lastProj = trgStart.GetProjection() + static_cast<size_t>(srcLength * scaleCoeff);
-					newData[chr].push_back(BifurcationData(shift + trgEnd.GetPosition(), trgEnd.GetBifurcationId(), lastProj, srcEnd.GetInMark(), trgEnd.GetOutMark()));
+					shift += srcLength - trgLength;
+					newData[chr].push_back(BifurcationData(shift + trgEnd.GetPosition(), trgEnd.GetBifurcationId(), trgEnd.GetProjection(), srcStart.GetInMark(), trgEnd.GetOutMark()));
 					i = now.target.second.GetIndex() + 1;
 					rep++;
 				}
@@ -350,7 +348,7 @@ namespace SyntenyFinder
 			return parent_->originalChrSize_[chrId_];
 		}
 		
-		size_t pos = GetPositivePosition();
+		size_t pos = GetPositivePosition() + parent_->k_ - 1;
 		size_t index = parent_->bifurcationData_[chrId_].size() - index_ - 1;		
 		std::vector<BifurcationData>::const_iterator it = std::lower_bound(
 			parent_->bifurcationData_[chrId_].begin() + index + 1,
@@ -362,8 +360,10 @@ namespace SyntenyFinder
 			--it;
 		}
 
+		BifurcationData d = MyData();
 		double coeff = double(it->GetPosition() - MyData().GetPosition()) / (it->GetProjection() - MyData().GetProjection());
-		return MyData().GetProjection() + static_cast<size_t>(parent_->k_ * coeff);
+		size_t ret = MyData().GetProjection() + static_cast<size_t>(parent_->k_ * coeff);
+		return ret;
 	}
 
 	size_t DeBruijnIndex::BifurcationIterator::GetPositiveEndingPosition() const

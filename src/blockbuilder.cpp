@@ -125,24 +125,7 @@ namespace SyntenyFinder
 
 	namespace
 	{
-		struct BifurcationMark
-		{
-			size_t bifId;
-			size_t distance;
-			BifurcationMark() {}
-			BifurcationMark(size_t bifId, size_t distance): bifId(bifId),
-				distance(distance) {}
-
-			bool operator < (const BifurcationMark & compare) const
-			{
-				if(bifId != compare.bifId)
-				{
-					return bifId < compare.bifId;
-				}
-
-				return distance < compare.distance;
-			}
-		};
+		const size_t INVALID_BRANCH = -1;
 
 		void PrintBranch(DeBruijnIndex::BifurcationIterator it, size_t distance, std::ostream & out)
 		{
@@ -154,109 +137,86 @@ namespace SyntenyFinder
 
 			out << std::endl;
 		}
-
-		void FillVisit(const DeBruijnIndex & index, DeBruijnIndex::BifurcationIterator it, size_t maxBranchSize, std::vector<BifurcationMark> & visit)
-		{
-			visit.clear();
-			if(it.IsValid())
-			{
-				size_t startId = it.GetBifurcationId();
-				size_t startPos = (it++).GetPosition();
-				for(size_t step = 1; !it.AtEnd(); ++it)
-				{
-					if(!it.IsValid())
-					{
-						break;
-					}
-
-					size_t bifId = it.GetBifurcationId();
-					if(bifId == startId || it.GetPosition() - startPos > maxBranchSize)
-					{
-						break;
-					}
-
-					visit.push_back(BifurcationMark(bifId, step));
-				}
-
-				std::sort(visit.begin(), visit.end());
-			}			
-		}
 	
-		size_t MaxBifurcationMultiplicity(const DeBruijnIndex & index, DeBruijnIndex::BifurcationIterator it, size_t distance)
+		size_t MaxBifurcationMultiplicity(const DeBruijnIndex & index, DeBruijnIndex::BifurcationIterator it, size_t distance, std::vector<size_t> & interim)
 		{
 			size_t ret = 0;
-			for(size_t step = 1; step < distance - 1; step++)
+			for(size_t step = 0; step < distance; step++, ++it)
 			{
-				size_t pos = (++it).GetPosition() + step;
-				ret = std::max(ret, index.CountInstances(it.GetBifurcationId()));
+				if(step != 0 && step != distance - 1)
+				{
+					size_t pos = it.GetPosition() + step;
+					interim.push_back(it.GetBifurcationId());
+					ret = std::max(ret, index.CountInstances(it.GetBifurcationId()));
+				}
+
+				if(!it.IsValid())
+				{
+					return INVALID_BRANCH;
+				}
 			}
 
+			std::sort(interim.begin(), interim.end());
 			return ret;
 		}
-
-		typedef std::vector< std::vector<std::pair<size_t, size_t> > > BulgedBranches;
-		
-		bool AnyBulges(const DeBruijnIndex & index,
-			std::vector<DeBruijnIndex::BifurcationIterator> bif,
-			BulgedBranches & bulges,
-			size_t maxBranchSize)
-		{
-			
-			bulges.clear();
-			std::vector<char> startOutMark(bif.size());
-			for(size_t i = 0; i < bif.size(); i++)
-			{
-				startOutMark[i] = bif[i].GetOutMark();
-			}
-
-			boost::unordered_map<size_t, BranchData> visit;
-			for(size_t i = 0; i < bif.size(); i++)
-			{	
-				size_t maxBifMlp = 0;
-				size_t startId = bif[i].GetBifurcationId();
-				size_t startPos = (bif[i]++).GetPosition();
-				for(size_t step = 1; !bif[i].AtEnd(); step++, ++bif[i])
-				{					
-					size_t pos = bif[i].GetPosition();
-					size_t bifId = bif[i].GetBifurcationId();
-					if(!bif[i].IsValid() || pos - startPos > maxBranchSize || bifId == startId)
-					{
-						break;
-					}
-					
-					boost::unordered_map<size_t, BranchData>::iterator kt = visit.find(bifId);
-					if(kt == visit.end())
-					{
-						BranchData bData(startOutMark[i], maxBifMlp);
-						bData.branch.push_back(std::make_pair(i, step));
-						visit[bifId] = bData;
-					}
-					else if(kt->second.endChar != startOutMark[i])
-					{						
-						kt->second.branch.push_back(std::make_pair(i, step));
-						break;
-					}
-					else if(maxBifMlp > kt->second.maxBifMlp)
-					{
-						kt->second.maxBifMlp = maxBifMlp;
-						kt->second.branch[0] = std::make_pair(i, step);
-					}
-
-					maxBifMlp = std::max(maxBifMlp, index.CountInstances(bifId));
-				}
-			}
-
-			for (boost::unordered_map<size_t, BranchData>::iterator kt = visit.begin(); kt !=visit.end(); ++kt)
-			{
-				if (kt->second.branch.size() > 1)
-				{
-					bulges.push_back(kt->second.branch);
-				}
-			}
-			
-			return !bulges.empty();
-		}		
 	}
+
+	bool BlockBuilder::AnyBulges(std::vector<DeBruijnIndex::BifurcationIterator> bif, BulgedBranches & bulges, size_t maxBranchSize) const
+	{
+		bulges.clear();
+		std::vector<char> startOutMark(bif.size());
+		for(size_t i = 0; i < bif.size(); i++)
+		{
+			startOutMark[i] = bif[i].GetOutMark();
+		}
+
+		boost::unordered_map<size_t, BranchData> visit;
+		for(size_t i = 0; i < bif.size(); i++)
+		{	
+			size_t maxBifMlp = 0;
+			size_t startId = bif[i].GetBifurcationId();
+			size_t startPos = (bif[i]++).GetPosition();
+			for(size_t step = 1; !bif[i].AtEnd(); step++, ++bif[i])
+			{					
+				size_t pos = bif[i].GetPosition();
+				size_t bifId = bif[i].GetBifurcationId();
+				if(!bif[i].IsValid() || pos - startPos > maxBranchSize || bifId == startId)
+				{
+					break;
+				}
+					
+				boost::unordered_map<size_t, BranchData>::iterator kt = visit.find(bifId);
+				if(kt == visit.end())
+				{
+					BranchData bData(startOutMark[i], maxBifMlp);
+					bData.branch.push_back(VisitData(i, step));
+					visit[bifId] = bData;
+				}
+				else if(kt->second.endChar != startOutMark[i])
+				{						
+					kt->second.branch.push_back(VisitData(i, step));
+					break;
+				}
+				else if(maxBifMlp > kt->second.maxBifMlp)
+				{
+					kt->second.maxBifMlp = maxBifMlp;
+					kt->second.branch[0] = VisitData(i, step);
+				}
+
+				maxBifMlp = std::max(maxBifMlp, index_->CountInstances(bifId));
+			}
+		}
+
+		for (boost::unordered_map<size_t, BranchData>::iterator kt = visit.begin(); kt !=visit.end(); ++kt)
+		{
+			if (kt->second.branch.size() > 1)
+			{
+				bulges.push_back(kt->second.branch);
+			}
+		}
+			
+		return !bulges.empty();
+	}		
 
 	bool BlockBuilder::Overlap(const std::vector<DeBruijnIndex::BifurcationIterator> & bif, VisitData sourceData, VisitData targetData) const
 	{
@@ -298,7 +258,7 @@ namespace SyntenyFinder
 		}
 		
 		BulgedBranches bulges;
-		if(!AnyBulges(*index_, bif, bulges, maxBranchSize))
+		if(!AnyBulges(bif, bulges, maxBranchSize))
 		{
 			return ret;
 		}
@@ -307,33 +267,42 @@ namespace SyntenyFinder
 		{
 			for (size_t idI = 0; idI < bulges[numBulge].size(); ++idI)
 			{
-				size_t kmerI = bulges[numBulge][idI].first;
-				size_t distanceI = bulges[numBulge][idI].second;
-				for(size_t idJ = idI + 1; idJ < bulges[numBulge].size() && bif[kmerI].IsValid(); ++idJ)
+				VisitData idata = bulges[numBulge][idI];
+				for(size_t idJ = idI + 1; idJ < bulges[numBulge].size() && bif[idata.kmerId].IsValid(); ++idJ)
 				{
-					size_t kmerJ = bulges[numBulge][idJ].first;
-					size_t kmerJ = 
-					VisitData idata(kmerI, vt->distance);
-					VisitData jdata(kmerJ, nowVisit[idNow].distance);
-					if(Overlap(bif, idata, jdata))
+					VisitData jdata = bulges[numBulge][idJ];
+					if(Overlap(bif, idata, jdata) || !bif[jdata.kmerId].IsValid())
 					{
 						continue;
 					}
 
-					++ret;
-					size_t imlp = MaxBifurcationMultiplicity(*index_, bif[kmerI], idata.distance);
-					size_t jmlp = MaxBifurcationMultiplicity(*index_, bif[kmerI], idata.distance);
-					bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
-					if(iless)
+					std::vector<size_t> interim[2];
+					size_t imlp = MaxBifurcationMultiplicity(*index_, bif[idata.kmerId], idata.distance, interim[0]);
+					size_t jmlp = MaxBifurcationMultiplicity(*index_, bif[jdata.kmerId], jdata.distance, interim[0]);					
+					if(imlp != INVALID_BRANCH && jmlp != INVALID_BRANCH)
 					{
-						CollapseBulge(bif, idata, jdata);
-					}
-					else
-					{
-						CollapseBulge(bif, jdata, idata);										
-					}
+						bool foundInterim = false;
+						for(size_t idx = 0; idx < interim[0].size() && !foundInterim; idx++)
+						{
+							foundInterim = std::binary_search(interim[1].begin(), interim[1].end(), interim[0][idx]);
+						}
 
-					break;
+						if(!foundInterim)
+						{
+							++ret;
+							bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
+							if(iless)
+							{
+								CollapseBulge(bif, idata, jdata);
+							}
+							else
+							{
+								CollapseBulge(bif, jdata, idata);										
+							}
+
+							break;
+						}
+					}
 				}
 			}
 		}
