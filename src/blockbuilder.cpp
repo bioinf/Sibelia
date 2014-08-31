@@ -125,14 +125,6 @@ namespace SyntenyFinder
 
 	namespace
 	{
-		struct BranchData
-		{
-			BranchData() {}
-			BranchData(char ch): endChar(ch) {}
-			char endChar;
-			std::vector<size_t> branchIds;
-		};
-
 		struct BifurcationMark
 		{
 			size_t bifId;
@@ -202,7 +194,7 @@ namespace SyntenyFinder
 			return ret;
 		}
 
-		typedef std::vector< std::vector<size_t> > BulgedBranches;
+		typedef std::vector< std::vector<std::pair<size_t, size_t> > > BulgedBranches;
 		
 		bool AnyBulges(const DeBruijnIndex & index,
 			std::vector<DeBruijnIndex::BifurcationIterator> bif,
@@ -219,7 +211,8 @@ namespace SyntenyFinder
 
 			boost::unordered_map<size_t, BranchData> visit;
 			for(size_t i = 0; i < bif.size(); i++)
-			{				
+			{	
+				size_t maxBifMlp = 0;
 				size_t startId = bif[i].GetBifurcationId();
 				size_t startPos = (bif[i]++).GetPosition();
 				for(size_t step = 1; !bif[i].AtEnd(); step++, ++bif[i])
@@ -230,27 +223,34 @@ namespace SyntenyFinder
 					{
 						break;
 					}
-
+					
 					boost::unordered_map<size_t, BranchData>::iterator kt = visit.find(bifId);
 					if(kt == visit.end())
 					{
-						BranchData bData(startOutMark[i]);
-						bData.branchIds.push_back(i);
+						BranchData bData(startOutMark[i], maxBifMlp);
+						bData.branch.push_back(std::make_pair(i, step));
 						visit[bifId] = bData;
 					}
 					else if(kt->second.endChar != startOutMark[i])
-					{
-						kt->second.branchIds.push_back(i);
+					{						
+						kt->second.branch.push_back(std::make_pair(i, step));
 						break;
 					}
+					else if(maxBifMlp > kt->second.maxBifMlp)
+					{
+						kt->second.maxBifMlp = maxBifMlp;
+						kt->second.branch[0] = std::make_pair(i, step);
+					}
+
+					maxBifMlp = std::max(maxBifMlp, index.CountInstances(bifId));
 				}
 			}
 
 			for (boost::unordered_map<size_t, BranchData>::iterator kt = visit.begin(); kt !=visit.end(); ++kt)
 			{
-				if (kt->second.branchIds.size() > 1)
+				if (kt->second.branch.size() > 1)
 				{
-					bulges.push_back(kt->second.branchIds);		
+					bulges.push_back(kt->second.branch);
 				}
 			}
 			
@@ -303,52 +303,37 @@ namespace SyntenyFinder
 			return ret;
 		}
 
-		std::vector<BifurcationMark> visit;
 		for (size_t numBulge = 0; numBulge < bulges.size(); ++numBulge)
 		{
 			for (size_t idI = 0; idI < bulges[numBulge].size(); ++idI)
 			{
-				size_t kmerI = bulges[numBulge][idI];
-				FillVisit(*index_, bif[kmerI], maxBranchSize, visit);
+				size_t kmerI = bulges[numBulge][idI].first;
+				size_t distanceI = bulges[numBulge][idI].second;
 				for(size_t idJ = idI + 1; idJ < bulges[numBulge].size() && bif[kmerI].IsValid(); ++idJ)
 				{
-					size_t kmerJ = bulges[numBulge][idJ];
-					if(bif[kmerI].GetOutMark() == bif[kmerJ].GetOutMark())
+					size_t kmerJ = bulges[numBulge][idJ].first;
+					size_t kmerJ = 
+					VisitData idata(kmerI, vt->distance);
+					VisitData jdata(kmerJ, nowVisit[idNow].distance);
+					if(Overlap(bif, idata, jdata))
 					{
 						continue;
 					}
-					
-					std::vector<BifurcationMark> nowVisit;
-					FillVisit(*index_, bif[kmerJ], maxBranchSize, nowVisit);
-					for(size_t idNow = 0; idNow < nowVisit.size(); idNow++)
+
+					++ret;
+					size_t imlp = MaxBifurcationMultiplicity(*index_, bif[kmerI], idata.distance);
+					size_t jmlp = MaxBifurcationMultiplicity(*index_, bif[kmerI], idata.distance);
+					bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
+					if(iless)
 					{
-						size_t nowBif = nowVisit[idNow].bifId;
-						std::vector<BifurcationMark>::iterator vt = std::lower_bound(visit.begin(), visit.end(), BifurcationMark(nowBif, 0));
-						if(vt != visit.end() && vt->bifId == nowBif)
-						{							
-							VisitData idata(kmerI, vt->distance);
-							VisitData jdata(kmerJ, nowVisit[idNow].distance);
-							if(Overlap(bif, idata, jdata))
-							{
-								continue;
-							}
-
-							++ret;
-							size_t imlp = MaxBifurcationMultiplicity(*index_, bif[kmerI], idata.distance);
-							size_t jmlp = MaxBifurcationMultiplicity(*index_, bif[kmerI], idata.distance);
-							bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
-							if(iless)
-							{
-								CollapseBulge(bif, idata, jdata);
-							}
-							else
-							{
-								CollapseBulge(bif, jdata, idata);										
-							}
-
-							break;
-						}
+						CollapseBulge(bif, idata, jdata);
 					}
+					else
+					{
+						CollapseBulge(bif, jdata, idata);										
+					}
+
+					break;
 				}
 			}
 		}

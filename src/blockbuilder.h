@@ -47,6 +47,15 @@ namespace SyntenyFinder
 			VisitData(size_t kmerId, size_t distance): kmerId(kmerId), distance(distance) {}
 		};
 
+		struct BranchData
+		{
+			BranchData() {}
+			BranchData(char ch, size_t maxBifMlp): endChar(ch), maxBifMlp(maxBifMlp) {}
+			char endChar;
+			size_t maxBifMlp;
+			std::vector<VisitData> branch;
+		};
+
 		size_t RemoveBulges(size_t minBranchSize, size_t bifId);		
 		bool Overlap(const std::vector<DeBruijnIndex::BifurcationIterator> & bif, VisitData sourceData, VisitData targetData) const;
 		void CollapseBulge(const std::vector<DeBruijnIndex::BifurcationIterator> & edge, VisitData sourceData, VisitData targetData);
