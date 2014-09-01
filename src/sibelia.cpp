@@ -237,8 +237,7 @@ int main(int argc, char * argv[])
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		size_t lastK = lastKValue.isSet() ? lastKValue.getValue() : std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
 		builder.ConstructIndex(lastK);
-		builder.GenerateBlocks(history.back(), minBlockSize.getValue());
-		//finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
+		builder.GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back());
 		if(!noPostProcessing)
 		{
 			processor.GlueStripes(history.back());

@@ -309,8 +309,4 @@ namespace SyntenyFinder
 
 		return ret;
 	}
-
-	void BlockBuilder::GenerateBlocks(std::vector<BlockInstance> & ret, size_t minBlockSize) const
-	{
-	}
 }

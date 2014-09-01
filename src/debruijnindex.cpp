@@ -397,6 +397,12 @@ namespace SyntenyFinder
 		return pos + parent_->k_ - 1;
 	}
 
+	size_t DeBruijnIndex::BifurcationIterator::GetEndingProjection() const
+	{
+		DeBruijnIndex::BifurcationIterator it(parent_, chrId_, index_, dir_ == FastaRecord::positive ? FastaRecord::negative : FastaRecord::positive);
+		return it.GetProjection();
+	}
+
 	size_t DeBruijnIndex::BifurcationIterator::GetProjection() const
 	{
 		size_t proj = MyData().GetProjection();
@@ -407,7 +413,7 @@ namespace SyntenyFinder
 
 		if(index_ == 0)
 		{
-			return parent_->originalChrSize_[chrId_];
+			return parent_->originalChrSize_[chrId_] - 1;
 		}
 		
 		size_t pos = GetPositivePosition() + parent_->k_ - 1;
