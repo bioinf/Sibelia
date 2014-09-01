@@ -6,10 +6,10 @@
 #pragma GCC diagnostic ignored "-Wpragmas"
 #pragma GCC diagnostic ignored "-Wc++11-extensions"
 
+#include "blockbuilder.h"
 
 namespace SyntenyFinder
-{
-	/*
+{/*
 	namespace
 	{
 		struct Stripe
@@ -27,7 +27,7 @@ namespace SyntenyFinder
 
 	const char BlockFinder::POS_FREE = 0;
 	const char BlockFinder::POS_OCCUPIED = 1;
-
+	
 	bool BlockFinder::TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize)
 	{	
 		size_t pos = 0;

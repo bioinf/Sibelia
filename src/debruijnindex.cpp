@@ -177,59 +177,121 @@ namespace SyntenyFinder
 		return ret.size();
 	}
 
-	void DeBruijnIndex::ApplyChanges()
+	void DeBruijnIndex::ApplyChangesAndClear()
 	{
 		size_t bifurcationNumber = bifurcationPlace_.size();
 		bifurcationPlace_ = std::vector<LocationVector>();
-		std::vector<BifurcationVector> newData(bifurcationData_.size());
-		for(size_t chr = 0; chr < replacement_.size(); chr++)
-		{			
-			size_t rep = 0;
-			int64_t shift = 0;
-			std::sort(replacement_[chr].begin(), replacement_[chr].end());
-			for(size_t i = 0; i < bifurcationData_[chr].size(); )
-			{
-				BifurcationData d = bifurcationData_[chr][i];				
-				if(rep < replacement_[chr].size() && i == replacement_[chr][rep].target.first.GetIndex())
-				{					
-					Replacement now = replacement_[chr][rep];					
-					BifurcationIterator srcStart(this, now.source.first.GetChromosomeId(), now.source.first.GetIndex(), now.source.first.GetStrand());
-					BifurcationIterator srcEnd(this, now.source.second.GetChromosomeId(), now.source.second.GetIndex(), now.source.second.GetStrand());
-					BifurcationIterator trgStart(this, now.target.first.GetChromosomeId(), now.target.first.GetIndex(), now.target.first.GetStrand());
-					BifurcationIterator trgEnd(this, now.target.second.GetChromosomeId(), now.target.second.GetIndex(), now.target.second.GetStrand());
-
-					newData[chr].push_back(BifurcationData(shift + d.GetPosition(), d.GetBifurcationId(), d.GetProjection(), d.GetInMark(), srcStart.GetOutMark()));
-					double scaleCoeff = double(trgEnd.GetProjection() - trgStart.GetProjection() + 1) / (srcEnd.GetPosition() - srcStart.GetPosition() + 1); //UPDATE COEFFICIENTS!
-					int64_t srcLength = srcEnd.GetPosition() - srcStart.GetPosition() + 1;
-					int64_t trgLength = trgEnd.GetPosition() - trgStart.GetPosition() + 1;
-					size_t trgBasePos = trgStart.GetPosition();
-					size_t trgBaseProj = trgStart.GetProjection();
-					for(size_t prevSrcPos = (srcStart++).GetPosition(); srcStart != srcEnd; ++srcStart)
-					{
-						size_t bifId = srcStart.GetBifurcationId();
-						size_t srcShift = srcStart.GetPosition() - prevSrcPos;
-						prevSrcPos = srcStart.GetPosition();
-						size_t nowPos = trgBasePos + srcShift;
-						size_t nowProj = trgBaseProj + static_cast<size_t>(scaleCoeff * srcShift);
-						newData[chr].push_back(BifurcationData(nowPos, bifId, nowProj, srcStart.GetInMark(), srcStart.GetOutMark()));						
-					}
-
-					shift += srcLength - trgLength;
-					newData[chr].push_back(BifurcationData(shift + trgEnd.GetPosition(), trgEnd.GetBifurcationId(), trgEnd.GetProjection(), srcStart.GetInMark(), trgEnd.GetOutMark()));
-					i = now.target.second.GetIndex() + 1;
-					rep++;
-				}
-				else
+		{
+			std::vector<BifurcationVector> newData(bifurcationData_.size());
+			for(size_t chr = 0; chr < replacement_.size(); chr++)
+			{			
+				size_t rep = 0;
+				int64_t shift = 0;
+				std::sort(replacement_[chr].begin(), replacement_[chr].end());
+				for(size_t i = 0; i < bifurcationData_[chr].size(); )
 				{
-					newData[chr].push_back(BifurcationData(shift + d.GetPosition(), d.GetBifurcationId(), d.GetProjection(), d.GetInMark(), d.GetOutMark()));
-					++i;
+					BifurcationData d = bifurcationData_[chr][i];				
+					if(rep < replacement_[chr].size() && i == replacement_[chr][rep].target.first.GetIndex())
+					{					
+						Replacement now = replacement_[chr][rep];					
+						BifurcationIterator srcStart(this, now.source.first.GetChromosomeId(), now.source.first.GetIndex(), now.source.first.GetStrand());
+						BifurcationIterator srcEnd(this, now.source.second.GetChromosomeId(), now.source.second.GetIndex(), now.source.second.GetStrand());
+						BifurcationIterator trgStart(this, now.target.first.GetChromosomeId(), now.target.first.GetIndex(), now.target.first.GetStrand());
+						BifurcationIterator trgEnd(this, now.target.second.GetChromosomeId(), now.target.second.GetIndex(), now.target.second.GetStrand());
+
+						newData[chr].push_back(BifurcationData(shift + d.GetPosition(), d.GetBifurcationId(), d.GetProjection(), d.GetInMark(), srcStart.GetOutMark()));
+						double scaleCoeff = double(trgEnd.GetProjection() - trgStart.GetProjection() + 1) / (srcEnd.GetPosition() - srcStart.GetPosition() + 1); //UPDATE COEFFICIENTS!
+						int64_t srcLength = srcEnd.GetPosition() - srcStart.GetPosition() + 1;
+						int64_t trgLength = trgEnd.GetPosition() - trgStart.GetPosition() + 1;
+						size_t trgBasePos = trgStart.GetPosition();
+						size_t trgBaseProj = trgStart.GetProjection();
+						for(size_t prevSrcPos = (srcStart++).GetPosition(); srcStart != srcEnd; ++srcStart)
+						{
+							size_t bifId = srcStart.GetBifurcationId();
+							size_t srcShift = srcStart.GetPosition() - prevSrcPos;
+							prevSrcPos = srcStart.GetPosition();
+							size_t nowPos = trgBasePos + srcShift;
+							size_t nowProj = trgBaseProj + static_cast<size_t>(scaleCoeff * srcShift);
+							newData[chr].push_back(BifurcationData(nowPos, bifId, nowProj, srcStart.GetInMark(), srcStart.GetOutMark()));						
+						}
+
+						shift += srcLength - trgLength;
+						newData[chr].push_back(BifurcationData(shift + trgEnd.GetPosition(), trgEnd.GetBifurcationId(), trgEnd.GetProjection(), srcStart.GetInMark(), trgEnd.GetOutMark()));
+						i = now.target.second.GetIndex() + 1;
+						rep++;
+					}
+					else
+					{
+						newData[chr].push_back(BifurcationData(shift + d.GetPosition(), d.GetBifurcationId(), d.GetProjection(), d.GetInMark(), d.GetOutMark()));
+						++i;
+					}
+				}
+
+				replacement_[chr] = std::vector<Replacement>(); 
+			}
+
+			bifurcationData_.swap(newData);
+		}
+
+		{
+			const char BIF_ALIVE = 0;
+			const char UNKNOWN = 1;
+			std::vector<char> inMark(bifurcationNumber, UNKNOWN);
+			std::vector<char> outMark(bifurcationNumber, UNKNOWN);
+			for(size_t chr = 0; chr < bifurcationData_.size(); chr++)
+			{
+				for(size_t strand = 0; strand < 2; strand++)
+				{
+					BifurcationIterator start = Begin(chr, static_cast<FastaRecord::Direction>(strand));
+					for(BifurcationIterator it = start; !it.AtEnd();)
+					{				
+						size_t bifId = it.GetBifurcationId();
+						if(inMark[bifId] == UNKNOWN)
+						{
+							inMark[bifId] = it.GetInMark();
+						}
+						else if(inMark[bifId] != it.GetInMark())
+						{
+							inMark[bifId] = outMark[bifId] = BIF_ALIVE;
+						}
+
+						if(outMark[bifId] == UNKNOWN)
+						{
+							outMark[bifId] = it.GetOutMark();
+						}
+						else if(outMark[bifId] != it.GetOutMark())
+						{
+							outMark[bifId] = inMark[bifId] = BIF_ALIVE;
+						}
+
+						if(it++ == start)
+						{
+							inMark[bifId] = outMark[bifId] = BIF_ALIVE;
+						}
+						else if(it.AtEnd())
+						{
+							inMark[bifId] = outMark[bifId] = BIF_ALIVE;
+							break;
+						}
+					}
 				}
 			}
 
-			replacement_[chr] = std::vector<Replacement>(); 
+			for(size_t chr = 0; chr < bifurcationData_.size(); chr++)
+			{
+				std::vector<BifurcationData> newVector;
+				for(size_t i = 0; i < bifurcationData_[chr].size(); i++)
+				{
+					if(outMark[bifurcationData_[chr][i].GetBifurcationId()] == BIF_ALIVE)
+					{
+						newVector.push_back(bifurcationData_[chr][i]);
+					}
+				}
+
+				bifurcationData_[chr] = newVector;
+			}
 		}
 
-		bifurcationData_.swap(newData);
 		bifurcationPlace_.resize(bifurcationNumber);
 		for(size_t chr = 0; chr < bifurcationData_.size(); chr++)
 		{
@@ -239,7 +301,7 @@ namespace SyntenyFinder
 			}
 		}
 	}
-
+	
 	DeBruijnIndex::BifurcationIterator DeBruijnIndex::Begin(size_t chr, FastaRecord::Direction dir) const
 	{
 		return BifurcationIterator(this, chr, 0, dir);

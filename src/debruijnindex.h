@@ -113,7 +113,7 @@ namespace SyntenyFinder
 		typedef std::vector<BifurcationInstance> BifVector;
 		typedef std::vector<BifVector> ChrBifVector;
 		
-		void ApplyChanges();
+		void ApplyChangesAndClear();
 		size_t GetBifurcationsNumber() const;
 		size_t CountInstances(size_t bifId) const;
 		size_t GetBifurcationInstances(size_t bifId, std::vector<BifurcationIterator> & ret) const;

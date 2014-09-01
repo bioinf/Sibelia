@@ -111,7 +111,7 @@ namespace SyntenyFinder
 				}
 			}
 
-			index_->ApplyChanges();
+			index_->ApplyChangesAndClear();
 		}
 		while((totalBulges > 0) && iterations < maxIterations);
 
