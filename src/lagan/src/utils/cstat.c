@@ -121,7 +121,7 @@ align* readMultial(FILE* alfile) {
   return res;
 }
 
-inline int getScore (align* a, int i){
+ int getScore (align* a, int i){
   return
     ((a->cnts[0][i] * (a->cnts[0][i] - 1)) +
      (a->cnts[1][i] * (a->cnts[1][i] - 1)) +

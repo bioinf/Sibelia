@@ -59,16 +59,16 @@ align **freedptr;
 int normf;
 int normprev;
 
-inline int ismatch(char a, char b) {
+ int ismatch(char a, char b) {
   return (a == b);
 }
 
-inline int isGap(align* ali, int seqn, int loc) {
+ int isGap(align* ali, int seqn, int loc) {
   int i = !((ali->algn[loc] >> seqn) & 1);
   return i;
 }
 
-inline int scoreLocal(int which, align* ali, int loc) {
+ int scoreLocal(int which, align* ali, int loc) {
   int i, lets = 0;
   for (i=0; i < 4; i++)
     lets += ali->cnts[i][loc];
@@ -83,7 +83,7 @@ inline int scoreLocal(int which, align* ali, int loc) {
     return lets+ali->cnts[CNTS_GS][loc] * gapcont;
 }
 
-inline hll* reverseHLL(hll* tbr) {
+ hll* reverseHLL(hll* tbr) {
   hll *nn, *prev=0;
   while (tbr) {
     nn = tbr->next;
@@ -171,7 +171,7 @@ seq* mkConsensus(align* ali) {
   return res;
 }
 
-inline void reverse (long long int* a, int length) {
+ void reverse (long long int* a, int length) {
   long long int lft;
   int i;
   for (i=0; i < length/2; i++) {
@@ -409,7 +409,7 @@ void joinAligns (align* a) {
   */
 }
 
-inline int scoreGap(int numgs, int numgc, int numge, int numseq) {
+ int scoreGap(int numgs, int numgc, int numge, int numseq) {
   return (MIN2(numgc, numseq-numgc) * gapcont) +
     (MIN2(numgs, numseq-numgs) * gapstart) +
     (MIN2(numge, numseq-numge) * gapend);
@@ -493,7 +493,7 @@ void readSubstMatrix (char *filename, int size, int substmatrix[256][256]){
   fclose (file);
 }
 
-inline int chmatchscore (unsigned char a, unsigned char b, int substmatrix[256][256]) {
+ int chmatchscore (unsigned char a, unsigned char b, int substmatrix[256][256]) {
   return substmatrix[a][b];
 }
 
@@ -539,14 +539,14 @@ void buildcache (){
   // printcache();
 }
 
-inline int v (int y){
+ int v (int y){
   if (y >= 0 && y <= MAX_SEQ) return y;
   fprintf(stderr, "Got %d in v\n", y);
   assert (0);
   return 0;
 }
 
-inline int matchscore (align*a, int ai, align *b, int bi){
+ int matchscore (align*a, int ai, align *b, int bi){
   
   return
     matchcache[v(a->cnts[0][ai] + b->cnts[0][bi]) | 
@@ -559,30 +559,30 @@ inline int matchscore (align*a, int ai, align *b, int bi){
 	    (v(a->numseq + b->numseq - (a->cnts[CNTS_CB][ai] + b->cnts[CNTS_CB][bi])) << 18)];
 }
 
-inline int scoreOpp (align *other, int ow, int oppnum){
+ int scoreOpp (align *other, int ow, int oppnum){
   return matchcache[v(other->cnts[0][ow]) | 
 		   (v(other->cnts[1][ow]) << 6) |
 		   (v(other->cnts[2][ow]) << 12) |
 		   (v(other->cnts[3][ow]) << 18)];
 }
 
-inline int endGap0 (align* a, int ai, align* b, int bi){
+ int endGap0 (align* a, int ai, align* b, int bi){
   return gapcache[(v(a->cnts[CNTS_GE][ai]+b->cnts[CNTS_GE][bi])<<12) | 
 		  (v(a->numseq + b->numseq-(b->cnts[CNTS_CB][bi]+a->cnts[CNTS_CB][ai])) << 18)];
 }
 
-inline int endGap1 (align* a, int ai, align* b, int bi){
+ int endGap1 (align* a, int ai, align* b, int bi){
 
   return gapcache[(v((b->numseq - b->cnts[CNTS_GS][bi] - b->cnts[CNTS_GC][bi]) + a->cnts[CNTS_GE][ai]) << 12) | 
 		  (v(a->numseq + b->numseq - (b->cnts[CNTS_CB][bi]+a->cnts[CNTS_CB][ai])) << 18)];
 }
 
-inline int endGap2 (align* a, int ai, align* b, int bi){
+ int endGap2 (align* a, int ai, align* b, int bi){
   return gapcache[(v((a->numseq - a->cnts[CNTS_GS][ai] - a->cnts[CNTS_GC][ai]) + b->cnts[CNTS_GE][bi])<<12) | 
 		  (v(a->numseq + b->numseq - (b->cnts[CNTS_CB][bi]+a->cnts[CNTS_CB][ai])) << 18)];
 }
 
-inline int contGap(align* ali, int myw, align* other, int ow, int *sopp) {
+ int contGap(align* ali, int myw, align* other, int ow, int *sopp) {
   return gapcache[(v(other->cnts[CNTS_GS][ow])) |
 		  (v(ali->numseq + other->cnts[CNTS_GC][ow]) << 6) |
 		  (v(other->cnts[CNTS_GE][ow]) << 12) |
@@ -590,7 +590,7 @@ inline int contGap(align* ali, int myw, align* other, int ow, int *sopp) {
     sopp[ow];
 }
 
-inline int openGap(align* ali, int w, align* other, int ow, int *sopp, char *desc) {
+ int openGap(align* ali, int w, align* other, int ow, int *sopp, char *desc) {
   int alopen, pen, sav, i;
 
   alopen = ali->cnts[CNTS_GC][w] + ali->cnts[CNTS_GE][w];

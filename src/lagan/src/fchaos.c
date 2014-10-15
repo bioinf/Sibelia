@@ -430,7 +430,7 @@ int chain(LList* second, int off2, LList* first, int off1, int diff1, int gap, f
 int tc =0;
 int wc = 0;
 
-inline void findPrev(LList* curr, int position, int offset, float baseval) {
+ void findPrev(LList* curr, int position, int offset, float baseval) {
   int j,k;
   LList* temp;
   sle* iterator;
@@ -985,7 +985,7 @@ void remElem(LList* tbf, int i) {
   SLremove(mylist, tbf->mysles[i]);
 }
 
-inline int CHmatchscore(unsigned char a, unsigned char b) {
+ int CHmatchscore(unsigned char a, unsigned char b) {
   return substmatrix[a][b];
   /*
   if (translated)

@@ -133,7 +133,7 @@ align *readMultial (char *filename){
   return res;
 }
 
-inline int getstate (char c, char d){
+ int getstate (char c, char d){
   if (c == '-' || d == '-') return 2;
   if (c == 'N' || d == 'N') return 3;
   return c == d;
@@ -235,7 +235,7 @@ rangelist *getranges (char *filename, int offs){
   return r;
 }
 
-inline int getdata (rangelist **ranges, int *offs, int j, int i){
+ int getdata (rangelist **ranges, int *offs, int j, int i){
   i -= offs[j];
   if (i >= 0 && i < ranges[j]->seqlen)
     return ranges[j]->score[i];
@@ -243,14 +243,14 @@ inline int getdata (rangelist **ranges, int *offs, int j, int i){
 }
 
 
-inline int match (rangelist **ranges, int numContigs, int i, int j, int *offs){
+ int match (rangelist **ranges, int numContigs, int i, int j, int *offs){
   int k;
   for (k = 0; k < numContigs; k++)
     if ((getdata (ranges, offs, k, i) != 0) != (getdata (ranges, offs, k, j) != 0)) return 0;
   return 1;
 }
 
-inline int allzeroes (rangelist **ranges, int numContigs, int pos, int *offs){
+ int allzeroes (rangelist **ranges, int numContigs, int pos, int *offs){
   int i;
 
   for (i = 0; i < numContigs; i++)
@@ -258,7 +258,7 @@ inline int allzeroes (rangelist **ranges, int numContigs, int pos, int *offs){
   return 1;
 }
 
-inline void print (int start, int end, int *score, int numContigs){
+ void print (int start, int end, int *score, int numContigs){
   int j;
 
   printf ("(%7d %7d)", start, end);
@@ -303,7 +303,7 @@ void printRanges (rangelist **ranges, int numContigs, int seqLen, int *offs){
   free (pattern);
 }
 
-inline double scoregap (int gaplen){
+ double scoregap (int gaplen){
   if (gaplen == 0) return 0;
   //return (gaplen - 1) * -1 - 50;
   return (log (gaplen) / log (10) + 1) * scoreGapOpen;
