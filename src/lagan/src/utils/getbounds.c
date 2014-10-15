@@ -6,8 +6,8 @@
 
 #define EXPAND 2
 
-inline int max (int a, int b){ if (a > b) return a; return b; }
-inline int min (int a, int b){ if (a < b) return a; return b; }
+ int max (int a, int b){ if (a > b) return a; return b; }
+ int min (int a, int b){ if (a < b) return a; return b; }
 
 int getLength (char *filename){
   FILE *file;

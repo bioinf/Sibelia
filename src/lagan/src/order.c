@@ -454,11 +454,11 @@ int main(int argc, char** argv) {
 }
 
 
-inline int ismatch(char a, char b) {
+ int ismatch(char a, char b) {
   return a == b;
 }
 
-inline int matchscore (unsigned char a, unsigned char b) {
+ int matchscore (unsigned char a, unsigned char b) {
   return substmatrix[a][b];
   /*
     

@@ -985,7 +985,7 @@ void remElem(LList* tbf, int i) {
   SLremove(mylist, tbf->mysles[i]);
 }
 
-inline int CHmatchscore(unsigned char a, unsigned char b) {
+int CHmatchscore(unsigned char a, unsigned char b) {
   return substmatrix[a][b];
   /*
   if (translated)

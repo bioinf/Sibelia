@@ -18,17 +18,17 @@ int numseqs, seqlen = -1;
 int matchscore[256][256];
 int gapopen = -1500, gapcont = -50;
 
-inline int min (int a, int b){
+ int min (int a, int b){
   if (a < b) return a;
   return b;
 }
 
-inline int max (int a, int b){
+ int max (int a, int b){
   if (a > b) return a;
   return b;
 }
 
-inline int scoreMatch (char c, char d){
+ int scoreMatch (char c, char d){
   if (c == '-' && d == '-') return 0;
   if (c == '-' || d == '-') return gapcont;
   return matchscore[(unsigned char) c][(unsigned char) d];
@@ -235,7 +235,7 @@ void scoreAlign (){
   }
 }
 
-inline int issymbol (char ch){
+ int issymbol (char ch){
   return ch == 'A' || ch == 'C' || ch == 'G' || ch == 'T' || ch == 'N' || ch == '.' || ch == '-';
 }
 
