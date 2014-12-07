@@ -1,3 +1,9 @@
+Sibelia 3.0.6
+=============
+* Fixed a bug with crash when 0 simplificaiont stages specified
+* When both --graphfile" and --visualize are set, graph is output at each stage
+* Added commandline option --noblocks
+
 Sibelia 3.0.5
 =============
 * Removed commandline options: -a, --alignment

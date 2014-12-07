@@ -8,7 +8,7 @@
 #include "postprocessor.h"
 #include "util.h"
 
-const std::string VERSION("3.0.5");
+const std::string VERSION("3.0.6");
 
 class GreaterIntegerConstraint: public TCLAP::Constraint<int>
 {
@@ -155,15 +155,15 @@ int main(int argc, char * argv[])
 			cmd,
 			false);
 
-		TCLAP::SwitchArg noGraphics("",
-			"nographics",
-			"Do not output graphic diagrams (d3 and circos).",
-			cmd,
-			false);
-
 		TCLAP::SwitchArg inRAM("r",
 			"inram",
 			"Perform all computations in RAM, don't create temp files.",
+			cmd,
+			false);
+
+		TCLAP::SwitchArg noBlocks("",
+			"noblocks",
+			"Do not compute synteny blocks",
 			cmd,
 			false);
 
@@ -238,15 +238,27 @@ int main(int argc, char * argv[])
 		std::string tempDir = tempFileDir.isSet() ? tempFileDir.getValue() : outFileDir.getValue();		
 		std::auto_ptr<SyntenyFinder::BlockFinder> finder(inRAM.isSet() ? new SyntenyFinder::BlockFinder(chrList) : new SyntenyFinder::BlockFinder(chrList, tempDir));
 		SyntenyFinder::Postprocessor processor(chrList, minBlockSize.getValue());
+
 		for(size_t i = 0; i < stage.size(); i++)
 		{
 			trimK = std::min(trimK, stage[i].first);
 			if(hierarchy || allStages)
 			{
-				finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
-				if(!noPostProcessing)
+				if(!noBlocks.isSet())
 				{
-					processor.GlueStripes(history[i]);
+					finder->GenerateSyntenyBlocks(stage[i].first, trimK, stage[i].first, history[i], sharedOnly.getValue());
+					if(!noPostProcessing)
+					{
+						processor.GlueStripes(history[i]);
+					}
+				}
+
+				if(graphFile.isSet())
+				{
+					std::stringstream ss;
+					ss << outFileDir.getValue() << "/de_bruijn_graph" << i << ".dot";
+					std::ofstream graph(ss.str(), std::ios::out);
+					finder->SerializeCondensedGraph(stage[i].first, graph, PutProgressChr);
 				}
 			}
 
@@ -258,17 +270,6 @@ int main(int argc, char * argv[])
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
 		size_t lastK = lastKValue.isSet() ? lastKValue.getValue() : std::min(stage.size() > 0 ? stage.back().first : INT_MAX, static_cast<int>(minBlockSize.getValue()));
-		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
-		if(!noPostProcessing)
-		{
-			processor.GlueStripes(history.back());
-		}
-
-		if(correctBoundaries)
-		{			
-			processor.ImproveBlockBoundaries(history.back(), referenceChrId);
-		}
-
 		bool oldFormat = !GFFFormatFlag.isSet();
 		SyntenyFinder::OutputGenerator generator(chrList);
 		SyntenyFinder::CreateOutDirectory(outFileDir.getValue());
@@ -278,34 +279,45 @@ int main(int argc, char * argv[])
 		const std::string defaultCoordsFile = outFileDir.getValue() + "/blocks_coords" + (oldFormat ? ".txt" : ".gff");
 		const std::string defaultPermutationsFile = outFileDir.getValue() + "/genomes_permutations.txt";
 		const std::string defaultCoverageReportFile = outFileDir.getValue() + "/coverage_report.txt";
-		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";
-		const std::string defaultGraphFile = outFileDir.getValue() + "/de_bruijn_graph.dot";
+		const std::string defaultSequencesFile = outFileDir.getValue() + "/blocks_sequences.fasta";		
 		const std::string defaultCircosDir = outFileDir.getValue() + "/circos";
 		const std::string defaultCircosFile = defaultCircosDir + "/circos.conf";
-		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";      		
-		if(allStages)
-		{			
-			for(size_t i = 0; i < history.size(); i++)
+		const std::string defaultD3File = outFileDir.getValue() + "/d3_blocks_diagram.html";
+
+		if(!noBlocks.isSet())
+		{
+			finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
+			if(!noPostProcessing)
 			{
-				std::stringstream file;
-				file << outFileDir.getValue() << "/blocks_coords" << i << (oldFormat ? ".txt" : ".gff");
-				coordsWriter(history[i], file.str());
+				processor.GlueStripes(history.back());
 			}
-		}
-		else
-		{
-			coordsWriter(history.back(), defaultCoordsFile);
-		}
 
-		generator.ListChromosomesAsPermutations(history.back(), defaultPermutationsFile);
-		generator.GenerateReport(history.back(), defaultCoverageReportFile);				
-		if(sequencesFile.isSet())
-		{
-			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
-		}
+			if(correctBoundaries)
+			{			
+				processor.ImproveBlockBoundaries(history.back(), referenceChrId);
+			}
 
-		if(!noGraphics.isSet())
-		{
+			if(allStages)
+			{			
+				for(size_t i = 0; i < history.size(); i++)
+				{
+					std::stringstream file;
+					file << outFileDir.getValue() << "/blocks_coords" << i << (oldFormat ? ".txt" : ".gff");
+					coordsWriter(history[i], file.str());
+				}
+			}
+			else
+			{
+				coordsWriter(history.back(), defaultCoordsFile);
+			}
+
+			generator.ListChromosomesAsPermutations(history.back(), defaultPermutationsFile);
+			generator.GenerateReport(history.back(), defaultCoverageReportFile);				
+			if(sequencesFile.isSet())
+			{
+				generator.ListBlocksSequences(history.back(), defaultSequencesFile);
+			}
+
 			generator.GenerateD3Output(history.back(), defaultD3File);
 			if(!hierarchy)
 			{
@@ -319,9 +331,17 @@ int main(int argc, char * argv[])
 
 		if(graphFile.isSet())
 		{
-			std::stringstream buffer;
-			finder->SerializeCondensedGraph(lastK, buffer, PutProgressChr);
-			generator.OutputBuffer(defaultGraphFile, buffer.str());
+			std::stringstream ss;
+			ss << outFileDir.getValue() << "/de_bruijn_graph";
+			if(allStages)
+			{			
+				ss << stage.size();
+			}
+
+			ss << ".dot";						
+			std::ofstream graph(ss.str(), std::ios::out);
+			finder->SerializeCondensedGraph(lastK, graph, PutProgressChr);
+			
 		}
 
 		std::cout.setf(std::cout.fixed);
