@@ -155,6 +155,12 @@ int main(int argc, char * argv[])
 			cmd,
 			false);
 
+		TCLAP::SwitchArg noGraphics("",
+			"nographics",
+			"Do not output graphic diagrams (d3 and circos).",
+			cmd,
+			false);
+
 		TCLAP::SwitchArg inRAM("r",
 			"inram",
 			"Perform all computations in RAM, don't create temp files.",
@@ -292,21 +298,24 @@ int main(int argc, char * argv[])
 		}
 
 		generator.ListChromosomesAsPermutations(history.back(), defaultPermutationsFile);
-		generator.GenerateReport(history.back(), defaultCoverageReportFile);		
-		generator.GenerateD3Output(history.back(), defaultD3File);
+		generator.GenerateReport(history.back(), defaultCoverageReportFile);				
 		if(sequencesFile.isSet())
 		{
 			generator.ListBlocksSequences(history.back(), defaultSequencesFile);
 		}
 
-		if(!hierarchy)
+		if(!noGraphics.isSet())
 		{
-			generator.GenerateCircosOutput(history.back(), defaultCircosFile, defaultCircosDir);
+			generator.GenerateD3Output(history.back(), defaultD3File);
+			if(!hierarchy)
+			{
+				generator.GenerateCircosOutput(history.back(), defaultCircosFile, defaultCircosDir);
+			}
+			else
+			{
+				generator.GenerateHierarchyCircosOutput(history, defaultCircosFile, defaultCircosDir);
+			}
 		}
-		else
-		{
-			generator.GenerateHierarchyCircosOutput(history, defaultCircosFile, defaultCircosDir);
-		}		
 
 		if(graphFile.isSet())
 		{
