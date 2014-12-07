@@ -257,7 +257,7 @@ int main(int argc, char * argv[])
 				{
 					std::stringstream ss;
 					ss << outFileDir.getValue() << "/de_bruijn_graph" << i << ".dot";
-					std::ofstream graph(ss.str(), std::ios::out);
+					std::ofstream graph(ss.str().c_str(), std::ios::out);
 					finder->SerializeCondensedGraph(stage[i].first, graph, PutProgressChr);
 				}
 			}
@@ -339,7 +339,7 @@ int main(int argc, char * argv[])
 			}
 
 			ss << ".dot";						
-			std::ofstream graph(ss.str(), std::ios::out);
+			std::ofstream graph(ss.str().c_str(), std::ios::out);
 			finder->SerializeCondensedGraph(lastK, graph, PutProgressChr);
 			
 		}
