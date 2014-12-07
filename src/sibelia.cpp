@@ -251,7 +251,7 @@ int main(int argc, char * argv[])
 
 		std::cout << "Finding synteny blocks and generating the output..." << std::endl;
 		trimK = std::min(trimK, static_cast<int>(minBlockSize.getValue()));
-		size_t lastK = lastKValue.isSet() ? lastKValue.getValue() : std::min(stage.back().first, static_cast<int>(minBlockSize.getValue()));
+		size_t lastK = lastKValue.isSet() ? lastKValue.getValue() : std::min(stage.size() > 0 ? stage.back().first : INT_MAX, static_cast<int>(minBlockSize.getValue()));
 		finder->GenerateSyntenyBlocks(lastK, trimK, minBlockSize.getValue(), history.back(), sharedOnly.getValue(), PutProgressChr);
 		if(!noPostProcessing)
 		{
