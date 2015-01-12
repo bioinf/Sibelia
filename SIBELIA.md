@@ -251,6 +251,19 @@ that this graph is generated for K = min(Kn, MinimumBlockSize) or for value of
 "--lastk" cmd parameter if it is set, where Kn is the value of K used for the
 last stage (see section "Fine tuning").
 
+If one is interested in graph output only, he or she can use the "--noblocks"
+option:
+
+	--noblocks
+
+In this case Sibelia doesn't compute the synteny blocks and doesn't ouput them,
+but can output the graph. For example, to get only non-modified compressed de
+Bruijn grahp for k=25, one can use the following command line:
+
+	Sibelia -k run.stage --noblocks -g -m 25 <input_file>
+
+Where "run.stage" contains single number "0".
+
 Fine tuning
 ===========
 Here we will describe parameters that can affect computation results.
