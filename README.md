@@ -59,9 +59,7 @@ Citation
 ========
 If you use "Sibelia" in your research, please cite:
 
-Ilya Minkin, Anand Patel, Mikhail Kolmogorov, Nikolay Vyahhi, Son Pham.
-"Sibelia: A scalable and comprehensive synteny block generation tool for
-closely related microbial genomes" (accepted at WABI 2013).
+Minkin, Ilya, Anand Patel, Mikhail Kolmogorov, Nikolay Vyahhi, and Son Pham. "Sibelia: a scalable and comprehensive synteny block generation tool for closely related microbial genomes." In Algorithms in Bioinformatics, pp. 215-229. Springer Berlin Heidelberg, 2013.
 
 License
 =======
