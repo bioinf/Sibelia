@@ -103,14 +103,23 @@ namespace SyntenyFinder
 				}
 			}
 		}
-
+			
 		std::sort(interest.begin(), interest.end());
 		interest.erase(std::unique(interest.begin(), interest.end()), interest.end());
+
+		{
+			std::stringstream ss;
+			ss << "investigate/img/dbg" << iterations << ".dot";
+			std::ofstream out(ss.str().c_str());
+			this->SerializeCondensedGraph(k, out, interest, sequence, bifStorage);
+		}
+
 		size_t threshold = (bifStorage.GetMaxId() * maxIterations) / PROGRESS_STRIDE;
 		bool interestAffected = false;
 		do
 		{
-			iterations++;			
+			iterations++;
+			totalBulges = 0;
 			for(size_t id = 0; id <= bifStorage.GetMaxId(); id++)
 			{
 				totalBulges += RemoveBulges(sequence, bifStorage, k, minBranchSize, id, interest, interestAffected);
@@ -125,7 +134,7 @@ namespace SyntenyFinder
 			if (interestAffected)
 			{
 				std::stringstream ss;
-				ss << "investigate/dbg" << iterations << ".dot";
+				ss << "investigate/img/dbg" << iterations << ".dot";
 				std::ofstream out(ss.str().c_str());
 				this->SerializeCondensedGraph(k, out, interest, sequence, bifStorage);
 			}
