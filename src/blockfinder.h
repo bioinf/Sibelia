@@ -41,6 +41,7 @@ namespace SyntenyFinder
 		BlockFinder(const std::vector<FASTARecord> & chrList, const std::string & tempDir);
 		void SerializeGraph(size_t k, std::ostream & out);
 		void SerializeCondensedGraph(size_t k, std::ostream & out, ProgressCallBack f = ProgressCallBack());
+		void SerializeCondensedGraph(size_t k, std::ostream & out, std::vector<size_t> & interest, DNASequence & sequence, BifurcationStorage & bifStorage, ProgressCallBack f = ProgressCallBack());
 		void GenerateSyntenyBlocks(size_t k, size_t trimK, size_t minSize, std::vector<BlockInstance> & block, bool sharedOnly = false, ProgressCallBack f = ProgressCallBack());
 		size_t PerformGraphSimplifications(size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());
 	private:
@@ -108,7 +109,7 @@ namespace SyntenyFinder
 		void SpellBulges(const DNASequence & sequence, size_t k, size_t bifStart, size_t bifEnd, const std::vector<StrandIterator> & startKMer, const std::vector<VisitData> & visitData);
 		
 		void Init(const std::vector<FASTARecord> & chrList);		
-		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId);		
+		size_t RemoveBulges(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId, const std::vector<size_t> & interest, bool & interestAffected);
 		void ListEdges(const DNASequence & sequence, const BifurcationStorage & bifStorage, size_t k, std::vector<Edge> & edge) const;
 		bool TrimBlocks(std::vector<Edge> & block, size_t trimK, size_t minSize);
 		size_t SimplifyGraph(DNASequence & sequence, BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t maxIterations, ProgressCallBack f = ProgressCallBack());

@@ -109,6 +109,33 @@ namespace SyntenyFinder
 		out << "}" << std::endl;
 	}
 
+	void BlockFinder::SerializeCondensedGraph(size_t k, std::ostream & out, std::vector<size_t> & interest, DNASequence & sequence, BifurcationStorage & bifStorage, ProgressCallBack f)
+	{		
+		out << "digraph G" << std::endl << "{" << std::endl;
+		out << "rankdir=LR" << std::endl;
+		std::vector<Edge> edge;
+		ListEdges(sequence, bifStorage, k, edge);
+		for(size_t i = 0; i < edge.size(); i++)
+		{
+			char buf[1 << 8];
+			std::string color = edge[i].GetDirection() == DNASequence::positive ? "blue" : "red";
+			int uchr = static_cast<int>(edge[i].GetChr());
+			int uorpos = static_cast<int>(edge[i].GetOriginalPosition());
+			int uorlength = static_cast<int>(edge[i].GetOriginalLength());
+			int upos = static_cast<int>(edge[i].GetActualPosition());
+			int ulength = static_cast<int>(edge[i].GetActualLength());
+			if(std::binary_search(interest.begin(), interest.end(), abs((long long)edge[i].GetStartVertex())) ||
+				std::binary_search(interest.begin(), interest.end(), abs((long long)edge[i].GetEndVertex())))
+			{
+				out << edge[i].GetStartVertex() << " -> " << edge[i].GetEndVertex();
+				sprintf(&buf[0], "[color=\"%s\", label=\"chr=%i pos=%i len=%i orpos=%i orlen=%i  ch='%c'\"];", color.c_str(), uchr, upos, ulength, uorpos, uorlength, edge[i].GetFirstChar());
+				out << " " << buf << std::endl;
+			}
+		}
+
+		out << "}" << std::endl;
+	}
+
 	void BlockFinder::SerializeGraph(size_t k, std::ostream & out)
 	{
 		DNASequence sequence(rawSeq_, originalPos_);

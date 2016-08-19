@@ -97,13 +97,20 @@ namespace SyntenyFinder
 		bool Overlap(size_t k,
 			const IteratorProxyVector & startKMer,
 			VisitData sourceData,
-			VisitData targetData)
+			VisitData targetData,
+			const BifurcationStorage & bifStorage,
+			const std::vector<size_t> & interest,
+			bool & affectsInterest)
 		{
 			std::vector<size_t> occur;
 			StrandIterator it = *startKMer[sourceData.kmerId];
 			for(size_t i = 0; i < sourceData.distance + k; i++, ++it)
 			{
 				occur.push_back(it.GetElementId());
+				if(std::binary_search(interest.begin(), interest.end(), bifStorage.GetBifurcation(it)))
+				{
+					affectsInterest = true;
+				}
 			}
 
 			it = *startKMer[targetData.kmerId];
@@ -113,6 +120,11 @@ namespace SyntenyFinder
 				if(std::binary_search(occur.begin(), occur.end(), it.GetElementId()))
 				{
 					return true;
+				}
+
+				if(std::binary_search(interest.begin(), interest.end(), bifStorage.GetBifurcation(it)))
+				{
+					affectsInterest = true;
 				}
 			}
 
@@ -328,7 +340,7 @@ namespace SyntenyFinder
 
 
 	size_t BlockFinder::RemoveBulges(DNASequence & sequence,
-		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId)
+		BifurcationStorage & bifStorage, size_t k, size_t minBranchSize, size_t bifId, const std::vector<size_t> & interest, bool & interestAffected)
 	{
 		size_t ret = 0;
 		IteratorProxyVector startKMer;
@@ -394,14 +406,16 @@ namespace SyntenyFinder
 							std::vector<BifurcationMark>::iterator vt = std::lower_bound(visit.begin(), visit.end(), BifurcationMark(nowBif, 0));
 							if(vt != visit.end() && vt->bifId == nowBif)
 							{
+								bool affectsInterest = false;
 								VisitData jdata(kmerJ, step);
-								VisitData idata(kmerI, vt->distance);
-								if(Overlap(k, startKMer, idata, jdata) || nowBif == bifId)
+								VisitData idata(kmerI, vt->distance);								
+								if(Overlap(k, startKMer, idata, jdata, bifStorage, interest, affectsInterest) || nowBif == bifId)
 								{
 									break;
 								}
 
 								++ret;
+								interestAffected = interestAffected || affectsInterest;
 								size_t imlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerI], idata.distance);
 								size_t jmlp = MaxBifurcationMultiplicity(bifStorage, *startKMer[kmerJ], jdata.distance);
 								bool iless = imlp > jmlp || (imlp == jmlp && idata.kmerId < jdata.kmerId);
