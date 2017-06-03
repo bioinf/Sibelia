@@ -1,3 +1,7 @@
+Sibelia 3.0.7
+============
+* Fixed a compilation error for newer versions of GCC
+
 Sibelia 3.0.6
 =============
 * Fixed a bug with crash when 0 simplificaiont stages specified

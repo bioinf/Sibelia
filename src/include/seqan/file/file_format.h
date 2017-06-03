@@ -151,26 +151,26 @@ public:
 	FileFormat const & operator =(FileFormat const &) { return *this; }
 
 	virtual void *
-	formatID_() const = 0;
+	formatID_() const;
 
 	virtual void
-	read_(TFile & file, TData & data) const = 0;
+	read_(TFile & file, TData & data) const;
 	virtual void
-	read_(TFile & file, TData & data, TSize limit) const = 0;
+	read_(TFile & file, TData & data, TSize limit) const;
 
 	virtual void
-	readMeta_(TFile & file, TMeta & meta) const = 0;
+	readMeta_(TFile & file, TMeta & meta) const;
 
 	virtual void
-	goNext_(TFile & file) const = 0;
+	goNext_(TFile & file) const;
 
 	virtual TSize
-	length_(TFile & file) const = 0;
+	length_(TFile & file) const ;
 
 	virtual void
-	write_(TFile & file, TData & data) const = 0;
+	write_(TFile & file, TData & data) const ;
 	virtual void
-	write_(TFile & file, TData & data, TMeta & meta) const = 0;
+	write_(TFile & file, TData & data, TMeta & meta) const ;
 
 };
 
