@@ -6,6 +6,7 @@
 
 extern vector<class Score*> scoreFunctions[1<<(UPSTRANDBITS+DOWNSTRANDBITS+RELPOSBITS)];
 
+using std::ifstream;
 
 float Score::getScore(Fragment *up, Fragment * down) {
 	long long int absSeq1,absSeq2,absDiagonal,absMin,absMax;

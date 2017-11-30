@@ -12,7 +12,17 @@
 #include <list>
 #include <string.h>
 
-using namespace std;
+//using namespace std;
+
+using std::pair;
+using std::max;
+using std::min;
+using std::list;
+using std::vector;
+using std::map;
+using std::multimap;
+using std::set;
+using std::multiset;
 
 #define RIGHT 0
 #define LEFT 1
