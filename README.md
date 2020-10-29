@@ -31,6 +31,9 @@ in this case you will get the alignments of repeats within genomes as well.
 It also contains a script for annotation of variants found by "C-Sibelia" using
 the "snpEff" tool.
 
+**Note that Sibelia does not support inputs larger than 1 GB. Please use [SibeliaZ and maf2synteny](https://github.com/medvedevgroup/SibeliaZ#building-synteny-blocks)
+to align and construct blocks for longer genomes**
+
 Installation
 ============
 See INSTALL.md file.
